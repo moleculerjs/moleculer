@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise = require("bluebird");
 const Validator = require("fastest-validator");
 const { ValidationError } = require("./errors");
 
@@ -37,23 +36,45 @@ class ParamValidator {
 	 *
 	 * @memberof ParamValidator
 	 */
-	middleware() {
-		return function validatorMiddleware(handler, action) {
-			// Wrap a param validator
-			if (action.params && typeof action.params === "object") {
-				const check = this.compile(action.params);
-				return function validateContextParams(ctx) {
-					const res = check(ctx.params);
-					if (res === true)
-						return handler(ctx);
-					else
-						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
-				};
-			}
-			return handler;
-		}.bind(this);
-	}
+	middleware(broker) {
+		const self = this;
+		return {
+			name: "Validator",
+			localAction: function validatorMiddleware(handler, action) {
+				// Wrap a param validator
+				if (action.params && typeof action.params === "object") {
+					const check = self.compile(action.params);
+					return function validateContextParams(ctx) {
+						let res = check(ctx.params != null ? ctx.params : {});
+						if (res === true)
+							return handler(ctx);
+						else {
+							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
+						}
+					};
+				}
+				return handler;
+			},
 
+			localEvent: function validatorMiddleware(handler, event) {
+				// Wrap a param validator
+				if (event.params && typeof event.params === "object") {
+					const check = self.compile(event.params);
+					return function validateContextParams(ctx) {
+						let res = check(ctx.params != null ? ctx.params : {});
+						if (res === true)
+							return handler(ctx);
+						else {
+							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, event: ctx.event.name }));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
+						}
+					};
+				}
+				return handler;
+			}
+		};
+	}
 }
 
 

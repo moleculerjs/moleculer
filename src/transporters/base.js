@@ -1,13 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
-const _				= require("lodash");
+const _	= require("lodash");
 const P = require("../packets");
 
 /**
@@ -79,7 +78,7 @@ class BaseTransporter {
 			return this.afterConnect(wasReconnect);
 		}
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -100,7 +99,7 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	makeSubscriptions(topics) {
-		return Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+		return this.broker.Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
 	}
 
 	/**
@@ -114,13 +113,21 @@ class BaseTransporter {
 	incomingMessage(cmd, msg) {
 		if (!msg) return;
 		try {
-			this.incStatReceived(msg.length);
 			const packet = this.deserialize(cmd, msg);
 			return this.messageHandler(cmd, packet);
 		} catch(err) {
 			this.logger.warn("Invalid incoming packet. Type:", cmd, err);
 			this.logger.debug("Content:", msg.toString ? msg.toString() : msg);
 		}
+	}
+
+	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(cmd, data) {
+		return this.incomingMessage(cmd, data);
 	}
 
 	/**
@@ -166,7 +173,7 @@ class BaseTransporter {
 	 */
 	unsubscribeFromBalancedCommands() {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -177,9 +184,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publish(/*packet*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publish(packet) {
+		const topic = this.getTopicName(packet.type, packet.target);
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet });
 	}
 
 	/**
@@ -191,9 +200,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publishBalancedEvent(packet, group) {
+		const topic = `${this.prefix}.${P.PACKET_EVENT}B.${group}.${packet.payload.event}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
 	}
 
 	/**
@@ -204,8 +215,23 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
+	publishBalancedRequest(packet) {
+		const topic = `${this.prefix}.${P.PACKET_REQUEST}B.${packet.payload.action}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
+	}
+
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(/*topic, data, meta*/) {
 		throw new Error("Not implemented!");
 	}
 
@@ -227,11 +253,11 @@ class BaseTransporter {
 	 * @memberof AmqpTransporter
 	 */
 	makeBalancedSubscriptions() {
-		if (!this.hasBuiltInBalancer) return Promise.resolve();
+		if (!this.hasBuiltInBalancer) return this.broker.Promise.resolve();
 
 		return this.unsubscribeFromBalancedCommands().then(() => {
 			const services = this.broker.getLocalNodeInfo().services;
-			return Promise.all(services.map(service => {
+			return this.broker.Promise.all(services.map(service => {
 				const p = [];
 
 				// Service actions queues
@@ -247,7 +273,7 @@ class BaseTransporter {
 					}));
 				}
 
-				return Promise.all(_.compact(_.flatten(p, true)));
+				return this.broker.Promise.all(_.compact(_.flatten(p, true)));
 			}));
 		});
 	}
@@ -261,7 +287,7 @@ class BaseTransporter {
 	 */
 	prepublish(packet) {
 		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
-			let groups = packet.payload.groups;
+			const groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
@@ -271,7 +297,7 @@ class BaseTransporter {
 					packet.payload.groups = [group];
 					this.publishBalancedEvent(packet, group);
 				});
-				return Promise.resolve();
+				return this.broker.Promise.resolve();
 			}
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)
@@ -313,20 +339,6 @@ class BaseTransporter {
 		const msg = this.broker.serializer.deserialize(buf, type);
 		return new P.Packet(type, null, msg);
 
-	}
-
-	incStatSent(len) {
-		if (len > 0) {
-			this.transit.stat.packets.sent.count++;
-			this.transit.stat.packets.sent.bytes += len;
-		}
-	}
-
-	incStatReceived(len) {
-		if (len > 0) {
-			this.transit.stat.packets.received.count++;
-			this.transit.stat.packets.received.bytes += len;
-		}
 	}
 }
 

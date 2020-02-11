@@ -1,24 +1,25 @@
 "use strict";
 
-const ServiceBroker = require("../../../../src/service-broker");
 const { protectReject } = require("../../utils");
 
-// const lolex = require("lolex");
-jest.mock("net");
-const net = require("net");
+// const lolex = require("@sinonjs/fake-timers");
+jest.mock("../../../../src/transporters/tcp/parser", () => {
+	return jest.fn().mockImplementation(() => {
+		let callbacks = {};
+		let parser = {
+			on: jest.fn((type, cb) => callbacks[type] = cb),
+			__callbacks: callbacks
+		};
 
-jest.mock("../../../../src/transporters/tcp/parser");
-
-let Parser = require("../../../../src/transporters/tcp/parser");
-Parser.mockImplementation(() => {
-	let callbacks = {};
-	let parser = {
-		on: jest.fn((type, cb) => callbacks[type] = cb),
-		__callbacks: callbacks
-	};
-
-	return parser;
+		return parser;
+	});
 });
+
+const ServiceBroker = require("../../../../src/service-broker");
+const broker = new ServiceBroker({ logger: false });
+
+const net = require("net");
+jest.mock("net");
 
 const TcpReader = require("../../../../src/transporters/tcp/tcp-reader");
 
@@ -26,7 +27,8 @@ describe("Test TcpReader constructor", () => {
 
 	it("check constructor", () => {
 		let transporter = {
-			logger: jest.fn()
+			logger: jest.fn(),
+			broker,
 		};
 		let opts = { port: 1234 };
 		let reader = new TcpReader(transporter, opts);
@@ -41,7 +43,6 @@ describe("Test TcpReader constructor", () => {
 });
 
 describe("Test TcpReader.listen", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter, reader;
 
 	let listenCb, serverErrorCb;
@@ -62,7 +63,8 @@ describe("Test TcpReader.listen", () => {
 			getNode: jest.fn(() => null),
 			getNodeAddress: jest.fn(() => "node-2-host"),
 			sendHello: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
+			logger: broker.logger,
+			broker,
 		};
 
 		reader = new TcpReader(transporter, { port: 1234 });
@@ -117,7 +119,6 @@ describe("Test TcpReader.listen", () => {
 });
 
 describe("Test TcpReader.onTcpClientConnected", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter, socket, reader;
 
 	beforeEach(() => {
@@ -125,7 +126,8 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 			getNode: jest.fn(() => null),
 			getNodeAddress: jest.fn(() => "node-2-host"),
 			sendHello: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		let socketCallbacks = {};
@@ -204,7 +206,6 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 
 
 describe("Test TcpReader.close", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter, reader;
 
 	beforeEach(() => {
@@ -212,18 +213,8 @@ describe("Test TcpReader.close", () => {
 			getNode: jest.fn(() => null),
 			getNodeAddress: jest.fn(() => "node-2-host"),
 			sendHello: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
-		};
-
-		reader = new TcpReader(transporter, {});
-	});
-
-	beforeEach(() => {
-		transporter = {
-			getNode: jest.fn(() => null),
-			getNodeAddress: jest.fn(() => "node-2-host"),
-			sendHello: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		reader = new TcpReader(transporter, { port: 1234 });

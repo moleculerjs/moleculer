@@ -15,7 +15,7 @@ let c = 0;
 broker.start().then(() => {
 	broker.repl();
 
-	/*setInterval(() => {
+	setInterval(() => {
 		broker.call("test.hello")
 			.then(res => broker.logger.info("Result:", res))
 			.catch(err => broker.logger.warn(err.message));
@@ -23,6 +23,6 @@ broker.start().then(() => {
 
 		broker.emit("test.event", ++c);
 	}, 1000);
-	*/
+
 
 });

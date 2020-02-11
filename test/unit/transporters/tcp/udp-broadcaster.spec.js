@@ -3,12 +3,12 @@
 const ServiceBroker = require("../../../../src/service-broker");
 const { protectReject } = require("../../utils");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const os = require("os");
 
-jest.mock("dgram");
 const dgram = require("dgram");
+jest.mock("dgram");
 
 const UdpServer = require("../../../../src/transporters/tcp/udp-broadcaster");
 

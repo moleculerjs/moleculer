@@ -1,16 +1,14 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise				 = require("bluebird");
 const { MoleculerError } 	 = require("../errors");
 const Transporter 			 = require("./base");
 const { BrokerOptionsError } = require("../errors");
-
 
 /**
  * Transporter for Redis
@@ -75,10 +73,10 @@ class RedisTransporter extends Transporter {
 				});
 			});
 
-			clientSub.on("messageBuffer", (topicBuf, buf) => {
-				const topic = topicBuf.toString();
-				const cmd = topic.split(".")[1];
-				this.incomingMessage(cmd, buf);
+			clientSub.on("messageBuffer", (rawTopic, buf) => {
+				const topic = rawTopic.toString().substring(this.prefix.length + 1);
+				const cmd = topic.split(".")[0];
+				this.receive(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -123,24 +121,24 @@ class RedisTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof RedisTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.clientPub) return Promise.reject(new MoleculerError("Redis Client is not available"));
+		if (!this.clientPub) return this.broker.Promise.reject(new MoleculerError("Redis Client is not available"));
 
-		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
-		return Promise.resolve();
+		this.clientPub.publish(topic, data);
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -155,7 +153,7 @@ class RedisTransporter extends Transporter {
 		let Redis;
 		try {
 			Redis = require("ioredis");
-			Redis.Promise = Promise;
+			Redis.Promise = this.broker.Promise;
 		} catch(err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);

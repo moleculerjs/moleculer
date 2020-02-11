@@ -28,7 +28,6 @@ class JoiValidator extends BaseValidator {
 let broker = new ServiceBroker({
 	logger: true,
 	transporter: "TCP",
-	validation: true,
 	validator: new JoiValidator
 });
 

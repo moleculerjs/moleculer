@@ -3,7 +3,7 @@ const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
 const { protectReject } = require("../utils");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 
 jest.mock("node-nats-streaming");
 

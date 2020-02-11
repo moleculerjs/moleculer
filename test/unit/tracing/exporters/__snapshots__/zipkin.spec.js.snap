@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Zipkin tracing exporter class Test makePayload should convert errored span to zipkin payload 1`] = `
+Object {
+  "annotations": Array [
+    Object {
+      "timestamp": 1000000,
+      "value": "sr",
+    },
+    Object {
+      "timestamp": 1050000,
+      "value": "ss",
+    },
+    Object {
+      "endpoint": Object {
+        "ipv4": "",
+        "port": 0,
+        "serviceName": "v1.posts",
+      },
+      "timestamp": 1050000,
+      "value": "error",
+    },
+  ],
+  "debug": false,
+  "duration": 50000,
+  "id": "spanid1234567890",
+  "kind": "CONSUMER",
+  "localEndpoint": Object {
+    "serviceName": "v1.posts",
+  },
+  "name": "Test Span",
+  "parentId": "parentid12345678",
+  "remoteEndpoint": Object {
+    "serviceName": "v1.posts",
+  },
+  "shared": true,
+  "tags": Object {
+    "a": "5",
+    "b": "John",
+    "c": "true",
+    "d": "null",
+    "def": "ault",
+    "error": "Something happened",
+    "error.code": "512",
+    "error.data.a": "5",
+    "error.message": "Something happened",
+    "error.name": "MoleculerRetryableError",
+    "error.retryable": "true",
+    "service": "v1.posts",
+    "span.type": "action",
+  },
+  "timestamp": 1000000,
+  "traceId": "traceid123456789",
+}
+`;
+
+exports[`Test Zipkin tracing exporter class Test makePayload should convert normal span to zipkin payload 1`] = `
+Object {
+  "annotations": Array [
+    Object {
+      "timestamp": 1000000,
+      "value": "sr",
+    },
+    Object {
+      "timestamp": 1050000,
+      "value": "ss",
+    },
+  ],
+  "debug": false,
+  "duration": 50000,
+  "id": "spanid1234567890",
+  "kind": "CONSUMER",
+  "localEndpoint": Object {
+    "serviceName": "v1.posts",
+  },
+  "name": "Test Span",
+  "parentId": "parentid12345678",
+  "remoteEndpoint": Object {
+    "serviceName": "v1.posts",
+  },
+  "shared": true,
+  "tags": Object {
+    "a": "5",
+    "b": "John",
+    "c": "true",
+    "d": "null",
+    "def": "ault",
+    "service": "v1.posts",
+    "span.type": "custom",
+  },
+  "timestamp": 1000000,
+  "traceId": "traceid123456789",
+}
+`;

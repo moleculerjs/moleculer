@@ -25,8 +25,8 @@ async function start() {
 
     broker.repl();
 
-    setInterval(() => {
-        broker.emit('config.site.test.changed', {data: 123})
+    setInterval(async () => {
+        await broker.emit('config.site.test.changed', {data: 123})
     }, 1000)
 }
 

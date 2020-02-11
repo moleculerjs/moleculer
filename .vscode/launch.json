@@ -10,7 +10,10 @@
 			"name": "Launch dev",
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
-			"args": ["event-wildcard"]
+			"args": [
+				"${fileBasenameNoExtension}"
+				//"hot"
+			],
 		},
 		{
 			"type": "node",
@@ -52,15 +55,14 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}/benchmark/index.js",
-			"args": ["cachers"],
+			"args": ["common"],
 			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch perf",
-			"program": "${workspaceRoot}/benchmark/perf-runner.js",
-			"cwd": "${workspaceRoot}/benchmark"
+			"program": "${workspaceRoot}/benchmark/perf-runner.js"
 		},
 		{
 			"type": "node",
@@ -75,15 +77,14 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Jest transporter",
+			"name": "Jest single",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "--testMatch", "**/transporters/**/**spc.js"],
-			"cwd": "${workspaceRoot}",
+			"args": ["--runInBand", "${fileBasenameNoExtension}"],
 			"console": "internalConsole",
-			"runtimeArgs": ["--nolazy"],
-			"env": {
-				"AMQP_URI": "amqp://192.168.51.29:5672"
-			}
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+                "--nolazy"
+            ]
 		},
 		{
 			"type": "node",
@@ -103,20 +104,27 @@
 			"request": "launch",
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
-			"cwd": "${workspaceRoot}",
+			"cwd": "${workspaceRoot}/examples/runner",
 			"env": {
 				"NAMESPACE": "test",
-				"MOLECULER_NAMESPACE": "long",
-				"MOLECULER_LOG_LEVEL": "debug",
-				"MOLECULER_REGISTRY__STRATEGY": "random"
+				"MOL_NAMESPACE": "long",
+				"MOL_LOG_LEVEL": "debug",
+				"MOL_REGISTRY__STRATEGY": "random",
+				"MOL_CACHER__OPTIONS__PREFIX": "MOL"
 			},
-			"args": []
+			"args": [
+				"--hot",
+				"--repl",
+				"-c",
+				"moleculer.config.async.js",
+				"svc/"
+			]
 		},
 		{
 			"type": "node",
 			"request": "attach",
-			"name": "Attach to Process",
-			"port": 5858
-		}
+			"name": "Attach by Process ID",
+			"processId": "${command:PickProcess}"
+		},
 	]
 }

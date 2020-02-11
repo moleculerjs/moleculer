@@ -1,7 +1,7 @@
 "use strict";
 
 let _ = require("lodash");
-let chalk = require("chalk");
+let kleur = require("kleur");
 
 let ServiceBroker = require("../../src/service-broker");
 let { MoleculerError } = require("../../src/errors");
@@ -25,7 +25,7 @@ broker.createService({
 	actions: {
 		add(ctx) {
 			// if (_.random(100) > 90) {
-			// 	this.logger.info(chalk.bold.red("Throw random error..."));
+			// 	this.logger.info(kleur.bold.red("Throw random error..."));
 			// 	throw new MoleculerError("Random error!", 510);
 			// }
 

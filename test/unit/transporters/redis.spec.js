@@ -6,7 +6,8 @@ const { BrokerOptionsError } = require("../../../src/errors");
 
 jest.mock("ioredis");
 
-let Redis = require("ioredis");
+const Redis = require("ioredis");
+
 Redis.mockImplementation(() => {
 	let onCallbacks = {};
 	return {
@@ -223,7 +224,7 @@ function itShouldTestRedisTransportPublishSubscribe(clusterMode = false) {
 	it("check incoming message handler", () => {
 		// Test subscribe callback
 		const buf = Buffer.from("incoming data");
-		transporter.clientSub.onCallbacks.messageBuffer("prefix.event", buf);
+		transporter.clientSub.onCallbacks.messageBuffer("MOL-TEST.event", buf);
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", buf);
 	});

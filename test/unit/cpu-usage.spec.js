@@ -1,7 +1,6 @@
 "use strict";
 
 const os = require("os");
-jest.mock("os");
 jest.useFakeTimers();
 
 const getCpuUsage = require("../../src/cpu-usage");
@@ -37,7 +36,6 @@ describe("getCpuUsage", () => {
 				}
 			}]);
 
-
 		const result = getCpuUsage(100);
 		jest.runAllTimers();
 		return expect(result).resolves.toEqual({ avg: 70, usages: [70] });
@@ -48,6 +46,6 @@ describe("getCpuUsage", () => {
 
 		const result = getCpuUsage(100);
 		jest.runAllTimers();
-		return expect(result).rejects.toBeUndefined();
+		return expect(result).rejects.toBeInstanceOf(Error);
 	});
 });

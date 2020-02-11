@@ -148,7 +148,7 @@ describe("Test local call", () => {
 	});
 
 	it("should create a sub context of parent context", () => {
-		let parentCtx = new Context();
+		let parentCtx = new Context(broker);
 		parentCtx.params = {
 			a: 5,
 			b: 2
@@ -165,7 +165,7 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		parentCtx.metrics = true;
+		parentCtx.tracing = true;
 		parentCtx.requestID = "12345";
 
 		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
@@ -173,7 +173,7 @@ describe("Test local call", () => {
 			expect(ctx.params).toBe(params);
 			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"], status: true, verified: true });
 			expect(ctx.level).toBe(2);
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 			expect(ctx.parentID).toBe(parentCtx.id);
 			expect(ctx.requestID).toBe("12345");
 		});
@@ -194,13 +194,13 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		ctx.metrics = true;
+		ctx.tracing = true;
 		ctx.requestID = "12345";
 
 		return ctx.call("posts.export", {}, { meta }).then(newCtx => {
 			expect(newCtx.id).not.toBe(ctx.id);
 			expect(newCtx.level).toBe(2);
-			expect(newCtx.metrics).toBe(true);
+			expect(newCtx.tracing).toBe(true);
 			expect(newCtx.parentID).toBe(ctx.id);
 			expect(newCtx.requestID).toBe("12345");
 
@@ -331,4 +331,45 @@ describe("Test cachers", () => {
 	});
 
 });
+/*
+describe("Test async current Context store", () => {
 
+	let broker = new ServiceBroker({
+		logger: false
+	});
+
+	broker.createService({
+		name: "user",
+		actions: {
+			save() {
+				return this.Promise.resolve()
+					.then(() => this.saveUser());
+			}
+		},
+
+		methods: {
+			saveUser() {
+				const ctx = this.broker.getCurrentContext();
+				return Object.assign(ctx.params, { id: 5 });
+			}
+		}
+	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
+	it("should find context in method", () => {
+		const params = { name: "John", age: 33 };
+
+		return broker.call("user.save", params).catch(protectReject).then(res => {
+			expect(res).toEqual({
+				id: 5,
+				name: "John",
+				age: 33
+			});
+		});
+	});
+
+});
+
+*/

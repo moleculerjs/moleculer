@@ -6,18 +6,20 @@ const E = require("../../../../src/errors");
 const { protectReject } = require("../../utils");
 const C = require("../../../../src/transporters/tcp/constants");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
+const net = require("net");
 jest.mock("net");
 
-const net = require("net");
-
 const TcpWriter = require("../../../../src/transporters/tcp/tcp-writer");
+
+const broker = new ServiceBroker({ logger: false });
 
 describe("Test TcpWriter constructor", () => {
 
 	it("check constructor", () => {
 		let transporter = {
-			logger: jest.fn()
+			logger: jest.fn(),
+			broker
 		};
 		let opts = { port: 1234 };
 		let writer = new TcpWriter(transporter, opts);
@@ -32,7 +34,6 @@ describe("Test TcpWriter constructor", () => {
 });
 
 describe("Test TcpWriter.send", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter, writer;
 	let node = {
 		id: "node-2",
@@ -47,7 +48,8 @@ describe("Test TcpWriter.send", () => {
 	beforeEach(() => {
 		transporter = {
 			connect: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		writer = new TcpWriter(transporter, {});
@@ -55,9 +57,9 @@ describe("Test TcpWriter.send", () => {
 	});
 
 	it("should call connect if no socket", () => {
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(() => {
+		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).then(() => {
 			expect(writer.connect).toHaveBeenCalledTimes(1);
-			expect(writer.connect).toHaveBeenCalledWith(node);
+			expect(writer.connect).toHaveBeenCalledWith(node.id);
 			expect(socket.lastUsed).toBeDefined();
 		});
 	});
@@ -116,7 +118,8 @@ describe("Test TcpWriter.connect", () => {
 			getNode: jest.fn(() => null),
 			getNodeAddress: jest.fn(() => "node-2-host"),
 			sendHello: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		writer = new TcpWriter(transporter, {});
@@ -244,7 +247,8 @@ describe("Test TcpWriter.manageConnections", () => {
 
 	beforeEach(() => {
 		transporter = {
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 	});
@@ -284,9 +288,9 @@ describe("Test TcpWriter.manageConnections", () => {
 });
 
 describe("Test TcpWriter.addSocket & removeSocket", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter = {
-		logger: broker.logger
+		logger: broker.logger,
+		broker
 	};
 	const writer = new TcpWriter(transporter);
 
@@ -362,9 +366,9 @@ describe("Test TcpWriter.addSocket & removeSocket", () => {
 
 
 describe("Test TcpWriter.close", () => {
-	const broker = new ServiceBroker({ logger: false });
 	let transporter = {
-		logger: broker.logger
+		logger: broker.logger,
+		broker
 	};
 	const writer = new TcpWriter(transporter);
 

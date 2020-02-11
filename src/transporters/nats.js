@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const {
 	PACKET_REQUEST,
@@ -58,7 +57,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Nats;
 			try {
 				Nats = require("nats");
@@ -127,18 +126,6 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * Reconnect to server after x seconds
-	 *
-	 * @memberof BaseTransporter
-	 */
-	/*reconnectAfterTime() {
-		//this.logger.info("Reconnecting after 5 sec...");
-		setTimeout(() => {
-			this.connect();
-		}, 5 * 1000);
-	}*/
-
-	/**
 	 * Subscribe to a command
 	 *
 	 * @param {String} cmd
@@ -149,9 +136,9 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		this.client.subscribe(t, msg => this.incomingMessage(cmd, msg));
+		this.client.subscribe(t, msg => this.receive(cmd, msg));
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -164,7 +151,7 @@ class NatsTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const queue = action;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.incomingMessage(PACKET_REQUEST, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.receive(PACKET_REQUEST, msg)));
 	}
 
 	/**
@@ -177,7 +164,7 @@ class NatsTransporter extends Transporter {
 	subscribeBalancedEvent(event, group) {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*.*$/g, ">");
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.incomingMessage(PACKET_EVENT, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.receive(PACKET_EVENT, msg)));
 	}
 
 	/**
@@ -186,7 +173,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof BaseTransporter
 	 */
 	unsubscribeFromBalancedCommands() {
-		return new Promise(resolve => {
+		return new this.broker.Promise(resolve => {
 			this.subscriptions.forEach(uid => this.client.unsubscribe(uid));
 			this.subscriptions = [];
 
@@ -195,66 +182,22 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof NatsTransporter
-	 */
-	publish(packet) {
-		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
-
-		return new Promise(resolve => {
-			let topic = this.getTopicName(packet.type, packet.target);
-			const data = this.serialize(packet);
-
-			this.incStatSent(data.length);
-			this.client.publish(topic, data, resolve);
-		});
-	}
-
-	/**
-	 * Publish a balanced EVENT packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @param {String} group
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
 	 */
-	publishBalancedEvent(packet, group) {
+	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
+		if (!this.client) return this.broker.Promise.resolve();
 
-		return new Promise(resolve => {
-			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const data = this.serialize(packet);
-
-			this.incStatSent(data.length);
+		return new this.broker.Promise(resolve => {
 			this.client.publish(topic, data, resolve);
 		});
 	}
-
-	/**
-	 * Publish a balanced REQ packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @returns {Promise}
-	 * @memberof AmqpTransporter
-	 */
-	publishBalancedRequest(packet) {
-		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
-
-		return new Promise(resolve => {
-			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const data = this.serialize(packet);
-
-			this.incStatSent(data.length);
-			this.client.publish(topic, data, resolve);
-		});
-	}
-
 }
 
 module.exports = NatsTransporter;

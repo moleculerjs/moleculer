@@ -1,9 +1,8 @@
-let _ = require("lodash");
-let fakerator = require("fakerator")();
-let { ValidationError } = require("../../src/errors");
-const Promise = require("bluebird");
+const _ = require("lodash");
+const fakerator = require("fakerator")();
+const { ValidationError } = require("../../src/errors");
 
-let { delay } = require("../../src/utils");
+const { delay } = require("../../src/utils");
 
 let users = fakerator.times(fakerator.entity.user, 10);
 

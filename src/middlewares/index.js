@@ -1,19 +1,37 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-module.exports = {
+const Middlewares = {
 	ActionHook: require("./action-hook"),
-	CircuitBreaker: require("./circuit-breaker"),
-	Metrics: require("./metrics"),
-	Retry: require("./retry"),
-	Timeout: require("./timeout"),
-	ContextTracker: require("./context-tracker"),
 	Bulkhead: require("./bulkhead"),
+	ContextTracker: require("./context-tracker"),
+	CircuitBreaker: require("./circuit-breaker"),
+	Timeout: require("./timeout"),
+	Retry: require("./retry"),
 	Fallback: require("./fallback"),
 	ErrorHandler: require("./error-handler"),
+	Metrics: require("./metrics"),
+	Tracing: require("./tracing"),
+
+	Debounce: require("./debounce"),
+	Throttle: require("./throttle"),
+
+	HotReload: require("./hot-reload"),
+
+	Transmit: {
+		Encryption: require("./transmit/encryption"),
+		Compression: require("./transmit/compression")
+	},
+
+	Debugging: {
+		TransitLogger: require("./debugging/transit-logger"),
+		ActionLogger: require("./debugging/action-logger"),
+	}
 };
+
+module.exports = Middlewares;

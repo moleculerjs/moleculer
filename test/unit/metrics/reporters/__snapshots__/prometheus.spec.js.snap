@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Prometheus Reporter class Test generatePrometheusResponse method should call generatePrometheusResponse method but not fetch 1`] = `
+"# HELP test_info Test Info Metric
+# TYPE test_info gauge
+test_info{a=\\"5\\",value=\\"Test Value\\"} 1
+
+# HELP test_counter Test Counter Metric
+# TYPE test_counter counter
+test_counter{a=\\"5\\"} 5
+test_counter{a=\\"5\\",action=\\"posts\\\\\\\\comments\\"} 8
+
+# HELP test_gauge_total Test Gauge Metric
+# TYPE test_gauge_total gauge
+test_gauge_total{a=\\"5\\",action=\\"users-\\\\\\"John\\\\\\"\\"} 2
+test_gauge_total_rate{a=\\"5\\",action=\\"users-\\\\\\"John\\\\\\"\\"} 6
+test_gauge_total{a=\\"5\\",action=\\"posts\\"} NaN
+
+# HELP test_histogram test.histogram (bytes)
+# TYPE test_histogram histogram
+test_histogram_bucket{a=\\"5\\",le=\\"1\\"} 0
+test_histogram_bucket{a=\\"5\\",le=\\"5\\"} 2
+test_histogram_bucket{a=\\"5\\",le=\\"10\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"25\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"50\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"100\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"250\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"500\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"1000\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"2500\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"5000\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"10000\\"} 4
+test_histogram_bucket{a=\\"5\\",le=\\"+Inf\\"} 4
+test_histogram{a=\\"5\\",quantile=\\"0.5\\"} 2
+test_histogram{a=\\"5\\",quantile=\\"0.9\\"} 8
+test_histogram{a=\\"5\\",quantile=\\"0.95\\"} 8
+test_histogram{a=\\"5\\",quantile=\\"0.99\\"} 8
+test_histogram{a=\\"5\\",quantile=\\"0.999\\"} 8
+test_histogram_sum{a=\\"5\\"} 18
+test_histogram_count{a=\\"5\\"} 4
+test_histogram_min{a=\\"5\\"} 2
+test_histogram_mean{a=\\"5\\"} 4.5
+test_histogram_variance{a=\\"5\\"} 9
+test_histogram_stddev{a=\\"5\\"} 3
+test_histogram_max{a=\\"5\\"} 8
+test_histogram_rate{a=\\"5\\"} 12
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"1\\"} 1
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"5\\"} 2
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"10\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"25\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"50\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"100\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"250\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"500\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"1000\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"2500\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"5000\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"10000\\"} 3
+test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"+Inf\\"} 3
+test_histogram{a=\\"5\\",action=\\"auth\\",quantile=\\"0.5\\"} 3
+test_histogram{a=\\"5\\",action=\\"auth\\",quantile=\\"0.9\\"} 7
+test_histogram{a=\\"5\\",action=\\"auth\\",quantile=\\"0.95\\"} 7
+test_histogram{a=\\"5\\",action=\\"auth\\",quantile=\\"0.99\\"} 7
+test_histogram{a=\\"5\\",action=\\"auth\\",quantile=\\"0.999\\"} 7
+test_histogram_sum{a=\\"5\\",action=\\"auth\\"} 11
+test_histogram_count{a=\\"5\\",action=\\"auth\\"} 3
+test_histogram_min{a=\\"5\\",action=\\"auth\\"} 1
+test_histogram_mean{a=\\"5\\",action=\\"auth\\"} 3.6666666666666665
+test_histogram_variance{a=\\"5\\",action=\\"auth\\"} 9.333333333333334
+test_histogram_stddev{a=\\"5\\",action=\\"auth\\"} 3.0550504633038935
+test_histogram_max{a=\\"5\\",action=\\"auth\\"} 7
+test_histogram_rate{a=\\"5\\",action=\\"auth\\"} 9
+"
+`;

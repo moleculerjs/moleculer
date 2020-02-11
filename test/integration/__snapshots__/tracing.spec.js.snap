@@ -1,0 +1,521 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Tracing feature with actions should generate action spans 1`] = `
+Array [
+  Object {
+    "author": Object {
+      "friends": 6,
+      "id": 3,
+      "name": "Hank Schrader",
+    },
+    "id": 1,
+    "title": "Post 1",
+  },
+  Object {
+    "author": Object {
+      "friends": 2,
+      "id": 1,
+      "name": "Walter White",
+    },
+    "id": 2,
+    "title": "Post 2",
+  },
+  Object {
+    "author": Object {
+      "friends": 4,
+      "id": 2,
+      "name": "Jesse Pinkman",
+    },
+    "id": 3,
+    "title": "Post 3",
+  },
+]
+`;
+
+exports[`Test Tracing feature with actions should generate action spans 2`] = `
+Array [
+  Object {
+    "error": null,
+    "id": "broker-1-1",
+    "logs": Array [],
+    "name": "action 'posts.list'",
+    "parentID": null,
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "posts",
+      "name": "posts",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "posts.list",
+        "rawName": "list",
+      },
+      "callerNodeID": "broker-1",
+      "callingLevel": 1,
+      "fromCache": false,
+      "nodeID": "broker-1",
+      "options": Object {},
+      "params": null,
+      "remoteCall": false,
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-2",
+    "logs": Array [],
+    "name": "Get user by ID: 3",
+    "parentID": "broker-1-1",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "users.get",
+        "rawName": "get",
+      },
+      "callerNodeID": "broker-1",
+      "callingLevel": 2,
+      "fromCache": false,
+      "nodeID": "broker-2",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 3,
+      },
+      "remoteCall": true,
+      "response": Object {
+        "name": "Hank Schrader",
+      },
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-4",
+    "logs": Array [],
+    "name": "cloning",
+    "parentID": "broker-1-2",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "userID": 3,
+    },
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-9",
+    "logs": Array [],
+    "name": "action 'friends.count'",
+    "parentID": "broker-1-2",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "friends",
+      "name": "friends",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "friends.count",
+        "rawName": "count",
+      },
+      "callerNodeID": "broker-2",
+      "callingLevel": 3,
+      "fromCache": false,
+      "meta": Object {
+        "user": Object {
+          "name": "Superuser",
+        },
+      },
+      "nodeID": "broker-3",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 3,
+      },
+      "remoteCall": true,
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-11",
+    "logs": Array [],
+    "name": "Get user by ID: 1",
+    "parentID": "broker-1-1",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "users.get",
+        "rawName": "get",
+      },
+      "callerNodeID": "broker-1",
+      "callingLevel": 2,
+      "fromCache": false,
+      "nodeID": "broker-2",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 1,
+      },
+      "remoteCall": true,
+      "response": Object {
+        "name": "Walter White",
+      },
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-13",
+    "logs": Array [],
+    "name": "cloning",
+    "parentID": "broker-1-11",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "userID": 1,
+    },
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-18",
+    "logs": Array [],
+    "name": "action 'friends.count'",
+    "parentID": "broker-1-11",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "friends",
+      "name": "friends",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "friends.count",
+        "rawName": "count",
+      },
+      "callerNodeID": "broker-2",
+      "callingLevel": 3,
+      "fromCache": false,
+      "meta": Object {
+        "user": Object {
+          "name": "Superuser",
+        },
+      },
+      "nodeID": "broker-3",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 1,
+      },
+      "remoteCall": true,
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-20",
+    "logs": Array [],
+    "name": "Get user by ID: 2",
+    "parentID": "broker-1-1",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "users.get",
+        "rawName": "get",
+      },
+      "callerNodeID": "broker-1",
+      "callingLevel": 2,
+      "fromCache": false,
+      "nodeID": "broker-2",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 2,
+      },
+      "remoteCall": true,
+      "response": Object {
+        "name": "Jesse Pinkman",
+      },
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-22",
+    "logs": Array [],
+    "name": "cloning",
+    "parentID": "broker-1-20",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "userID": 2,
+    },
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-27",
+    "logs": Array [],
+    "name": "action 'friends.count'",
+    "parentID": "broker-1-20",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "friends",
+      "name": "friends",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "friends.count",
+        "rawName": "count",
+      },
+      "callerNodeID": "broker-2",
+      "callingLevel": 3,
+      "fromCache": false,
+      "meta": Object {
+        "user": Object {
+          "name": "Superuser",
+        },
+      },
+      "nodeID": "broker-3",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "id": 2,
+      },
+      "remoteCall": true,
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+]
+`;
+
+exports[`Test Tracing feature with actions should generate event spans 1`] = `
+Array [
+  Object {
+    "error": null,
+    "id": "broker-1-2",
+    "logs": Array [],
+    "name": "event 'comments.removed' in 'posts'",
+    "parentID": null,
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "posts",
+      "name": "posts",
+    },
+    "tags": Object {
+      "callerNodeID": "broker-1",
+      "callingLevel": 1,
+      "event": Object {
+        "name": "comments.removed",
+      },
+      "eventName": "comments.removed",
+      "eventType": "emit",
+      "nodeID": "broker-1",
+      "params": null,
+      "remoteCall": false,
+    },
+    "traceID": "broker-1-1",
+    "type": "event",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-3",
+    "logs": Array [],
+    "name": "update posts",
+    "parentID": "broker-1-2",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "posts",
+      "name": "posts",
+    },
+    "tags": Object {},
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-6",
+    "logs": Array [
+      Object {
+        "fields": Object {
+          "a": 5,
+        },
+        "name": "some changes",
+      },
+    ],
+    "name": "event 'post.updated' in 'posts'",
+    "parentID": "broker-1-3",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "posts",
+      "name": "posts",
+    },
+    "tags": Object {
+      "callerNodeID": "broker-1",
+      "callingLevel": 2,
+      "event": Object {
+        "name": "post.updated",
+      },
+      "eventName": "post.updated",
+      "eventType": "broadcastLocal",
+      "nodeID": "broker-1",
+      "params": null,
+      "remoteCall": false,
+    },
+    "traceID": "broker-1-1",
+    "type": "event",
+  },
+  Object {
+    "error": null,
+    "id": "broker-1-11",
+    "logs": Array [],
+    "name": "update others",
+    "parentID": "broker-1-2",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "posts",
+      "name": "posts",
+    },
+    "tags": Object {},
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-15",
+    "logs": Array [],
+    "name": "User updated event",
+    "parentID": "broker-1-11",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {
+      "callerNodeID": "broker-1",
+      "callingLevel": 2,
+      "event": Object {
+        "name": "user.updated",
+      },
+      "eventName": "user.updated",
+      "eventType": "broadcast",
+      "nodeID": "broker-2",
+      "params": null,
+      "remoteCall": true,
+    },
+    "traceID": "broker-1-1",
+    "type": "event",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-16",
+    "logs": Array [],
+    "name": "updating user",
+    "parentID": "broker-2-15",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "users",
+      "name": "users",
+    },
+    "tags": Object {},
+    "traceID": "broker-1-1",
+    "type": "custom",
+  },
+  Object {
+    "error": null,
+    "id": "broker-2-17",
+    "logs": Array [],
+    "name": "action 'friends.count'",
+    "parentID": "broker-2-16",
+    "priority": 5,
+    "sampled": true,
+    "service": Object {
+      "fullName": "friends",
+      "name": "friends",
+    },
+    "tags": Object {
+      "action": Object {
+        "name": "friends.count",
+        "rawName": "count",
+      },
+      "callerNodeID": "broker-2",
+      "callingLevel": 3,
+      "fromCache": false,
+      "meta": Object {
+        "user": Object {
+          "name": "Superuser",
+        },
+      },
+      "nodeID": "broker-3",
+      "options": Object {
+        "retries": null,
+        "timeout": 0,
+      },
+      "params": Object {
+        "userID": 2,
+      },
+      "remoteCall": true,
+    },
+    "traceID": "broker-1-1",
+    "type": "action",
+  },
+]
+`;

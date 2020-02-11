@@ -7,7 +7,6 @@
 "use strict";
 
 const url = require("url");
-const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const { isPromise }	= require("../utils");
 
@@ -74,11 +73,15 @@ class AmqpTransporter extends Transporter {
 		if (typeof opts.consumeOptions !== "object")
 			opts.consumeOptions = {};
 
+		// The default behavior is to delete the queues after they haven't had any
+		// connected consumers for 2 minutes.
+		const autoDeleteQueuesAfterDefault = 2*60*1000;
+
 		opts.autoDeleteQueues =
-			opts.autoDeleteQueues === true ? 2*60*1000 :
+			opts.autoDeleteQueues === true ? autoDeleteQueuesAfterDefault :
 				typeof opts.autoDeleteQueues === "number" ? opts.autoDeleteQueues :
 					opts.autoDeleteQueues === false ? -1 :
-						-1; // Eventually we could change default
+						autoDeleteQueuesAfterDefault;
 
 		// Support for multiple URLs (clusters)
 		opts.url = Array.isArray(opts.url)
@@ -104,7 +107,7 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	connect(errorCallback) {
-		return new Promise((_resolve, _reject) => {
+		return new this.broker.Promise((_resolve, _reject) => {
 			let _isResolved = false;
 			const resolve = () => {
 				_isResolved = true;
@@ -226,7 +229,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.connection && this.channel && this.bindings) {
-			return Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
+			return this.broker.Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
 				.then(() => {
 					this.channelDisconnecting = this.transit.disconnecting;
 					this.connectionDisconnecting = this.transit.disconnecting;
@@ -306,7 +309,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	_consumeCB(cmd, needAck = false) {
 		return (msg) => {
-			const result = this.incomingMessage(cmd, msg.content);
+			const result = this.receive(cmd, msg.content);
 
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
@@ -387,11 +390,11 @@ class AmqpTransporter extends Transporter {
 			const bindingArgs = [queueName, topic, ""];
 			this.bindings.push(bindingArgs);
 
-			return Promise.all([
+			return this.broker.Promise.all([
 				this.channel.assertExchange(topic, "fanout", this.opts.exchangeOptions),
 				this.channel.assertQueue(queueName, this._getQueueOptions(cmd)),
 			])
-				.then(() => Promise.all([
+				.then(() => this.broker.Promise.all([
 					this.channel.bindQueue(...bindingArgs),
 					this.channel.consume(
 						queueName,
@@ -436,68 +439,25 @@ class AmqpTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof AmqpTransporter
-	 * @description Send packets to their intended queues / exchanges.
-	 *
-	 * Reasonings documented in the subscribe method.
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data, { balanced, packet }) {
 		/* istanbul ignore next*/
-		if (!this.channel) return Promise.resolve();
+		if (!this.channel) return this.broker.Promise.resolve();
 
-		let topic = this.getTopicName(packet.type, packet.target);
-		const data = this.serialize(packet);
-
-		this.incStatSent(data.length);
-		if (packet.target != null) {
+		if (packet.target != null || balanced) {
 			this.channel.sendToQueue(topic, data, this.opts.messageOptions);
 		} else {
 			this.channel.publish(topic, "", data, this.opts.messageOptions);
 		}
 
-		return Promise.resolve();
-	}
-
-	/**
-	 * Publish a balanced EVENT packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @param {String} group
-	 * @returns {Promise}
-	 * @memberof AmqpTransporter
-	 */
-	publishBalancedEvent(packet, group) {
-		/* istanbul ignore next*/
-		if (!this.channel) return Promise.resolve();
-
-		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-		this.channel.sendToQueue(queue, data, this.opts.messageOptions);
-		return Promise.resolve();
-	}
-
-	/**
-	 * Publish a balanced REQ packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @returns {Promise}
-	 * @memberof AmqpTransporter
-	 */
-	publishBalancedRequest(packet) {
-		/* istanbul ignore next*/
-		if (!this.channel) return Promise.resolve();
-
-		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-
-		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-		this.channel.sendToQueue(topic, data, this.opts.messageOptions);
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 }
 

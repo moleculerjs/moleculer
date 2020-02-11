@@ -2,105 +2,133 @@
 syntax = "proto3";
 package packets;
 
+enum DataType {
+	DATATYPE_UNDEFINED = 0;
+	DATATYPE_NULL = 1;
+	DATATYPE_JSON = 2;
+	DATATYPE_BUFFER = 3;
+}
+
 message PacketEvent {
-	 string ver 	= 1;
-	 string sender 	= 2;
-	 string event 	= 3;
-	 string data 	= 4;
-	repeated string groups 	= 5;
-	 bool broadcast	= 6;
+	string ver 				= 1;
+	string sender 			= 2;
+	string id 				= 3;
+	string event 			= 4;
+	bytes data 				= 5;
+	DataType dataType  		= 6;
+	repeated string groups 	= 7;
+	string meta 			= 9;
+	bool broadcast			= 8;
+	int32 level 			= 10;
+	bool tracing 			= 11;
+	string parentID 		= 12;
+	string requestID 		= 13;
+	bool stream 			= 14;
+	int32 seq 				= 15;
+	string caller 			= 16;
+	bool needAck			= 17;
 }
 
 message PacketRequest {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 string id 			= 3;
-	 string action 		= 4;
-	 bytes params 		= 5;
-	 string meta 		= 6;
-	 double timeout		= 7;
-	 int32 level 		= 8;
-	 bool metrics 		= 9;
-	 string parentID 	= 10;
-	 string requestID 	= 11;
-	 bool stream 		= 12;
+	string ver 				= 1;
+	string sender 			= 2;
+	string id 				= 3;
+	string action 			= 4;
+	bytes params 			= 5;
+	DataType paramsType  	= 6;
+	string meta 			= 7;
+	double timeout			= 8;
+	int32 level 			= 9;
+	bool tracing 			= 10;
+	string parentID 		= 11;
+	string requestID 		= 12;
+	bool stream 			= 13;
+	int32 seq 				= 14;
+	string caller 			= 15;
 }
 
 message PacketResponse {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 string id 			= 3;
-	 bool success 		= 4;
-	 bytes data 		= 5;
-	 string error 		= 6;
-	 string meta 		= 7;
-	 bool stream 		= 8;
+	string ver 			= 1;
+	string sender 		= 2;
+	string id 			= 3;
+	bool success 		= 4;
+	bytes data 			= 5;
+	DataType dataType  	= 6;
+	string error 		= 7;
+	string meta 		= 8;
+	bool stream 		= 9;
+	int32 seq 			= 10;
 }
 
 message PacketDiscover {
-	 string ver 		= 1;
-	 string sender 		= 2;
+	string ver 		= 1;
+	string sender 	= 2;
 }
 
 message PacketInfo {
-	 string ver 			= 1;
-	 string sender 			= 2;
-	 string services		= 3;
-	 string config			= 4;
+	string ver 			= 1;
+	string sender 		= 2;
+	string services		= 3;
+	string config		= 4;
 
-	repeated string ipList			= 5;
-	 string hostname		= 6;
-	 Client client 			= 7;
-	 int32  seq 			= 8;
+	repeated string ipList	= 5;
+	string hostname			= 6;
+	Client client 			= 7;
+	int32  seq 				= 8;
+	string instanceID		= 9;
+	string metadata			= 10;
 
 	message Client {
-		 string type 			= 1;
-		 string version 		= 2;
-		 string langVersion 	= 3;
+		string type 		= 1;
+		string version 		= 2;
+		string langVersion 	= 3;
 	}
+
 }
 
 message PacketDisconnect {
-	 string ver 	= 1;
-	 string sender 	= 2;
+	string ver 		= 1;
+	string sender 	= 2;
 }
 
 message PacketHeartbeat {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 double cpu 		= 3;
+	string ver 		= 1;
+	string sender 	= 2;
+	double cpu 		= 3;
 }
 
 message PacketPing {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 int64 time 		= 3;
+	string ver 		= 1;
+	string sender 	= 2;
+	int64 time 		= 3;
+	string id		= 4;
 }
 
 message PacketPong {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 int64 time 		= 3;
-	 int64 arrived 		= 4;
+	string ver 		= 1;
+	string sender 	= 2;
+	int64 time 		= 3;
+	int64 arrived 	= 4;
+	string id		= 5;
 }
 
 message PacketGossipHello {
-	 string ver 		= 1;
-	 string sender 		= 2;
-	 string host 		= 3;
-	 int32 port 		= 4;
+	string ver 		= 1;
+	string sender 	= 2;
+	string host 	= 3;
+	int32 port 		= 4;
 }
 
 message PacketGossipRequest {
-	 string ver 			= 1;
-	 string sender 			= 2;
-	 string online			= 3;
-	 string offline			= 4;
+	string ver 			= 1;
+	string sender 		= 2;
+	string online		= 3;
+	string offline		= 4;
 }
 
 message PacketGossipResponse {
-	 string ver 			= 1;
-	 string sender 			= 2;
-	 string online			= 3;
-	 string offline			= 4;
+	string ver 			= 1;
+	string sender 		= 2;
+	string online		= 3;
+	string offline		= 4;
 }

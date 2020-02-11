@@ -44,7 +44,7 @@ function paramConverterMiddleware(handler, action) {
 
 const broker = new ServiceBroker({
 	logger: true,
-	validation: false,
+	validator: false,
 	middlewares: [paramConverterMiddleware]
 });
 

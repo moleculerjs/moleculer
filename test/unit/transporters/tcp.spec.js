@@ -1,13 +1,7 @@
 jest.mock("fs");
 const fs = require("fs");
 
-const ServiceBroker = require("../../../src/service-broker");
-const Transit = require("../../../src/transit");
-const P = require("../../../src/packets");
-const E = require("../../../src/errors");
-const { protectReject } = require("../utils");
-
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 jest.mock("../../../src/transporters/tcp/tcp-reader");
 
 let TcpReader = require("../../../src/transporters/tcp/tcp-reader");
@@ -41,6 +35,12 @@ UdpServer.mockImplementation(() => {
 		bind: jest.fn()
 	};
 });
+
+const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
+const P = require("../../../src/packets");
+const E = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 const TcpTransporter = require("../../../src/transporters/tcp");
 

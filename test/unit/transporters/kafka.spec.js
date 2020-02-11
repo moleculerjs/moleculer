@@ -7,14 +7,9 @@ jest.mock("kafka-node");
 let Kafka = require("kafka-node");
 const clientCallbacks = {};
 let clientCloseCB;
-Kafka.Client = jest.fn(() => {
+Kafka.KafkaClient = jest.fn(() => {
 	return {
-		on: jest.fn((event, cb) => clientCallbacks[event] = cb),
-		once: jest.fn((event, cb) => clientCallbacks[event] = cb),
 		close: jest.fn(cb => clientCloseCB = cb),
-		//subscribe: jest.fn(),
-		//publish: jest.fn(),
-
 		callbacks: clientCallbacks
 	};
 });
@@ -67,13 +62,11 @@ describe("Test KafkaTransporter constructor", () => {
 	});
 
 	it("check constructor with string param", () => {
-		let transporter = new KafkaTransporter("localhost:2181");
+		let transporter = new KafkaTransporter("localhost:9092");
 		expect(transporter.opts).toEqual({
-			"host": "localhost:2181",
+			"host": "localhost:9092",
 			"client": {
-				"noAckBatchOptions": undefined,
-				"sslOptions": undefined,
-				"zkOptions": undefined
+				"kafkaHost": "localhost:9092",
 			},
 			"customPartitioner": undefined,
 			"producer": {},
@@ -86,16 +79,14 @@ describe("Test KafkaTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { host: "localhost:2181", publish: {
+		let opts = { host: "localhost:9092", publish: {
 			partition: 1
 		} };
 		let transporter = new KafkaTransporter(opts);
 		expect(transporter.opts).toEqual({
-			"host": "localhost:2181",
+			"host": "localhost:9092",
 			"client": {
-				"noAckBatchOptions": undefined,
-				"sslOptions": undefined,
-				"zkOptions": undefined
+				"kafkaHost": "localhost:9092"
 			},
 			"customPartitioner": undefined,
 			"producer": {},
@@ -122,18 +113,13 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 	it("check connect", () => {
 		let p = transporter.connect().then(() => {
 			expect(transporter.client).toBeDefined();
-			expect(transporter.client.once).toHaveBeenCalledTimes(1);
-			expect(transporter.client.once).toHaveBeenCalledWith("connect", jasmine.any(Function));
-
-			expect(transporter.client.on).toHaveBeenCalledTimes(1);
-			expect(transporter.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-
 			expect(transporter.producer).toBeDefined();
-			expect(transporter.producer.on).toHaveBeenCalledTimes(1);
+			expect(transporter.producer.on).toHaveBeenCalledTimes(2);
+			expect(transporter.producer.on).toHaveBeenCalledWith("ready", jasmine.any(Function));
 			expect(transporter.producer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
 		});
 
-		transporter.client.callbacks.connect();
+		transporter.producer.callbacks.ready();
 
 		return p;
 	});
@@ -145,7 +131,7 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 			expect(transporter.onConnected).toHaveBeenCalledWith();
 		});
 
-		transporter.client.callbacks.connect();
+		transporter.producer.callbacks.ready();
 
 		return p;
 	});
@@ -163,7 +149,7 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 			expect(close2).toHaveBeenCalledTimes(1);
 		});
 
-		transporter.client.callbacks.connect(); // Trigger the `resolve`
+		transporter.producer.callbacks.ready(); // Trigger the `resolve`
 		return p;
 	});
 
@@ -180,7 +166,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" })), msgHandler);
 
 		let p = transporter.connect();
-		transporter.client.callbacks.connect(); // Trigger the `resolve`
+		transporter.producer.callbacks.ready(); // Trigger the `resolve`
 		transporter.incomingMessage = jest.fn();
 		return p;
 	});
@@ -199,8 +185,8 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		expect(Kafka.ConsumerGroup).toHaveBeenCalledWith( {
 			"encoding": "buffer",
 			"fromOffset": "latest",
-			"groupId": "node-1",
-			"host": "kafka-server:1234",
+			"groupId": transporter.broker.instanceID,
+			"kafkaHost": "kafka-server:1234",
 			"id": "default-kafka-consumer"
 		}, ["MOL-TEST.REQ.node", "MOL-TEST.RES.node"]);
 
@@ -233,7 +219,7 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 
 		let p = transporter.connect();
-		transporter.client.callbacks.connect(); // Trigger the `resolve`
+		transporter.producer.callbacks.ready(); // Trigger the `resolve`
 		return p;
 	});
 

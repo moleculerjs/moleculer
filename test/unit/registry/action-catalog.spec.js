@@ -1,6 +1,7 @@
 "use strict";
 
 let Strategy = require("../../../src/strategies").RoundRobin;
+let CpuStrategy = require("../../../src/strategies").CpuUsage;
 let ActionCatalog = require("../../../src/registry/action-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let ActionEndpoint = require("../../../src/registry/endpoint-action");
@@ -44,7 +45,6 @@ describe("Test ActionCatalog methods", () => {
 
 		expect(catalog.isAvailable("test.hello")).toBe(true);
 		expect(catalog.isAvailable("test.hi")).toBe(false);
-
 	});
 
 	it("should not create a new EndpointList just add new node", () => {
@@ -156,3 +156,32 @@ describe("Test ActionCatalog methods", () => {
 
 });
 
+describe("Test ActionCatalog add method", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let catalog = new ActionCatalog(broker.registry, broker, Strategy);
+	let list;
+	let service = { name: "test" };
+
+	it("should create an EndpointList and add to 'actions'", () => {
+		let node = { id: "server-1" };
+		let action = { name: "test.hello" };
+
+		list = catalog.add(node, service, action);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(Strategy);
+		expect(list.strategy.opts).toEqual({});
+	});
+
+	it("should create an EndpointList with custom strategy", () => {
+		let node = { id: "server-1" };
+		let action = { name: "test.welcome", strategy: "CpuUsage", strategyOptions: { sampleCount: 6 } };
+
+		list = catalog.add(node, service, action);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(CpuStrategy);
+		expect(list.strategy.opts).toEqual({ sampleCount: 6, lowCpuUsage: 10 });
+	});
+
+});

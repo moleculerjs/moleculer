@@ -19,11 +19,12 @@ describe("Test RedisCacher constructor", () => {
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500, maxParamsLength: 1024 };
+		let opts = { ttl: 500, maxParamsLength: 1024, prefix: "custom-" };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
+		expect(cacher.opts.prefix).toBe("custom-");
 		expect(cacher.opts.maxParamsLength).toBe(1024);
 	});
 
@@ -34,6 +35,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			ttl: null,
+			prefix: null,
 			maxParamsLength: null,
 			redis: opts
 		});
@@ -233,13 +235,13 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	const logger = {};
-	["fatal", "error", "info", "debug"].forEach((level) => logger[level] = jest.fn());
-	const broker = new ServiceBroker({ logger: () => logger, namespace: "uat" });
+	const broker = new ServiceBroker({ logger: false, namespace: "uat" });
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
 	cacher.init(broker); // for empty logger
+
+	["fatal", "error", "info", "log", "debug"].forEach((level) => cacher.logger[level] = jest.fn());
 
 	let key = "tst123";
 	let data1 = {
@@ -271,8 +273,9 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		}));
 		cacher.client.getBuffer = jest.fn(() => Promise.resolve());
 		cacher.client.del = jest.fn(() => Promise.resolve());
-		["error", "fatal", "debug"].forEach((level) => logger[level].mockClear());
+		["error", "fatal", "info", "log", "debug"].forEach((level) => cacher.logger[level].mockClear());
 
+		cacher.client.setex = jest.fn(() => Promise.resolve());
 	});
 
 
@@ -315,8 +318,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 				expect(err).toBe(error);
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
 				expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1"]);
-				expect(logger.error).toHaveBeenCalledTimes(1);
-				expect(logger.error).toHaveBeenCalledWith("Redis 'del' error. Key: MOL-uat-key1", error);
+				expect(cacher.logger.error).toHaveBeenCalledTimes(1);
+				expect(cacher.logger.error).toHaveBeenCalledWith("Redis 'del' error. Key: MOL-uat-key1", error);
 			});
 	});
 
@@ -385,8 +388,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 				expect(err).toBe(error);
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({ count: 100, match: "MOL-uat-service-name.*" });
-				expect(logger.error).toHaveBeenCalledTimes(1);
-				expect(logger.error).toHaveBeenCalledWith("Redis 'scanDel' error. Pattern: MOL-uat-service-name.*", error);
+				expect(cacher.logger.error).toHaveBeenCalledTimes(1);
+				expect(cacher.logger.error).toHaveBeenCalledWith("Redis 'scanDel' error. Pattern: MOL-uat-service-name.*", error);
 			});
 	});
 });

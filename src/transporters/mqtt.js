@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise = require("bluebird");
 const Transporter = require("./base");
 const { isObject } = require("lodash");
 
@@ -51,7 +50,7 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let mqtt;
 			try {
 				mqtt = require("mqtt");
@@ -84,9 +83,10 @@ class MqttTransporter extends Transporter {
 				this.logger.warn("MQTT client is reconnecting...");
 			});
 
-			client.on("message", (topic, msg) => {
-				const cmd = topic.split(this.topicSeparator)[1];
-				this.incomingMessage(cmd, msg);
+			client.on("message", (rawTopic, buf) => {
+				const topic = rawTopic.substring(this.prefix.length + this.topicSeparator.length);
+				const cmd = topic.split(this.topicSeparator)[0];
+				this.receive(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -104,7 +104,7 @@ class MqttTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			return new Promise(resolve => {
+			return new this.broker.Promise(resolve => {
 				this.client.end(false, resolve);
 				this.client = null;
 			});
@@ -132,13 +132,13 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			const topic = this.getTopicName(cmd, nodeID);
 			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
 				if (err)
 					return reject(err);
 
-				this.logger.info("MQTT server granted", granted);
+				this.logger.debug("MQTT server granted", granted);
 
 				resolve();
 			});
@@ -146,20 +146,19 @@ class MqttTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof MqttTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data) {
 		/* istanbul ignore next*/
 		if (!this.client) return;
 
-		return new Promise((resolve, reject) => {
-			const data = this.serialize(packet);
-			this.incStatSent(data.length);
-			const topic = this.getTopicName(packet.type, packet.target);
+		return new this.broker.Promise((resolve, reject) => {
 			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
 				if (err)

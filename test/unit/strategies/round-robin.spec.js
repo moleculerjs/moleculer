@@ -1,6 +1,6 @@
 "use strict";
 
-let RoundRobinStrategy = require("../../../src/strategies/round-robin");
+const RoundRobinStrategy = require("../../../src/strategies/round-robin");
 
 describe("Test RoundRobinStrategy", () => {
 

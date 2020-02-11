@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,7 +15,7 @@ const {
 
 module.exports = {
 	ServiceBroker: require("./src/service-broker"),
-	Logger: require("./src/logger"),
+	Loggers: require("./src/loggers"),
 	Service: require("./src/service"),
 	Context: require("./src/context"),
 
@@ -25,11 +25,15 @@ module.exports = {
 	Serializers: require("./src/serializers"),
 	Strategies: require("./src/strategies"),
 	Validator: require("./src/validator"),
+	TracerExporters: require("./src/tracing/exporters"),
+	MetricTypes: require("./src/metrics/types"),
+	MetricReporters: require("./src/metrics/reporters"),
 
 	Middlewares: require("./src/middlewares"),
 
 	Errors: require("./src/errors"),
 
+	Runner: require("./src/runner"),
 	Utils: require("./src/utils"),
 
 	CIRCUIT_CLOSE,
