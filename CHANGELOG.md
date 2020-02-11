@@ -1,6 +1,86 @@
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.11...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.13...master)
+
+--------------------------------------------------
+<a name="0.13.13"></a>
+# [0.13.13](https://github.com/moleculerjs/moleculer/compare/v0.13.12...v0.13.13) (2020-02-11)
+
+## AMQP 1.0 transporter
+Thanks for [@vladir95](https://github.com/vladir95), AMQP 1.0 transporter is available.
+
+>Please note, it is an **experimental** transporter. **Do not use it in production yet!**
+
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "amqp10://activemq-server:5672"
+};
+```
+>To use this transporter install the `rhea-promise` module with `npm install rhea-promise --save` command.
+
+#### Transporter options
+Options can be passed to `rhea.connection.open()` method, the topics, the queues, and the messages themselves.
+
+**Connect to 'amqp10://guest:guest@localhost:5672'**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "AMQP10"
+};
+```
+
+**Connect to a remote server**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "amqp10://activemq-server:5672"
+};
+```
+
+**Connect to a remote server with options & credentials**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: {
+        url: "amqp10://user:pass@activemq-server:5672",
+        eventTimeToLive: 5000,
+        heartbeatTimeToLive: 5000,
+        connectionOptions: { // rhea connection options https://github.com/amqp/rhea#connectoptions, example:
+            ca: "", // (if using tls)
+            servername: "", // (if using tls)
+            key: "", // (if using tls with client auth)
+            cert: "" // (if using tls with client auth)
+        },
+        queueOptions: {}, // rhea queue options https://github.com/amqp/rhea#open_receiveraddressoptions
+        topicOptions: {}, // rhea queue options https://github.com/amqp/rhea#open_receiveraddressoptions
+        messageOptions: {}, // rhea message specific options https://github.com/amqp/rhea#message
+        topicPrefix: "topic://", // RabbitMq uses '/topic/' instead, 'topic://' is more common
+        prefetch: 1
+    }
+};
+```
+
+## Redis Cluster feature in Redis transporter
+Thanks for [AAfraitane](https://github.com/AAfraitane), use can connect to a Redis Cluster with the Redis transporter.
+
+**Connect to Redis cluster**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: {
+        type: "Redis",
+        options: {
+            cluster: {
+                nodes: [
+                    { host: "localhost", port: 6379 },
+                    { host: "localhost", port: 6378 }
+                ]
+            }
+        }
+    }
+};
+```
 
 --------------------------------------------------
 <a name="0.13.12"></a>
