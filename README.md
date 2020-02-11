@@ -15,7 +15,7 @@
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/moleculerjs/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
 
 
-Moleculer is a progressive microservices framework for Node.js.
+Moleculer is a fast, modern and powerful microservices framework for [Node.js](https://nodejs.org/en/). It helps you to build efficient, reliable & scalable services. Moleculer provides many features for building and managing your microservices.
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -29,29 +29,31 @@ Moleculer is a progressive microservices framework for Node.js.
 
 # What's included
 
-- Promise-based solution
+- Promise-based solution (async/await compatible)
 - request-reply concept
-- support streams
 - support event driven architecture with balancing
 - built-in service registry & dynamic service discovery
-- load balanced requests & events (round-robin, random, cpu-usage, latency)
+- load balanced requests & events (round-robin, random, cpu-usage, latency, sharding)
 - many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
-- supports middlewares
-- supports versioned services
+- plugin/middleware system
+- support versioned services
+- support [Stream](https://nodejs.org/dist/latest-v10.x/docs/api/stream.html)s
 - service mixins
-- built-in caching solution (memory, Redis)
-- pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka)
+- built-in caching solution (Memory, MemoryLRU, Redis)
+- pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
+- pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka, AMQP 0.9, AMQP 1.0)
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
-- pluggable validator
+- pluggable parameter validator
 - multiple services on a node/server
 - master-less architecture, all nodes are equal
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
-- built-in health monitoring & metrics
-- official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
+- built-in metrics feature with reporters (Console, CSV, Datadog, Event, Prometheus, StatsD)
+- built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin)
+- official [API gateway](https://github.com/moleculerjs/moleculer-web), [Database access](https://github.com/moleculerjs/moleculer-db) and many other modules...
 
 # Installation
 ```
-$ npm install moleculer --save
+$ npm i moleculer --save
 ```
 or
 ```
@@ -64,7 +66,7 @@ This example shows you how to create a small service with an `add` action which 
 const { ServiceBroker } = require("moleculer");
 
 // Create a broker
-let broker = new ServiceBroker({ logger: console });
+const broker = new ServiceBroker();
 
 // Create a service
 broker.createService({
@@ -92,7 +94,6 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```bash
     $ npx moleculer init project moleculer-demo
     ```
-    > Press Y on API Gateway & `npm install`
     
 2. Open project folder
     ```bash
@@ -104,7 +105,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     $ npm run dev
     ```
 
-4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
+4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page which contains many information about your project & you can test the generated services.
 
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
