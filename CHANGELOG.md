@@ -132,7 +132,7 @@ module.exports = {
             folder: "./logs",
             // Filename template. You can use {date}, {nodeID} & {namespace} variables.
             filename: "moleculer-{date}.log",
-            // Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            // Line formatter. It can be "json", "jsonext", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
             formatter: "json",
             // Custom object printer. If not defined, it uses the `util.inspect` method.
             objectPrinter: null,
