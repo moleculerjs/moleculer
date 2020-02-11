@@ -107,7 +107,9 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 
 4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page which contains many information about your project & you can test the generated services.
 
-:tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
+:tada: **Congratulations! Your first Moleculer-based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
+
+![Welcome page](docs/assets/project-welcome-page.png)
 
 # Official modules
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/modules.html)
