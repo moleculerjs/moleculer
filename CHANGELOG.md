@@ -2,6 +2,13 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.0...master)
 
 --------------------------------------------------
+<a name="0.14.1"></a>
+# [0.14.1](https://github.com/moleculerjs/moleculer/compare/v0.14.0...v0.14.1) (2020-02-12)
+
+## Changes
+- fix bluebird import issue [#674](https://github.com/moleculerjs/moleculer/issues/674)
+
+--------------------------------------------------
 <a name="0.14.0"></a>
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2020-02-12)
 
