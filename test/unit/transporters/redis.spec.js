@@ -3,6 +3,7 @@ const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
 const { BrokerOptionsError } = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 jest.mock("ioredis");
 
@@ -80,23 +81,26 @@ describe("Test RedisTransporter connect & disconnect cluster mode", () => {
 });
 
 describe("Test RedisTransporter connect & disconnect cluster without nodes", () => {
-	let opts = {
-		cluster: {
-			clusterOptions: {
-				redisOptions: {
-					password: "12345"
+	const broker = new ServiceBroker({ logger: false });
+	const transit = new Transit(broker);
+
+	it("should throw error because there is no cluster nodes specified", () => {
+		const opts = {
+			cluster: {
+				clusterOptions: {
+					redisOptions: {
+						password: "12345"
+					}
 				}
 			}
-		}
-	};
-	let transporter;
-	transporter = new RedisTransporter(opts);
-	transporter.connect().then(() => {
-		expect(transporter.clientSub).toBeDefined();
-	}).catch((error) => {
-		expect(error instanceof BrokerOptionsError).toEqual(true);
+		};
+		const transporter = new RedisTransporter(opts);
+		transporter.init(transit, jest.fn());
+		return transporter.connect().then(protectReject).catch(error => {
+			expect(error instanceof BrokerOptionsError).toBe(true);
+			expect(error.message).toBe("No nodes defined for cluster");
+		});
 	});
-	expect(transporter.opts).toBe(opts);
 });
 
 clusterMode = false;
