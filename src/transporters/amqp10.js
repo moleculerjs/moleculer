@@ -1,13 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const url = require("url");
-const Promise = require("bluebird");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
 
@@ -251,7 +250,7 @@ class Amqp10Transporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.connection) {
-			return Promise.all(this.receivers.map(receiver => receiver.close()))
+			return this.broker.Promise.all(this.receivers.map(receiver => receiver.close()))
 				.then(() => this.connection.close())
 				.then(() => {
 					this.connection = null;
@@ -491,7 +490,7 @@ class Amqp10Transporter extends Transporter {
 	 */
 	publishBalancedRequest(packet) {
 		/* istanbul ignore next*/
-		if (!this.connection) return Promise.resolve();
+		if (!this.connection) return this.broker.Promise.resolve();
 
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 

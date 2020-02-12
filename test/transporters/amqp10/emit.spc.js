@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 
-const Promise = require("bluebird");
 const { ServiceBroker } = require("../../..");
-let { extendExpect, protectReject } = require("../../unit/utils");
+const { extendExpect, protectReject } = require("../../unit/utils");
 // const purge = require("./purge");
 
 extendExpect(expect);

@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 
-const Promise = require("bluebird");
 const { ServiceBroker } = require("../../..");
-let { extendExpect, protectReject } = require("../../unit/utils");
+const { extendExpect, protectReject } = require("../../unit/utils");
 
 extendExpect(expect);
 
@@ -48,7 +47,7 @@ const createWorker = (number, disableBalancer, logs, options = {}) => {
 						return nodeRef.broker.stop();
 					}
 
-					return Promise.delay(delay).then(() => {
+					return this.Promise.delay(delay).then(() => {
 						const response = { type: "respond", worker: number, timestamp: Date.now(), params };
 						logs.push(response);
 						return response;
