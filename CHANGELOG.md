@@ -1997,6 +1997,28 @@ module.exports = {
 };
 ```
 
+## Redis Cluster feature in Redis transporter
+Thanks for [AAfraitane](https://github.com/AAfraitane), use can connect to a Redis Cluster with the Redis transporter.
+
+**Connect to Redis cluster**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: {
+        type: "Redis",
+        options: {
+            cluster: {
+                nodes: [
+                    { host: "localhost", port: 6379 },
+                    { host: "localhost", port: 6378 }
+                ]
+            }
+        }
+    }
+};
+```
+
+
 --------------------------------------------------
 <a name="0.13.12"></a>
 # [0.13.12](https://github.com/moleculerjs/moleculer/compare/v0.13.11...v0.13.12) (2019-12-17)
