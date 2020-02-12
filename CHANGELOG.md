@@ -1,9 +1,9 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.13...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.0...master)
 
 --------------------------------------------------
 <a name="0.14.0"></a>
-# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2020-02-12)
 
 [**Migration guide from 0.13 to 0.14**](https://github.com/moleculerjs/moleculer/blob/next/docs/MIGRATION_GUIDE_0.14.md)
 
