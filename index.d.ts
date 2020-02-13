@@ -555,6 +555,7 @@ declare namespace Moleculer {
 	interface ServiceEvent {
 		name?: string;
 		group?: string;
+		params?: ActionParams;
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;
