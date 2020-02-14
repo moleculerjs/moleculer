@@ -1,5 +1,10 @@
+--------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.0...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.2...master)
+
+--------------------------------------------------
+<a name="0.14.2"></a>
+# [0.14.2](https://github.com/moleculerjs/moleculer/compare/v0.14.1...v0.14.2)
 
 ## Support custom loggers
 If you have your custom logger you should wrap it into a `Logger` class and implement the `getLogHandler` method.
@@ -19,7 +24,6 @@ module.exports = {
     logger: new MyLogger()
 };
 ```
-
 
 --------------------------------------------------
 <a name="0.14.1"></a>
