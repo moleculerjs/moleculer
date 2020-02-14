@@ -1,6 +1,26 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.0...master)
 
+## Support custom loggers
+If you have your custom logger you should wrap it into a `Logger` class and implement the `getLogHandler` method.
+
+**Using a custom logger**
+```js
+// moleculer.config.js
+ const BaseLogger = require("moleculer").Loggers.Base;
+
+class MyLogger extends BaseLogger {
+	getLogHandler(bindings) {
+		return (type, args) => console[type](`[MYLOG-${bindings.mod}]`, ...args);
+	}
+}
+
+module.exports = {
+	logger: new MyLogger()
+};
+```
+
+
 --------------------------------------------------
 <a name="0.14.1"></a>
 # [0.14.1](https://github.com/moleculerjs/moleculer/compare/v0.14.0...v0.14.1) (2020-02-12)

@@ -5,12 +5,19 @@ const LoggerFactory = require("../../src/logger-factory");
 const ServiceBroker = require("../../src/service-broker");
 // const { protectReject } = require("./utils");
 
+class MyCustomAppender extends Loggers.Base {
+	getLogHandler(bindings) {
+		return (type, args) => {};
+	}
+}
+
+jest.spyOn(MyCustomAppender.prototype, "getLogHandler");
+
 describe("Test LoggerFactory", () => {
 
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor", () => {
-
 		let loggerFactory = new LoggerFactory(broker);
 
 		expect(loggerFactory.broker).toBe(broker);
@@ -183,11 +190,20 @@ describe("Test LoggerFactory", () => {
 			expect(mockInit).toHaveBeenCalledTimes(2);
 		});
 
-		it("should throw error if options is invalid", () => {
-			expect(() => {
-				loggerFactory.init(5);
-			}).toThrow("Invalid logger configuration.");
+		it("should add custom Appender", () => {
+			Loggers.resolve.mockClear();
+			mockInit.mockClear();
+
+			const myAppender = new MyCustomAppender();
+			loggerFactory.init(myAppender);
+			expect(loggerFactory.appenders.length).toBe(1);
+
+			expect(Loggers.resolve).toHaveBeenCalledTimes(1);
+			expect(Loggers.resolve).toHaveBeenNthCalledWith(1, myAppender);
+
+			expect(mockInit).toHaveBeenCalledTimes(1);
 		});
+
 	});
 
 	describe("Test stop method", () => {

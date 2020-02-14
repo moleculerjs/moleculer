@@ -36,11 +36,11 @@ class LoggerFactory {
 
 		const globalLogLevel = this.broker.options.logLevel || "info";
 
-		if (this.opts === false || this.opts == null) {
+		if (opts === false || opts == null) {
 			// No logger
 			this.appenders = [];
 
-		} else if (this.opts === true || this.opts === console) {
+		} else if (opts === true || opts === console) {
 			// Default console logger
 			this.appenders = [Loggers.resolve({
 				type: "Console",
@@ -49,20 +49,23 @@ class LoggerFactory {
 				}
 			})];
 
-		} else if (_.isString(this.opts)) {
-			// One logger
-			this.appenders = [Loggers.resolve({ type: this.opts, options: { level: globalLogLevel } })];
-		} else if (_.isPlainObject(this.opts) || _.isString(this.opts)) {
-			// One logger
-			this.appenders = [Loggers.resolve(_.defaultsDeep({}, this.opts, { options: { level: globalLogLevel } }))];
-		} else if (Array.isArray(this.opts)) {
-			// Multiple loggers
-			this.appenders = _.compact(this.opts)
-				.map(o => _.isString(o) ? { type: o } : o)
-				.map(o => Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } })));
 		} else {
-			// Invalid options
-			throw new BrokerOptionsError("Invalid logger configuration.", { opts: this.opts });
+			if (!Array.isArray(opts)) {
+				opts = [opts];
+			}
+
+			this.appenders = _.compact(opts).map(o => {
+				// Built-in shorthand
+				if (_.isString(o))
+					return Loggers.resolve({ type: o, options: { level: globalLogLevel } });
+
+				// Build-in with options
+				if (_.isPlainObject(o))
+					return Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } }));
+
+				// Custom logger instance
+				return Loggers.resolve(o);
+			});
 		}
 
 		// Initialize appenders

@@ -272,16 +272,6 @@ module.exports = {
 };
 ```
 
-**New way to use external logger**
-```js
-// moleculer.config.js
-module.exports = {
-    logger: "Pino",
-};
-```
-
-or
-
 ```js
 // moleculer.config.js
 module.exports = {
@@ -300,6 +290,24 @@ module.exports = {
             }
         }
     }
+};
+```
+
+If you have your custom logger you should wrap it into a `Logger` class and implement the `getLogHandler` method.
+
+**Using a custom logger**
+```js
+// moleculer.config.js
+ const BaseLogger = require("moleculer").Loggers.Base;
+
+class MyLogger extends BaseLogger {
+	getLogHandler(bindings) {
+		return (type, args) => console[type](`[MYLOG-${bindings.mod}]`, ...args);
+	}
+}
+
+module.exports = {
+	logger: new MyLogger()
 };
 ```
 

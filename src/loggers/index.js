@@ -62,5 +62,5 @@ function resolve(opt) {
 	throw new BrokerOptionsError(`Invalid logger configuration: '${opt}'`, { type: opt });
 }
 
-module.exports = Object.assign({ resolve }, Loggers);
+module.exports = Object.assign(Loggers, { resolve });
 
