@@ -530,6 +530,7 @@ declare namespace Moleculer {
 		copy(): Context;
 
 		startSpan(name: string, opts: GenericObject): Span;
+		finishSpan(span: Span, time?: number): void;
 
 		toJSON(): GenericObject;
 
