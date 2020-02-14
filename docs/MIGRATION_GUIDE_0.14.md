@@ -301,13 +301,13 @@ If you have your custom logger you should wrap it into a `Logger` class and impl
  const BaseLogger = require("moleculer").Loggers.Base;
 
 class MyLogger extends BaseLogger {
-	getLogHandler(bindings) {
-		return (type, args) => console[type](`[MYLOG-${bindings.mod}]`, ...args);
-	}
+    getLogHandler(bindings) {
+        return (type, args) => console[type](`[MYLOG-${bindings.mod}]`, ...args);
+    }
 }
 
 module.exports = {
-	logger: new MyLogger()
+    logger: new MyLogger()
 };
 ```
 
