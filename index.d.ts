@@ -766,7 +766,7 @@ declare namespace Moleculer {
 		tracing?: boolean | TracerOptions;
 
 		internalServices?: boolean | {
-			[key: string]: ServiceSchema
+			[key: string]: Partial<ServiceSchema>
 		};
 		internalMiddlewares?: boolean;
 
