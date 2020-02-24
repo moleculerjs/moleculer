@@ -1048,9 +1048,9 @@ class ServiceBroker {
 		}
 
 		if (ctx.endpoint.local)
-			this.logger.debug("Call action locally.", { action: ctx.action.name, requestID: ctx.requestID });
+			this.logger.debug("Call action locally.", opts.customLocalLoggingCallObj || { action: ctx.action.name, requestID: ctx.requestID });
 		else
-			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
+			this.logger.debug("Call action on remote node.", opts.customRemoteLoggingCallObj || { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
 		//this.setCurrentContext(ctx);
 
