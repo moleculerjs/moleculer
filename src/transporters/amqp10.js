@@ -32,6 +32,8 @@ const {
  *
  * 	 docker run -p 61616:61616 -p 8161:8161 -p 5672:5672 --rm -d --name=activemq rmohr/activemq
  *
+ *   TRANSPORTER=amqp10://guest:guest@localhost:5672
+ *
  * @class Amqp10Transporter
  * @extends {Transporter}
  */
@@ -439,7 +441,6 @@ class Amqp10Transporter extends Transporter {
 					.then(() => sender);
 			})
 			.then(sender => {
-				this.incStatSent(data.length);
 				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
@@ -475,7 +476,6 @@ class Amqp10Transporter extends Transporter {
 					.then(() => sender);
 			})
 			.then(sender => {
-				this.incStatSent(data.length);
 				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
@@ -511,7 +511,6 @@ class Amqp10Transporter extends Transporter {
 					.then(() => sender);
 			})
 			.then(sender => {
-				this.incStatSent(data.length);
 				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
