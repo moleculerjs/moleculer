@@ -85,6 +85,7 @@ const defaultOptions = {
 
 	transit: {
 		maxQueueSize: 50 * 1000, // 50k ~ 400MB,
+		maxChunkSize: 256*1024, // 256KB
 		disableReconnect: false,
 		disableVersionCheck: false
 	},
