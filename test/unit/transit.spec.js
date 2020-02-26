@@ -1525,6 +1525,103 @@ describe("Test Transit._sendRequest", () => {
 			});
 		});
 
+		it("should send splitted stream chunks", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.push(Buffer.from("f".repeat(300*1024)));
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(2);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: Buffer.from("f".repeat(256*1024)),
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 1,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: Buffer.from("f".repeat(44*1024)),
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 2,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 3,
+						stream: false,
+						timeout: null
+					}
+				});
+			});
+		});
+
 		it("should send stream error", () => {
 			transit.publish.mockClear();
 
@@ -2082,6 +2179,136 @@ describe("Test Transit.sendResponse", () => {
 			});
 
 		});
+
+		it("should send splitted stream chunks", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+
+			return transit.sendResponse("node2", "12345", meta, stream).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenLastCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 0,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				transit.publish.mockClear();
+				stream.push(Buffer.from('f'.repeat(600*1024)));
+				stream.push(Buffer.from('s'.repeat(60*1024)));
+				stream.push(Buffer.from('t'.repeat(400*1024)));
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(6);
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('f'.repeat(256*1024)),
+						id: "12345",
+						meta,
+						seq: 1,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('f'.repeat(256*1024)),
+						id: "12345",
+						meta,
+						seq: 2,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('f'.repeat(88*1024)),
+						id: "12345",
+						meta,
+						seq: 3,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('s'.repeat(60*1024)),
+						id: "12345",
+						meta,
+						seq: 4,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('t'.repeat(256*1024)),
+						id: "12345",
+						meta,
+						seq: 5,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from('t'.repeat(144*1024)),
+						id: "12345",
+						meta,
+						seq: 6,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 7,
+						stream: false,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+			});
+
+		});
+
+
 	});
 
 });
