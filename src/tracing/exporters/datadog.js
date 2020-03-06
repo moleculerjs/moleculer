@@ -103,6 +103,13 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
+	 * Stop Trace exporter
+	 */
+	stop() {
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Span is started.
 	 *
 	 * @param {Span} span

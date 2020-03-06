@@ -133,6 +133,25 @@ describe("Test Jaeger tracing exporter class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const fakeTracer = { logger: broker.logger, broker };
+
+		it("should flatten default tags", async () => {
+			const exporter = new JaegerTraceExporter({ defaultTags: { a: { b: "c" } } });
+			exporter.init(fakeTracer);
+
+			exporter.tracers = {
+				users: { close: jest.fn() },
+				posts: { close: jest.fn() }
+			};
+
+			await exporter.stop();
+
+			expect(exporter.tracers.users.close).toHaveBeenCalledTimes(1);
+			expect(exporter.tracers.posts.close).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe("Test getReporter method", () => {
 		const fakeTracer = { logger: broker.logger };
 

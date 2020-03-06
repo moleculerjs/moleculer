@@ -52,6 +52,21 @@ describe("Test Console tracing exporter class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const fakeTracer = { logger: broker.logger, broker };
+
+		it("should flatten default tags", async () => {
+			const exporter = new ConsoleTraceExporter({ defaultTags: { a: { b: "c" } } });
+			exporter.init(fakeTracer);
+
+			exporter.spans = { a: 5 };
+
+			await exporter.stop();
+
+			expect(exporter.spans).toEqual({});
+		});
+	});
+
 	describe("Test spanStarted method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new ConsoleTraceExporter({});

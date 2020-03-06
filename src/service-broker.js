@@ -498,15 +498,16 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
+				if (this.tracer) {
+					return this.tracer.stop();
+				}
+			})
+			.then(() => {
 				return this.callMiddlewareHook("stopped", [this], { reverse: true });
 			})
 			.then(() => {
 				if (_.isFunction(this.options.stopped))
 					return this.options.stopped(this);
-			})
-			.then(() => {
-				//this.tracer.stopAndClearScope();
-				//this.scope.stop();
 			})
 			.catch(err => {
 				/* istanbul ignore next */

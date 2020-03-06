@@ -3,7 +3,8 @@
 const Exporters = require("../../../src/tracing/exporters");
 const fakeExporter = {
 	init: jest.fn(),
-	someMethod: jest.fn()
+	someMethod: jest.fn(),
+	stop: jest.fn()
 };
 
 Exporters.resolve = jest.fn(() => fakeExporter);
@@ -205,6 +206,37 @@ describe("Test Tracer", () => {
 			expect(fakeExporter.init).toHaveBeenNthCalledWith(2, tracer);
 		});
 
+	});
+
+	describe("Test stop method", () => {
+		it("should stop exporter", async () => {
+			const tracer = new Tracer(broker, {
+				enabled: true,
+				exporter: "Console"
+			});
+
+			tracer.init();
+
+			tracer.exporter[0].stop = jest.fn(() => Promise.resolve());
+
+			await tracer.stop();
+			expect(tracer.exporter[0].stop).toHaveBeenCalledTimes(1);
+		});
+
+		it("should stop exporters", async () => {
+			const tracer = new Tracer(broker, {
+				enabled: true,
+				exporter: ["Console", "Zipkin"]
+			});
+
+			tracer.init();
+
+			fakeExporter.stop.mockClear();
+
+			await tracer.stop();
+
+			expect(fakeExporter.stop).toHaveBeenCalledTimes(2);
+		});
 	});
 
 	describe("Test isEnabled", () => {

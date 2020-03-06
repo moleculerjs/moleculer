@@ -46,6 +46,15 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
+	 * Stop Trace exporter
+	 */
+	stop() {
+		this.spans = {};
+
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Span is started.
 	 *
 	 * @param {Span} span

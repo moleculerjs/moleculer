@@ -76,6 +76,17 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
+	 * Stop Trace exporter
+	 */
+	stop() {
+		if (this.timer) {
+			clearInterval(this.timer);
+			this.timer = null;
+		}
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Span is finished.
 	 *
 	 * @param {Span} span

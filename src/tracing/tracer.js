@@ -97,6 +97,16 @@ class Tracer {
 	}
 
 	/**
+	 * Stop Tracer.
+	 */
+	stop() {
+		if (this.exporter) {
+			return this.broker.Promise.all(this.exporter.map(r => r.stop()));
+		}
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Check tracing is enabled
 	 *
 	 * @returns {boolean}
