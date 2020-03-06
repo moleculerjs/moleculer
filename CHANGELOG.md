@@ -2,6 +2,8 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.3...master)
 
+## Changes
+- add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)
 --------------------------------------------------
 <a name="0.14.3"></a>
 # [0.14.3](https://github.com/moleculerjs/moleculer/compare/v0.14.2...v0.14.3) (2020-02-24)
