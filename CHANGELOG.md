@@ -1,12 +1,16 @@
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.3...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.4...master)
+
+--------------------------------------------------
+<a name="Unreleased"></a>
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.3...v0.14.4)
 
 ## Changes
 - add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)
 - fix `EventLegacy` tracing exporter. Fixes  [#676](https://github.com/moleculerjs/moleculer/issues/676)
 - the `defaultTags` property in `tracer` options can be a `Function`, as well.
-- 
+
 --------------------------------------------------
 <a name="0.14.3"></a>
 # [0.14.3](https://github.com/moleculerjs/moleculer/compare/v0.14.2...v0.14.3) (2020-02-24)
