@@ -4,6 +4,9 @@
 
 ## Changes
 - add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)
+- fix `EventLegacy` tracing exporter. Fixes  [#686](https://github.com/moleculerjs/moleculer/issues/686)
+- the `defaultTags` property in `tracer` options can be a `Function`, as well.
+- 
 --------------------------------------------------
 <a name="0.14.3"></a>
 # [0.14.3](https://github.com/moleculerjs/moleculer/compare/v0.14.2...v0.14.3) (2020-02-24)

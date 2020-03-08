@@ -71,9 +71,8 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		};
 
 		// Process extra metrics
-		const ctx = this.broker.getCurrentContext();
-		if (ctx)
-			this.processExtraMetrics(ctx, payload);
+		if (span.opts.ctx)
+			this.processExtraMetrics(span.opts.ctx, payload);
 
 		payload.action = span.tags.action;
 		payload.service = span.service;

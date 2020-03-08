@@ -80,6 +80,8 @@ class Tracer {
 	init() {
 		if (this.opts.enabled) {
 
+			this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, this) : this.opts.defaultTags;
+
 			// Create Exporter instances
 			if (this.opts.exporter) {
 				const exporters = Array.isArray(this.opts.exporter) ? this.opts.exporter : [this.opts.exporter];
@@ -93,6 +95,7 @@ class Tracer {
 				const exporterNames = this.exporter.map(exporter => this.broker.getConstructorName(exporter));
 				this.logger.info(`Tracing exporter${exporterNames.length > 1 ? "s": ""}: ${exporterNames.join(", ")}`);
 			}
+
 		}
 	}
 
@@ -190,7 +193,7 @@ class Tracer {
 
 		const span = new Span(this, name, Object.assign({
 			type: "custom",
-			defaultTags: this.opts.defaultTags
+			defaultTags: this.defaultTags
 		}, parentOpts, opts, { parentSpan: undefined }));
 
 		span.start();
