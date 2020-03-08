@@ -61,5 +61,5 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = Object.assign({ resolve }, Cachers);
+module.exports = Object.assign(Cachers, { resolve });
 

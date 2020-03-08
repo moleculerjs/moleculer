@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -28,6 +28,7 @@ module.exports = {
 	TracerExporters: require("./src/tracing/exporters"),
 	MetricTypes: require("./src/metrics/types"),
 	MetricReporters: require("./src/metrics/reporters"),
+	METRIC: require("./src/metrics/constants"),
 
 	Middlewares: require("./src/middlewares"),
 
