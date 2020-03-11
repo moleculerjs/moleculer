@@ -165,7 +165,7 @@ class KafkaTransporter extends Transporter {
 				const consumerOptions = Object.assign({
 					id: "default-kafka-consumer",
 					kafkaHost: this.opts.host,
-					groupId: this.broker.instanceID, //this.nodeID,
+					groupId: 'MOL-'+this.broker.instanceID, //this.nodeID,
 					fromOffset: "latest",
 					encoding: "buffer",
 				}, this.opts.consumer);
