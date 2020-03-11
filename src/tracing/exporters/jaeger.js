@@ -89,6 +89,16 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
+	 * Stop Trace exporter
+	 */
+	stop() {
+		if (this.tracers) {
+			return this.broker.Promise.all(Object.values(this.tracers).map(tracer => tracer.close()));
+		}
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Get reporter instance for Tracer
 	 *
 	 */

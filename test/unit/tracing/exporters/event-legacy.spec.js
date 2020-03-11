@@ -83,7 +83,6 @@ describe("Test Event Legacy tracing exporter class", () => {
 		const exporter = new EventLegacyTraceExporter();
 		exporter.init(fakeTracer);
 		exporter.processExtraMetrics = jest.fn();
-		broker.getCurrentContext = jest.fn();
 
 		it("should convert normal span to legacy payload", () => {
 			const span = {
@@ -114,18 +113,17 @@ describe("Test Event Legacy tracing exporter class", () => {
 					},
 					callerNodeID: "other-node",
 					fromCache: true
-				}
+				},
+
+				opts: {}
 			};
 
 			expect(exporter.generateMetricPayload(span)).toMatchSnapshot();
 
 			expect(exporter.processExtraMetrics).toHaveBeenCalledTimes(0);
-			expect(broker.getCurrentContext).toHaveBeenCalledTimes(1);
 		});
 
-		it("should convert errored span to zipkin payload", () => {
-			broker.getCurrentContext.mockClear();
-
+		it("should convert errored span to legacy payload", () => {
 			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", { a: 5 });
 
 			const span = {
@@ -158,19 +156,19 @@ describe("Test Event Legacy tracing exporter class", () => {
 					fromCache: true
 				},
 
+				opts: {},
+
 				error: err
 			};
 
 			expect(exporter.generateMetricPayload(span)).toMatchSnapshot();
 
 			expect(exporter.processExtraMetrics).toHaveBeenCalledTimes(0);
-			expect(broker.getCurrentContext).toHaveBeenCalledTimes(1);
 		});
 
 		it("should call processExtraMetrics", () => {
-			const ctx = {};
-			broker.getCurrentContext = jest.fn(() => ctx);
 			exporter.processExtraMetrics = jest.fn();
+			const ctx = { a: 5 };
 
 			const span = {
 				name: "Test Span",
@@ -200,6 +198,10 @@ describe("Test Event Legacy tracing exporter class", () => {
 					},
 					callerNodeID: "other-node",
 					fromCache: true
+				},
+
+				opts: {
+					ctx
 				}
 			};
 
@@ -207,8 +209,6 @@ describe("Test Event Legacy tracing exporter class", () => {
 
 			expect(exporter.processExtraMetrics).toHaveBeenCalledTimes(1);
 			expect(exporter.processExtraMetrics).toHaveBeenCalledWith(ctx, payload);
-
-			expect(broker.getCurrentContext).toHaveBeenCalledTimes(1);
 		});
 
 	});

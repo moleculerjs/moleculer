@@ -3,7 +3,8 @@
 const Exporters = require("../../../src/tracing/exporters");
 const fakeExporter = {
 	init: jest.fn(),
-	someMethod: jest.fn()
+	someMethod: jest.fn(),
+	stop: jest.fn()
 };
 
 Exporters.resolve = jest.fn(() => fakeExporter);
@@ -163,7 +164,10 @@ describe("Test Tracer", () => {
 
 			const tracer = new Tracer(broker, {
 				enabled: true,
-				exporter: "Exporter1"
+				exporter: "Exporter1",
+				defaultTags: {
+					a: 5
+				}
 			});
 
 			tracer.init();
@@ -173,6 +177,8 @@ describe("Test Tracer", () => {
 			expect(Exporters.resolve).toHaveBeenNthCalledWith(1, "Exporter1");
 			expect(fakeExporter.init).toBeCalledTimes(1);
 			expect(fakeExporter.init).toHaveBeenNthCalledWith(1, tracer);
+
+			expect(tracer.defaultTags).toEqual({ a: 5 });
 		});
 
 		it("should initialize exporters", () => {
@@ -185,7 +191,10 @@ describe("Test Tracer", () => {
 					options: {
 						a: 5
 					}
-				}]
+				}],
+				defaultTags: jest.fn(() => ({
+					a: 5
+				}))
 			});
 
 			tracer.init();
@@ -203,8 +212,43 @@ describe("Test Tracer", () => {
 			expect(fakeExporter.init).toBeCalledTimes(2);
 			expect(fakeExporter.init).toHaveBeenNthCalledWith(1, tracer);
 			expect(fakeExporter.init).toHaveBeenNthCalledWith(2, tracer);
+
+			expect(tracer.defaultTags).toEqual({ a: 5 });
+			expect(tracer.opts.defaultTags).toHaveBeenCalledTimes(1);
+			expect(tracer.opts.defaultTags).toHaveBeenCalledWith(tracer);
 		});
 
+	});
+
+	describe("Test stop method", () => {
+		it("should stop exporter", async () => {
+			const tracer = new Tracer(broker, {
+				enabled: true,
+				exporter: "Console"
+			});
+
+			tracer.init();
+
+			tracer.exporter[0].stop = jest.fn(() => Promise.resolve());
+
+			await tracer.stop();
+			expect(tracer.exporter[0].stop).toHaveBeenCalledTimes(1);
+		});
+
+		it("should stop exporters", async () => {
+			const tracer = new Tracer(broker, {
+				enabled: true,
+				exporter: ["Console", "Zipkin"]
+			});
+
+			tracer.init();
+
+			fakeExporter.stop.mockClear();
+
+			await tracer.stop();
+
+			expect(fakeExporter.stop).toHaveBeenCalledTimes(2);
+		});
 	});
 
 	describe("Test isEnabled", () => {

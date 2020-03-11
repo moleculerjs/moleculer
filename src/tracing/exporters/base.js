@@ -31,6 +31,13 @@ class BaseTraceExporter {
 	}
 
 	/**
+	 * Stop Trace exporter
+	 */
+	stop() {
+		// Not implemented
+	}
+
+	/**
 	 * Span is started.
 	 *
 	 * @param {Span} span

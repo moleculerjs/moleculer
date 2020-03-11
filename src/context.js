@@ -406,9 +406,9 @@ class Context {
 	startSpan(name, opts) {
 		let span;
 		if (this.span) {
-			span = this.span.startSpan(name, opts);
+			span = this.span.startSpan(name, Object.assign({ ctx: this }, opts));
 		} else {
-			span = this.broker.tracer.startSpan(name, opts);
+			span = this.broker.tracer.startSpan(name, Object.assign({ ctx: this }, opts));
 		}
 
 		this._spanStack.push(span);

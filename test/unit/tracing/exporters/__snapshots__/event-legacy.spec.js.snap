@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test Event Legacy tracing exporter class Test generateMetricPayload should convert errored span to zipkin payload 1`] = `
+exports[`Test Event Legacy tracing exporter class Test generateMetricPayload should convert errored span to legacy payload 1`] = `
 Object {
   "action": Object {
     "name": "posts.find",

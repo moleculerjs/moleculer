@@ -939,7 +939,7 @@ describe("Test startSpan, finishSpan method", () => {
 		ctx.startSpan("custom span", opts);
 
 		expect(broker.tracer.startSpan).toHaveBeenCalledTimes(1);
-		expect(broker.tracer.startSpan).toHaveBeenCalledWith("custom span", opts);
+		expect(broker.tracer.startSpan).toHaveBeenCalledWith("custom span", Object.assign({ ctx }, opts));
 		expect(ctx.span).toBe(fakeSpan);
 		expect(ctx._spanStack).toEqual([fakeSpan]);
 	});
@@ -952,7 +952,7 @@ describe("Test startSpan, finishSpan method", () => {
 		ctx.startSpan("custom nested span", opts);
 
 		expect(fakeSpan.startSpan).toHaveBeenCalledTimes(1);
-		expect(fakeSpan.startSpan).toHaveBeenCalledWith("custom nested span", opts);
+		expect(fakeSpan.startSpan).toHaveBeenCalledWith("custom nested span", Object.assign({ ctx }, opts));
 		expect(ctx.span).toBe(fakeSpan2);
 		expect(ctx._spanStack).toEqual([fakeSpan, fakeSpan2]);
 	});
