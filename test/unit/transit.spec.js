@@ -9,6 +9,7 @@ const E = require("../../src/errors");
 const P = require("../../src/packets");
 const { Transform } = require("stream");
 const Stream = require("stream");
+const crypto = require("crypto");
 
 const transitOptions = { packetLogFilter: [], disableReconnect: false };
 
@@ -1527,7 +1528,8 @@ describe("Test Transit._sendRequest", () => {
 
 		it("should send splitted stream chunks", () => {
 			transit.publish.mockClear();
-
+			transit.opts.maxChunkSize = 100;
+			let randomData = crypto.randomBytes(1024);
 			let stream = new Stream.Readable({
 				read() {}
 			});
@@ -1555,47 +1557,31 @@ describe("Test Transit._sendRequest", () => {
 				});
 
 				transit.publish.mockClear();
-				stream.push(Buffer.from("f".repeat(300*1024)));
+				stream.push(randomData);
 			}).delay(100).then(() => {
 
-				expect(transit.publish).toHaveBeenCalledTimes(2);
-				expect(transit.publish).toHaveBeenCalledWith({
-					type: "REQ",
-					target: "remote",
-					payload: {
-						action: "users.find",
-						id: "12345",
-						level: 1,
-						meta: {},
-						tracing: null,
-						params: Buffer.from("f".repeat(256*1024)),
-						parentID: null,
-						requestID: "req-12345",
-						caller: null,
-						seq: 1,
-						stream: true,
-						timeout: null
-					}
-				});
+				expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
 
-				expect(transit.publish).toHaveBeenCalledWith({
-					type: "REQ",
-					target: "remote",
-					payload: {
-						action: "users.find",
-						id: "12345",
-						level: 1,
-						meta: {},
-						tracing: null,
-						params: Buffer.from("f".repeat(44*1024)),
-						parentID: null,
-						requestID: "req-12345",
-						caller: null,
-						seq: 2,
-						stream: true,
-						timeout: null
-					}
-				});
+				for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+					expect(transit.publish).toHaveBeenCalledWith({
+						type: "REQ",
+						target: "remote",
+						payload: {
+							action: "users.find",
+							id: "12345",
+							level: 1,
+							meta: {},
+							tracing: null,
+							params: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
+							parentID: null,
+							requestID: "req-12345",
+							caller: null,
+							seq: slice + 1,
+							stream: true,
+							timeout: null
+						}
+					});
+				}
 
 				transit.publish.mockClear();
 				stream.emit("end");
@@ -1614,7 +1600,7 @@ describe("Test Transit._sendRequest", () => {
 						parentID: null,
 						requestID: "req-12345",
 						caller: null,
-						seq: 3,
+						seq: Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1,
 						stream: false,
 						timeout: null
 					}
@@ -2182,7 +2168,8 @@ describe("Test Transit.sendResponse", () => {
 
 		it("should send splitted stream chunks", () => {
 			transit.publish.mockClear();
-
+                        transit.opts.maxChunkSize = 100;
+                        let randomData = crypto.randomBytes(1024);
 			let stream = new Stream.Readable({
 				read() {}
 			});
@@ -2203,89 +2190,25 @@ describe("Test Transit.sendResponse", () => {
 				});
 
 				transit.publish.mockClear();
-				stream.push(Buffer.from('f'.repeat(600*1024)));
-				stream.push(Buffer.from('s'.repeat(60*1024)));
-				stream.push(Buffer.from('t'.repeat(400*1024)));
+				stream.push(randomData);
 			}).delay(100).then(() => {
 
-				expect(transit.publish).toHaveBeenCalledTimes(6);
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('f'.repeat(256*1024)),
-						id: "12345",
-						meta,
-						seq: 1,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
+                                expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
 
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('f'.repeat(256*1024)),
-						id: "12345",
-						meta,
-						seq: 2,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
-
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('f'.repeat(88*1024)),
-						id: "12345",
-						meta,
-						seq: 3,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
-
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('s'.repeat(60*1024)),
-						id: "12345",
-						meta,
-						seq: 4,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
-
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('t'.repeat(256*1024)),
-						id: "12345",
-						meta,
-						seq: 5,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
-
-				expect(transit.publish).toHaveBeenCalledWith({
-					payload: {
-						data: Buffer.from('t'.repeat(144*1024)),
-						id: "12345",
-						meta,
-						seq: 6,
-						stream: true,
-						success: true
-					},
-					target: "node2",
-					type: "RES"
-				});
+                                for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+					expect(transit.publish).toHaveBeenCalledWith({
+						payload: {
+							data: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
+							id: "12345",
+							meta,
+							seq: slice + 1,
+							stream: true,
+							success: true
+						},
+						target: "node2",
+						type: "RES"
+					});
+				}
 
 				transit.publish.mockClear();
 				stream.emit("end");
@@ -2296,7 +2219,7 @@ describe("Test Transit.sendResponse", () => {
 						data: null,
 						id: "12345",
 						meta,
-						seq: 7,
+						seq: Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1,
 						stream: false,
 						success: true
 					},
