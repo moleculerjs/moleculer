@@ -28,7 +28,8 @@ describe("Test Datadog Reporter class", () => {
 
 				metricNameFormatter: null,
 				labelNameFormatter: null,
-
+				
+				baseUrl: "https://api.datadoghq.com/api/",
 				apiKey: "datadog-api-key",
 				path: "/series",
 				apiVersion: "v1",
@@ -46,7 +47,8 @@ describe("Test Datadog Reporter class", () => {
 				excludes: ["moleculer.circuit-breaker.**", "moleculer.custom.**"],
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
-
+				
+				baseUrl: "https://api.custom-url.com/api/",
 				apiKey: "12345",
 				apiVersion: "v2",
 				host: "custom-hostname",
@@ -61,6 +63,7 @@ describe("Test Datadog Reporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
+				baseUrl: "https://api.custom-url.com/api/",
 				apiKey: "12345",
 				path: "/series",
 				apiVersion: "v2",

@@ -33,6 +33,7 @@ class DatadogReporter extends BaseReporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			host: os.hostname(),
+			baseUrl: BASE_URL,
 			apiVersion: "v1",
 			path: "/series",
 			apiKey: process.env.DATADOG_API_KEY,
@@ -77,7 +78,7 @@ class DatadogReporter extends BaseReporter {
 
 		if (series.length == 0) return;
 
-		return fetch(`${BASE_URL}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`, {
+		return fetch(`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`, {
 			method: "post",
 			body: JSON.stringify({ series }),
 			headers: {
