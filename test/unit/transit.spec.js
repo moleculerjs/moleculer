@@ -9,6 +9,7 @@ const E = require("../../src/errors");
 const P = require("../../src/packets");
 const { Transform } = require("stream");
 const Stream = require("stream");
+const crypto = require("crypto");
 
 const transitOptions = { packetLogFilter: [], disableReconnect: false };
 
@@ -1525,6 +1526,88 @@ describe("Test Transit._sendRequest", () => {
 			});
 		});
 
+		it("should send splitted stream chunks", () => {
+			transit.publish.mockClear();
+			transit.opts.maxChunkSize = 100;
+			let randomData = crypto.randomBytes(1024);
+			let stream = new Stream.Readable({
+				read() {}
+			});
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.push(randomData);
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
+
+				for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+					expect(transit.publish).toHaveBeenCalledWith({
+						type: "REQ",
+						target: "remote",
+						payload: {
+							action: "users.find",
+							id: "12345",
+							level: 1,
+							meta: {},
+							tracing: null,
+							params: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
+							parentID: null,
+							requestID: "req-12345",
+							caller: null,
+							seq: slice + 1,
+							stream: true,
+							timeout: null
+						}
+					});
+				}
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1,
+						stream: false,
+						timeout: null
+					}
+				});
+			});
+		});
+
 		it("should send stream error", () => {
 			transit.publish.mockClear();
 
@@ -2082,6 +2165,73 @@ describe("Test Transit.sendResponse", () => {
 			});
 
 		});
+
+		it("should send splitted stream chunks", () => {
+			transit.publish.mockClear();
+                        transit.opts.maxChunkSize = 100;
+                        let randomData = crypto.randomBytes(1024);
+			let stream = new Stream.Readable({
+				read() {}
+			});
+
+			return transit.sendResponse("node2", "12345", meta, stream).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenLastCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 0,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				transit.publish.mockClear();
+				stream.push(randomData);
+			}).delay(100).then(() => {
+
+                                expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
+
+                                for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+					expect(transit.publish).toHaveBeenCalledWith({
+						payload: {
+							data: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
+							id: "12345",
+							meta,
+							seq: slice + 1,
+							stream: true,
+							success: true
+						},
+						target: "node2",
+						type: "RES"
+					});
+				}
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1,
+						stream: false,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+			});
+
+		});
+
+
 	});
 
 });

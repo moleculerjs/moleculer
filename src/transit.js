@@ -767,18 +767,35 @@ class Transit {
 					}
 
 					const stream = ctx.params;
-					stream.on("data", chunk => {
-						const copy = Object.assign({}, payload);
-						copy.seq = ++payload.seq;
-						copy.stream = true;
-						copy.params = chunk;
+					stream.on("data", async (chunk) => {
 						stream.pause();
+						const chunks = [];
+						if (chunk instanceof Buffer && this.opts.maxChunkSize > 0 && chunk.length > this.opts.maxChunkSize) {
+							let len = chunk.length;
+							let i = 0;
+							while (i < len) {
+								chunks.push(chunk.slice(i, i += this.opts.maxChunkSize));
+							}
+						} else {
+							chunks.push(chunk);
+						}
+						for (const ch of chunks) {
+							const copy = Object.assign({}, payload);
+							copy.seq = ++payload.seq;
+							copy.stream = true;
+							copy.params = ch;
 
-						this.logger.debug(`=> Send stream chunk to ${nodeName} node. Seq: ${copy.seq}`);
+							this.logger.debug(`=> Send stream chunk to ${nodeName} node. Seq: ${copy.seq}`);
 
-						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
-							.then(() => stream.resume())
-							.catch(publishCatch);
+							try {
+								await this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
+							} catch(e) {
+								publishCatch(e);
+								break;
+							}
+						}
+						stream.resume();
+						return;
 					});
 
 					stream.on("end", () => {
@@ -940,18 +957,35 @@ class Transit {
 			const stream = data;
 			stream.pause();
 
-			stream.on("data", chunk => {
-				const copy = Object.assign({}, payload);
-				copy.stream = true;
-				copy.seq = ++payload.seq;
-				copy.data = chunk;
+			stream.on("data", async (chunk) => {
 				stream.pause();
+				const chunks = [];
+				if (chunk instanceof Buffer && this.opts.maxChunkSize > 0 && chunk.length > this.opts.maxChunkSize) {
+					let len = chunk.length;
+					let i = 0;
+					while (i < len) {
+						chunks.push(chunk.slice(i, i += this.opts.maxChunkSize));
+					}
+				} else {
+					chunks.push(chunk);
+				}
+				for (const ch of chunks) {
+					const copy = Object.assign({}, payload);
+					copy.seq = ++payload.seq;
+					copy.stream = true;
+					copy.data = ch;
 
-				this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
+					this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
 
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
-					.then(() => stream.resume())
-					.catch(publishCatch);
+					try {
+						await this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
+					} catch(e) {
+						publishCatch(e);
+						break;
+					}
+				}
+				stream.resume();
+				return;
 			});
 
 			stream.on("end", () => {
