@@ -3,9 +3,13 @@ const MemoryCacher = require("../../../src/cachers/memory");
 
 
 describe("Test MemoryCacher constructor", () => {
+	let cacher;
+	afterEach(async () => {
+		await cacher.close();
+	});
 
 	it("should create an empty options", () => {
-		const cacher = new MemoryCacher();
+		cacher = new MemoryCacher();
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
@@ -13,7 +17,7 @@ describe("Test MemoryCacher constructor", () => {
 
 	it("should create a timer if set ttl option", () => {
 		const opts = { ttl: 500 };
-		const cacher = new MemoryCacher(opts);
+		cacher = new MemoryCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
@@ -23,11 +27,18 @@ describe("Test MemoryCacher constructor", () => {
 });
 
 describe("Test MemoryCacher init", () => {
+	let broker;
+	let cacher;
+	afterEach(async () => {
+		await cacher.close();
+		broker.localBus.emit("$transporter.disconnected");
+		await broker.stop();
+	});
 
 	it("check init", () => {
-		const broker = new ServiceBroker({ logger: false });
+		broker = new ServiceBroker({ logger: false });
 		broker.localBus.on = jest.fn();
-		const cacher = new MemoryCacher();
+		cacher = new MemoryCacher();
 
 		cacher.init(broker);
 
@@ -36,8 +47,8 @@ describe("Test MemoryCacher init", () => {
 	});
 
 	it("should call cache clean after transporter connected", () => {
-		const broker = new ServiceBroker({ logger: false });
-		const cacher = new MemoryCacher();
+		broker = new ServiceBroker({ logger: false });
+		cacher = new MemoryCacher();
 		cacher.clean = jest.fn();
 
 		cacher.init(broker);
@@ -63,6 +74,11 @@ describe("Test MemoryCacher set & get", () => {
 			e: 55
 		}
 	};
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
 
 	it("should save the data with key", () => {
 		cacher.set(key, data1);
@@ -112,9 +128,11 @@ describe("Test MemoryCacher get() with expire", () => {
 		dateNowSpy = jest.spyOn(Date, "now");
 	});
 
-	afterAll(() => {
+	afterAll(async () => {
 		// Unlock Time
 		dateNowSpy.mockRestore();
+		await cacher.close();
+		await broker.stop();
 	});
 
 	it("should save the data with key and a TTL value", () => {
@@ -166,6 +184,11 @@ describe("Test MemoryCacher set & get with default cloning", () => {
 
 	cacher.set(key, data1);
 
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
+
 	it("should give back the data by key", () => {
 		return cacher.get(key).then(obj => {
 			expect(obj).toBeDefined();
@@ -193,6 +216,11 @@ describe("Test MemoryCacher set & get with custom cloning", () => {
 	};
 
 	cacher.set(key, data1);
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
 
 	it("should give back the data by key", () => {
 		return cacher.get(key).then(obj => {
@@ -222,6 +250,11 @@ describe("Test MemoryCacher delete", () => {
 			e: 55
 		}
 	};
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
 
 	it("should save the data with key", () => {
 		return cacher.set(key, data1);
@@ -270,6 +303,11 @@ describe("Test MemoryCacher clean", () => {
 		}
 	};
 	let data2 = "Data2";
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
 
 	it("should save the data with key", () => {
 		cacher.set(key1, data1);
@@ -349,6 +387,11 @@ describe("Test MemoryCacher expired method", () => {
 	};
 	let data2 = "Data2";
 
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
+
 	it("should save the data with key", () => {
 		cacher.set(key1, data1);
 		cacher.set(key2, data2);
@@ -389,6 +432,12 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 	const getWithTTL = jest.spyOn(cacher, "getWithTTL");
 	const lock = jest.spyOn(cacher, "lock");
 	const key1 = "abcd1234";
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
+
 	it("should return data and ttl", () => {
 		return cacher.set(key1, "hello", 30).then(() => {
 			return cacher.getWithTTL(key1).then(res => {

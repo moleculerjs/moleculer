@@ -17,6 +17,10 @@ describe("Test CircuitBreakerMiddleware", () => {
 
 	const mw = Middleware(broker);
 
+	afterAll(() => {
+		mw.stopped.call(broker);
+	});
+
 	it("should register hooks", () => {
 		expect(mw.created).toBeInstanceOf(Function);
 		expect(mw.localAction).toBeInstanceOf(Function);

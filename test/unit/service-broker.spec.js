@@ -40,11 +40,16 @@ const MiddlewareHandler = require("../../src/middleware");
 const { MoleculerError, MoleculerServerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
+	let broker;
+
+	afterEach(async () => {
+		await broker.stop();
+	});
 
 	it("should set default options", () => {
 		console.log = jest.fn();
 
-		let broker = new ServiceBroker();
+		broker = new ServiceBroker();
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
 
@@ -91,7 +96,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			namespace: "test",
 			nodeID: "server-12",
 			transporter: null,
@@ -254,7 +259,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should create transit if transporter into options", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake"
 		});
@@ -267,7 +272,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should create cacher and call init", () => {
 		let cacher = new Cachers.Memory();
 		cacher.init = jest.fn();
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			cacher
 		});
@@ -281,7 +286,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set serializer and call init", () => {
 		let serializer = new Serializers.JSON();
 		serializer.init = jest.fn();
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			serializer
 		});
@@ -293,23 +298,25 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should set validator", () => {
-		let broker = new ServiceBroker({ logger: false });
+		broker = new ServiceBroker({ logger: false });
 		expect(broker.validator).toBeDefined();
+		broker.stop();
 
 		broker = new ServiceBroker({ logger: false, validator: true });
 		expect(broker.validator).toBeDefined();
 	});
 
 	it("should not set validator", () => {
-		let broker = new ServiceBroker({ logger: false, validator: false });
+		broker = new ServiceBroker({ logger: false, validator: false });
 		expect(broker.validator).toBeUndefined();
+		broker.stop();
 
 		broker = new ServiceBroker({ logger: false, validator: null });
 		expect(broker.validator).toBeUndefined();
 	});
 
 	it("should disable balancer if transporter has no built-in balancer", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake",
 			disableBalancer: true
@@ -322,7 +329,7 @@ describe("Test ServiceBroker constructor", () => {
 		let tx = new Transporters.Fake();
 		tx.hasBuiltInBalancer = false;
 
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			transporter: tx,
 			disableBalancer: true
@@ -336,7 +343,7 @@ describe("Test ServiceBroker constructor", () => {
 		let started = jest.fn();
 		let stopped = jest.fn();
 
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			created,
 			started,
@@ -364,7 +371,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should load internal middlewares", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false
 		});
 
@@ -372,7 +379,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should not load internal middlewares", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false
 		});
@@ -383,7 +390,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should load user middlewares", () => {
 		let mw1 = { localAction: jest.fn(handler => handler) };
 		let mw2 = { localAction: jest.fn(handler => handler) };
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false,
 			middlewares: [
@@ -398,7 +405,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should register internal middlewares", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			cacher: "memory",
 			requestTimeout: 5000,
@@ -415,7 +422,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should register moleculer metrics", () => {
-		let broker = new ServiceBroker({
+		broker = new ServiceBroker({
 			logger: false,
 			metrics: false
 		});
@@ -783,9 +790,8 @@ describe("Test broker.stop", () => {
 
 describe("Test broker.repl", () => {
 
-	jest.mock("moleculer-repl");
-	let repl = require("moleculer-repl");
-	repl.mockImplementation(() => jest.fn());
+	jest.mock("moleculer-repl", () => jest.fn());
+	const repl = require("moleculer-repl");
 
 	it("should switch to repl mode", () => {
 		let broker = new ServiceBroker({ logger: false });

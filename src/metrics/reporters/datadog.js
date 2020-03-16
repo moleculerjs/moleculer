@@ -69,6 +69,19 @@ class DatadogReporter extends BaseReporter {
 	}
 
 	/**
+	 * Stop reporter
+	 *
+	 * @memberof DatadogReporter
+	 */
+	stop() {
+		if (this.timer) {
+			clearInterval(this.timer);
+			this.timer = null;
+		}
+		return Promise.resolve();
+	}
+
+	/**
 	 * Flush metric data to Datadog server
 	 *
 	 * @memberof DatadogReporter

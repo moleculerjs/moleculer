@@ -19,6 +19,8 @@ describe("Test lock method", () => {
 					expect(cacher._lock.release).toHaveBeenCalledTimes(1);
 					expect(e).toBe(err);
 				});
+			}).then(() => {
+				return cacher.close();
 			});
 		}));
 	});
@@ -49,6 +51,8 @@ describe("Test lock method", () => {
 							});
 						}, Math.random() * 500);
 					});
+				}).then(() => {
+					return cacher.close();
 				});
 			})).then(() => {
 				expect(lock).toHaveBeenCalledTimes(4);
@@ -76,6 +80,8 @@ describe("Test tryLock method", () => {
 			return cacher.tryLock(key).then(unlock => {
 				expect(cacher._lock.isLocked(key)).toBeTruthy();
 				return unlock();
+			}).then(() => {
+				return cacher.close();
 			});
 		}));
 	});
@@ -96,6 +102,8 @@ describe("Test tryLock method", () => {
 				return cacher.tryLock(key).catch(e => {
 					expect(e.message).toEqual("Locked.");
 				});
+			}).then(() => {
+				return cacher.close();
 			});
 		}));
 	});
@@ -116,6 +124,8 @@ describe("Test tryLock method", () => {
 					expect(cacher._lock.release).toHaveBeenCalledTimes(1);
 					expect(e).toBe(err);
 				});
+			}).then(() => {
+				return cacher.close();
 			});
 		}));
 	});

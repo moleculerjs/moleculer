@@ -126,7 +126,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	close() {
-		return this.client.quit();
+		return this.client != null ? this.client.quit() : Promise.resolve();
 	}
 
 	/**

@@ -639,6 +639,8 @@ describe("Test middleware with lock enabled", () => {
 			expect(get).toHaveBeenCalledTimes(6);
 			expect(getWithTTL).toHaveBeenCalledTimes(0);
 			expect(lock).toHaveBeenCalledTimes(3);
+		}).then(() => {
+			return cacher.close();
 		});
 	});
 

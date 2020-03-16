@@ -31,6 +31,7 @@ describe("Test Base Reporter class", () => {
 
 		it("should set tracer & logger", () => {
 			const fakeTracer = {
+				broker: { Promise },
 				logger: {}
 			};
 			const exporter = new BaseExporter();
@@ -100,6 +101,7 @@ describe("Test Base Reporter class", () => {
 
 	describe("Test errorToObject method", () => {
 		const fakeTracer = {
+			broker: { Promise },
 			logger: {},
 			opts: {
 				errorFields: ["name", "message"]

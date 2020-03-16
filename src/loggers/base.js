@@ -29,7 +29,7 @@ class BaseLogger {
 			level: "info",
 			createLogger: null
 		});
-
+		this.Promise = Promise; // default promise before logger is initialized
 	}
 
 	/**
@@ -40,13 +40,14 @@ class BaseLogger {
 	init(loggerFactory)  {
 		this.loggerFactory = loggerFactory;
 		this.broker = this.loggerFactory.broker;
+		this.Promise = this.broker.Promise;
 	}
 
 	/**
 	 * Stopping logger
 	 */
 	stop() {
-		return this.broker.Promise.resolve();
+		return this.Promise.resolve();
 	}
 
 	getLogLevel(mod) {

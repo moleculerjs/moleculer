@@ -61,6 +61,16 @@ class MemoryCacher extends BaseCacher {
 	}
 
 	/**
+	 * Close cacher
+	 *
+	 * @memberof MemoryCacher
+	 */
+	close() {
+		clearInterval(this.timer);
+		return Promise.resolve();
+	}
+
+	/**
 	 * Get data from cache by key
 	 *
 	 * @param {any} key

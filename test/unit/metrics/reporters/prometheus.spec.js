@@ -62,20 +62,26 @@ describe("Test Prometheus Reporter class", () => {
 	});
 
 	describe("Test init method", () => {
+		let reporter;
+		let broker;
+		afterEach(async () => {
+			await reporter.stop();
+			await broker.stop();
+		});
 
 		it("should create HTTP server", () => {
-			const broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
 			const registry = new MetricRegistry(broker);
-			const reporter = new PrometheusReporter({ port: 0 });
+			reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
 
 			expect(reporter.server).toBeDefined();
 		});
 
 		it("should generate defaultLabels", () => {
-			const broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
 			const registry = new MetricRegistry(broker);
-			const reporter = new PrometheusReporter({ port: 0 });
+			reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
 
 			expect(reporter.defaultLabels).toStrictEqual({
@@ -85,9 +91,9 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should set static defaultLabels", () => {
-			const broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
 			const registry = new MetricRegistry(broker);
-			const reporter = new PrometheusReporter({
+			reporter = new PrometheusReporter({
 				port: 0,
 				defaultLabels: {
 					a: 5,
@@ -105,8 +111,14 @@ describe("Test Prometheus Reporter class", () => {
 	});
 
 	describe("Test stop method", () => {
+		let broker;
+
+		afterEach(async () => {
+			await broker.stop();
+		});
+
 		it("should stop HTTP server", () => {
-			const broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
 			const registry = new MetricRegistry(broker);
 			const reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
@@ -121,10 +133,21 @@ describe("Test Prometheus Reporter class", () => {
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
-		const reporter = new PrometheusReporter({ port: 0 });
-		reporter.init(registry);
+		let reporter;
+		beforeEach(() => {
+			reporter = new PrometheusReporter({ port: 0 });
+			reporter.init(registry);
 
-		reporter.generatePrometheusResponse = jest.fn(() => "Fake generatePrometheusResponse content.");
+			reporter.generatePrometheusResponse = jest.fn(() => "Fake generatePrometheusResponse content.");
+		});
+
+		afterEach(async () => {
+			reporter.stop();
+		});
+
+		afterAll(async () => {
+			broker.stop();
+		});
 
 		it("should return 404 if path is not match", async () => {
 			const res = await request(reporter.server).get("/");
@@ -163,10 +186,18 @@ describe("Test Prometheus Reporter class", () => {
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
+		let reporter;
+
+		afterEach(async () => {
+			await reporter.stop();
+		});
+
+		afterAll(async () => {
+			await broker.stop();
+		});
 
 		it("should call generatePrometheusResponse method but not fetch", () => {
-
-			const reporter = new PrometheusReporter({
+			reporter = new PrometheusReporter({
 				port: 0,
 				host: "test-host",
 				defaultLabels: {

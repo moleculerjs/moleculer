@@ -16,6 +16,7 @@ class BaseTraceExporter {
 	 */
 	constructor(opts) {
 		this.opts = opts || {};
+		this.Promise = Promise; // default promise before logger is initialized
 	}
 
 	/**
@@ -27,6 +28,7 @@ class BaseTraceExporter {
 	init(tracer) {
 		this.tracer = tracer;
 		this.broker = tracer.broker;
+		this.Promise = this.broker.Promise;
 		this.logger = this.opts.logger || this.tracer.logger;
 	}
 
