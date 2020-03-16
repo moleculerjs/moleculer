@@ -505,6 +505,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 		expect(transporter.gossipTimer).toBeNull();
 		transporter.startTimers();
 		expect(transporter.gossipTimer).toBeDefined();
+		transporter.stopTimers(); // clean up handle
 	});
 
 	it("check startTimers", () => {

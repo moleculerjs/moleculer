@@ -99,6 +99,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test init method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
 			getActiveSpanID: jest.fn(),
@@ -182,6 +183,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test spanStarted method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			opts: {
 				errorFields: ["name", "message", "retryable", "data", "code"]
@@ -354,6 +356,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test spanFinished method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			opts: {
 				errorFields: ["name", "message", "retryable", "data", "code"]
@@ -453,6 +456,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test addLogs method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
 			getActiveSpanID: jest.fn(),
@@ -480,6 +484,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test addTags method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
 			getActiveSpanID: jest.fn(),
@@ -550,6 +555,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	describe("Test convertID method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
 			getActiveSpanID: jest.fn(),
@@ -574,6 +580,7 @@ describe("Test Datadog tracing exporter class", () => {
 		it("should retun with the original traceID", () => {
 			let oldGetCurrentTraceID = jest.fn(() => "old-trace-id");
 			const fakeTracer = {
+				broker,
 				getCurrentTraceID: oldGetCurrentTraceID,
 				getActiveSpanID: jest.fn(),
 			};
@@ -591,6 +598,7 @@ describe("Test Datadog tracing exporter class", () => {
 			fakeDdSpan.context.mockClear();
 			let oldGetCurrentTraceID = jest.fn();
 			const fakeTracer = {
+				broker,
 				getCurrentTraceID: oldGetCurrentTraceID,
 				getActiveSpanID: jest.fn(),
 			};
@@ -615,6 +623,7 @@ describe("Test Datadog tracing exporter class", () => {
 		it("should retun with the original spanID", () => {
 			let oldGetActiveSpanID = jest.fn(() => "old-trace-id");
 			const fakeTracer = {
+				broker,
 				getActiveSpanID: oldGetActiveSpanID,
 				getCurrentTraceID: jest.fn(),
 			};
@@ -634,6 +643,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 			let oldGetActiveSpanID = jest.fn();
 			const fakeTracer = {
+				broker,
 				getActiveSpanID: oldGetActiveSpanID,
 				getCurrentTraceID: jest.fn(),
 			};

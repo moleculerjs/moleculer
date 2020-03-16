@@ -49,7 +49,6 @@ class EventTraceExporter extends BaseTraceExporter {
 	 */
 	init(tracer) {
 		super.init(tracer);
-		this.broker = tracer.broker;
 
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
@@ -67,7 +66,7 @@ class EventTraceExporter extends BaseTraceExporter {
 			clearInterval(this.timer);
 			this.timer = null;
 		}
-		return this.broker.Promise.resolve();
+		return this.Promise.resolve();
 	}
 
 	/**

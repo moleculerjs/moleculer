@@ -102,7 +102,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test init method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 
 		it("should flatten default tags", () => {
 			const exporter = new JaegerTraceExporter({ defaultTags: { a: { b: "c" } } });
@@ -153,7 +153,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test getReporter method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 
 		it("should create an UDP sender", () => {
 			const exporter = new JaegerTraceExporter({
@@ -198,7 +198,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test getSampler method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new JaegerTraceExporter();
 		exporter.init(fakeTracer);
 
@@ -303,7 +303,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test getTracer method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new JaegerTraceExporter({
 			tracerOptions: {
 				b: "John"
@@ -357,7 +357,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test spanFinished method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new JaegerTraceExporter({});
 		exporter.init(fakeTracer);
 		exporter.generateJaegerSpan = jest.fn();
@@ -374,6 +374,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 	describe("Test addLogs method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger
 		};
 
@@ -399,6 +400,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 	describe("Test addTags method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger
 		};
 
@@ -466,7 +468,7 @@ describe("Test Jaeger tracing exporter class", () => {
 	});
 
 	describe("Test convertID method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new JaegerTraceExporter({});
 		exporter.init(fakeTracer);
 
@@ -483,6 +485,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 	describe("Test generateJaegerSpan", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			opts: {
 				errorFields: ["name", "message", "retryable", "data", "code"]

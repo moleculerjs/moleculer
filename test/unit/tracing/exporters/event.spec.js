@@ -7,12 +7,20 @@ const ServiceBroker = require("../../../../src/service-broker");
 
 const broker = new ServiceBroker({ logger: false });
 
+afterAll(async () => {
+	await broker.stop();
+});
+
 describe("Test Event tracing exporter class", () => {
+	let exporter;
+	afterEach(async () => {
+		exporter.stop();
+	});
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const exporter = new EventTraceExporter();
+			exporter = new EventTraceExporter();
 
 			expect(exporter.opts).toEqual({
 				eventName: "$tracing.spans",
@@ -29,7 +37,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should create with custom options", () => {
-			const exporter = new EventTraceExporter({
+			exporter = new EventTraceExporter({
 				eventName: "my-tracing.spans",
 				sendStartSpan: true,
 				sendFinishSpan: true,
@@ -66,7 +74,7 @@ describe("Test Event tracing exporter class", () => {
 		afterAll(() => clock.uninstall());
 
 		it("should create timer", () => {
-			const exporter = new EventTraceExporter({});
+			exporter = new EventTraceExporter({});
 			exporter.flush = jest.fn();
 			exporter.init(fakeTracer);
 
@@ -81,14 +89,14 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should not create timer", () => {
-			const exporter = new EventTraceExporter({ interval: 0 });
+			exporter = new EventTraceExporter({ interval: 0 });
 			exporter.init(fakeTracer);
 
 			expect(exporter.timer).toBeUndefined();
 		});
 
 		it("should flatten default tags", () => {
-			const exporter = new EventTraceExporter({ defaultTags: { a: { b: "c" } } });
+			exporter = new EventTraceExporter({ defaultTags: { a: { b: "c" } } });
 			exporter.init(fakeTracer);
 
 			expect(exporter.defaultTags).toEqual({
@@ -100,7 +108,7 @@ describe("Test Event tracing exporter class", () => {
 
 		it("should call defaultTags function", () => {
 			const fn = jest.fn(() => ({ a: { b: 5 } }));
-			const exporter = new EventTraceExporter({ defaultTags: fn });
+			exporter = new EventTraceExporter({ defaultTags: fn });
 			exporter.init(fakeTracer);
 
 			expect(exporter.defaultTags).toEqual({
@@ -119,7 +127,7 @@ describe("Test Event tracing exporter class", () => {
 		const fakeTracer = { logger: broker.logger, broker };
 
 		it("should flatten default tags", async () => {
-			const exporter = new EventTraceExporter({ defaultTags: { a: { b: "c" } } });
+			exporter = new EventTraceExporter({ defaultTags: { a: { b: "c" } } });
 			exporter.init(fakeTracer);
 
 			expect(exporter.timer).toBeDefined();
@@ -134,7 +142,7 @@ describe("Test Event tracing exporter class", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 
 		it("should push spans to the queue", () => {
-			const exporter = new EventTraceExporter({});
+			exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
 			expect(exporter.queue).toEqual([]);
@@ -149,7 +157,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should not push spans to the queue", () => {
-			const exporter = new EventTraceExporter({ sendFinishSpan: false });
+			exporter = new EventTraceExporter({ sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
 			expect(exporter.queue).toEqual([]);
@@ -171,10 +179,11 @@ describe("Test Event tracing exporter class", () => {
 		broker.emit = jest.fn();
 		broker.broadcast = jest.fn();
 
-		const exporter = new EventTraceExporter({});
-		exporter.init(fakeTracer);
-
-		exporter.generateTracingData = jest.fn(() => ([{ a: 5 }]));
+		beforeEach(() => {
+			exporter = new EventTraceExporter({});
+			exporter.init(fakeTracer);
+			exporter.generateTracingData = jest.fn(() => ([{ a: 5 }]));
+		});
 
 		it("should not generate data if queue is empty", () => {
 			exporter.flush();
@@ -220,7 +229,7 @@ describe("Test Event tracing exporter class", () => {
 		};
 
 		it("should return with a new array", () => {
-			const exporter = new EventTraceExporter({});
+			exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
 			exporter.queue.push({ a: 5 }, { b: 10 });
@@ -237,7 +246,7 @@ describe("Test Event tracing exporter class", () => {
 
 		it("should call spanConverter", () => {
 			const spanConverter = jest.fn(span => Object.assign({ converted: true }, span));
-			const exporter = new EventTraceExporter({ spanConverter });
+			exporter = new EventTraceExporter({ spanConverter });
 			exporter.init(fakeTracer);
 
 			exporter.queue.push({ a: 5 }, { b: 10 });
@@ -264,7 +273,7 @@ describe("Test Event tracing exporter class", () => {
 		};
 
 		it("should push into queue only spanFinished", () => {
-			const exporter = new EventTraceExporter({});
+			exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
 			exporter.spanStarted({ a: 5 });
@@ -276,7 +285,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should push into queue only spanStarted", () => {
-			const exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: false });
+			exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
 			exporter.spanStarted({ a: 5 });
@@ -288,7 +297,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should not push any span", () => {
-			const exporter = new EventTraceExporter({ sendFinishSpan: false });
+			exporter = new EventTraceExporter({ sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
 			exporter.spanStarted({ a: 5 });
@@ -298,7 +307,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should push all spans & call flush", () => {
-			const exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: true, interval: 0 });
+			exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: true, interval: 0 });
 			exporter.flush = jest.fn();
 			exporter.init(fakeTracer);
 
@@ -322,7 +331,7 @@ describe("Test Event tracing exporter class", () => {
 		};
 
 		it("should return with a new array", () => {
-			const exporter = new EventTraceExporter({});
+			exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
 			exporter.queue.push({ a: 5 }, { b: 10 });
@@ -339,7 +348,7 @@ describe("Test Event tracing exporter class", () => {
 
 		it("should call spanConverter", () => {
 			const spanConverter = jest.fn(span => Object.assign({ converted: true }, span));
-			const exporter = new EventTraceExporter({ spanConverter });
+			exporter = new EventTraceExporter({ spanConverter });
 			exporter.init(fakeTracer);
 
 			exporter.queue.push({ a: 5 }, { b: 10 });

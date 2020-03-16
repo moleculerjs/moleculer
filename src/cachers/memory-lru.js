@@ -70,6 +70,16 @@ class MemoryLRUCacher extends BaseCacher {
 	}
 
 	/**
+	 * Close cacher
+	 *
+	 * @memberof MemoryLRUCacher
+	 */
+	close() {
+		clearInterval(this.timer);
+		return Promise.resolve();
+	}
+
+	/**
 	 * Get data from cache by key
 	 *
 	 * @param {any} key

@@ -22,11 +22,15 @@ const lolex = require("@sinonjs/fake-timers");
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });
 
 describe("Test File logger class", () => {
+	let logger;
+	afterEach(async () => {
+		await logger.stop();
+	});
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 
 			expect(logger.opts).toEqual({
 				autoPadding: false,
@@ -48,7 +52,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should create with custom options", () => {
-			const logger = new FileLogger({
+			logger = new FileLogger({
 				createLogger: jest.fn(),
 				level: "debug",
 				folder: "/my-log",
@@ -79,7 +83,7 @@ describe("Test File logger class", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		it("should init the logger", () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 
 			logger.init(loggerFactory);
 
@@ -90,7 +94,7 @@ describe("Test File logger class", () => {
 		it("should init the logger with custom options", () => {
 			utils.makeDirs.mockClear();
 
-			const logger = new FileLogger({
+			logger = new FileLogger({
 				folder: "/logs/{namespace}/{nodeID}",
 				interval: 0
 			});
@@ -110,7 +114,7 @@ describe("Test File logger class", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		it("should create a default logger", async () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 
 			logger.init(loggerFactory);
 
@@ -139,7 +143,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should return interpolated filename", () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 
 			logger.init(loggerFactory);
 
@@ -160,7 +164,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should create a child logger", () => {
-			const logger = new FileLogger({ level: "trace" });
+			logger = new FileLogger({ level: "trace" });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -187,8 +191,9 @@ describe("Test File logger class", () => {
 		});
 
 		it("should not call console if level is lower", () => {
-			const logger = new FileLogger({ level: "info" });
+			logger = new FileLogger({ level: "info" });
 			logger.init(loggerFactory);
+			logger.flush = jest.fn();
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
@@ -209,7 +214,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should not create child logger if level is null", () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -221,7 +226,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should not create child logger if bindings is null", () => {
-			const logger = new FileLogger();
+			logger = new FileLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -232,7 +237,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should call flush if not interval", () => {
-			const logger = new FileLogger({ level: "trace", interval: 0 });
+			logger = new FileLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -266,7 +271,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should do nothing if queue is empty", () => {
-			const logger = new FileLogger({ level: "trace", interval: 0 });
+			logger = new FileLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 
 			logger.renderRow = jest.fn();
@@ -279,7 +284,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should render rows and call appendFile", () => {
-			const logger = new FileLogger({ level: "trace", eol: "\n" });
+			logger = new FileLogger({ level: "trace", eol: "\n" });
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
@@ -296,7 +301,7 @@ describe("Test File logger class", () => {
 		});
 
 		it("should call flush after interval", () => {
-			const logger = new FileLogger({ level: "trace", interval: 2000 });
+			logger = new FileLogger({ level: "trace", interval: 2000 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 

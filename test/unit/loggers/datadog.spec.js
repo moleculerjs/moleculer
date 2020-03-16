@@ -72,9 +72,14 @@ describe("Test Datadog logger class", () => {
 
 	describe("Test init method", () => {
 		const loggerFactory = new LoggerFactory(broker);
+		let logger;
+
+		afterEach(async () => {
+			await logger.stop();
+		});
 
 		it("should init the logger", () => {
-			const logger = new DatadogLogger();
+			logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			expect(logger.objectPrinter).toBeDefined();
@@ -82,7 +87,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should init the logger with custom options", () => {
-			const logger = new DatadogLogger({
+			logger = new DatadogLogger({
 				interval: 0
 			});
 			logger.init(loggerFactory);
@@ -92,7 +97,7 @@ describe("Test Datadog logger class", () => {
 
 		it("should use custom objectPrinter", () => {
 			const objectPrinter = jest.fn();
-			const logger = new DatadogLogger({
+			logger = new DatadogLogger({
 				objectPrinter
 			});
 
@@ -124,9 +129,15 @@ describe("Test Datadog logger class", () => {
 
 	describe("Test getTags method", () => {
 		const loggerFactory = new LoggerFactory(broker);
+		let logger;
+
+		afterEach(async () => {
+			await logger.stop();
+		});
+
 
 		it("should return tags from row", () => {
-			const logger = new DatadogLogger({
+			logger = new DatadogLogger({
 				env: "production"
 			});
 
@@ -146,6 +157,7 @@ describe("Test Datadog logger class", () => {
 	describe("Test getLogHandler method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 		let clock;
+		let logger;
 
 		beforeAll(() => {
 			clock = lolex.install();
@@ -155,8 +167,12 @@ describe("Test Datadog logger class", () => {
 			clock.uninstall();
 		});
 
+		afterEach(async () => {
+			await logger.stop();
+		});
+
 		it("should create a child logger", () => {
-			const logger = new DatadogLogger({ level: "trace" });
+			logger = new DatadogLogger({ level: "trace" });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -183,8 +199,9 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not call console if level is lower", () => {
-			const logger = new DatadogLogger({ level: "info" });
+			logger = new DatadogLogger({ level: "info" });
 			logger.init(loggerFactory);
+			logger.flush = jest.fn();
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
@@ -205,7 +222,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not create child logger if level is null", () => {
-			const logger = new DatadogLogger();
+			logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -217,7 +234,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not create child logger if bindings is null", () => {
-			const logger = new DatadogLogger();
+			logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -228,7 +245,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should call flush if not interval", () => {
-			const logger = new DatadogLogger({ level: "trace", interval: 0 });
+			logger = new DatadogLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -252,6 +269,7 @@ describe("Test Datadog logger class", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		let clock;
+		let logger;
 
 		beforeAll(() => {
 			clock = lolex.install();
@@ -261,8 +279,12 @@ describe("Test Datadog logger class", () => {
 			clock.uninstall();
 		});
 
+		afterEach(async () => {
+			await logger.stop();
+		});
+
 		it("should do nothing if queue is empty", () => {
-			const logger = new DatadogLogger({ level: "trace", interval: 0 });
+			logger = new DatadogLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 
 			fetch.mockClear();
@@ -273,7 +295,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should render rows and call appendFile", () => {
-			const logger = new DatadogLogger({ level: "trace", eol: "\n", hostname: "my-host" });
+			logger = new DatadogLogger({ level: "trace", eol: "\n", hostname: "my-host" });
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
@@ -295,7 +317,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should call flush after interval", () => {
-			const logger = new DatadogLogger({ level: "trace", interval: 2000 });
+			logger = new DatadogLogger({ level: "trace", interval: 2000 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 

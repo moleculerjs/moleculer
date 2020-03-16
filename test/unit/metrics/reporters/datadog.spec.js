@@ -28,7 +28,7 @@ describe("Test Datadog Reporter class", () => {
 
 				metricNameFormatter: null,
 				labelNameFormatter: null,
-				
+
 				baseUrl: "https://api.datadoghq.com/api/",
 				apiKey: "datadog-api-key",
 				path: "/series",
@@ -47,7 +47,7 @@ describe("Test Datadog Reporter class", () => {
 				excludes: ["moleculer.circuit-breaker.**", "moleculer.custom.**"],
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
-				
+
 				baseUrl: "https://api.custom-url.com/api/",
 				apiKey: "12345",
 				apiVersion: "v2",
@@ -80,8 +80,12 @@ describe("Test Datadog Reporter class", () => {
 
 	describe("Test init method", () => {
 		let clock;
+		let reporter;
 		beforeAll(() => clock = lolex.install());
 		afterAll(() => clock.uninstall());
+		afterEach(async () => {
+			await reporter.stop();
+		});
 
 		it("should start timer", () => {
 			const fakeBroker = {
@@ -89,7 +93,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ interval: 5 });
+			reporter = new DatadogReporter({ interval: 5 });
 			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 
@@ -107,7 +111,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({});
+			reporter = new DatadogReporter({});
 			reporter.init(fakeRegistry);
 
 			expect(reporter.defaultLabels).toStrictEqual({
@@ -119,7 +123,7 @@ describe("Test Datadog Reporter class", () => {
 		it("should set static defaultLabels", () => {
 			const fakeBroker = {};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({
+			reporter = new DatadogReporter({
 				defaultLabels: {
 					a: 5,
 					b: "John"
@@ -136,6 +140,10 @@ describe("Test Datadog Reporter class", () => {
 	});
 
 	describe("Test flush method", () => {
+		let reporter;
+		afterEach(async () => {
+			await reporter.stop();
+		});
 
 		it("should call generateDatadogSeries method but not fetch", async () => {
 			const fakeBroker = {
@@ -143,7 +151,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({});
+			reporter = new DatadogReporter({});
 			reporter.init(fakeRegistry);
 
 			reporter.generateDatadogSeries = jest.fn(() => []);
@@ -160,7 +168,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker, logger: { debug: jest.fn() } };
-			const reporter = new DatadogReporter({ apiKey: "12345" });
+			reporter = new DatadogReporter({ apiKey: "12345" });
 			reporter.init(fakeRegistry);
 
 			reporter.generateDatadogSeries = jest.fn(()=> [
@@ -185,15 +193,24 @@ describe("Test Datadog Reporter class", () => {
 
 	describe("Test generateDatadogSeries method", () => {
 		let clock;
+		let reporter;
+
 		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
 		afterAll(() => clock.uninstall());
+		afterEach(async () => {
+			await reporter.stop();
+		});
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
 
+		afterAll(async () => {
+			await broker.stop();
+		});
+
 		it("should call generateDatadogSeries method but not fetch", () => {
 
-			const reporter = new DatadogReporter({
+			reporter = new DatadogReporter({
 				host: "test-host",
 				defaultLabels: {
 					defLabel: "def\\Value-\"quote\""
