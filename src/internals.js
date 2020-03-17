@@ -83,7 +83,7 @@ module.exports = function() {
 				tracing: false,
 				params: {},
 				handler() {
-					return utils.safetyObject(this.broker.options, { maxSafeObjectSize: 1024 });
+					return utils.safetyObject(this.broker.options, { maxSafeObjectSize: 1024 * 1024 });
 				}
 			},
 
