@@ -1169,7 +1169,7 @@ declare namespace Moleculer {
 	}
 
 	abstract class BaseStrategy {
-		init(broker: ServiceBroker): void;
+		constructor(registry:ServiceRegistry, broker:ServiceBroker, opts?:object);
 		select(list: any[], ctx?: Context): Endpoint;
 	}
 
