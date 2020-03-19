@@ -110,6 +110,7 @@ const defaultOptions = {
 	middlewares: null,
 
 	replCommands: null,
+	replDelimiter: null,
 
 	metadata: {},
 
@@ -540,8 +541,7 @@ class ServiceBroker {
 	 *
 	 * @example
 	 * broker.start().then(() => broker.repl());
-	 *
-	 * @memberof ServiceBroker
+	 * @returns {object}
 	 */
 	repl() {
 		let repl;
@@ -556,7 +556,12 @@ class ServiceBroker {
 		}
 
 		if (repl)
-			repl(this, this.options.replCommands);
+		{
+			const opts = {} // Send replDelimiter = null to moleculer-repl will make a 'null' delimiter 
+			this.options.replDelimiter && (opts.delimiter = this.options.replDelimiter) 
+			this.options.replCommands && (opts.customCommands = this.options.replCommands)
+			return repl(this, opts);
+		}
 	}
 
 	/**

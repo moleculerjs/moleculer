@@ -775,6 +775,7 @@ declare namespace Moleculer {
 		middlewares?: Array<Middleware | string>;
 
 		replCommands?: Array<GenericObject>;
+		replDelimiter?: string;
 
 		metadata?: GenericObject;
 
