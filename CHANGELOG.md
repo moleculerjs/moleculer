@@ -2,9 +2,13 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.4...master)
 
+## Changes
+- add chunk limit for streams in message transporting. [#683](https://github.com/moleculerjs/moleculer/issues/683)
+- 
+
 --------------------------------------------------
-<a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.3...v0.14.4)
+<a name="0.14.4"></a>
+# [0.14.4](https://github.com/moleculerjs/moleculer/compare/v0.14.3...v0.14.4) (2020-03-08)
 
 ## Changes
 - add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)

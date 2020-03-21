@@ -63,6 +63,8 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 
 	});
 
+let count = 0;
+
 function callAES() {
 	const startTime = Date.now();
 
@@ -77,12 +79,17 @@ function callAES() {
 				const duration = Date.now() - startTime;
 				getSHA(fileName2).then(hash => {
 					if (hash != origHash) {
-						broker1.logger.error(kleur.red().bold("Hash mismatch! Time:", duration, "ms. Received SHA:", hash));
+						broker1.logger.error(count, kleur.red().bold("Hash mismatch!"), "Time:", duration, "ms. Received SHA:", hash);
 					} else {
-						broker1.logger.info(kleur.green().bold("Hash OK! Time:", duration, "ms. Received SHA:", hash));
+						broker1.logger.info(count, kleur.green().bold("Hash OK!"), "Time:", duration, "ms. Received SHA:", hash);
 					}
 
-					setTimeout(() => callAES(), 100);
+					if (++count < 10)
+						setTimeout(() => callAES(), 100);
+					else {
+						broker1.stop();
+						broker2.stop();
+					}
 				});
 			});
 		})
