@@ -268,7 +268,7 @@ describe("Test middleware system", () => {
 describe("Test middleware v2 system", () => {
 
 	const FLOW = [];
-	let broker;
+	let broker, svc;
 
 	function createMW(mwName) {
 		return {
@@ -311,6 +311,14 @@ describe("Test middleware v2 system", () => {
 				};
 			},
 
+			// Wrap local method handlers
+			localMethod(next, method) {
+				expect(method).toBeDefined();
+				return (...args) => {
+					FLOW.push(`${mwName}-localMethod-${method.name}-${args.join("|")}`);
+					return next(...args);
+				};
+			},
 			// Wrap broker.createService method
 			createService(next) {
 				return (schema, schemaMods) => {
@@ -514,7 +522,7 @@ describe("Test middleware v2 system", () => {
 	});
 
 	it("should call 'serviceCreating' & 'serviceCreated' ", () => {
-		broker.createService({
+		svc = broker.createService({
 			name: "greeter",
 			actions: {
 				hello(ctx) {
@@ -522,6 +530,12 @@ describe("Test middleware v2 system", () => {
 					return `Hello ${ctx.params.name}!`;
 				}
 			},
+			methods: {
+				uppercase(text) {
+					return text ? text.toUpperCase() : text;
+				}
+			},
+
 			events: {
 				"john.**"(ctx) {
 					FLOW.push(`svc-${ctx.eventName}-${ctx.params.name}`);
@@ -654,6 +668,15 @@ describe("Test middleware v2 system", () => {
 			"mw1-localEvent-john.welcomed-John",
 
 			"svc-john.welcomed-John"
+		]);
+	});
+
+	it("should call method & 'localMethod' ", () => {
+		const res = svc.uppercase("John");
+		expect(res).toBe("JOHN");
+		expect(FLOW).toEqual([
+			"mw2-localMethod-uppercase-John",
+			"mw1-localMethod-uppercase-John"
 		]);
 	});
 

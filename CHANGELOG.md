@@ -2,6 +2,44 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.4...master)
 
+## Wrapping service methods with middlewares
+New `localMethod` hook in middlewares which wraps the service methods.
+
+**Example**
+```js
+// my.middleware.js
+module.exports = {
+    name: "MyMiddleware",
+
+    localMethod(next, method) {
+        return (...args) => {
+            console.log(`The '${method.name}' method is called in '${method.service.fullName}' service.`, args);
+            return handler(...args);
+        }
+    }
+}
+```
+
+## Schema for service methods
+Similar for action schema, you can define service methods with schema. It can be useful when middleware wraps service methods.
+
+**Example for new method schema**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    methods: {
+        list: {
+            async handler(count) {
+                // Do something
+                return posts;
+            }
+        }
+    }
+};
+```
+
 ## Changes
 - add chunk limit for streams in message transporting. [#683](https://github.com/moleculerjs/moleculer/issues/683)
 - add `baseUrl` option for Datadog metric reporter. [#694](https://github.com/moleculerjs/moleculer/issues/694)

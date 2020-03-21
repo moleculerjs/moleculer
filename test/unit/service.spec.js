@@ -160,6 +160,12 @@ describe("Test Service class", () => {
 					beta() {
 						expect(this).toBe(svc);
 						return "Beta";
+					},
+					gamma: {
+						handler() {
+							expect(this).toBe(svc);
+							return "Gamma";
+						}
 					}
 				}
 			};
@@ -167,9 +173,11 @@ describe("Test Service class", () => {
 
 			expect(svc.alpha).toBeInstanceOf(Function);
 			expect(svc.beta).toBeInstanceOf(Function);
+			expect(svc.gamma).toBeInstanceOf(Function);
 
 			expect(svc.alpha()).toBe("Alpha");
 			expect(svc.beta()).toBe("Beta");
+			expect(svc.gamma()).toBe("Gamma");
 
 			expect(svc._serviceSpecification).toEqual({
 				name: "posts",
@@ -180,6 +188,8 @@ describe("Test Service class", () => {
 				actions: {},
 				events: {}
 			});
+
+			expect.assertions(9);
 		});
 
 		it("should register actions", () => {
@@ -613,6 +623,68 @@ describe("Test Service class", () => {
 
 			expect(FLOW.join("-")).toBe("S2-S1");
 		});
+	});
+
+	describe("Test _createMethod", () => {
+		const broker = new ServiceBroker({ logger: false });
+
+		const svc = new Service(broker);
+		svc.parseServiceSchema({ name: "posts", version: 2 });
+
+		it("should throw error if method schema is invalid", () => {
+			expect(() => { svc._createMethod(null, "list"); }).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
+			expect(() => { svc._createMethod("schema", "list"); }).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
+		});
+
+		it("should throw error if action handler is not defined", () => {
+			expect(() => { svc._createMethod({}, "list"); })
+				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+			expect(() => { svc._createMethod({ handler: null }, "list"); })
+				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+			expect(() => { svc._createMethod({ handler: "wrong" }, "list"); })
+				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+		});
+
+		it("should create action definition from a shorthand handler", () => {
+			const handler = jest.fn(function(name) {
+				expect(this).toBe(svc);
+				return `Hello ${name}`;
+			});
+
+			const res = svc._createMethod(handler, "list");
+
+			expect(res).toEqual({
+				name: "list",
+				handler: expect.any(Function),
+				service: svc
+			});
+
+			expect(svc.list).toBe(res.handler);
+			expect(svc.list("John")).toBe("Hello John");
+		});
+
+		it("should create action definition from a schema", () => {
+			const schema = {
+				uppercase: true,
+				handler: jest.fn(function(name) {
+					expect(this).toBe(svc);
+					return `Hello ${name}`;
+				})
+			};
+
+			const res = svc._createMethod(schema, "hello");
+
+			expect(res).toEqual({
+				name: "hello",
+				handler: expect.any(Function),
+				service: svc,
+				uppercase: true
+			});
+
+			expect(svc.hello).toBe(res.handler);
+			expect(svc.hello("John")).toBe("Hello John");
+		});
+
 	});
 
 	describe("Test _createAction", () => {

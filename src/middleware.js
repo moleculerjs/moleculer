@@ -163,6 +163,13 @@ module.exports = MiddlewareHandler;
 		};
 	},
 
+    // Wrap local method handlers
+    localMethod(next, method) {
+		return () => {
+			return next(...arguments);
+		};
+	},
+
 	// Wrap broker.createService method
 	createService(next) {
 		return (schema, schemaMods) => {

@@ -120,7 +120,8 @@ class Service {
 				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped", "_start", "_stop", "_init"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
-				this[name] = method.bind(this);
+
+				this._createMethod(method, name);
 			});
 		}
 
@@ -333,6 +334,39 @@ class Service {
 		action.handler = this.Promise.method(handler.bind(this));
 
 		return action;
+	}
+
+	/**
+	 * Create an internal service method.
+	 *
+	 * @param {Object|Function} methodDef
+	 * @param {String} name
+	 * @returns {Object}
+	 */
+	_createMethod(methodDef, name) {
+		let method;
+		if (_.isFunction(methodDef)) {
+			// Wrap to an object
+			method = {
+				handler: methodDef
+			};
+		} else if (_.isObject(methodDef)) {
+			method = methodDef;
+		} else {
+			throw new ServiceSchemaError(`Invalid method definition in '${name}' method in '${this.fullName}' service!`);
+		}
+
+		if (!_.isFunction(method.handler)) {
+			throw new ServiceSchemaError(`Missing method handler on '${name}' method in '${this.fullName}' service!`);
+		}
+
+		method.name = name;
+		method.service = this;
+		method.handler = method.handler.bind(this);
+
+		this[name] = this.broker.middlewares.wrapHandler("localMethod", method.handler, method);
+
+		return method;
 	}
 
 	/**
