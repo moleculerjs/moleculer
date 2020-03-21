@@ -4,7 +4,9 @@
 
 ## Changes
 - add chunk limit for streams in message transporting. [#683](https://github.com/moleculerjs/moleculer/issues/683)
-- 
+- add `baseUrl` option for Datadog metric reporter. [#694](https://github.com/moleculerjs/moleculer/issues/694)
+- fix open handles in unit tests. [#695](https://github.com/moleculerjs/moleculer/issues/695)
+- update d.ts [#699](https://github.com/moleculerjs/moleculer/issues/699)
 
 --------------------------------------------------
 <a name="0.14.4"></a>
