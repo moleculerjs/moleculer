@@ -110,6 +110,7 @@ const defaultOptions = {
 	middlewares: null,
 
 	replCommands: null,
+	replDelimiter: null,
 
 	metadata: {},
 
@@ -540,8 +541,7 @@ class ServiceBroker {
 	 *
 	 * @example
 	 * broker.start().then(() => broker.repl());
-	 *
-	 * @memberof ServiceBroker
+	 * @returns {object}
 	 */
 	repl() {
 		let repl;
@@ -556,7 +556,14 @@ class ServiceBroker {
 		}
 
 		if (repl)
-			repl(this, this.options.replCommands);
+		{
+			let opts = null;
+			const delimiter = this.options.replDelimiter;
+			const customCommands = this.options.replCommands;
+			delimiter && (opts = {delimiter}) 
+			customCommands && (opts = {...opts,customCommands})
+			return repl(this, opts);
+		}
 	}
 
 	/**

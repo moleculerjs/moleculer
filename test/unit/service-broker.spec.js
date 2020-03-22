@@ -233,7 +233,7 @@ describe("Test ServiceBroker constructor", () => {
 			hotReload: true,
 			middlewares: null,
 			replCommands: null,
-
+			replDelimiter: null,
 			metadata: {
 				region: "eu-west1"
 			},
@@ -798,7 +798,7 @@ describe("Test broker.repl", () => {
 		broker.repl();
 
 		expect(repl).toHaveBeenCalledTimes(1);
-		expect(repl).toHaveBeenCalledWith(broker, null);
+		expect(repl).toHaveBeenCalledWith(broker,null);
 	});
 
 	it("should switch to repl mode with custom commands", () => {
@@ -810,7 +810,18 @@ describe("Test broker.repl", () => {
 		broker.repl();
 
 		expect(repl).toHaveBeenCalledTimes(1);
-		expect(repl).toHaveBeenCalledWith(broker, broker.options.replCommands);
+		expect(repl).toHaveBeenCalledWith(broker, { customCommands: broker.options.replCommands });
+	});
+	it("should switch to repl mode with delimiter", () => {
+		repl.mockClear();
+		let broker = new ServiceBroker({
+			logger: false,
+			replDelimiter: 'mol # '
+		});
+		broker.repl();
+
+		expect(repl).toHaveBeenCalledTimes(1);
+		expect(repl).toHaveBeenCalledWith(broker, { delimiter: broker.options.replDelimiter });
 	});
 });
 
