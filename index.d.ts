@@ -896,7 +896,7 @@ declare namespace Moleculer {
 	}
 
 	interface MoleculerRepl extends Vorpal{
-		removeIfExist(command:string);
+		removeIfExist(command:string): void;
 	}
 
 
@@ -1348,7 +1348,7 @@ declare namespace Moleculer {
 	const CIRCUIT_HALF_OPEN: string;
 	const CIRCUIT_OPEN: string;
 
-	declare class Vorpal {
+	class Vorpal {
 		parse(argv: ReadonlyArray<string>): this;
 		delimiter(value: string): this;
 		show(): this;
@@ -1370,7 +1370,7 @@ declare namespace Moleculer {
 		activeCommand: Vorpal.CommandInstance;
 	}
 	
-	declare namespace Vorpal {
+	namespace Vorpal {
 		interface Args {
 			[key: string]: any;
 			options: {
