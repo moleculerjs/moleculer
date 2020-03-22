@@ -1,4 +1,5 @@
 import { EventEmitter2 } from "eventemitter2";
+import Vorpal from "vorpal";
 
 declare namespace Moleculer {
 	/**
@@ -12,6 +13,7 @@ declare namespace Moleculer {
 	 *     type Promise<T> = Bluebird<T>;
 	 *   }
 	 */
+
 	type GenericObject = { [name: string]: any };
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
@@ -894,6 +896,11 @@ declare namespace Moleculer {
 		version?: string|number;
 	}
 
+	interface MoleculerRepl extends Vorpal{
+		removeIfExist(command:string);
+	}
+
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -933,7 +940,7 @@ declare namespace Moleculer {
 		start(): Promise<void>;
 		stop(): Promise<void>;
 
-		repl(): void;
+		repl(): MoleculerRepl;
 
 		errorHandler(err: Error, info: GenericObject): void;
 
