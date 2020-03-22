@@ -557,9 +557,11 @@ class ServiceBroker {
 
 		if (repl)
 		{
-			const opts = {} // Send replDelimiter = null to moleculer-repl will make a 'null' delimiter 
-			this.options.replDelimiter && (opts.delimiter = this.options.replDelimiter) 
-			this.options.replCommands && (opts.customCommands = this.options.replCommands)
+			let opts = null;
+			const delimiter = this.options.replDelimiter;
+			const customCommands = this.options.replCommands;
+			delimiter && (opts = {delimiter}) 
+			customCommands && (opts = {...opts,customCommands})
 			return repl(this, opts);
 		}
 	}
