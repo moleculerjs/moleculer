@@ -226,6 +226,7 @@ describe("Test ServiceBroker constructor", () => {
 			},
 			requestTimeout: 5000,
 			maxCallLevel: 10,
+			maxSafeObjectSize: null,
 			contextParamsCloning: true,
 			validator: false,
 			internalServices: false,

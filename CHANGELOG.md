@@ -51,6 +51,7 @@ module.exports = {
 # [0.14.4](https://github.com/moleculerjs/moleculer/compare/v0.14.3...v0.14.4) (2020-03-08)
 
 ## Changes
+- add `maxSafeObjectSize` to service broker options. Fixes [#697](https://github.com/moleculerjs/moleculer/pull/697)
 - add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)
 - fix `EventLegacy` tracing exporter. Fixes  [#676](https://github.com/moleculerjs/moleculer/issues/676)
 - the `defaultTags` property in `tracer` options can be a `Function`, as well.

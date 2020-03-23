@@ -156,6 +156,40 @@ describe("Test utils.safetyObject", () => {
 		expect(res).toEqual(obj);
 	});
 
+	it("should skip converting into JSON large objects", () => {
+		const bigData = Array.from({ length: 2048 }).map((_, index) => index);
+
+		const bigBuffer = Buffer.from(bigData);
+		const bigSet = new Set(bigData);
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			},
+			bigBuffer,
+			bigSet,
+		};
+		const res = utils.safetyObject(obj, { maxSafeObjectSize: 1024 });
+		expect(res).not.toBe(obj);
+		expect(res).toEqual({
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			},
+			bigBuffer: {
+				data: "[Array 2048]",
+				type: "Buffer",
+			},
+			bigSet: "[Set 2048]",
+		});
+	});
+
 	it("should return a same object without circular refs & Function", () => {
 		const obj = {
 			a: 5,

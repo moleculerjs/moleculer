@@ -33,10 +33,27 @@ const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
 
 class TimeoutError extends ExtendableError {}
 
-function circularReplacer() {
+/**
+ * Circular replacing of unsafe properties in object
+ *
+ * @param {Object=} options List of options to change circularReplacer behaviour
+ * @param {number=} options.maxSafeObjectSize Maximum size of objects for safe object converting
+ * @return {function(...[*]=)}
+ */
+function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
 	const seen = new WeakSet();
 	return function(key, value) {
 		if (typeof value === "object" && value !== null) {
+			const objectType = value.constructor && value.constructor.name || typeof value;
+
+			if (options.maxSafeObjectSize && "length" in value && value.length > options.maxSafeObjectSize) {
+				return `[${objectType} ${value.length}]`;
+			}
+
+			if (options.maxSafeObjectSize && "size" in value && value.size > options.maxSafeObjectSize) {
+				return `[${objectType} ${value.size}]`;
+			}
+
 			if (seen.has(value)) {
 				//delete this[key];
 				return;
@@ -291,10 +308,12 @@ const utils = {
 	 * Remove circular references & Functions from the JS object
 	 *
 	 * @param {Object|Array} obj
+	 * @param {Object=} options List of options to change circularReplacer behaviour
+	 * @param {number=} options.maxSafeObjectSize List of options to change circularReplacer behaviour
 	 * @returns {Object|Array}
 	 */
-	safetyObject(obj) {
-		return JSON.parse(JSON.stringify(obj, circularReplacer()));
+	safetyObject(obj, options) {
+		return JSON.parse(JSON.stringify(obj, circularReplacer(options)));
 	},
 
 	/**

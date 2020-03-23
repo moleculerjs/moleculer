@@ -83,7 +83,7 @@ module.exports = function() {
 				tracing: false,
 				params: {},
 				handler() {
-					return utils.safetyObject(this.broker.options);
+					return utils.safetyObject(this.broker.options, this.broker.options);
 				}
 			},
 

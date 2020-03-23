@@ -376,7 +376,7 @@ class Registry {
 			rawInfo.services = [];
 
 		// Make to be safety
-		node.rawInfo = utils.safetyObject(rawInfo);
+		node.rawInfo = utils.safetyObject(rawInfo, this.broker.options);
 
 		return node.rawInfo;
 	}
