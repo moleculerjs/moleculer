@@ -130,6 +130,9 @@ class Registry {
 	 */
 	registerServices(node, serviceList) {
 		serviceList.forEach(svc => {
+			if (!svc.fullName)
+				svc.fullName = this.broker.ServiceFactory.getVersionedFullName(svc.name, svc.version);
+
 			let prevActions, prevEvents;
 			let service = this.services.get(svc.fullName, node.id);
 			if (!service) {
