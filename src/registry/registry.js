@@ -148,7 +148,7 @@ class Registry {
 			// remove old actions which is not exist
 			if (prevActions) {
 				_.forIn(prevActions, (action, name) => {
-					if (!svc.actions[name]) {
+					if (!svc.actions || !svc.actions[name]) {
 						this.unregisterAction(node, name);
 					}
 				});
@@ -162,7 +162,7 @@ class Registry {
 			// remove old events which is not exist
 			if (prevEvents) {
 				_.forIn(prevEvents, (event, name) => {
-					if (!svc.events[name]) {
+					if (!svc.events || !svc.events[name]) {
 						this.unregisterEvent(node, name);
 					}
 				});
