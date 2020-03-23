@@ -46,11 +46,11 @@ function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
 		if (typeof value === "object" && value !== null) {
 			const objectType = value.constructor && value.constructor.name || typeof value;
 
-			if ("length" in value && value.length > options.maxSafeObjectSize) {
+			if (options.maxSafeObjectSize && "length" in value && value.length > options.maxSafeObjectSize) {
 				return `[${objectType} ${value.length}]`;
 			}
 
-			if ("size" in value && value.size > options.maxSafeObjectSize) {
+			if (options.maxSafeObjectSize && "size" in value && value.size > options.maxSafeObjectSize) {
 				return `[${objectType} ${value.size}]`;
 			}
 
@@ -312,7 +312,7 @@ const utils = {
 	 * @param {number=} options.maxSafeObjectSize List of options to change circularReplacer behaviour
 	 * @returns {Object|Array}
 	 */
-	safetyObject(obj, options = { maxSafeObjectSize: Infinity }) {
+	safetyObject(obj, options) {
 		return JSON.parse(JSON.stringify(obj, circularReplacer(options)));
 	},
 

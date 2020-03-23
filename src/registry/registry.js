@@ -373,7 +373,7 @@ class Registry {
 			rawInfo.services = [];
 
 		// Make to be safety
-		node.rawInfo = utils.safetyObject(rawInfo, { maxSafeObjectSize: 1024 * 1024 });
+		node.rawInfo = utils.safetyObject(rawInfo, this.broker.options);
 
 		return node.rawInfo;
 	}

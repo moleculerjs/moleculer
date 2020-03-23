@@ -115,6 +115,15 @@ const defaultOptions = {
 
 	skipProcessEventRegistration: false,
 
+	/**
+	 * Maximum size of objects that can be serialized
+	 *
+	 * On serialization process, check each object property size (based on length or size property value)
+	 * and trim it, if object size bigger than maxSafeObjectSize value
+	 *
+	 * @type {(number|null)}
+	 */
+	maxSafeObjectSize: null,
 	// ServiceFactory: null,
 	// ContextFactory: null
 	// Promise: null
