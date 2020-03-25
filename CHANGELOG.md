@@ -1,6 +1,10 @@
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.4...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.5...master)
+
+--------------------------------------------------
+<a name="0.14.5"></a>
+# [0.14.5](https://github.com/moleculerjs/moleculer/compare/v0.14.4...v0.14.5) (2020-03-25)
 
 ## Wrapping service methods with middlewares
 New `localMethod` hook in middlewares which wraps the service methods.
@@ -42,7 +46,7 @@ module.exports = {
 
 ## Changes
 - add chunk limit for streams in message transporting. [#683](https://github.com/moleculerjs/moleculer/issues/683)
-- add `baseUrl` option for Datadog metric reporter. [#694](https://github.com/moleculerjs/moleculer/issues/694)
+- add `baseUrl` option to Datadog metric reporter. [#694](https://github.com/moleculerjs/moleculer/issues/694)
 - fix open handles in unit tests. [#695](https://github.com/moleculerjs/moleculer/issues/695)
 - update d.ts [#699](https://github.com/moleculerjs/moleculer/issues/699) [#700](https://github.com/moleculerjs/moleculer/issues/700) [#703](https://github.com/moleculerjs/moleculer/issues/703)
 

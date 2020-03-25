@@ -58,7 +58,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^6.0.0",
+    "@sinonjs/fake-timers": "^6.0.1",
     "@types/bunyan": "^1.8.6",
     "@types/ioredis": "^4.14.9",
     "@types/node": "^13.9.3",
@@ -84,7 +84,7 @@
     "jest-cli": "^25.1.0",
     "joi": "^14.3.1",
     "kafka-node": "^5.0.0",
-    "lockfile-lint": "^4.1.0",
+    "lockfile-lint": "^4.2.2",
     "log4js": "^6.1.2",
     "moleculer-repl": "^0.6.3",
     "mqtt": "^3.0.0",
