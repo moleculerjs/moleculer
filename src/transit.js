@@ -767,7 +767,7 @@ class Transit {
 					}
 
 					const stream = ctx.params;
-					stream.on("data", async (chunk) => {
+					stream.on("data", (chunk) => {
 						stream.pause();
 						const chunks = [];
 						if (chunk instanceof Buffer && this.opts.maxChunkSize > 0 && chunk.length > this.opts.maxChunkSize) {
@@ -788,7 +788,7 @@ class Transit {
 							this.logger.debug(`=> Send stream chunk to ${nodeName} node. Seq: ${copy.seq}`);
 
 							try {
-								await this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
+								this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
 							} catch(e) {
 								publishCatch(e);
 								break;
@@ -957,7 +957,7 @@ class Transit {
 			const stream = data;
 			stream.pause();
 
-			stream.on("data", async (chunk) => {
+			stream.on("data", (chunk) => {
 				stream.pause();
 				const chunks = [];
 				if (chunk instanceof Buffer && this.opts.maxChunkSize > 0 && chunk.length > this.opts.maxChunkSize) {
@@ -978,7 +978,7 @@ class Transit {
 					this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
 
 					try {
-						await this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
+						this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
 					} catch(e) {
 						publishCatch(e);
 						break;
