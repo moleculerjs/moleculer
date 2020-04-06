@@ -120,6 +120,21 @@ describe("Test NewRelic tracing exporter class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const fakeTracer = { logger: broker.logger, broker };
+
+		it("should flatten default tags", async () => {
+			const exporter = new NewRelicTraceExporter({ defaultTags: { a: { b: "c" } } });
+			exporter.init(fakeTracer);
+
+			expect(exporter.timer).toBeDefined();
+
+			await exporter.stop();
+
+			expect(exporter.timer).toBeNull();
+		});
+	});
+
 	describe("Test spanFinished method", () => {
 		const fakeTracer = { logger: broker.logger, broker };
 		const exporter = new NewRelicTraceExporter({});
