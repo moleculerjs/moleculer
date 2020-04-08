@@ -787,12 +787,8 @@ class Transit {
 
 							this.logger.debug(`=> Send stream chunk to ${nodeName} node. Seq: ${copy.seq}`);
 
-							try {
-								this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
-							} catch(e) {
-								publishCatch(e);
-								break;
-							}
+							this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
+								.catch(publishCatch);
 						}
 						stream.resume();
 						return;
@@ -977,12 +973,8 @@ class Transit {
 
 					this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
 
-					try {
-						this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
-					} catch(e) {
-						publishCatch(e);
-						break;
-					}
+					this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
+						.catch(publishCatch);
 				}
 				stream.resume();
 				return;
