@@ -52,6 +52,8 @@ class NodeCatalog {
 	 * @memberof NodeCatalog
 	 */
 	startHeartbeatTimers() {
+		this.stopHeartbeatTimers();
+
 		if (this.broker.options.heartbeatInterval > 0) {
 			/* istanbul ignore next */
 			this.heartbeatTimer = setInterval(() => {
