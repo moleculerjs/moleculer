@@ -108,8 +108,14 @@ class Transit {
 		return this.Promise.resolve()
 
 			.then(() => {
-				if (!wasReconnect)
+				if (wasReconnect) {
+					// After reconnecting, we should send a broadcast INFO packet because there are some new nodes.
+					// In case of disabled balancer, it triggers the `makeBalancedSubscriptions` method.
+					return this.sendNodeInfo();
+				} else {
+					// After connecting we should subscribe to topics
 					return this.makeSubscriptions();
+				}
 			})
 
 			.then(() => this.discoverNodes())

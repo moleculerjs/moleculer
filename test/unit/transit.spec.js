@@ -119,12 +119,14 @@ describe("Test Transit.afterConnect", () => {
 		transit.__connectResolve = resolver;
 		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
 		transit.discoverNodes = jest.fn(() => Promise.resolve());
+		transit.sendNodeInfo = jest.fn(() => Promise.resolve());
 	});
 
 	it("should call makeSubscriptions & discoverNodes", () => {
 		return transit.afterConnect().catch(protectReject).then(() => {
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+			expect(transit.sendNodeInfo).toHaveBeenCalledTimes(0);
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
 			expect(transit.connected).toBe(true);
@@ -133,11 +135,12 @@ describe("Test Transit.afterConnect", () => {
 		});
 	});
 
-	it("should call only discoverNodes if was reconnected", () => {
+	it("should call sendNodeInfo & discoverNodes if was reconnected", () => {
 		broker.broadcastLocal.mockClear();
 
 		return transit.afterConnect(true).catch(protectReject).then(() => {
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
@@ -1800,8 +1803,8 @@ describe("Test Transit._sendRequest", () => {
 				});
 
 				transit.publish.mockClear();
-				stream.push({id:0});
-				stream.push({id:1});
+				stream.push({ id:0 });
+				stream.push({ id:1 });
 			}).delay(100).then(() => {
 
 				expect(transit.publish).toHaveBeenCalledTimes(2);
@@ -1814,7 +1817,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: { $streamObjectMode: true },
 						tracing: null,
-						params: {id:0},
+						params: { id:0 },
 						parentID: null,
 						requestID: "req-12345",
 						caller: null,
@@ -1833,7 +1836,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: { $streamObjectMode: true },
 						tracing: null,
-						params: {id:1},
+						params: { id:1 },
 						parentID: null,
 						requestID: "req-12345",
 						caller: null,
@@ -2242,8 +2245,8 @@ describe("Test Transit.sendResponse", () => {
 
 		it("should send splitted stream chunks", () => {
 			transit.publish.mockClear();
-                        transit.opts.maxChunkSize = 100;
-                        let randomData = crypto.randomBytes(1024);
+			transit.opts.maxChunkSize = 100;
+			let randomData = crypto.randomBytes(1024);
 			let stream = new Stream.Readable({
 				read() {}
 			});
@@ -2267,9 +2270,9 @@ describe("Test Transit.sendResponse", () => {
 				stream.push(randomData);
 			}).delay(100).then(() => {
 
-                                expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
+				expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize));
 
-                                for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+				for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
 					expect(transit.publish).toHaveBeenCalledWith({
 						payload: {
 							data: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
