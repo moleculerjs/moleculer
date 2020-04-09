@@ -17,7 +17,8 @@ const Exporters = {
 	Event: require("./event"),
 	EventLegacy: require("./event-legacy"),
 	Jaeger: require("./jaeger"),
-	Zipkin: require("./zipkin")
+	Zipkin: require("./zipkin"),
+	NewRelic: require("./newrelic")
 };
 
 function getByName(name) {
