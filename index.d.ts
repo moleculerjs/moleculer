@@ -619,7 +619,7 @@ declare namespace Moleculer {
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
 		metadata?: GenericObject;
 		actions?: ServiceActionsSchema;
-		mixins?: Array<ServiceSchema>;
+		mixins?: Array<Partial<ServiceSchema>>;
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
