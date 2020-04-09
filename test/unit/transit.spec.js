@@ -1608,6 +1608,80 @@ describe("Test Transit._sendRequest", () => {
 			});
 		});
 
+		it("should send splitted stream chunks from finished stream", () => {
+			transit.publish.mockClear();
+			transit.opts.maxChunkSize = 100;
+			let randomData = crypto.randomBytes(256); // length > maxChunkSize => will be splitted to several chunks
+			let stream = new Stream.PassThrough();
+			stream.end(randomData); // end stream before giving stream to transit => transit will receive "data" and "end" event immediately one after the other
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+				transit.publish.mockClear();
+
+			}).delay(100).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1);
+				for (let slice = 0; slice < Math.ceil(randomData.length / transit.opts.maxChunkSize); ++slice) {
+					expect(transit.publish).toHaveBeenCalledWith({
+						type: "REQ",
+						target: "remote",
+						payload: {
+							action: "users.find",
+							id: "12345",
+							level: 1,
+							meta: {},
+							tracing: null,
+							params: randomData.slice(slice * transit.opts.maxChunkSize, (slice + 1) * transit.opts.maxChunkSize),
+							parentID: null,
+							requestID: "req-12345",
+							caller: null,
+							seq: slice + 1,
+							stream: true,
+							timeout: null
+						}
+					});
+				}
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1,
+						stream: false,
+						timeout: null
+					}
+				});
+			});
+		});
+
 		it("should send stream error", () => {
 			transit.publish.mockClear();
 
