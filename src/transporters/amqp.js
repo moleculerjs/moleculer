@@ -99,6 +99,7 @@ class AmqpTransporter extends Transporter {
 
 		this.channelDisconnecting = false;
 		this.connectionDisconnecting = false;
+		this.connectionCount = 0;
 	}
 
 	/**
@@ -115,7 +116,9 @@ class AmqpTransporter extends Transporter {
 			};
 			const reject = (err) => {
 				_reject(err);
-				if (_isResolved) errorCallback(err);
+
+				// Returning callback to avoid race condition in the tests
+				if (_isResolved) return errorCallback(err);
 			};
 
 			let amqp;
@@ -145,15 +148,13 @@ class AmqpTransporter extends Transporter {
 						.on("error", (err) => {
 							// No need to reject here since close event will be fired after
 							// if not connected at all connection promise will be rejected
-							// this.connected = false;
-							// reject(err);
 							this.logger.error("AMQP connection error.", err);
 						})
 						.on("close", (err) => {
 							this.connected = false;
 							if (!this.connectionDisconnecting) {
 								this.logger.error("AMQP connection is closed.");
-								reject(err);
+								return reject(err);
 							} else {
 								this.logger.info("AMQP connection is closed gracefully.");
 							}
@@ -178,8 +179,6 @@ class AmqpTransporter extends Transporter {
 								.on("close", () => {
 									this.channel = null;
 									// No need to reject here since close event on connection will handle
-									// this.connected = false;
-									// reject();
 									if (!this.channelDisconnecting)
 										this.logger.warn("AMQP channel is closed.");
 									else
@@ -187,8 +186,6 @@ class AmqpTransporter extends Transporter {
 								})
 								.on("error", (err) => {
 									// No need to reject here since close event will be fired after
-									// this.connected = false;
-									// reject(err);
 									this.logger.error("AMQP channel error.", err);
 								})
 								.on("drain", () => {
@@ -198,21 +195,27 @@ class AmqpTransporter extends Transporter {
 									this.logger.warn("AMQP channel returned a message.", msg);
 								});
 
-							return this.onConnected();
+							this.connectionCount += 1;
+							const isReconnect = this.connectionCount > 1;
+
+							// HACK: We have to do this because subscriptions aren't persistent,
+							// and only balanced subscriptions happen automatically on reconnects
+							const p = isReconnect ? this.transit.makeSubscriptions() : this.broker.Promise.resolve();
+							return p.then(() => this.onConnected(isReconnect));
 						})
 						.then(resolve)
 						.catch((err) => {
 							/* istanbul ignore next*/
 							this.logger.error("AMQP failed to create channel.");
 							this.connected = false;
-							reject(err);
+							return reject(err);
 						});
 				})
 				.catch((err) => {
 					/* istanbul ignore next*/
 					this.logger.warn("AMQP failed to connect!");
 					this.connected = false;
-					reject(err);
+					return reject(err);
 				});
 		});
 	}
@@ -228,6 +231,8 @@ class AmqpTransporter extends Transporter {
 	 * Queues and Exchanges are not be deleted since they could contain important messages.
 	 */
 	disconnect() {
+		this.connectionCount = 0;
+
 		if (this.connection && this.channel && this.bindings) {
 			return this.broker.Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
 				.then(() => {
