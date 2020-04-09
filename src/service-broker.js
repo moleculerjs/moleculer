@@ -569,7 +569,7 @@ class ServiceBroker {
 			let opts = null;
 			const delimiter = this.options.replDelimiter;
 			const customCommands = this.options.replCommands;
-			delimiter && (opts = {delimiter}) 
+			delimiter && (opts = {delimiter})
 			customCommands && (opts = {...opts,customCommands})
 			return repl(this, opts);
 		}
@@ -1309,7 +1309,7 @@ class ServiceBroker {
 			}
 
 			if (groups.length == 0)
-				return;
+				return this.Promise.resolve();
 
 			ctx.eventGroups = groups;
 			return this.transit.sendEvent(ctx);

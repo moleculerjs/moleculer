@@ -1,5 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
+const { BrokerDisconnectedError } = require("../../../src/errors");
 const P = require("../../../src/packets");
 const BaseTransporter = require("../../../src/transporters/base");
 const { protectReject } = require("../utils");
@@ -194,87 +195,262 @@ describe("Test BaseTransporter", () => {
 	});
 
 	describe("Test prepublish", () => {
+		describe("Connected state", () => {
+			const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
+			const transporter = new BaseTransporter();
+			transporter.connected = true;
+			new Transit(broker, transporter);
 
-		const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
-		const transporter = new BaseTransporter();
-		new Transit(broker, transporter);
+			transporter.publish = jest.fn(() => Promise.resolve());
+			transporter.publishBalancedEvent = jest.fn(() => Promise.resolve());
+			transporter.publishBalancedRequest = jest.fn(() => Promise.resolve());
 
-		transporter.publish = jest.fn(() => Promise.resolve());
-		transporter.publishBalancedEvent = jest.fn(() => Promise.resolve());
-		transporter.publishBalancedRequest = jest.fn(() => Promise.resolve());
 
-		it("check with PACKET_EVENT with target without groups", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedEvent.mockClear();
+			afterEach(() => {
+				transporter.publish.mockClear();
+				transporter.publishBalancedEvent.mockClear();
+				transporter.publishBalancedRequest.mockClear();
+			});
 
-			let packet = new P.Packet(P.PACKET_EVENT, "server-2", { event: "user.created" });
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
-				expect(transporter.publish).toHaveBeenCalledTimes(1);
-				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+
+			it("check with PACKET_EVENT with target without groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, "server-2", { event: "user.created" });
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_EVENT with target with groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, "server-2", {
+					event: "user.created",
+					data: null,
+					groups: ["users", "payments"]
+				});
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_EVENT without target", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, null, "user.created");
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_EVENT with target with groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, null, {
+					event: "user.created",
+					data: null,
+					groups: ["users", "payments"]
+				});
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(2);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+
+			it("check with PACKET_REQ without target", () => {
+				let packet = new P.Packet(P.PACKET_REQUEST, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			it("check with PACKET_REQ with target", () => {
+				let packet = new P.Packet(P.PACKET_REQUEST, "server-2");
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_PING", () => {
+				let packet = new P.Packet(P.PACKET_PING, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_RESPONSE", () => {
+				let packet = new P.Packet(P.PACKET_RESPONSE, "server-2");
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_DISCOVER", () => {
+				let packet = new P.Packet(P.PACKET_DISCOVER, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_INFO", () => {
+				let packet = new P.Packet(P.PACKET_INFO, "server-2");
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_DISCONNECT", () => {
+				transporter.publish.mockClear();
+				transporter.publishBalancedRequest.mockClear();
+
+				let packet = new P.Packet(P.PACKET_DISCONNECT, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_HEARTBEAT", () => {
+				transporter.publish.mockClear();
+				transporter.publishBalancedRequest.mockClear();
+
+				let packet = new P.Packet(P.PACKET_HEARTBEAT, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
+			});
+
+			it("check with PACKET_PONG", () => {
+				transporter.publish.mockClear();
+				transporter.publishBalancedRequest.mockClear();
+
+				let packet = new P.Packet(P.PACKET_PONG, null);
+				return transporter.prepublish(packet).catch(protectReject).then(() => {
+					expect(transporter.publish).toHaveBeenCalledTimes(1);
+					expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+					expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+				});
 			});
 		});
 
-		it("check with PACKET_EVENT with target with groups", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedEvent.mockClear();
+		describe("Disconnected state", () => {
+			const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
+			const transporter = new BaseTransporter();
+			transporter.connected = false;
+			new Transit(broker, transporter);
 
-			let packet = new P.Packet(P.PACKET_EVENT, "server-2", {
-				event: "user.created",
-				data: null,
-				groups: ["users", "payments"]
+			transporter.publish = jest.fn(() => Promise.resolve());
+			transporter.publishBalancedEvent = jest.fn(() => Promise.resolve());
+			transporter.publishBalancedRequest = jest.fn(() => Promise.resolve());
+
+			afterEach(() => {
+				transporter.publish.mockClear();
+				transporter.publishBalancedEvent.mockClear();
+				transporter.publishBalancedRequest.mockClear();
 			});
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
-				expect(transporter.publish).toHaveBeenCalledTimes(1);
-				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
-			});
-		});
 
-		it("check with PACKET_EVENT without target", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedEvent.mockClear();
+			const expectBrokerDisconnectedError = (err) => {
+				expect(err).toBeInstanceOf(BrokerDisconnectedError);
+			};
 
-			let packet = new P.Packet(P.PACKET_EVENT, null, "user.created");
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
-				expect(transporter.publish).toHaveBeenCalledTimes(1);
-				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
-			});
-		});
-
-		it("check with PACKET_EVENT with target with groups", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedEvent.mockClear();
-
-			let packet = new P.Packet(P.PACKET_EVENT, null, {
-				event: "user.created",
-				data: null,
-				groups: ["users", "payments"]
-			});
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
+			const expectNoPublishes = () => {
 				expect(transporter.publish).toHaveBeenCalledTimes(0);
-				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(2);
-			});
-		});
-
-
-		it("check with PACKET_REQ without target", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedRequest.mockClear();
-
-			let packet = new P.Packet(P.PACKET_REQUEST, null);
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
-				expect(transporter.publish).toHaveBeenCalledTimes(0);
-				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(1);
-			});
-		});
-
-		it("check with PACKET_REQ with target", () => {
-			transporter.publish.mockClear();
-			transporter.publishBalancedRequest.mockClear();
-
-			let packet = new P.Packet(P.PACKET_REQUEST, "server-2");
-			return transporter.prepublish(packet).catch(protectReject).then(() => {
-				expect(transporter.publish).toHaveBeenCalledTimes(1);
+				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
 				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+			};
+
+			// Used as a .catch callback when there should be no error
+			const expectNoError = () => {
+				expect(true).toBe(false);
+			};
+
+			it("check with PACKET_EVENT with target without groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, "server-2", { event: "user.created" });
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_EVENT with target with groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, "server-2", {
+					event: "user.created",
+					data: null,
+					groups: ["users", "payments"]
+				});
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_EVENT without target", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, null, "user.created");
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_EVENT with target with groups", () => {
+				let packet = new P.Packet(P.PACKET_EVENT, null, {
+					event: "user.created",
+					data: null,
+					groups: ["users", "payments"]
+				});
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_REQ without target", () => {
+				let packet = new P.Packet(P.PACKET_REQUEST, null);
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_REQ with target", () => {
+				let packet = new P.Packet(P.PACKET_REQUEST, "server-2");
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_PING", () => {
+				let packet = new P.Packet(P.PACKET_PING, null);
+				return transporter.prepublish(packet).catch(expectBrokerDisconnectedError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_RESPONSE", () => {
+				let packet = new P.Packet(P.PACKET_RESPONSE, "server-2");
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_DISCOVER", () => {
+				let packet = new P.Packet(P.PACKET_DISCOVER, null);
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_INFO", () => {
+				let packet = new P.Packet(P.PACKET_INFO, "server-2");
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_DISCONNECT", () => {
+				let packet = new P.Packet(P.PACKET_DISCONNECT, null);
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_HEARTBEAT", () => {
+				let packet = new P.Packet(P.PACKET_HEARTBEAT, null);
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
+			});
+
+			it("check with PACKET_PONG", () => {
+				let packet = new P.Packet(P.PACKET_PONG, null);
+				return transporter.prepublish(packet).catch(expectNoError).then(expectNoPublishes);
 			});
 		});
 	});

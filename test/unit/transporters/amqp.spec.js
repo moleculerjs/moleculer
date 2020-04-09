@@ -118,11 +118,42 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 	});
 
 	it("check onConnected after connect", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		return transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.onConnected).toHaveBeenCalledWith();
+			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transporter.onConnected).toHaveBeenCalledWith(false);
 		});
+	});
+
+	it("check onConnected after connect (start -> stop -> start)", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		return transporter.connect()
+			.then(() => transporter.disconnect())
+			.then(() => transporter.connect())
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(2);
+				expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+				expect(transporter.onConnected.mock.calls).toEqual([[false], [false]]);
+			});
+	});
+
+	it("check onConnected after reconnect", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		return transporter.connect(() => transporter.connect())
+			.then(() => transporter.connection.connectionOnCallbacks.close())
+			.catch(protectReject).then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(2);
+				expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected.mock.calls).toEqual([[false], [true]]);
+			});
 	});
 
 	it("check disconnect", () => {

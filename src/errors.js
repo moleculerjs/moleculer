@@ -61,6 +61,20 @@ class MoleculerRetryableError extends MoleculerError {
 }
 
 /**
+ * Moleculer Error class for Broker disconnections which is retryable.
+ *
+ * @class MoleculerServerError
+ * @extends {MoleculerRetryableError}
+ */
+class BrokerDisconnectedError extends MoleculerRetryableError {
+	constructor() {
+		super("The broker's transporter has disconnected. Please try again when a connection is reestablished.", 502, "BAD_GATEWAY");
+		// Stack trace is hidden because it creates a lot of logs and, in this case, won't help users find the issue
+		this.stack = "";
+	}
+}
+
+/**
  * Moleculer Error class for server error which is retryable.
  *
  * @class MoleculerServerError
@@ -423,6 +437,8 @@ module.exports = {
 
 	ProtocolVersionMismatchError,
 	InvalidPacketDataError,
+
+	BrokerDisconnectedError,
 
 	recreateError
 };

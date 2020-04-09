@@ -32,6 +32,21 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(true);
 	});
 
+	it("test BrokerDisconnectedError", () => {
+		let err = new errors.BrokerDisconnectedError();
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerError);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
+		expect(err).toBeInstanceOf(errors.BrokerDisconnectedError);
+		expect(err.name).toBe("BrokerDisconnectedError");
+		expect(err.message).toBe("The broker's transporter has disconnected. Please try again when a connection is reestablished.");
+		expect(err.code).toBe(502);
+		expect(err.type).toBe("BAD_GATEWAY");
+		expect(err.data).toEqual(undefined);
+		expect(err.retryable).toBe(true);
+	});
+
 	it("test MoleculerServerError", () => {
 		let err = new errors.MoleculerServerError("Something went wrong!", 555, "ERR_TYPE", { a: 5 });
 		expect(err).toBeDefined();
