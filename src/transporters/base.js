@@ -8,6 +8,7 @@
 
 const _	= require("lodash");
 const P = require("../packets");
+const { BrokerDisconnectedError } = require("../errors");
 
 /**
  * Base Transporter class
@@ -286,6 +287,19 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	prepublish(packet) {
+		// Safely handle disconnected state
+		if (!this.connected) {
+			// For packets that are triggered intentionally by users, throw a retryable error.
+			if ([P.PACKET_REQUEST, P.PACKET_EVENT, P.PACKET_PING].includes(packet.type)) {
+				return this.broker.Promise.reject(new BrokerDisconnectedError());
+			}
+
+			// For internal packets like INFO and HEARTBEATS, skip sending and don't throw
+			else {
+				return this.broker.Promise.resolve();
+			}
+		}
+
 		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
 			const groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
