@@ -3,6 +3,50 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.5...master)
 
 --------------------------------------------------
+<a name="0.14.6"></a>
+# [0.14.6](https://github.com/moleculerjs/moleculer/compare/v0.14.5...v0.14.6) (2020-04-11)
+
+## New NewRelic zipkin tracing exporter
+Thanks for [@jalerg](https://github.com/jalerg), there is a NewRelic tracing exporter. [PR #713](https://github.com/moleculerjs/moleculer/pull/713)
+
+```js
+// moleculer.config.js
+{
+    tracing: {
+        enabled: true,
+        events: true,
+        exporter: [
+            {
+                type: 'NewRelic',
+                options: {
+                    // NewRelic Insert Key
+                    insertKey: process.env.NEW_RELIC_INSERT_KEY,
+                    // Sending time interval in seconds.
+                    interval: 5,
+                    // Additional payload options.
+                    payloadOptions: {
+                        // Set `debug` property in payload.
+                        debug: false,
+                        // Set `shared` property in payload.
+                        shared: false,
+                    },
+                    // Default tags. They will be added into all span tags.
+                    defaultTags: null,
+                },
+            },
+        ],
+    },    
+}
+```
+
+## Other changes
+- fix stream chunking issue. [PR #712](https://github.com/moleculerjs/moleculer/pull/712)
+- fix INFO packet sending issue after reconnecting
+- safely handling disconnected state for transporters (heartbeat queuing issue). [PR #715](https://github.com/moleculerjs/moleculer/pull/715)
+- fix orhpan response issue in case of streaming with disabled balancer. [#709](https://github.com/moleculerjs/moleculer/issues/709)
+- update dependencies, audit fix
+
+--------------------------------------------------
 <a name="0.14.5"></a>
 # [0.14.5](https://github.com/moleculerjs/moleculer/compare/v0.14.4...v0.14.5) (2020-03-25)
 
