@@ -109,7 +109,7 @@ class Transit {
 
 			.then(() => {
 				if (wasReconnect) {
-					// After reconnecting, we should send a broadcast INFO packet because there are some new nodes.
+					// After reconnecting, we should send a broadcast INFO packet because there may new nodes.
 					// In case of disabled balancer, it triggers the `makeBalancedSubscriptions` method.
 					return this.sendNodeInfo();
 				} else {
@@ -510,8 +510,8 @@ class Transit {
 				// End of stream
 				pass.end();
 
-				// Remove pending request
-				this.removePendingRequest(payload.id);
+				// Remove pending request stream
+				this.pendingReqStreams.delete(payload.id);
 
 				return null;
 
