@@ -81,7 +81,7 @@ class Node {
 		return cpuUsage().then(res => {
 			const newVal = Math.round(res.avg);
 			if (this.cpu != newVal) {
-				this.cpu = Math.round(res.avg);
+				this.cpu = newVal;
 				this.cpuSeq++;
 			}
 		}).catch(() => { /* silent */ });

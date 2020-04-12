@@ -31,8 +31,13 @@ const broker = new ServiceBroker({
 
 	//cacher: "Redis",
 
+	registry: {
+		//strategy: Strategies.Random
+		discoverer: "Redis"
+	},
+
 	metrics: {
-		enabled: true,
+		enabled: false,
 		reporter: [
 			/*{
 				type: "Console",
@@ -50,7 +55,7 @@ const broker = new ServiceBroker({
 		]
 	},
 	bulkhead: {
-		enabled: true
+		enabled: false
 	},
 
 	logger: console,
@@ -62,6 +67,7 @@ const broker = new ServiceBroker({
 		//Middlewares.Transmit.Compression(),
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//Middlewares.Debugging.ActionLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
+		//require("./RedisHeartbeat")
 	]
 });
 

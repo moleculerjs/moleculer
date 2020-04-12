@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,7 @@ const _ = require("lodash");
 
 const utils = require("../utils");
 const Strategies = require("../strategies");
+const Discoverers = require("./discoverers");
 const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
@@ -38,8 +39,10 @@ class Registry {
 		this.opts = Object.assign({}, broker.options.registry);
 
 		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
-
 		this.logger.info(`Strategy: ${this.StrategyFactory.name}`);
+
+		this.discoverer = Discoverers.resolve(this.opts.discoverer);
+		this.logger.info(`Discoverer: ${this.broker.getConstructorName(this.discoverer)}`);
 
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);
@@ -49,11 +52,20 @@ class Registry {
 		this.broker.localBus.on("$broker.started", () => {
 			if (this.nodes.localNode) {
 				this.regenerateLocalRawInfo(true);
+				this.discoverer.sendLocalNodeInfo();
 			}
 		});
 
 		this.registerMoleculerMetrics();
 		this.updateMetrics();
+	}
+
+	init(broker) {
+		this.discoverer.init(this);
+	}
+
+	stop() {
+		return this.discoverer.stop();
 	}
 
 	/**
@@ -423,18 +435,6 @@ class Registry {
 	}
 
 	/**
-	 * Process an incoming node DISCONNECTED packet
-	 *
-	 * @param {any} payload
-	 * @returns
-	 * @memberof Registry
-	 */
-	nodeDisconnected(payload) {
-		this.nodes.disconnected(payload.sender, false);
-		this.updateMetrics();
-	}
-
-	/**
 	 * Process an incoming node HEARTBEAT packet
 	 *
 	 * @param {any} payload
@@ -442,6 +442,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	nodeHeartbeat(payload) {
+		// TODO: unusued?
 		return this.nodes.heartbeat(payload);
 	}
 

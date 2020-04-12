@@ -30,6 +30,8 @@ const TcpWriter		= require("./tcp/tcp-writer");
  * truly horizontally scalable. This transporter aims to run on top of an
  * infrastructure of hundreds of nodes.
  *
+ * TODO: discoverer update
+ *
  * @class TcpTransporter
  * @extends {Transporter}
  */

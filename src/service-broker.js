@@ -265,6 +265,8 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
+			this.registry.init(this);
+
 			// Register internal actions
 			if (this.options.internalServices)
 				this.registerInternalServices(this.options.internalServices);
@@ -479,7 +481,7 @@ class ServiceBroker {
 				if (this.transit) {
 					this.registry.regenerateLocalRawInfo(true);
 					// Send empty node info in order to block incoming requests
-					return this.transit.sendNodeInfo();
+					return this.registry.discoverer.sendLocalNodeInfo();
 				}
 			})
 			.then(() => {
@@ -512,6 +514,9 @@ class ServiceBroker {
 				if (this.tracer) {
 					return this.tracer.stop();
 				}
+			})
+			.then(() => {
+				return this.registry.stop();
 			})
 			.then(() => {
 				return this.callMiddlewareHook("stopped", [this], { reverse: true });
@@ -569,8 +574,8 @@ class ServiceBroker {
 			let opts = null;
 			const delimiter = this.options.replDelimiter;
 			const customCommands = this.options.replCommands;
-			delimiter && (opts = {delimiter})
-			customCommands && (opts = {...opts,customCommands})
+			delimiter && (opts = { delimiter });
+			customCommands && (opts = { ...opts,customCommands });
 			return repl(this, opts);
 		}
 	}
@@ -888,7 +893,7 @@ class ServiceBroker {
 
 		// Should notify remote nodes, because our service list is changed.
 		if (this.started && localService && this.transit) {
-			this.transit.sendNodeInfo();
+			this.registry.discoverer.sendLocalNodeInfo();
 		}
 	}
 

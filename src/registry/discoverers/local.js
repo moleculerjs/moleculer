@@ -1,0 +1,70 @@
+/*
+ * moleculer
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
+"use strict";
+
+const _ = require("lodash");
+const BaseDiscoverer = require("./base");
+
+
+/**
+ * Local (built-in) Discoverer class
+ *
+ * @class Discoverer
+ */
+class LocalDiscoverer extends BaseDiscoverer {
+
+	/**
+	 * Creates an instance of Discoverer.
+	 *
+	 * @memberof LocalDiscoverer
+	 */
+	constructor(opts) {
+		super(opts);
+	}
+
+	/**
+	 * Initialize Discoverer
+	 *
+	 * @param {any} registry
+	 *
+	 * @memberof LocalDiscoverer
+	 */
+	init(registry) {
+		super.init(registry);
+	}
+
+	/**
+	 * Discover a new or old node.
+	 * @param {String} nodeID
+	 */
+	discoverNode(nodeID) {
+		if (!this.transit) return this.Promise.resolve();
+		return this.transit.discoverNode(nodeID);
+	}
+
+	/**
+	 * Discover all nodes (after connected)
+	 */
+	discoverAllNodes() {
+		if (!this.transit) return this.Promise.resolve();
+		return this.transit.discoverNodes();
+	}
+
+	/**
+	 * Local service registry has been changed. We should notify remote nodes.
+	 * @param {String} nodeID
+	 */
+	sendLocalNodeInfo(nodeID) {
+		if (!this.transit) return this.Promise.resolve();
+
+		const info = this.broker.getLocalNodeInfo();
+		return this.transit.sendNodeInfo(info, nodeID);
+	}
+
+}
+
+module.exports = LocalDiscoverer;
