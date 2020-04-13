@@ -96,6 +96,17 @@ class NodeCatalog {
 	}
 
 	/**
+	 * Delete a node by nodeID
+	 *
+	 * @param {String} id
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
+	delete(id) {
+		return this.nodes.delete(id);
+	}
+
+	/**
 	 * Get count of all registered nodes
 	 */
 	count() {

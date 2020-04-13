@@ -30,6 +30,9 @@ module.exports = {
 	MetricReporters: require("./src/metrics/reporters"),
 	METRIC: require("./src/metrics/constants"),
 
+	Registry: require("./src/registry"),
+	Discoverers: require("./src/registry/discoverers"),
+
 	Middlewares: require("./src/middlewares"),
 
 	Errors: require("./src/errors"),

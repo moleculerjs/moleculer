@@ -62,12 +62,8 @@ class RedisCacher extends BaseCacher {
 				throw new BrokerOptionsError("No nodes defined for cluster");
 			}
 
-			this.logger.info("Setting Redis.Cluster Cacher");
-
 			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
 		} else {
-			this.logger.info("Setting Redis Cacher");
-
 			this.client = new Redis(this.opts.redis);
 		}
 
