@@ -25,6 +25,9 @@ let broker = new ServiceBroker({
 	retryPolicy: {
 		enabled: true,
 		retries: 3
+	},
+	registry: {
+		discoverer: process.env.DISCOVERER || "Local"
 	}
 });
 

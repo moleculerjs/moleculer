@@ -123,7 +123,7 @@ broker.createService({
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++/*, someData*/ });
 
-			broker.ping("server").then(res => broker.logger.info(res));
+			//broker.ping("server").then(res => broker.logger.info(res));
 		}, 5000);
 	}
 });

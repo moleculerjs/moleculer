@@ -9,13 +9,18 @@
 const _ = require("lodash");
 const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
+const { humanize } = require("../../utils");
 
 let Redis;
 
 /**
  * Redis-based Discoverer class
- *
- * @class Discoverer
+ * TODO:
+ * 	- add metrics counters (cycleTime, count)
+ *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét
+ *  - az INFO csomagnak is állítson TTL-t, külön timer, ami frissíti azt. Pl, 30 perc, 15 percenként
+ *    frissíti a TTL-t az "EXPIRE" paranccsal
+ * @class RedisDiscoverer
  */
 class RedisDiscoverer extends BaseDiscoverer {
 
@@ -28,8 +33,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			redis: null
+			fullCheckNum: 1,
+			scanLength: 100,
+			redis: null,
+			monitor: false
 		});
+
+		this.idx = 0;
 
 		// Store the online nodes.
 		this.nodes = new Map();
@@ -77,10 +87,22 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.logger.info("Redis Discoverer client connected.");
 		});
 
+		this.client.on("reconnecting", () => {
+			/* istanbul ignore next */
+			this.logger.warn("Redis Discoverer client reconnecting...");
+		});
+
 		this.client.on("error", (err) => {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
+
+		if (this.opts.monitor) {
+			this.client.monitor((err, monitor) => {
+				this.logger.debug("Redis Discoverer entering monitoring mode...");
+				monitor.on("monitor", (time, args/*, source, database*/) => this.logger.debug(args));
+			});
+		}
 
 		this.logger.debug("Redis Discoverer created. Prefix:", this.PREFIX);
 	}
@@ -102,6 +124,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {Node} localNode
 	 */
 	sendHeartbeat(localNode) {
+		const start = process.hrtime();
 		const data = {
 			sender: this.broker.nodeID,
 			ver: this.broker.PROTOCOL_VERSION,
@@ -112,41 +135,36 @@ class RedisDiscoverer extends BaseDiscoverer {
 		};
 		return this.client.setex(this.BEAT_KEY, this.opts.heartbeatTimeout, JSON.stringify(data))
 			//.then(() => this.logger.debug("Heartbeat sent."))
-			.then(() => this.collectOnlineNodes());
+			.then(() => this.collectOnlineNodes())
+			.then(() => {
+				const diff = process.hrtime(start);
+				const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+				this.logger.info("HB cycle", humanize(duration));
+			});
 	}
 
 	/**
 	 * Collect online nodes from Redis server.
 	 */
 	collectOnlineNodes() {
+		this.idx++;
+
 		// Save the previous state so that we can check the disconnected nodes.
 		const prevNodes = new Map(this.nodes);
 
 		// Collect the online node keys.
 		return new Promise((resolve, reject) => {
-			const res = [];
 			const stream = this.client.scanStream({
-				match: `${this.PREFIX}-BEAT*`,
+				match: `${this.PREFIX}-BEAT-*`,
 				count: 100
 			});
 			stream.on("data", keys => {
 				if (!keys || !keys.length) return;
 
-				res.push(...keys);
-			});
+				stream.pause();
 
-			stream.on("error", (err) => {
-				this.logger.error("Error occured while scanning HB keys.", err);
-				reject(err);
-			});
-
-			stream.on("end", function() {
-				resolve(res);
-			});
-		}).then(onlineKeys => {
-			return this.Promise.mapSeries(onlineKeys, key => {
-				return this.client.get(key)
-					.then(res => {
+				return this.client.mget(...keys)
+					.then(resultArr => Promise.all(resultArr.map(res => {
 						let packet;
 						try {
 							packet = JSON.parse(res);
@@ -176,8 +194,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 							this.nodes.set(packet.sender, packet);
 							this.heartbeatReceived(packet.sender, packet);
 						});
-					});
+					})))
+					.then(() => stream.resume());
 			});
+
+			stream.on("error", err => reject(err));
+			stream.on("end", () => resolve());
+
 		}).then(() => {
 			if (prevNodes.size > 0) {
 				// Disconnected nodes
@@ -187,7 +210,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					this.nodes.delete(nodeID);
 				});
 			}
-		});
+		}).catch(err => this.logger.error("Error occured while scanning Redis keys.", err));
 	}
 
 	/**
@@ -197,6 +220,10 @@ class RedisDiscoverer extends BaseDiscoverer {
 	discoverNode(nodeID) {
 		return this.client.get(`${this.PREFIX}-INFO-${nodeID}`)
 			.then(res => {
+				if (!res) {
+					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
+					return;
+				}
 				try {
 					const info = JSON.parse(res);
 					return this.processRemoteNodeInfo(nodeID, info);
