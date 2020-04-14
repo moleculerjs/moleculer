@@ -37,15 +37,15 @@ const broker = new ServiceBroker({
 	},
 
 	metrics: {
-		enabled: false,
+		enabled: true,
 		reporter: [
-			/*{
+			{
 				type: "Console",
 				options: {
-					includes: "moleculer.registry.**",
+					includes: "moleculer.discoverer.**",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},*/
+			},
 			/*{
 				type: "Datadog",
 				options: {

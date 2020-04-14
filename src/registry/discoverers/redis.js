@@ -9,14 +9,13 @@
 const _ = require("lodash");
 const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
-const { humanize } = require("../../utils");
+const { METRIC } = require("../../metrics");
 
 let Redis;
 
 /**
  * Redis-based Discoverer class
  * TODO:
- * 	- add metrics counters (cycleTime, count)
  *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét
  *  - az INFO csomagnak is állítson TTL-t, külön timer, ami frissíti azt. Pl, 30 perc, 15 percenként
  *    frissíti a TTL-t az "EXPIRE" paranccsal
@@ -119,12 +118,20 @@ class RedisDiscoverer extends BaseDiscoverer {
 	}
 
 	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+	}
+
+	/**
 	 * Sending a local heartbeat to Redis.
 	 *
 	 * @param {Node} localNode
 	 */
 	sendHeartbeat(localNode) {
-		const start = process.hrtime();
+		const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
 		const data = {
 			sender: this.broker.nodeID,
 			ver: this.broker.PROTOCOL_VERSION,
@@ -134,12 +141,11 @@ class RedisDiscoverer extends BaseDiscoverer {
 			seq: localNode.seq
 		};
 		return this.client.setex(this.BEAT_KEY, this.opts.heartbeatTimeout, JSON.stringify(data))
-			//.then(() => this.logger.debug("Heartbeat sent."))
 			.then(() => this.collectOnlineNodes())
+			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
-				const diff = process.hrtime(start);
-				const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
-				this.logger.info("HB cycle", humanize(duration));
+				timeEnd();
+				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
 			});
 	}
 
@@ -210,7 +216,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					this.nodes.delete(nodeID);
 				});
 			}
-		}).catch(err => this.logger.error("Error occured while scanning Redis keys.", err));
+		});
 	}
 
 	/**

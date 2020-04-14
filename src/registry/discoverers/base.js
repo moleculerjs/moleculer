@@ -64,6 +64,8 @@ class BaseDiscoverer {
 			this.broker.localBus.on("$transporter.connected", () => this.startHeartbeatTimers());
 			this.broker.localBus.on("$transporter.disconnected", () => this.stopHeartbeatTimers());
 		}
+
+		this.registerMoleculerMetrics();
 	}
 
 	/**
@@ -72,6 +74,13 @@ class BaseDiscoverer {
 	stop() {
 		this.stopHeartbeatTimers();
 		return this.Promise.resolve();
+	}
+
+	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		// Not implemented
 	}
 
 	/**
