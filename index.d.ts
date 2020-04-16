@@ -1328,6 +1328,8 @@ declare namespace Moleculer {
 		services: any;
 		actions: any;
 		events: any;
+
+		getServiceList({withActions: bool}): ServiceSchema[]
 	}
 
 	class AsyncStorage {
