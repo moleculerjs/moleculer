@@ -54,6 +54,15 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch demo: nodes",
+			"program": "${workspaceRoot}/examples/nodes/index.js",
+			"cwd": "${workspaceRoot}/examples/nodes",
+			"env": {
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}/benchmark/index.js",
 			"args": ["common"],

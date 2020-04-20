@@ -13,6 +13,9 @@ const BaseDiscoverer = require("./base");
 /**
  * Local (built-in) Discoverer class
  *
+ * TODO:
+ * 	- not working with TCP transporter yet
+ *
  * @class Discoverer
  */
 class LocalDiscoverer extends BaseDiscoverer {

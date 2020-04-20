@@ -19,6 +19,9 @@ let Redis;
  *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét
  *  - az INFO csomagnak is állítson TTL-t, külön timer, ami frissíti azt. Pl, 30 perc, 15 percenként
  *    frissíti a TTL-t az "EXPIRE" paranccsal
+ *  - instanceID-t is nézni kell, mert ha lelép és visszjön már service-ekkel akkor nem fogja észre venni
+ *    mert a seq ugyanaz, de az instanceID változott. Lehet a HB kulcsba az instanceID meg seq-et kéne rakni
+ *    és az alapján ellenőrizni hogy ki élő még nem a nodeID alapján.
  * @class RedisDiscoverer
  */
 class RedisDiscoverer extends BaseDiscoverer {
