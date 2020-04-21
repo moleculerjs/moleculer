@@ -93,7 +93,8 @@ class BaseDiscoverer {
 
 		if (this.broker.options.heartbeatInterval > 0) {
 			/* istanbul ignore next */
-			this.heartbeatTimer = setInterval(() => this.beat(), this.broker.options.heartbeatInterval * 1000);
+			const time = this.broker.options.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
+			this.heartbeatTimer = setInterval(() => this.beat(), time);
 			this.heartbeatTimer.unref();
 
 			/* istanbul ignore next */

@@ -16,12 +16,14 @@ let Redis;
 /**
  * Redis-based Discoverer class
  * TODO:
- *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét
+ *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét (plusz seq és cpu)
  *  - az INFO csomagnak is állítson TTL-t, külön timer, ami frissíti azt. Pl, 30 perc, 15 percenként
  *    frissíti a TTL-t az "EXPIRE" paranccsal
  *  - instanceID-t is nézni kell, mert ha lelép és visszjön már service-ekkel akkor nem fogja észre venni
  *    mert a seq ugyanaz, de az instanceID változott. Lehet a HB kulcsba az instanceID meg seq-et kéne rakni
  *    és az alapján ellenőrizni hogy ki élő még nem a nodeID alapján.
+ *
+ *    ZADD https://github.com/mpneuried/redis-heartbeat/blob/master/_src/lib/heartbeat.coffee#L239
  * @class RedisDiscoverer
  */
 class RedisDiscoverer extends BaseDiscoverer {
@@ -35,7 +37,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			fullCheckNum: 1,
+			//fullCheckNum: 1,
 			scanLength: 100,
 			redis: null,
 			monitor: false
@@ -66,9 +68,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
-		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DISCOVER`;
-		this.BEAT_KEY = `${this.PREFIX}-BEAT-${this.broker.nodeID}`;
-		this.INFO_KEY = `${this.PREFIX}-INFO-${this.broker.nodeID}`;
+		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DISCOVERER`;
+		this.BEAT_KEY = `${this.PREFIX}-BEAT-${this.broker.instanceID}`;
+		this.INFO_KEY = `${this.PREFIX}-INFO-${this.broker.instanceID}`;
 
 		/**
 		 * ioredis client instance
@@ -147,8 +149,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
-				timeEnd();
+				const duration = timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
+				//this.logger.warn("Collect time", duration + "ms");
 			});
 	}
 
@@ -156,8 +159,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Collect online nodes from Redis server.
 	 */
 	collectOnlineNodes() {
-		this.idx++;
-
+		//this.logger.warn("----------------------------------------------------");
 		// Save the previous state so that we can check the disconnected nodes.
 		const prevNodes = new Map(this.nodes);
 
@@ -165,14 +167,26 @@ class RedisDiscoverer extends BaseDiscoverer {
 		return new Promise((resolve, reject) => {
 			const stream = this.client.scanStream({
 				match: `${this.PREFIX}-BEAT-*`,
-				count: 100
+				count: this.opts.scanLength
 			});
+
+			let scannedKeys = [];
+
 			stream.on("data", keys => {
 				if (!keys || !keys.length) return;
 
-				stream.pause();
+				scannedKeys = scannedKeys.concat(keys);
 
-				return this.client.mget(...keys)
+				//this.logger.warn("Stream keys", keys);
+
+				//stream.pause();
+			});
+
+			stream.on("error", err => reject(err));
+			stream.on("end", () => {
+				if (scannedKeys.length == 0) return resolve();
+
+				return this.client.mget(...scannedKeys)
 					.then(resultArr => Promise.all(resultArr.map(res => {
 						let packet;
 						try {
@@ -204,14 +218,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 							this.heartbeatReceived(packet.sender, packet);
 						});
 					})))
-					.then(() => stream.resume());
+					.then(() => resolve());
 			});
-
-			stream.on("error", err => reject(err));
-			stream.on("end", () => resolve());
 
 		}).then(() => {
 			if (prevNodes.size > 0) {
+				//this.logger.warn("Not found nodes", prevNodes.keys());
 				// Disconnected nodes
 				Array.from(prevNodes.keys()).map(nodeID => {
 					this.logger.debug(`The node '${nodeID}' is not available. Removing from registry...`);
