@@ -135,7 +135,8 @@ class BaseDiscoverer {
 
 	beat() {
 		const localNode = this.registry.nodes.localNode;
-		localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => this.sendHeartbeat(localNode));
+		return localNode.updateLocalInfo(this.broker.getCpuUsage)
+			.then(() => this.sendHeartbeat(localNode));
 	}
 
 	/**

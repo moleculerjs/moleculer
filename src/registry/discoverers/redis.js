@@ -69,8 +69,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		}
 
 		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DISCOVERER`;
-		this.BEAT_KEY = `${this.PREFIX}-BEAT-${this.broker.instanceID}`;
-		this.INFO_KEY = `${this.PREFIX}-INFO-${this.broker.instanceID}`;
+		this.BEAT_KEY = `${this.PREFIX}-BEAT-${this.broker.nodeID}`;
+		this.INFO_KEY = `${this.PREFIX}-INFO-${this.broker.nodeID}`;
 
 		/**
 		 * ioredis client instance
@@ -136,6 +136,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {Node} localNode
 	 */
 	sendHeartbeat(localNode) {
+		//console.log("REDIS - HB 1", localNode.id, this.heartbeatTimer);
+
 		const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
 		const data = {
 			sender: this.broker.nodeID,
@@ -143,7 +145,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 			timestamp: Date.now(),
 			cpu: localNode.cpu,
-			seq: localNode.seq
+			seq: localNode.seq,
+			instanceID: this.broker.instanceID
 		};
 		return this.client.setex(this.BEAT_KEY, this.opts.heartbeatTimeout, JSON.stringify(data))
 			.then(() => this.collectOnlineNodes())
@@ -193,7 +196,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 							packet = JSON.parse(res);
 							if (packet.sender == this.broker.nodeID) return;
 						} catch(err) {
-							this.logger.warn("Unable to parse Redis response", res);
+							this.logger.warn("Unable to parse Redis response", err, res);
 							return;
 						}
 
@@ -237,8 +240,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 	/**
 	 * Discover a new or old node.
 	 * @param {String} nodeID
+	 * @param {String} instanceID
 	 */
-	discoverNode(nodeID) {
+	discoverNode(nodeID, instanceID) {
 		return this.client.get(`${this.PREFIX}-INFO-${nodeID}`)
 			.then(res => {
 				if (!res) {
@@ -249,7 +253,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					const info = JSON.parse(res);
 					return this.processRemoteNodeInfo(nodeID, info);
 				} catch(err) {
-					this.logger.warn("Unable to parse Redis response", res);
+					this.logger.warn("Unable to parse Redis response", err, res);
 				}
 			});
 	}
@@ -276,7 +280,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		return this.client.set(this.INFO_KEY, JSON.stringify(payload))
 			.then(() => {
 				// Sending a new heartbeat because it contains the `seq`
-				if (!nodeID) this.beat();
+				if (!nodeID)
+					return this.beat();
 			});
 	}
 

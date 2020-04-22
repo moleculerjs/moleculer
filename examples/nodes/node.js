@@ -4,6 +4,26 @@
 
 const cluster = require("cluster");
 const ServiceBroker = require("../../src/service-broker");
+const EventReporter = require("../../src/metrics/reporters/event");
+
+class ProcessEventMetricReporter extends EventReporter {
+	sendEvent() {
+		let list = this.registry.list({
+			includes: this.opts.includes,
+			excludes: this.opts.excludes,
+		});
+
+		if (this.opts.onlyChanges)
+			list = list.filter(metric => this.lastChanges.has(metric.name));
+
+		if (list.length == 0)
+			return;
+
+		process.send({ event: "metrics", list });
+
+		this.lastChanges.clear();
+	}
+}
 
 function start(opts) {
 
@@ -28,38 +48,24 @@ function start(opts) {
 		}
 	}*/],
 		logLevel: process.env.LOGLEVEL || "warn",
-		//metrics: true,
+		metrics: {
+			enabled: true,
+			reporter: new ProcessEventMetricReporter({
+				includes: "moleculer.transporter.packets.**"
+			})
+		},
 		registry: {
 			discoverer: process.env.DISCOVERER || "Redis"
-		},
-		//heartbeatInterval: 10,
-		replCommands: [
-			{
-				command: "scale <count>",
-				alias: "s",
-				description: "Scaling up/down nodes",
-				options: [
-				//{ option: "--nodeID <nodeID>", description: "NodeID" }
-				],
-				types: {
-					//number: ["service"]
-				},
-				action(broker, args) {
-					process.send({ event: "scale", count: Number(args.count != null ? args.count : 0) });
-				}
-			}
-		]
+		}
 	});
 
 	broker.start()
 		.then(() => {
-			if (cluster.worker && cluster.worker.id == 1) {
-				broker.repl();
-			}
-
-			process.on("message", msg => {
-				if (msg.cmd == "stop")
-					return broker.stop();
+			process.on("message", async msg => {
+				if (msg.cmd == "stop") {
+					await broker.stop();
+					process.exit(0);
+				}
 			});
 			process.send({ event: "started", nodeID: broker.nodeID, tx: transporter, pid: process.pid });
 		});
@@ -67,7 +73,6 @@ function start(opts) {
 }
 
 process.on("message", msg => {
-	console.log("[WORKER]", msg);
 	if (msg.cmd == "start") {
 		start(msg);
 	}

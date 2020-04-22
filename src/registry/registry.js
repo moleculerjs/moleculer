@@ -246,10 +246,10 @@ class Registry {
 
 			if (node.local) {
 				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
-			} else {
+			} else if (this.broker.transit) {
 				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 			}
-			if (this.broker.options.disableBalancer)
+			if (this.broker.options.disableBalancer && this.broker.transit)
 				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 
 			this.actions.add(node, service, action);
