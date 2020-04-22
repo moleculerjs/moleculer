@@ -2,6 +2,7 @@
 
 "use strict";
 
+const _ = require("lodash");
 const cluster = require("cluster");
 const ServiceBroker = require("../../src/service-broker");
 const EventReporter = require("../../src/metrics/reporters/event");
@@ -58,6 +59,20 @@ function start(opts) {
 			discoverer: process.env.DISCOVERER || "Redis"
 		}
 	});
+
+	function sendUpdatedRegistry() {
+		const nodes = {};
+		broker.registry.nodes.toArray().forEach(node => {
+			nodes[node.id] = _.pick(node, ["available", "seq"]);
+		});
+
+		//console.log(broker.nodeID, res);
+		process.send({ event: "registry", nodes });
+	}
+
+	broker.localBus.on("$services.changed", () => sendUpdatedRegistry());
+	//broker.localBus.on("$node.connected", () => sendUpdatedRegistry());
+	broker.localBus.on("$node.disconnected", () => sendUpdatedRegistry());
 
 	broker.start()
 		.then(() => {

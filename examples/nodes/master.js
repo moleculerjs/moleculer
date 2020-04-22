@@ -32,13 +32,15 @@ const broker = new ServiceBroker({
 			alias: "s",
 			description: "Scaling up/down nodes",
 			options: [
+				{ option: "-k, --kill", description: "Kill nodes" }
 				//{ option: "--nodeID <nodeID>", description: "NodeID" }
 			],
 			types: {
 				//number: ["service"]
 			},
 			action(broker, args) {
-				return broker.call("nodes.scale", { count: (Number(args.count != null ? args.count : 0)) });
+				console.log(args);
+				return broker.call("nodes.scale", { count: (Number(args.count != null ? args.count : 0)), kill: args.kill });
 			}
 		}
 	]
@@ -50,8 +52,9 @@ broker.start()
 	.then(async () => {
 		broker.repl();
 
-		const nodeCount = Number(process.env.NODE_COUNT) || 1;
-		await broker.call("nodes.scale", { count: nodeCount });
+		const nodeCount = Number(process.env.NODE_COUNT);
+		if (nodeCount > 0)
+			await broker.call("nodes.scale", { count: nodeCount });
 
 		stopSignals.forEach(signal => {
 			process.on(signal, () => {

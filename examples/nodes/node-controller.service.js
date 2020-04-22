@@ -24,13 +24,19 @@ function val(value) {
 module.exports = {
 	name: "nodes",
 
+	settings: {
+		printIO: false,
+		printRegistry: true
+	},
+
 	actions: {
 		scale: {
 			params: {
-				count: "number"
+				count: "number",
+				kill: "boolean|optional"
 			},
 			handler(ctx) {
-				return this.scale(ctx.params.count);
+				return this.scale(ctx.params.count, { kill: !!ctx.params.kill });
 			}
 		},
 	},
@@ -41,8 +47,19 @@ module.exports = {
 		}
 	},*/
 
+	events: {
+		"$services.changed"(ctx) {
+			if (this.settings.printRegistry)
+				this.printRegistry();
+		},
+		"$node.disconnected"(ctx) {
+			if (this.settings.printRegistry)
+				this.printRegistry();
+		}
+	},
+
 	methods: {
-		scale(num) {
+		scale(num, opts) {
 			if (num > this.nodes.length) {
 				// Start new nodes
 				this.logger.info(`Starting ${num - this.nodes.length} new nodes...`);
@@ -55,7 +72,10 @@ module.exports = {
 				return _.times(this.nodes.length - num, () => {
 					const idx = _.random(tmp.length - 1);
 					const node = tmp.splice(idx, 1)[0];
-					return this.stopNode(node);
+					if (opts.kill)
+						return this.killNode(node);
+					else
+						return this.stopNode(node);
 				});
 			}
 		},
@@ -106,9 +126,17 @@ module.exports = {
 			} else if (msg.event == "metrics") {
 				if (msg.list && msg.list.length > 0)
 					msg.list.map(metric => this.addMetric(metric, worker.nodeID));
+			} else if (msg.event == "registry") {
+				this.updateWorkerRegistry(worker.nodeID, msg.nodes);
+				if (this.settings.printRegistry)
+					this.printRegistry();
 			} else {
 				this.logger.info(msg);
 			}
+		},
+
+		updateWorkerRegistry(nodeID, nodes) {
+			this.workerRegistry[nodeID] = nodes;
 		},
 
 		addMetric(metric, nodeID) {
@@ -193,6 +221,51 @@ module.exports = {
 			}
 		},
 
+		printRegistry: _.debounce(function() {
+			console.log("\x1b[2J");
+			console.log("\x1b[0;0H");
+			console.log(kleur.yellow().bold("\nRegistry:  "), kleur.grey("Time:"), kleur.grey(humanize(process.uptime() * 1000)));
+			console.log(kleur.yellow().bold(  "========"));
+
+			const nodeIDs = _.uniq([].concat(
+				Object.keys(this.workerRegistry),
+				this.broker.registry.nodes.toArray().map(node => node.id)
+			))
+				.filter(nodeID => nodeID != this.broker.nodeID)
+				.sort((a, b) => Number(a.replace(/[^\d]/g, "")) - Number(b.replace(/[^\d]/g, "")));
+
+			nodeIDs.forEach(nodeID => this.printWorkerRegistry(nodeID, this.workerRegistry[nodeID], nodeIDs));
+		}, 250),
+
+		printWorkerRegistry(mainNodeID, nodes, allNodeIDs) {
+			let s = " ";
+
+			const mainNode = this.broker.registry.nodes.get(mainNodeID);
+			const available = mainNode && mainNode.available;
+
+			s += available ? kleur.green(padE(mainNodeID, 10)) : kleur.red(padE(mainNodeID, 10));
+			s += "│";
+
+			allNodeIDs.forEach(nodeID => {
+				if (!available) {
+					s += " ";
+					return;
+				}
+				if (nodes && nodes[nodeID]) {
+					const node = nodes[nodeID];
+					if (node.available)
+						s += kleur.green().bold("█");
+					else
+						s += kleur.red().bold("█");
+				} else {
+					s += kleur.red().bold("█");
+				}
+			});
+
+			s += "│";
+			console.log(s);
+		},
+
 		columnize(arr, count) {
 			const res = [];
 
@@ -254,13 +327,16 @@ module.exports = {
 		this.nodes = [];
 
 		this.metrics = {};
+		this.workerRegistry = {};
 	},
 
 	started() {
 		// Print after the fresh metrics received
-		setTimeout(() => {
+		if (this.settings.printIO)
 			this.metricTimer = setInterval(() => this.printMetrics(), 5000);
-		}, 2000);
+
+		//if (this.settings.printRegistry)
+		//	this.metricTimer = setInterval(() => this.printRegistry(), 2000);
 	},
 
 	stopped() {

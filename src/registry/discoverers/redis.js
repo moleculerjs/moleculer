@@ -17,7 +17,6 @@ let Redis;
  * Redis-based Discoverer class
  * TODO:
  *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét (plusz seq és cpu)
- *  - az INFO csomagnak is állítson TTL-t, külön timer, ami frissíti azt. Pl, 30 perc, 15 percenként
  *    frissíti a TTL-t az "EXPIRE" paranccsal
  *  - instanceID-t is nézni kell, mert ha lelép és visszjön már service-ekkel akkor nem fogja észre venni
  *    mert a seq ugyanaz, de az instanceID változott. Lehet a HB kulcsba az instanceID meg seq-et kéne rakni
@@ -49,6 +48,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.nodes = new Map();
 
 		this.client = null;
+
+		this.infoUpdateTimer = null;
 	}
 
 	/**
@@ -115,6 +116,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Stop discoverer clients.
 	 */
 	stop() {
+		if (this.infoUpdateTimer) clearTimeout(this.infoUpdateTimer);
+
 		return super.stop()
 			.then(() => {
 				if (this.client)
@@ -128,6 +131,16 @@ class RedisDiscoverer extends BaseDiscoverer {
 	registerMoleculerMetrics() {
 		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+	}
+
+	recreateInfoUpdateTimer() {
+		if (this.infoUpdateTimer) clearTimeout(this.infoUpdateTimer);
+
+		this.infoUpdateTimer = setTimeout(() => {
+			// Reset the INFO packet expiry.
+			return this.client.expire(this.INFO_KEY, 30 * 60) // 30 mins
+				.then(() => this.recreateInfoUpdateTimer());
+		}, 20 * 60 * 1000 ); // 20 mins
 	}
 
 	/**
@@ -277,8 +290,10 @@ class RedisDiscoverer extends BaseDiscoverer {
 			sender: this.broker.nodeID
 		}, info);
 
-		return this.client.set(this.INFO_KEY, JSON.stringify(payload))
+		return this.client.setex(this.INFO_KEY, 30 * 60, JSON.stringify(payload))
 			.then(() => {
+				this.recreateInfoUpdateTimer();
+
 				// Sending a new heartbeat because it contains the `seq`
 				if (!nodeID)
 					return this.beat();
