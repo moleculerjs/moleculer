@@ -99,8 +99,10 @@ class Node {
 			this.offlineSince = null;
 		}
 
-		this.cpu = payload.cpu;
-		this.cpuSeq = payload.cpuSeq || 1;
+		if (payload.cpu != null) {
+			this.cpu = payload.cpu;
+			this.cpuSeq = payload.cpuSeq || 1;
+		}
 
 		this.lastHeartbeatTime = Date.now();
 	}

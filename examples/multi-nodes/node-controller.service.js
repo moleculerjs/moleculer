@@ -26,7 +26,7 @@ module.exports = {
 
 	settings: {
 		printIO: false,
-		printRegistry: true
+		printRegistry: false
 	},
 
 	actions: {

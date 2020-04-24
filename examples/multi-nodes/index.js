@@ -4,7 +4,7 @@ const cluster = require("cluster");
 
 process.env.TRANSPORTER = "NATS";
 process.env.DISCOVERER = "Redis";
-process.env.NODE_COUNT = 10;
+process.env.NODE_COUNT = 100;
 
 if (cluster.isMaster) {
 	cluster.setupMaster({

@@ -15,14 +15,7 @@ let Redis;
 
 /**
  * Redis-based Discoverer class
- * TODO:
- *  - ne minden körben töltse le a HB adatokat, csak a kulcsból szedje ki a nodeID nevét (plusz seq és cpu)
- *    frissíti a TTL-t az "EXPIRE" paranccsal
- *  - instanceID-t is nézni kell, mert ha lelép és visszjön már service-ekkel akkor nem fogja észre venni
- *    mert a seq ugyanaz, de az instanceID változott. Lehet a HB kulcsba az instanceID meg seq-et kéne rakni
- *    és az alapján ellenőrizni hogy ki élő még nem a nodeID alapján.
  *
- *    ZADD https://github.com/mpneuried/redis-heartbeat/blob/master/_src/lib/heartbeat.coffee#L239
  * @class RedisDiscoverer
  */
 class RedisDiscoverer extends BaseDiscoverer {
@@ -36,20 +29,26 @@ class RedisDiscoverer extends BaseDiscoverer {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			//fullCheckNum: 1,
+			fullCheck: 10, // Disable with `0` or `null`
 			scanLength: 100,
 			redis: null,
-			monitor: false
+			monitor: false,
 		});
 
-		this.idx = 0;
+		// Index for full checks
+		this.idx = this.opts.fullCheck > 1 ? _.random(this.opts.fullCheck - 1) : 0;
 
 		// Store the online nodes.
 		this.nodes = new Map();
 
+		// Redis client instance
 		this.client = null;
 
+		// Timer for INFO packets expiration updating
 		this.infoUpdateTimer = null;
+
+		// Last local INFO sequence number
+		this.lastLocalSeq = 0;
 	}
 
 	/**
@@ -69,9 +68,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
-		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DISCOVERER`;
-		this.BEAT_KEY = `${this.PREFIX}-BEAT-${this.broker.nodeID}`;
-		this.INFO_KEY = `${this.PREFIX}-INFO-${this.broker.nodeID}`;
+		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DSCVR`;
+		this.BEAT_KEY = `${this.PREFIX}-BEAT:${this.broker.nodeID}|${this.broker.instanceID}`;
+		this.INFO_KEY = `${this.PREFIX}-INFO:${this.broker.nodeID}`;
 
 		/**
 		 * ioredis client instance
@@ -129,26 +128,27 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true, description: "Number of Service Registry fetching from Redis" });
+		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS, description: "Time of Service Registry fetching from Redis" });
 	}
 
+	/**
+	 * Recreate the INFO key update timer.
+	 */
 	recreateInfoUpdateTimer() {
 		if (this.infoUpdateTimer) clearTimeout(this.infoUpdateTimer);
 
 		this.infoUpdateTimer = setTimeout(() => {
 			// Reset the INFO packet expiry.
-			return this.client.expire(this.INFO_KEY, 30 * 60) // 30 mins
+			return this.client.expire(this.INFO_KEY + "|" + this.lastLocalSeq, 30 * 60) // 30 mins
 				.then(() => this.recreateInfoUpdateTimer());
 		}, 20 * 60 * 1000 ); // 20 mins
 	}
 
 	/**
 	 * Sending a local heartbeat to Redis.
-	 *
-	 * @param {Node} localNode
 	 */
-	sendHeartbeat(localNode) {
+	sendHeartbeat() {
 		//console.log("REDIS - HB 1", localNode.id, this.heartbeatTimer);
 
 		const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
@@ -157,17 +157,19 @@ class RedisDiscoverer extends BaseDiscoverer {
 			ver: this.broker.PROTOCOL_VERSION,
 
 			timestamp: Date.now(),
-			cpu: localNode.cpu,
-			seq: localNode.seq,
+			cpu: this.localNode.cpu,
+			seq: this.localNode.seq,
 			instanceID: this.broker.instanceID
 		};
-		return this.client.setex(this.BEAT_KEY, this.opts.heartbeatTimeout, JSON.stringify(data))
+
+		const key = this.BEAT_KEY + "|" + this.localNode.seq;
+
+		return this.client.setex(key, this.opts.heartbeatTimeout, JSON.stringify(data))
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
-				const duration = timeEnd();
+				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
-				//this.logger.warn("Collect time", duration + "ms");
 			});
 	}
 
@@ -180,9 +182,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 		const prevNodes = new Map(this.nodes);
 
 		// Collect the online node keys.
-		return new Promise((resolve, reject) => {
+		return new this.Promise((resolve, reject) => {
 			const stream = this.client.scanStream({
-				match: `${this.PREFIX}-BEAT-*`,
+				match: `${this.PREFIX}-BEAT:*`,
 				count: this.opts.scanLength
 			});
 
@@ -190,50 +192,51 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 			stream.on("data", keys => {
 				if (!keys || !keys.length) return;
-
 				scannedKeys = scannedKeys.concat(keys);
-
-				//this.logger.warn("Stream keys", keys);
-
-				//stream.pause();
 			});
 
 			stream.on("error", err => reject(err));
 			stream.on("end", () => {
 				if (scannedKeys.length == 0) return resolve();
 
-				return this.client.mget(...scannedKeys)
-					.then(resultArr => Promise.all(resultArr.map(res => {
-						let packet;
-						try {
-							packet = JSON.parse(res);
-							if (packet.sender == this.broker.nodeID) return;
-						} catch(err) {
-							this.logger.warn("Unable to parse Redis response", err, res);
-							return;
-						}
+				this.Promise.resolve()
+					.then(() => {
+						if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck == 0) {
+							// Full check
+							this.logger.warn("Full check", this.idx);
+							this.idx = 0;
 
-						prevNodes.delete(packet.sender);
-
-						const prevPacket = this.nodes.get(packet.sender);
-						let p = this.Promise.resolve();
-						if (!prevPacket) {
-							// New node
-							this.logger.debug(`New node '${packet.sender}' is available. Updating the registry...`);
-							p = p.then(() => this.discoverNode(packet.sender));
+							return this.client.mget(...scannedKeys)
+								.then(packets => packets.map(raw => {
+									try {
+										return JSON.parse(raw);
+									} catch(err) {
+										this.logger.warn("Unable to parse Redis response", err, raw);
+									}
+								}));
 						} else {
-							if (prevPacket.seq !== packet.seq) {
-								// INFO is updated.
-								this.logger.debug(`The node '${packet.sender}' seq number has been changed. Updating the registry...`);
-								p = p.then(() => this.discoverNode(packet.sender));
-							}
+							//this.logger.info("Lazy check", this.idx);
+							// Lazy check
+							return scannedKeys.map(key => {
+								const p = key.substring(`${this.PREFIX}-BEAT:`.length).split("|");
+								return {
+									key,
+									sender: p[0],
+									instanceID: p[1],
+									seq: Number(p[2])
+								};
+							});
 						}
+					})
+					.then(packets => {
+						packets.map(packet => {
+							if (packet.sender == this.broker.nodeID) return;
 
-						return p.then(() => {
+							prevNodes.delete(packet.sender);
 							this.nodes.set(packet.sender, packet);
 							this.heartbeatReceived(packet.sender, packet);
 						});
-					})))
+					})
 					.then(() => resolve());
 			});
 
@@ -242,7 +245,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 				//this.logger.warn("Not found nodes", prevNodes.keys());
 				// Disconnected nodes
 				Array.from(prevNodes.keys()).map(nodeID => {
-					this.logger.debug(`The node '${nodeID}' is not available. Removing from registry...`);
+					this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
 					this.remoteNodeDisconnected(nodeID, true);
 					this.nodes.delete(nodeID);
 				});
@@ -252,11 +255,11 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 	/**
 	 * Discover a new or old node.
+	 *
 	 * @param {String} nodeID
-	 * @param {String} instanceID
 	 */
-	discoverNode(nodeID, instanceID) {
-		return this.client.get(`${this.PREFIX}-INFO-${nodeID}`)
+	discoverNode(nodeID) {
+		return this.client.get(`${this.PREFIX}-INFO:${nodeID}`)
 			.then(res => {
 				if (!res) {
 					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
@@ -266,7 +269,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					const info = JSON.parse(res);
 					return this.processRemoteNodeInfo(nodeID, info);
 				} catch(err) {
-					this.logger.warn("Unable to parse Redis response", err, res);
+					this.logger.warn("Unable to parse Redis INFO response", err, res);
 				}
 			});
 	}
@@ -290,8 +293,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 			sender: this.broker.nodeID
 		}, info);
 
-		return this.client.setex(this.INFO_KEY, 30 * 60, JSON.stringify(payload))
+		const key = this.INFO_KEY;
+
+		return this.Promise.resolve()
+			.then(() => this.client.setex(key, 30 * 60, JSON.stringify(payload)))
 			.then(() => {
+				this.lastLocalSeq = info.seq;
+
 				this.recreateInfoUpdateTimer();
 
 				// Sending a new heartbeat because it contains the `seq`
@@ -307,8 +315,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		return this.Promise.resolve()
 			.then(() => super.localNodeDisconnected())
 			.then(() => this.logger.debug("Remove local node from registry..."))
-			.then(() => this.client.del(this.INFO_KEY))
-			.then(() => this.client.del(this.BEAT_KEY));
+			.then(() => this.scanClean(this.INFO_KEY + "*"))
+			.then(() => this.scanClean(this.BEAT_KEY + "*"));
 	}
 
 	/**
@@ -322,6 +330,37 @@ class RedisDiscoverer extends BaseDiscoverer {
 	remoteNodeDisconnected(nodeID, isUnexpected) {
 		super.remoteNodeDisconnected(nodeID, isUnexpected);
 		this.nodes.delete(nodeID);
+	}
+
+	/**
+	 * Clean Redis key by pattern
+	 * @param {String} match
+	 */
+	scanClean(match) {
+		return new Promise((resolve, reject) => {
+			const stream = this.client.scanStream({
+				match,
+				count: 100
+			});
+
+			stream.on("data", (keys = []) => {
+				if (!keys.length) {
+					return;
+				}
+
+				stream.pause();
+				this.client.del(keys)
+					.then(() => stream.resume())
+					.catch((err) => reject(err));
+			});
+
+			stream.on("error", (err) => {
+				this.logger.error(`Error occured while deleting Redis keys '${match}'.`, err);
+				reject(err);
+			});
+
+			stream.on("end", () => resolve());
+		});
 	}
 }
 

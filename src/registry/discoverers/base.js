@@ -36,6 +36,8 @@ class BaseDiscoverer {
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
 		this.offlineTimer = null;
+
+		this.localNode = null;
 	}
 
 	/**
@@ -66,6 +68,8 @@ class BaseDiscoverer {
 		}
 
 		this.registerMoleculerMetrics();
+
+		this.localNode = this.registry.nodes.localNode;
 	}
 
 	/**
@@ -134,9 +138,8 @@ class BaseDiscoverer {
 	}
 
 	beat() {
-		const localNode = this.registry.nodes.localNode;
-		return localNode.updateLocalInfo(this.broker.getCpuUsage)
-			.then(() => this.sendHeartbeat(localNode));
+		return this.localNode.updateLocalInfo(this.broker.getCpuUsage)
+			.then(() => this.sendHeartbeat());
 	}
 
 	/**
@@ -193,6 +196,9 @@ class BaseDiscoverer {
 				if (payload.seq != null && node.seq !== payload.seq) {
 					// Some services changed on the remote node. Request a new INFO
 					this.discoverNode(nodeID);
+				} else if (payload.instanceID != null && node.instanceID !== payload.instanceID) {
+					// The node has been restarted. Request a new INFO
+					this.discoverNode(nodeID);
 				} else {
 					node.heartbeat(payload);
 				}
@@ -215,11 +221,10 @@ class BaseDiscoverer {
 
 	/**
 	 * Sending a local heartbeat
-	 * @param {Node} localNode
 	 */
-	sendHeartbeat(localNode) {
+	sendHeartbeat() {
 		if (!this.transit) return this.Promise.resolve();
-		return this.transit.sendHeartbeat(localNode);
+		return this.transit.sendHeartbeat(this.localNode);
 	}
 
 	/**
