@@ -23,7 +23,12 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	metrics: true,
 	registry: {
-		discoverer: process.env.DISCOVERER || "Redis"
+		discoverer: {
+			type: process.env.DISCOVERER || "Redis",
+			options: {
+				serializer: process.env.DISCOVERER_SERIALIZER
+			}
+		}
 	},
 	//heartbeatInterval: 10,
 	replCommands: [

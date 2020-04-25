@@ -12,6 +12,7 @@ const { BrokerOptionsError } = require("../../errors");
 const Discoverers = {
 	Base: require("./base"),
 	Local: require("./local"),
+	Etcd3: require("./etcd3"),
 	Redis: require("./redis")
 };
 

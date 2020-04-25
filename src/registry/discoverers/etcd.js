@@ -7,33 +7,34 @@
 "use strict";
 
 const _ = require("lodash");
-const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
+const { promisify } = require("util");
 
-let Redis;
+let Etcd;
 
 /**
- * Redis-based Discoverer class
+ * etcd-based v2 Discoverer class
  *
- * @class RedisDiscoverer
+ * @class EtcdDiscoverer
  */
-class RedisDiscoverer extends BaseDiscoverer {
+class EtcdDiscoverer extends BaseDiscoverer {
 
 	/**
 	 * Creates an instance of Discoverer.
 	 *
-	 * @memberof RedisDiscoverer
+	 * @memberof EtcdDiscoverer
 	 */
 	constructor(opts) {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
 			fullCheck: 10, // Disable with `0` or `null`
-			scanLength: 100,
-			redis: null,
-			monitor: false,
+			etcd: {
+				urls: undefined,
+				options: undefined
+			},
 			serializer: "JSON"
 		});
 
@@ -43,7 +44,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 		// Store the online nodes.
 		this.nodes = new Map();
 
-		// Redis client instance
+		// Etcd client instance
 		this.client = null;
 
 		// Timer for INFO packets expiration updating
@@ -58,63 +59,31 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 *
 	 * @param {any} registry
 	 *
-	 * @memberof RedisDiscoverer
+	 * @memberof EtcdDiscoverer
 	 */
 	init(registry) {
 		super.init(registry);
 
 		try {
-			Redis = require("ioredis");
+			Etcd = require("node-etcd");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+			this.broker.fatal("The 'node-etcd' package is missing. Please install it with 'npm install node-etcd --save' command.", err, true);
 		}
 
-		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DSCVR`;
-		this.BEAT_KEY = `${this.PREFIX}-BEAT:${this.broker.nodeID}|${this.broker.instanceID}`;
-		this.INFO_KEY = `${this.PREFIX}-INFO:${this.broker.nodeID}`;
+		this.PREFIX = `moleculer${this.broker.namespace ? "-" + this.broker.namespace : ""}/discovery`;
+		this.BEAT_KEY = `${this.PREFIX}/beats/${this.broker.nodeID}/${this.broker.instanceID}`;
+		this.INFO_KEY = `${this.PREFIX}/info/${this.broker.nodeID}`;
 
-		/**
-		 * ioredis client instance
-		 * @memberof RedisCacher
-		 */
-		if (this.opts.cluster) {
-			if (!this.opts.cluster.nodes || this.opts.cluster.nodes.length === 0) {
-				throw new BrokerOptionsError("No nodes defined for cluster");
-			}
+		this.client = new Etcd(this.opts.etcd.urls, this.opts.etcd.options);
 
-			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
-		} else {
-			this.client = new Redis(this.opts.redis);
-		}
-
-		this.client.on("connect", () => {
-			/* istanbul ignore next */
-			this.logger.info("Redis Discoverer client connected.");
-		});
-
-		this.client.on("reconnecting", () => {
-			/* istanbul ignore next */
-			this.logger.warn("Redis Discoverer client reconnecting...");
-		});
-
-		this.client.on("error", (err) => {
-			/* istanbul ignore next */
-			this.logger.error(err);
-		});
-
-		if (this.opts.monitor) {
-			this.client.monitor((err, monitor) => {
-				this.logger.debug("Redis Discoverer entering monitoring mode...");
-				monitor.on("monitor", (time, args/*, source, database*/) => this.logger.debug(args));
-			});
-		}
+		["get", "set", "del"].forEach(method => this.client[method] = promisify(this.client[method]));
 
 		// create an instance of serializer (default to JSON)
 		this.serializer = Serializers.resolve(this.opts.serializer);
 		this.serializer.init(this.broker);
 
-		this.logger.debug("Redis Discoverer created. Prefix:", this.PREFIX);
+		this.logger.debug("etcd Discoverer created. Prefix:", this.PREFIX);
 	}
 
 	/**
@@ -125,8 +94,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 		return super.stop()
 			.then(() => {
-				if (this.client)
-					return this.client.quit();
+				//if (this.client)
+				//	return this.client.quit();
 			});
 	}
 
@@ -134,8 +103,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true, description: "Number of Service Registry fetching from Redis" });
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS, description: "Time of Service Registry fetching from Redis" });
+		//this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true, description: "Number of Service Registry fetching from Redis" });
+		//this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS, description: "Time of Service Registry fetching from Redis" });
 	}
 
 	/**
@@ -146,7 +115,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 		this.infoUpdateTimer = setTimeout(() => {
 			// Reset the INFO packet expiry.
-			this.client.expire(this.INFO_KEY, 60 * 60); // 60 mins
+			this.sendLocalNodeInfo();
 			this.recreateInfoUpdateTimer();
 		}, 20 * 60 * 1000 ); // 20 mins
 	}
@@ -157,7 +126,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	sendHeartbeat() {
 		//console.log("REDIS - HB 1", localNode.id, this.heartbeatTimer);
 
-		const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
+		//const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
 		const data = {
 			sender: this.broker.nodeID,
 			ver: this.broker.PROTOCOL_VERSION,
@@ -168,14 +137,16 @@ class RedisDiscoverer extends BaseDiscoverer {
 			instanceID: this.broker.instanceID
 		};
 
-		const key = this.BEAT_KEY + "|" + this.localNode.seq;
+		const key = this.BEAT_KEY + "/" + this.localNode.seq;
 
-		return this.client.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data))
+		console.log("HB Key:", key);
+
+		return this.client.set(key, data, { ttl: this.opts.heartbeatTimeout })
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
-				timeEnd();
-				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
+				//timeEnd();
+				//this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
 			});
 	}
 
@@ -188,8 +159,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 		// Collect the online node keys.
 		return new this.Promise((resolve, reject) => {
+			this.client.get(`${this.PREFIX}/beats/`, { recursive: true }, (err, res) => {
+				console.log("res", res, err);
+				resolve();
+			});
+			/*
 			const stream = this.client.scanStream({
-				match: `${this.PREFIX}-BEAT:*`,
+				match: ,
 				count: this.opts.scanLength
 			});
 
@@ -243,10 +219,11 @@ class RedisDiscoverer extends BaseDiscoverer {
 						});
 					})
 					.then(() => resolve());
-			});
+			});*/
 
 		}).then(() => {
 			if (prevNodes.size > 0) {
+				if (this.broker.nodeID == "master") this.logger.warn("Not found nodes", prevNodes.keys());
 				// Disconnected nodes
 				Array.from(prevNodes.keys()).map(nodeID => {
 					this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
@@ -263,7 +240,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	discoverNode(nodeID) {
-		return this.client.getBuffer(`${this.PREFIX}-INFO:${nodeID}`)
+		return this.client.get(`${this.PREFIX}/info/${nodeID}`)
 			.then(res => {
 				if (!res) {
 					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
@@ -299,8 +276,10 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 		const key = this.INFO_KEY;
 
+		console.log("INFO Key:", key);
+
 		return this.Promise.resolve()
-			.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload)))
+			.then(() => this.client.set(key, this.serializer.serialize(payload), { ttl: 30 * 60 }))
 			.then(() => {
 				this.lastLocalSeq = info.seq;
 
@@ -323,7 +302,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			.then(() => super.localNodeDisconnected())
 			.then(() => this.logger.debug("Remove local node from registry..."))
 			.then(() => this.del(this.INFO_KEY))
-			.then(() => this.scanClean(this.BEAT_KEY + "*"));
+			.then(() => this.del(this.BEAT_KEY + "/", { recursive: true }));
 	}
 
 	/**
@@ -371,4 +350,4 @@ class RedisDiscoverer extends BaseDiscoverer {
 	}
 }
 
-module.exports = RedisDiscoverer;
+module.exports = EtcdDiscoverer;

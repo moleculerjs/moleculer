@@ -56,7 +56,12 @@ function start(opts) {
 			})
 		},
 		registry: {
-			discoverer: process.env.DISCOVERER || "Redis"
+			discoverer: {
+				type: process.env.DISCOVERER || "Redis",
+				options: {
+					serializer: process.env.DISCOVERER_SERIALIZER
+				}
+			}
 		}
 	});
 

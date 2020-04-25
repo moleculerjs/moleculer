@@ -33,10 +33,12 @@ class BaseDiscoverer {
 			cleanOfflineNodesTimeout: 10 * 60, // 10 minutes
 		});
 
+		// Timer variables
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
 		this.offlineTimer = null;
 
+		// Pointer for the local `Node` instance
 		this.localNode = null;
 	}
 
@@ -44,18 +46,17 @@ class BaseDiscoverer {
 	 * Initialize Discoverer
 	 *
 	 * @param {ServiceRegistry} registry
-	 *
-	 * @memberof BaseDiscoverer
 	 */
 	init(registry) {
 		this.registry = registry;
 		this.broker = registry.broker;
 		this.Promise = this.broker.Promise;
+
 		if (this.broker) {
 			this.logger = this.broker.getLogger("Discovery");
 			this.transit = this.broker.transit;
 
-			// Get HB time settings from broker options.
+			// Get HB time settings from broker options. Backward compatibility
 			if (this.broker.options.heartbeatInterval)
 				this.opts.heartbeatInterval = this.broker.options.heartbeatInterval;
 			if (this.broker.options.heartbeatTimeout)
@@ -67,9 +68,9 @@ class BaseDiscoverer {
 			this.broker.localBus.on("$transporter.disconnected", () => this.stopHeartbeatTimers());
 		}
 
-		this.registerMoleculerMetrics();
-
 		this.localNode = this.registry.nodes.localNode;
+
+		this.registerMoleculerMetrics();
 	}
 
 	/**
@@ -89,36 +90,28 @@ class BaseDiscoverer {
 
 	/**
 	 * Start heartbeat timers
-	 *
-	 * @memberof LocalDiscoverer
 	 */
 	startHeartbeatTimers() {
 		this.stopHeartbeatTimers();
 
 		if (this.broker.options.heartbeatInterval > 0) {
-			/* istanbul ignore next */
+			// HB timer
 			const time = this.broker.options.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
 			this.heartbeatTimer = setInterval(() => this.beat(), time);
 			this.heartbeatTimer.unref();
 
-			/* istanbul ignore next */
-			this.checkNodesTimer = setInterval(() => {
-				this.checkRemoteNodes();
-			}, this.broker.options.heartbeatTimeout * 1000);
+			// Check expired heartbeats of remote nodes timer
+			this.checkNodesTimer = setInterval(() => this.checkRemoteNodes(), this.broker.options.heartbeatTimeout * 1000);
 			this.checkNodesTimer.unref();
 
-			/* istanbul ignore next */
-			this.offlineTimer = setInterval(() => {
-				this.checkOfflineNodes();
-			}, 30 * 1000); // 30 secs
+			// Clean offline nodes timer
+			this.offlineTimer = setInterval(() => this.checkOfflineNodes(), 30 * 1000); // 30 secs
 			this.offlineTimer.unref();
 		}
 	}
 
 	/**
 	 * Stop heartbeat timers
-	 *
-	 * @memberof LocalDiscoverer
 	 */
 	stopHeartbeatTimers() {
 		if (this.heartbeatTimer) {
@@ -137,15 +130,17 @@ class BaseDiscoverer {
 		}
 	}
 
+	/**
+	 * Heartbeat method.
+	 */
 	beat() {
+		// Update the local CPU usage before sending heartbeat.
 		return this.localNode.updateLocalInfo(this.broker.getCpuUsage)
 			.then(() => this.sendHeartbeat());
 	}
 
 	/**
 	 * Check all registered remote nodes are available.
-	 *
-	 * @memberof LocalDiscoverer
 	 */
 	checkRemoteNodes() {
 		if (this.disableHeartbeatChecks) return;
@@ -163,8 +158,6 @@ class BaseDiscoverer {
 
 	/**
 	 * Check offline nodes. Remove which is older than 10 minutes.
-	 *
-	 * @memberof LocalDiscoverer
 	 */
 	checkOfflineNodes() {
 		if (this.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
@@ -181,7 +174,7 @@ class BaseDiscoverer {
 	}
 
 	/**
-	 * Heartbeat received from a remote node
+	 * Heartbeat received from a remote node.
 	 *
 	 * @param {String} nodeID
 	 * @param {Object} payload
@@ -203,7 +196,6 @@ class BaseDiscoverer {
 					node.heartbeat(payload);
 				}
 			}
-
 		} else {
 			// Unknow node. Request an INFO
 			this.discoverNode(nodeID);
@@ -212,6 +204,7 @@ class BaseDiscoverer {
 
 	/**
 	 * Received an INFO from a remote node.
+	 *
 	 * @param {String} nodeID
 	 * @param {Object} payload
 	 */
@@ -220,7 +213,7 @@ class BaseDiscoverer {
 	}
 
 	/**
-	 * Sending a local heartbeat
+	 * Sending a local heartbeat to remote nodes.
 	 */
 	sendHeartbeat() {
 		if (!this.transit) return this.Promise.resolve();
@@ -228,7 +221,8 @@ class BaseDiscoverer {
 	}
 
 	/**
-	 * Discover a new or old node.
+	 * Discover a new or old node by nodeID
+	 *
 	 * @param {String} nodeID
 	 */
 	discoverNode() {
@@ -246,8 +240,8 @@ class BaseDiscoverer {
 	 * Called when the local node is ready (transporter connected)
 	 */
 	localNodeReady() {
-		// Local node has started all local services. We send a new INFO packet to all nodes
-		// because we are ready to accept incoming requests.
+		// Local node has started all local services. We send a new INFO packet
+		// which contains the local services because we are ready to accept incoming requests.
 		return this.sendLocalNodeInfo();
 	}
 
@@ -271,10 +265,9 @@ class BaseDiscoverer {
 
 	/**
 	 * Called when a remote node disconnected (received DISCONNECT packet)
-	 * You can clean it from local cache.
+	 * You can clean it from local registry.
 	 *
 	 * @param {String} nodeID
-	 * @param {Object} payload
 	 * @param {Boolean} isUnexpected
 	 */
 	remoteNodeDisconnected(nodeID, isUnexpected) {
