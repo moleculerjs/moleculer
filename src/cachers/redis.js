@@ -112,6 +112,7 @@ class RedisCacher extends BaseCacher {
 
 		// create an instance of serializer (default to JSON)
 		this.serializer = Serializers.resolve(this.opts.serializer);
+		this.serializer.init(this.broker);
 
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
