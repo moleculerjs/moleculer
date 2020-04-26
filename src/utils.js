@@ -93,6 +93,15 @@ const utils = {
 			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
 	},
 
+	removeFromArray(arr, item) {
+		if (!arr || arr.length == 0) return;
+		const idx = arr.indexOf(item);
+		if (idx !== -1)
+			arr.splice(idx, 1);
+
+		return arr;
+	},
+
 	/**
 	 * Get default NodeID (computerName)
 	 *

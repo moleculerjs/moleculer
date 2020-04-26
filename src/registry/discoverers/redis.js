@@ -11,6 +11,7 @@ const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
+const { removeFromArray } = require("../../utils");
 
 let Redis;
 
@@ -30,18 +31,15 @@ class RedisDiscoverer extends BaseDiscoverer {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
+			redis: null,
+			serializer: "JSON",
 			fullCheck: 10, // Disable with `0` or `null`
 			scanLength: 100,
-			redis: null,
 			monitor: false,
-			serializer: "JSON"
 		});
 
 		// Loop counter for full checks. Starts from a random value for better distribution
 		this.idx = this.opts.fullCheck > 1 ? _.random(this.opts.fullCheck - 1) : 0;
-
-		// Store the online nodes.
-		this.nodes = new Map();
 
 		// Redis client instance
 		this.client = null;
@@ -49,8 +47,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 		// Timer for INFO packets expiration updating
 		this.infoUpdateTimer = null;
 
-		// Last local INFO sequence number
-		this.lastLocalSeq = 0;
+		// Last sequence numbers
+		this.lastInfoSeq = 0;
+		this.lastBeatSeq = 0;
 	}
 
 	/**
@@ -168,9 +167,24 @@ class RedisDiscoverer extends BaseDiscoverer {
 			instanceID: this.broker.instanceID
 		};
 
-		const key = this.BEAT_KEY + "|" + this.localNode.seq;
+		const seq = this.localNode.seq;
+		const key = this.BEAT_KEY + "|" + seq;
 
-		return this.client.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data))
+		return this.Promise.resolve()
+			.then(() => {
+				// Create a multi pipeline
+				let pl = this.client.multi();
+
+				if (seq != this.lastBeatSeq) {
+					// Remove previous BEAT keys
+					pl = pl.del(this.BEAT_KEY + "|" + this.lastBeatSeq);
+				}
+
+				// Create new HB key
+				pl = pl.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data));
+				return pl.exec();
+			})
+			.then(() => this.lastBeatSeq = seq)
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
@@ -183,8 +197,10 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Collect online nodes from Redis server.
 	 */
 	collectOnlineNodes() {
-		// Save the previous state so that we can check the disconnected nodes.
-		const prevNodes = new Map(this.nodes);
+		// Get the current node list so that we can check the disconnected nodes.
+		const prevNodes = this.registry.nodes.list({ onlyAvailable: true, withServices: false })
+			.map(node => node.id)
+			.filter(nodeID => nodeID !== this.broker.nodeID);
 
 		// Collect the online node keys.
 		return new this.Promise((resolve, reject) => {
@@ -216,7 +232,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 									try {
 										return this.serializer.deserialize(raw);
 									} catch(err) {
-										this.logger.warn("Unable to parse Redis response", err, raw);
+										this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
 									}
 								}));
 						} else {
@@ -237,8 +253,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 						packets.map(packet => {
 							if (packet.sender == this.broker.nodeID) return;
 
-							prevNodes.delete(packet.sender);
-							this.nodes.set(packet.sender, packet);
+							removeFromArray(prevNodes, packet.sender);
 							this.heartbeatReceived(packet.sender, packet);
 						});
 					})
@@ -251,7 +266,6 @@ class RedisDiscoverer extends BaseDiscoverer {
 				Array.from(prevNodes.keys()).map(nodeID => {
 					this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
 					this.remoteNodeDisconnected(nodeID, true);
-					this.nodes.delete(nodeID);
 				});
 			}
 		});
@@ -273,7 +287,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					const info = this.serializer.deserialize(res);
 					return this.processRemoteNodeInfo(nodeID, info);
 				} catch(err) {
-					this.logger.warn("Unable to parse Redis INFO response", err, res);
+					this.logger.warn("Unable to parse INFO packet", err, res);
 				}
 			});
 	}
@@ -298,11 +312,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 		}, info);
 
 		const key = this.INFO_KEY;
+		const seq = this.localNode.seq;
 
 		return this.Promise.resolve()
 			.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload)))
 			.then(() => {
-				this.lastLocalSeq = info.seq;
+				this.lastInfoSeq = seq;
 
 				this.recreateInfoUpdateTimer();
 
@@ -322,21 +337,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		return this.Promise.resolve()
 			.then(() => super.localNodeDisconnected())
 			.then(() => this.logger.debug("Remove local node from registry..."))
-			.then(() => this.del(this.INFO_KEY))
+			.then(() => this.client.del(this.INFO_KEY))
 			.then(() => this.scanClean(this.BEAT_KEY + "*"));
-	}
-
-	/**
-	 * Called when a remote node disconnected (received DISCONNECT packet)
-	 * You can clean it from local cache.
-	 *
-	 * @param {String} nodeID
-	 * @param {Object} payload
-	 * @param {Boolean} isUnexpected
-	 */
-	remoteNodeDisconnected(nodeID, isUnexpected) {
-		super.remoteNodeDisconnected(nodeID, isUnexpected);
-		this.nodes.delete(nodeID);
 	}
 
 	/**

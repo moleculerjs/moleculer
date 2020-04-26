@@ -57,7 +57,7 @@ function start(opts) {
 		},
 		registry: {
 			discoverer: {
-				type: process.env.DISCOVERER || "Redis",
+				type: process.env.DISCOVERER || "Local",
 				options: {
 					serializer: process.env.DISCOVERER_SERIALIZER
 				}

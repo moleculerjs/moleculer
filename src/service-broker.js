@@ -451,6 +451,7 @@ class ServiceBroker {
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
+				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
 				if (this.transit)

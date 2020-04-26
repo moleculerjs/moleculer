@@ -49,13 +49,6 @@ class Registry {
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
 		this.events = new EventCatalog(this, broker, this.StrategyFactory);
 
-		this.broker.localBus.on("$broker.started", () => {
-			if (this.nodes.localNode) {
-				this.regenerateLocalRawInfo(true);
-				this.discoverer.sendLocalNodeInfo();
-			}
-		});
-
 		this.registerMoleculerMetrics();
 		this.updateMetrics();
 	}

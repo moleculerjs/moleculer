@@ -24,7 +24,7 @@ const broker = new ServiceBroker({
 	metrics: true,
 	registry: {
 		discoverer: {
-			type: process.env.DISCOVERER || "Redis",
+			type: process.env.DISCOVERER || "Local",
 			options: {
 				serializer: process.env.DISCOVERER_SERIALIZER
 			}
@@ -71,5 +71,9 @@ broker.start()
 				});
 			});
 		});
+
+		await broker.Promise.delay(5000);
+
+		broker.loadService("./examples/math.service.js");
 	})
 	.catch(err => broker.logger.error(err));
