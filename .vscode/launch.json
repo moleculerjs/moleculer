@@ -56,7 +56,7 @@
 			"request": "launch",
 			"name": "Launch demo: multi-nodes",
 			"program": "${workspaceRoot}/examples/multi-nodes/index.js",
-			"cwd": "${workspaceRoot}/examples/multi-nodes"
+			"cwd": "${workspaceRoot}"
 		},
 		{
 			"type": "node",

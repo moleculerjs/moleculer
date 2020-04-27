@@ -67,8 +67,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			this.broker.fatal("The 'etcd3' package is missing. Please install it with 'npm install etcd3 --save' command.", err, true);
 		}
 
+		this.instanceHash = this.broker.instanceID.substring(0, 8);
+
 		this.PREFIX = `moleculer${this.broker.namespace ? "-" + this.broker.namespace : ""}/discovery`;
-		this.BEAT_KEY = `${this.PREFIX}/beats/${this.broker.nodeID}/${this.broker.instanceID}`;
+		this.BEAT_KEY = `${this.PREFIX}/beats/${this.broker.nodeID}/${this.instanceHash}`;
 		this.INFO_KEY = `${this.PREFIX}/info/${this.broker.nodeID}`;
 
 		this.client = new ETCD3.Etcd3(this.opts.etcd);
@@ -108,10 +110,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			sender: this.broker.nodeID,
 			ver: this.broker.PROTOCOL_VERSION,
 
-			timestamp: Date.now(),
+			//timestamp: Date.now(),
 			cpu: this.localNode.cpu,
 			seq: this.localNode.seq,
-			instanceID: this.broker.instanceID
+			//instanceID: this.broker.instanceID
 		};
 
 		const seq = this.localNode.seq;

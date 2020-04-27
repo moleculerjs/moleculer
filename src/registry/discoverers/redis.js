@@ -69,8 +69,10 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
+		this.instanceHash = this.broker.instanceID.substring(0, 8);
+
 		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DSCVR`;
-		this.BEAT_KEY = `${this.PREFIX}-BEAT:${this.broker.nodeID}|${this.broker.instanceID}`;
+		this.BEAT_KEY = `${this.PREFIX}-BEAT:${this.broker.nodeID}|${this.instanceHash}`;
 		this.INFO_KEY = `${this.PREFIX}-INFO:${this.broker.nodeID}`;
 
 		/**
@@ -161,7 +163,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			sender: this.broker.nodeID,
 			ver: this.broker.PROTOCOL_VERSION,
 
-			timestamp: Date.now(),
+			// timestamp: Date.now(),
 			cpu: this.localNode.cpu,
 			seq: this.localNode.seq,
 			instanceID: this.broker.instanceID
@@ -228,9 +230,15 @@ class RedisDiscoverer extends BaseDiscoverer {
 							this.idx = 0;
 
 							return this.client.mgetBuffer(...scannedKeys)
-								.then(packets => packets.map(raw => {
+								.then(packets => packets.map((raw, i) => {
 									try {
-										return this.serializer.deserialize(raw);
+										const p = scannedKeys[i].substring(`${this.PREFIX}-BEAT:`.length).split("|");
+										return {
+											sender: p[0],
+											instanceID: p[1],
+											seq: Number(p[2]),
+											...this.serializer.deserialize(raw)
+										};
 									} catch(err) {
 										this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
 									}
@@ -241,7 +249,6 @@ class RedisDiscoverer extends BaseDiscoverer {
 							return scannedKeys.map(key => {
 								const p = key.substring(`${this.PREFIX}-BEAT:`.length).split("|");
 								return {
-									key,
 									sender: p[0],
 									instanceID: p[1],
 									seq: Number(p[2])

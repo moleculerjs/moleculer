@@ -55,6 +55,8 @@ function start(opts) {
 				includes: "moleculer.transporter.packets.**"
 			})
 		},
+		//heartbeatInterval: 10,
+		//heartbeatTimeout: 3 * 60,
 		registry: {
 			discoverer: {
 				type: process.env.DISCOVERER || "Local",

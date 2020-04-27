@@ -26,7 +26,8 @@ const broker = new ServiceBroker({
 		discoverer: {
 			type: process.env.DISCOVERER || "Local",
 			options: {
-				serializer: process.env.DISCOVERER_SERIALIZER
+				serializer: process.env.DISCOVERER_SERIALIZER,
+				monitor: false
 			}
 		}
 	},

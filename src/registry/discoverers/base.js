@@ -189,7 +189,7 @@ class BaseDiscoverer {
 				if (payload.seq != null && node.seq !== payload.seq) {
 					// Some services changed on the remote node. Request a new INFO
 					this.discoverNode(nodeID);
-				} else if (payload.instanceID != null && node.instanceID !== payload.instanceID) {
+				} else if (payload.instanceID != null && !node.instanceID.startsWith(payload.instanceID)) {
 					// The node has been restarted. Request a new INFO
 					this.discoverNode(nodeID);
 				} else {
