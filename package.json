@@ -29,7 +29,9 @@
     "test:project": "jest --testMatch \"**/project/**/*.spec.js\"",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "release": "npm publish --access public && git push --tags",
-    "release:beta": "npm publish --tag next --access public && git push --tags"
+    "release:beta": "npm publish --tag next --access public && git push --tags",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [
     "microservice",
@@ -118,7 +120,8 @@
     "kleur": "^3.0.3",
     "lodash": "^4.17.15",
     "lru-cache": "^5.1.1",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "snyk": "^1.319.0"
   },
   "engines": {
     "node": ">= 10.x.x"
@@ -143,5 +146,6 @@
     "roots": [
       "../test"
     ]
-  }
+  },
+  "snyk": true
 }
