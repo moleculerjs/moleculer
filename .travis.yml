@@ -4,10 +4,8 @@ dist: xenial
 
 node_js:
     - "14"
-    - "13"
     - "12"
     - "10"
-    - "8"
 
 cache:
   directories:

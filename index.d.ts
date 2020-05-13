@@ -515,6 +515,8 @@ declare namespace Moleculer {
 		call<T>(actionName: string): Promise<T>;
 		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
+		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: CallingOptions): Promise<Array<T> | T>;
+
 		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: string): Promise<void>;
@@ -860,6 +862,10 @@ declare namespace Moleculer {
 		params: P;
 	}
 
+	interface MCallDefinition<P extends GenericObject = GenericObject> extends CallDefinition<P> {
+		options?: CallingOptions;
+	}
+
 	interface Endpoint {
 		broker: ServiceBroker;
 
@@ -966,7 +972,7 @@ declare namespace Moleculer {
 		call<T>(actionName: string): Promise<T>;
 		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Promise<Array<T> | T>;
+		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: CallingOptions): Promise<Array<T> | T>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
