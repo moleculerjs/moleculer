@@ -147,6 +147,16 @@ describe("Test BaseDiscoverer 'stop' method", () => {
 		expect(discoverer.stopHeartbeatTimers).toBeCalledTimes(1);
 		expect(discoverer.stopHeartbeatTimers).toBeCalledWith();
 	});
+
+
+	it("should do nothing if no init", async () => {
+		const broker = new ServiceBroker({ logger: false });
+		const registry = broker.registry;
+
+		const discoverer = new BaseDiscoverer();
+
+		await discoverer.stop();
+	});
 });
 
 describe("Test BaseDiscoverer 'startHeartbeatTimers' method", () => {

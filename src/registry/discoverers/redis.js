@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const kleur = require("kleur");
 const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
@@ -69,6 +70,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
+		this.logger.warn(kleur.yellow().bold("Redis Discoverer is an EXPERIMENTAL module. Do NOT use it in production!"));
+
+		// Using shorter instanceID to reduce the network traffic
 		this.instanceHash = this.broker.instanceID.substring(0, 8);
 
 		this.PREFIX = `MOL${this.broker.namespace ? "-" + this.broker.namespace : ""}-DSCVR`;
@@ -104,7 +108,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.logger.error(err);
 		});
 
-		if (this.opts.monitor) {
+		if (this.opts.monitor && _.isFunction(this.client.monitor)) {
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis Discoverer entering monitoring mode...");
 				monitor.on("monitor", (time, args/*, source, database*/) => this.logger.debug(args));
@@ -356,7 +360,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 		return new Promise((resolve, reject) => {
 			const stream = this.client.scanStream({
 				match,
-				count: 100
+				count: this.opts.scanLength
 			});
 
 			stream.on("data", (keys = []) => {
@@ -365,7 +369,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 				}
 
 				stream.pause();
-				this.client.del(keys)
+				return this.client.del(keys)
 					.then(() => stream.resume())
 					.catch((err) => reject(err));
 			});

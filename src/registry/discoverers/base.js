@@ -24,6 +24,8 @@ class BaseDiscoverer {
 	 * @memberof BaseDiscoverer
 	 */
 	constructor(opts) {
+		this.Promise = Promise; // while `init` is not called
+
 		this.opts = _.defaultsDeep({}, opts, {
 			heartbeatInterval: null,
 			heartbeatTimeout: null,
