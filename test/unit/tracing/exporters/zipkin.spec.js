@@ -79,6 +79,8 @@ describe("Test Zipkin tracing exporter class", () => {
 			clock.tick(5500);
 
 			expect(exporter.flush).toBeCalledTimes(1);
+
+			exporter.stop();
 		});
 
 		it("should not create timer", () => {
@@ -86,6 +88,8 @@ describe("Test Zipkin tracing exporter class", () => {
 			exporter.init(fakeTracer);
 
 			expect(exporter.timer).toBeUndefined();
+
+			exporter.stop();
 		});
 
 		it("should flatten default tags", () => {
@@ -100,6 +104,8 @@ describe("Test Zipkin tracing exporter class", () => {
 			expect(exporter.flattenTags).toHaveBeenCalledTimes(2);
 			expect(exporter.flattenTags).toHaveBeenNthCalledWith(2, { b: "c" }, true, "a");
 			expect(exporter.flattenTags).toHaveBeenNthCalledWith(1, { a: { b: "c" } }, true);
+
+			exporter.stop();
 		});
 
 		it("should call defaultTags function", () => {
@@ -113,6 +119,8 @@ describe("Test Zipkin tracing exporter class", () => {
 
 			expect(fn).toHaveBeenCalledTimes(1);
 			expect(fn).toHaveBeenNthCalledWith(1, fakeTracer);
+
+			exporter.stop();
 		});
 
 	});
@@ -129,6 +137,8 @@ describe("Test Zipkin tracing exporter class", () => {
 			await exporter.stop();
 
 			expect(exporter.timer).toBeNull();
+
+			exporter.stop();
 		});
 	});
 
@@ -136,6 +146,7 @@ describe("Test Zipkin tracing exporter class", () => {
 		const fakeTracer = { logger: broker.logger, broker };
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
+		afterAll(() => exporter.stop());
 
 		it("should push spans to the queue", () => {
 			expect(exporter.queue).toEqual([]);
@@ -161,6 +172,7 @@ describe("Test Zipkin tracing exporter class", () => {
 			baseURL: "https://zipkin-server:9411"
 		});
 		exporter.init(fakeTracer);
+		afterAll(() => exporter.stop());
 
 		exporter.generateTracingData = jest.fn(() => ({ a: 5 }));
 
@@ -195,6 +207,7 @@ describe("Test Zipkin tracing exporter class", () => {
 
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
+		afterAll(() => exporter.stop());
 
 		exporter.makePayload = jest.fn(span => span);
 
@@ -219,6 +232,7 @@ describe("Test Zipkin tracing exporter class", () => {
 		const fakeTracer = { logger: broker.logger, broker };
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
+		afterAll(() => exporter.stop());
 
 		it("should truncate ID", () => {
 			expect(exporter.convertID()).toBeNull();
@@ -253,6 +267,7 @@ describe("Test Zipkin tracing exporter class", () => {
 			}
 		});
 		exporter.init(fakeTracer);
+		afterAll(() => exporter.stop());
 
 		it("should convert normal span to zipkin payload", () => {
 			const span = {
