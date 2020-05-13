@@ -1,7 +1,5 @@
 "use strict";
 
-// const lolex = require("@sinonjs/fake-timers");
-
 const BaseDiscoverer = require("../../../../src/registry/discoverers").Base;
 const ServiceBroker = require("../../../../src/service-broker");
 
