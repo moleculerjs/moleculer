@@ -57,9 +57,9 @@ class BaseDiscoverer {
 			this.transit = this.broker.transit;
 
 			// Get HB time settings from broker options. Backward compatibility
-			if (this.broker.options.heartbeatInterval)
+			if (this.opts.heartbeatInterval == null)
 				this.opts.heartbeatInterval = this.broker.options.heartbeatInterval;
-			if (this.broker.options.heartbeatTimeout)
+			if (this.opts.heartbeatTimeout == null)
 				this.opts.heartbeatTimeout = this.broker.options.heartbeatTimeout;
 		}
 
@@ -94,14 +94,14 @@ class BaseDiscoverer {
 	startHeartbeatTimers() {
 		this.stopHeartbeatTimers();
 
-		if (this.broker.options.heartbeatInterval > 0) {
+		if (this.opts.heartbeatInterval > 0) {
 			// HB timer
-			const time = this.broker.options.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
+			const time = this.opts.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
 			this.heartbeatTimer = setInterval(() => this.beat(), time);
 			this.heartbeatTimer.unref();
 
 			// Check expired heartbeats of remote nodes timer
-			this.checkNodesTimer = setInterval(() => this.checkRemoteNodes(), this.broker.options.heartbeatTimeout * 1000);
+			this.checkNodesTimer = setInterval(() => this.checkRemoteNodes(), this.opts.heartbeatTimeout * 1000);
 			this.checkNodesTimer.unref();
 
 			// Clean offline nodes timer
@@ -148,8 +148,13 @@ class BaseDiscoverer {
 		const now = Date.now();
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || !node.available) return;
+			if (!node.lastHeartbeatTime) {
+				// Még nem jött be az első heartbeat.
+				node.lastHeartbeatTime = now;
+				return;
+			}
 
-			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
+			if (now - node.lastHeartbeatTime > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.registry.nodes.disconnected(node.id, true);
 			}
@@ -165,8 +170,13 @@ class BaseDiscoverer {
 		const now = Date.now();
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || node.available) return;
+			if (!node.lastHeartbeatTime) {
+				// Még nem jött be az első heartbeat.
+				node.lastHeartbeatTime = now;
+				return;
+			}
 
-			if (now - (node.lastHeartbeatTime || 0) > this.opts.cleanOfflineNodesTimeout * 1000) {
+			if (now - node.lastHeartbeatTime > this.opts.cleanOfflineNodesTimeout * 1000) {
 				this.logger.warn(`Removing offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
 				this.registry.nodes.delete(node.id);
 			}

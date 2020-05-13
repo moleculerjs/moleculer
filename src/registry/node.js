@@ -73,9 +73,10 @@ class Node {
 	}
 
 	/**
-	 * Update local properties
+	 * Update local properties.
 	 *
 	 * @memberof Node
+	 * @param {Function} cpuUsage
 	 */
 	updateLocalInfo(cpuUsage) {
 		return cpuUsage().then(res => {
