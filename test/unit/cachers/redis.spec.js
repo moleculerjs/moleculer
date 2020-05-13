@@ -2,11 +2,14 @@ const ServiceBroker = require("../../../src/service-broker");
 const { protectReject } = require("../utils");
 
 jest.mock("ioredis");
+const Redis = require("ioredis");
 
 const RedisCacher = require("../../../src/cachers/redis");
-let Redis = require("ioredis");
-const { Notepack } = require("../../../src/serializers");
+const Serializers = require("../../../src/serializers");
 
+/**
+ * TODO: need rewrite to make more better
+ */
 
 describe("Test RedisCacher constructor", () => {
 
@@ -40,8 +43,43 @@ describe("Test RedisCacher constructor", () => {
 			redis: opts
 		});
 	});
-
 });
+
+describe("Test RedisCacher init", () => {
+	const broker = new ServiceBroker({ logger: false });
+
+	it("should create Redis client with default options", () => {
+		const cacher = new RedisCacher();
+
+		Redis.mockClear();
+		cacher.init(broker);
+
+		expect(cacher.client).toBeInstanceOf(Redis);
+		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
+
+		expect(Redis).toHaveBeenCalledTimes(1);
+		expect(Redis).toHaveBeenCalledWith(undefined);
+	});
+
+	it("should create Redis client with default options", () => {
+		const opts = { redis: { host: "1.2.3.4" } };
+		const cacher = new RedisCacher(opts);
+
+		jest.spyOn(Serializers.JSON.prototype, "init");
+		Redis.mockClear();
+		cacher.init(broker);
+
+		expect(cacher.client).toBeInstanceOf(Redis);
+		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
+
+		expect(Redis).toHaveBeenCalledTimes(1);
+		expect(Redis).toHaveBeenCalledWith(opts.redis);
+
+		expect(Serializers.JSON.prototype.init).toHaveBeenCalledTimes(1);
+		expect(Serializers.JSON.prototype.init).toHaveBeenCalledWith(broker);
+	});
+});
+
 
 describe("Test RedisCacher cluster", () => {
 
@@ -111,7 +149,7 @@ describe("Test RedisCacher cluster", () => {
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		cacher.init(broker);
-		expect(cacher.serializer).toBeInstanceOf(Notepack);
+		expect(cacher.serializer).toBeInstanceOf(Serializers.Notepack);
 	});
 
 });
