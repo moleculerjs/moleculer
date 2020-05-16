@@ -272,9 +272,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 			});
 
 		}).then(() => {
-			if (prevNodes.size > 0) {
+			if (prevNodes.length > 0) {
 				// Disconnected nodes
-				Array.from(prevNodes.keys()).map(nodeID => {
+				prevNodes.forEach(nodeID => {
 					this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
 					this.remoteNodeDisconnected(nodeID, true);
 				});

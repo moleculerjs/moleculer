@@ -348,8 +348,162 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 	});
 });
 
-// TODO: collectOnlineNodes
+describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-99" });
+	broker.instanceID = "1234567890";
 
+	const discoverer = new RedisDiscoverer();
+	const fakeStreamCB = {};
+	const fakeStream = {
+		on: jest.fn((name, cb) => fakeStreamCB[name] = cb),
+		pause: jest.fn(),
+		resume: jest.fn(),
+	};
+
+	beforeAll(() => {
+		discoverer.init(broker.registry);
+		discoverer.remoteNodeDisconnected = jest.fn();
+		discoverer.heartbeatReceived = jest.fn();
+		discoverer.client.scanStream = jest.fn(() => fakeStream);
+		discoverer.serializer.deserialize = jest.fn(data => data);
+		discoverer.client.mgetBuffer = jest.fn(async () => ["fake-data1", "fake-data2"]);
+		jest.spyOn(discoverer.logger, "error");
+	});
+	beforeEach(() => {
+		discoverer.remoteNodeDisconnected.mockClear();
+		discoverer.heartbeatReceived.mockClear();
+		discoverer.logger.error.mockClear();
+		discoverer.client.scanStream.mockClear();
+		discoverer.client.mgetBuffer.mockClear();
+		discoverer.serializer.deserialize.mockClear();
+		fakeStream.on.mockClear();
+		fakeStream.pause.mockClear();
+		fakeStream.resume.mockClear();
+	});
+	afterAll(() => discoverer.stop());
+
+	it("should handle empty list", async () => {
+		broker.registry.nodes.list = jest.fn(() => []);
+		// ---- ^ SETUP ^ ---
+		const p = discoverer.collectOnlineNodes();
+		fakeStreamCB.end();
+
+		await p;
+		// ---- ˇ ASSERTS ˇ ---
+		expect(broker.registry.nodes.list).toBeCalledTimes(1);
+		expect(broker.registry.nodes.list).toBeCalledWith({ onlyAvailable: true, withServices: false });
+
+		expect(discoverer.client.scanStream).toBeCalledTimes(1);
+		expect(discoverer.client.scanStream).toBeCalledWith({ match: "MOL-DSCVR-BEAT:*", count: 100 });
+
+		expect(fakeStream.on).toBeCalledTimes(3);
+		expect(fakeStream.on).toBeCalledWith("data", expect.any(Function));
+		expect(fakeStream.on).toBeCalledWith("error", expect.any(Function));
+		expect(fakeStream.on).toBeCalledWith("end", expect.any(Function));
+
+		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(0);
+		expect(discoverer.heartbeatReceived).toBeCalledTimes(0);
+	});
+
+	it("should disconnect previous nodes", async () => {
+		discoverer.opts.scanLength = 50;
+		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-99" }]);
+		// ---- ^ SETUP ^ ---
+		const p = discoverer.collectOnlineNodes();
+		fakeStreamCB.end();
+
+		await p;
+		// ---- ˇ ASSERTS ˇ ---
+		expect(broker.registry.nodes.list).toBeCalledTimes(1);
+		expect(broker.registry.nodes.list).toBeCalledWith({ onlyAvailable: true, withServices: false });
+
+		expect(discoverer.client.scanStream).toBeCalledTimes(1);
+		expect(discoverer.client.scanStream).toBeCalledWith({ match: "MOL-DSCVR-BEAT:*", count: 50 });
+
+		expect(fakeStream.on).toBeCalledTimes(3);
+		expect(fakeStream.on).toBeCalledWith("data", expect.any(Function));
+		expect(fakeStream.on).toBeCalledWith("error", expect.any(Function));
+		expect(fakeStream.on).toBeCalledWith("end", expect.any(Function));
+
+		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
+		expect(discoverer.heartbeatReceived).toBeCalledTimes(0);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(2);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-1", true);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-2", true);
+	});
+
+	it("should add new nodes (full check)", async () => {
+		discoverer.opts.fullCheck = 1;
+		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
+		discoverer.client.mgetBuffer = jest.fn(() => Promise.resolve([
+			{ instanceID: "111", sender: "node-1", seq: 1 },
+			{ instanceID: "222", sender: "node-2", seq: 2 },
+			{ instanceID: "999", sender: "node-99", seq: 9 }
+		]));
+		// ---- ^ SETUP ^ ---
+		const p = discoverer.collectOnlineNodes();
+
+		fakeStreamCB.data(["MOL-DSCVR-BEAT:node-1|111|1", "MOL-DSCVR-BEAT:node-2|222|2"]);
+		fakeStreamCB.data(["MOL-DSCVR-BEAT:node-99|999|9"]);
+		fakeStreamCB.end();
+
+		await p;
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.client.mgetBuffer).toBeCalledTimes(1);
+		expect(discoverer.client.mgetBuffer).toBeCalledWith("MOL-DSCVR-BEAT:node-1|111|1", "MOL-DSCVR-BEAT:node-2|222|2", "MOL-DSCVR-BEAT:node-99|999|9");
+
+		expect(discoverer.heartbeatReceived).toBeCalledTimes(2);
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", { instanceID: "111", sender: "node-1", seq: 1 });
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", { instanceID: "222", sender: "node-2", seq: 2 });
+
+		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(1);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-3", true);
+	});
+
+	it("should add new nodes (fast check)", async () => {
+		discoverer.opts.fullCheck = 0;
+		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
+		// ---- ^ SETUP ^ ---
+		const p = discoverer.collectOnlineNodes();
+
+		fakeStreamCB.data(["MOL-DSCVR-BEAT:node-1|111|1", "MOL-DSCVR-BEAT:node-2|222|2"]);
+		fakeStreamCB.data(["MOL-DSCVR-BEAT:node-99|999|9"]);
+		fakeStreamCB.end();
+
+		await p;
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
+		expect(discoverer.heartbeatReceived).toBeCalledTimes(2);
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", { instanceID: "111", sender: "node-1", seq: 1 });
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", { instanceID: "222", sender: "node-2", seq: 2 });
+
+		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(1);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-3", true);
+	});
+
+	it("should stop on error", async () => {
+		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
+		// ---- ^ SETUP ^ ---
+		const p = discoverer.collectOnlineNodes();
+
+		const err = new Error("Something happened");
+		fakeStreamCB.data(["MOL-DSCVR-BEAT:node-1|111|1", "MOL-DSCVR-BEAT:node-2|222|2"]);
+		fakeStreamCB.error(err);
+		// ---- ˇ ASSERTS ˇ ---
+		try {
+			await p;
+		} catch(e) {
+			expect(e).toBe(err);
+		}
+		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
+		expect(discoverer.heartbeatReceived).toBeCalledTimes(0);
+		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(0);
+
+		expect.assertions(4);
+	});
+
+});
 
 describe("Test RedisDiscoverer 'discoverNode' method", () => {
 	const broker = new ServiceBroker({ logger: false, nodeID: "node-99" });

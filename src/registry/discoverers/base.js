@@ -238,6 +238,7 @@ class BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	discoverNode() {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 
@@ -245,6 +246,7 @@ class BaseDiscoverer {
 	 * Discover all nodes (after connected)
 	 */
 	discoverAllNodes() {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 
@@ -263,6 +265,7 @@ class BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	sendLocalNodeInfo() {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 
