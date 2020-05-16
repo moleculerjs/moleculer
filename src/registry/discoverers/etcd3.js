@@ -116,7 +116,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			//timestamp: Date.now(),
 			cpu: this.localNode.cpu,
 			seq: this.localNode.seq,
-			//instanceID: this.broker.instanceID
+			instanceID: this.broker.instanceID
 		};
 
 		const seq = this.localNode.seq;

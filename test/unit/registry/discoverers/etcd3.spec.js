@@ -246,7 +246,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(fakeLease.put).toBeCalledTimes(1);
 		expect(fakeLease.put).toBeCalledWith("moleculer/discovery/beats/node-99/12345678/1");
 		expect(fakeLease.value).toBeCalledTimes(1);
-		expect(fakeLease.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 1, ver: "4" });
+		expect(fakeLease.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 1, ver: "4", instanceID: "1234567890" });
 
 		expect(discoverer.lastBeatSeq).toBe(1);
 
@@ -283,7 +283,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(fakeLease.put).toBeCalledTimes(1);
 		expect(fakeLease.put).toBeCalledWith("moleculer/discovery/beats/node-99/12345678/1");
 		expect(fakeLease.value).toBeCalledTimes(1);
-		expect(fakeLease.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 1, ver: "4" });
+		expect(fakeLease.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 1, ver: "4", instanceID: "1234567890" });
 
 		expect(discoverer.lastBeatSeq).toBe(1);
 
@@ -325,7 +325,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(fakeLease2.put).toBeCalledTimes(1);
 		expect(fakeLease2.put).toBeCalledWith("moleculer/discovery/beats/node-99/12345678/2");
 		expect(fakeLease2.value).toBeCalledTimes(1);
-		expect(fakeLease2.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 2, ver: "4" });
+		expect(fakeLease2.value).toBeCalledWith({ cpu: null, sender: "node-99", seq: 2, ver: "4", instanceID: "1234567890" });
 
 		expect(discoverer.lastBeatSeq).toBe(2);
 
