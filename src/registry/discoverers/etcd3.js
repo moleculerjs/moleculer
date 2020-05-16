@@ -135,8 +135,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				if (!leaseBeat) {
 					// Create a new for lease
 					leaseBeat = this.client.lease(this.opts.heartbeatTimeout);
-					const p = leaseBeat.grant(); // Waiting for the lease creation on the server
-					return p.then(() => this.leaseBeat = leaseBeat);
+					return leaseBeat.grant() // Waiting for the lease creation on the server
+						.then(() => this.leaseBeat = leaseBeat);
 				}
 			})
 			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data)))
@@ -159,7 +159,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.filter(nodeID => nodeID !== this.broker.nodeID);
 
 		// Collect the online node keys.
-		this.Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
 				if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck == 0) {
 					// Full check
@@ -267,8 +267,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => {
 				if (!leaseInfo) {
 					leaseInfo = this.client.lease(60);
-					const p = leaseInfo.grant(); // Waiting for the lease creation on the server
-					return p.then(() => this.leaseInfo = leaseInfo);
+					return leaseInfo.grant() // Waiting for the lease creation on the server
+						.then(() => this.leaseInfo = leaseInfo);
 				}
 			})
 			.then(() => leaseInfo.put(key).value(this.serializer.serialize(payload)))
