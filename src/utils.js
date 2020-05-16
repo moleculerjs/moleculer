@@ -94,7 +94,7 @@ const utils = {
 	},
 
 	removeFromArray(arr, item) {
-		if (!arr || arr.length == 0) return;
+		if (!arr || arr.length == 0) return arr;
 		const idx = arr.indexOf(item);
 		if (idx !== -1)
 			arr.splice(idx, 1);

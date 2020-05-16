@@ -428,18 +428,6 @@ class Registry {
 	}
 
 	/**
-	 * Process an incoming node HEARTBEAT packet
-	 *
-	 * @param {any} payload
-	 * @returns
-	 * @memberof Registry
-	 */
-	nodeHeartbeat(payload) {
-		// TODO: unusued?
-		return this.nodes.heartbeat(payload);
-	}
-
-	/**
 	 * Get list of registered nodes
 	 *
 	 * @param {object} opts
