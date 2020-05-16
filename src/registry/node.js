@@ -24,7 +24,7 @@ class Node {
 		this.instanceID = null;
 		this.available = true;
 		this.local = false;
-		this.lastHeartbeatTime = Date.now();
+		this.lastHeartbeatTime = Math.round(process.uptime());
 		this.config = {};
 		this.client = {};
 		this.metadata = null;
@@ -105,7 +105,7 @@ class Node {
 			this.cpuSeq = payload.cpuSeq || 1;
 		}
 
-		this.lastHeartbeatTime = Date.now();
+		this.lastHeartbeatTime = Math.round(process.uptime());
 	}
 
 	/**
@@ -115,7 +115,7 @@ class Node {
 	 */
 	disconnected() {
 		if (this.available) {
-			this.offlineSince = Date.now();
+			this.offlineSince = Math.round(process.uptime());
 			this.seq++;
 		}
 

@@ -11,9 +11,6 @@ const _ = require("lodash");
 /**
  * Abstract Discoverer class
  *
- * TODO:
- *  - using process.uptime() instead of Date.now() for heartbeats
- *
  * @class BaseDiscoverer
  */
 class BaseDiscoverer {
@@ -155,7 +152,7 @@ class BaseDiscoverer {
 	checkRemoteNodes() {
 		if (this.disableHeartbeatChecks) return;
 
-		const now = Date.now();
+		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || !node.available) return;
 			if (!node.lastHeartbeatTime) {
@@ -164,7 +161,7 @@ class BaseDiscoverer {
 				return;
 			}
 
-			if (now - node.lastHeartbeatTime > this.broker.options.heartbeatTimeout * 1000) {
+			if (now - node.lastHeartbeatTime > this.broker.options.heartbeatTimeout) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.registry.nodes.disconnected(node.id, true);
 			}
@@ -177,7 +174,7 @@ class BaseDiscoverer {
 	checkOfflineNodes() {
 		if (this.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
 
-		const now = Date.now();
+		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || node.available) return;
 			if (!node.lastHeartbeatTime) {
@@ -186,7 +183,7 @@ class BaseDiscoverer {
 				return;
 			}
 
-			if (now - node.lastHeartbeatTime > this.opts.cleanOfflineNodesTimeout * 1000) {
+			if (now - node.lastHeartbeatTime > this.opts.cleanOfflineNodesTimeout) {
 				this.logger.warn(`Removing offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
 				this.registry.nodes.delete(node.id);
 			}

@@ -316,7 +316,7 @@ class TcpTransporter extends Transporter {
 		node.port = port;
 		node.available = false;
 		node.seq = 0;
-		node.offlineSince = Date.now();
+		node.offlineSince = Math.round(process.uptime());
 
 		this.nodes.add(node.id, node);
 

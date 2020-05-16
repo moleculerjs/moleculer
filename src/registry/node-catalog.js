@@ -146,7 +146,7 @@ class NodeCatalog {
 			this.add(nodeID, node);
 		} else if (!node.available) {
 			isReconnected = true;
-			node.lastHeartbeatTime = Date.now();
+			node.lastHeartbeatTime = Math.round(process.uptime());
 			node.available = true;
 			node.offlineSince = null;
 		}
