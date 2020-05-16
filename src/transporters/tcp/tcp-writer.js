@@ -164,7 +164,7 @@ class TcpWriter extends EventEmitter {
 		count = Math.min(count, list.length - 1);
 		const removable = list.slice(0, count);
 
-		this.logger.warn(`Close ${count} old sockets.`, removable);
+		this.logger.debug(`Close ${count} old sockets.`, removable);
 
 		removable.forEach(({ nodeID }) => this.removeSocket(nodeID));
 	}

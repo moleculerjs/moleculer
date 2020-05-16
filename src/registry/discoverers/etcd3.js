@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const kleur = require("kleur");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
@@ -66,6 +67,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'etcd3' package is missing. Please install it with 'npm install etcd3 --save' command.", err, true);
 		}
+
+		this.logger.warn(kleur.yellow().bold("Etcd3 Discoverer is an EXPERIMENTAL module. Do NOT use it in production!"));
 
 		this.instanceHash = this.broker.instanceID.substring(0, 8);
 
