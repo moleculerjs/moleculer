@@ -232,6 +232,26 @@ describe("Test BaseDiscoverer 'stopHeartbeatTimers' method", () => {
 	});
 });
 
+describe("Test BaseDiscoverer 'disableHeartbeat' method", () => {
+
+	const broker = new ServiceBroker({ logger: false });
+	const registry = broker.registry;
+
+	const discoverer = new BaseDiscoverer();
+	beforeAll(() => discoverer.init(registry));
+	afterAll(() => discoverer.stop());
+
+	it("should stop timers", async () => {
+		discoverer.stopHeartbeatTimers = jest.fn();
+		expect(discoverer.opts.heartbeatInterval).toBe(5);
+
+		discoverer.disableHeartbeat();
+
+		expect(discoverer.opts.heartbeatInterval).toBe(0);
+		expect(discoverer.stopHeartbeatTimers).toBeCalledTimes(1);
+	});
+});
+
 describe("Test BaseDiscoverer 'beat' method", () => {
 
 	const broker = new ServiceBroker({ logger: false });

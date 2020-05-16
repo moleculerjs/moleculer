@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -29,8 +29,6 @@ const TcpWriter		= require("./tcp/tcp-writer");
  * nodes are equal, there is no "leader" or "controller" node, so the cluster is
  * truly horizontally scalable. This transporter aims to run on top of an
  * infrastructure of hundreds of nodes.
- *
- * TODO: discoverer update
  *
  * @class TcpTransporter
  * @extends {Transporter}
@@ -98,9 +96,13 @@ class TcpTransporter extends Transporter {
 		super.init(transit, messageHandler, afterConnect);
 
 		if (this.broker) {
+			this.Promise = this.broker.Promise;
 			this.registry = this.broker.registry;
+			this.discoverer = this.broker.registry.discoverer;
 			this.nodes = this.registry.nodes;
-			this.nodes.disableHeartbeatChecks = true;
+
+			// Disable normal HB logic
+			this.discoverer.disableHeartbeat();
 		}
 	}
 
@@ -110,7 +112,7 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	connect() {
-		return this.broker.Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
 				// Load offline nodes
 				if (this.opts.urls)
@@ -183,11 +185,11 @@ class TcpTransporter extends Transporter {
 
 	loadUrls() {
 		if (!this.opts.urls)
-			return this.broker.Promise.resolve();
+			return this.Promise.resolve();
 		if (Array.isArray(this.opts.urls) && this.opts.urls.length == 0)
-			return this.broker.Promise.resolve();
+			return this.Promise.resolve();
 
-		return this.broker.Promise.resolve(this.opts.urls)
+		return this.Promise.resolve(this.opts.urls)
 			.then(str => {
 				if (_.isString(str) && str.startsWith("file://")) {
 					const fName = str.replace("file://", "");
@@ -248,7 +250,7 @@ class TcpTransporter extends Transporter {
 					});
 				}
 
-				this.nodes.disableOfflineNodeRemoving = true;
+				// TODO: this.nodes.disableOfflineNodeRemoving = true;
 			});
 	}
 
@@ -265,12 +267,11 @@ class TcpTransporter extends Transporter {
 
 	/**
 	 * Received data. It's a wrapper for middlewares.
+	 *
 	 * @param {String} cmd
 	 * @param {Buffer} data
 	 */
 	receive(type, message, socket) {
-		//console.log("<<", type, message.toString());
-
 		switch(type) {
 			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message, socket);
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
@@ -360,7 +361,7 @@ class TcpTransporter extends Transporter {
 	sendHello(nodeID) {
 		const node = this.getNode(nodeID);
 		if (!node)
-			return this.broker.Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
+			return this.Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
 
 		const localNode = this.nodes.localNode;
 		const packet = new P.Packet(P.PACKET_GOSSIP_HELLO, nodeID, {
@@ -719,7 +720,7 @@ class TcpTransporter extends Transporter {
 	 */
 	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
-		return this.broker.Promise.resolve();
+		return this.Promise.resolve();
 	}
 
 	/**
@@ -740,7 +741,7 @@ class TcpTransporter extends Transporter {
 			P.PACKET_GOSSIP_RES,
 			P.PACKET_GOSSIP_HELLO
 		].indexOf(packet.type) == -1)
-			return this.broker.Promise.resolve();
+			return this.Promise.resolve();
 
 		const data = this.serialize(packet);
 		return this.send(packet.type, data, { packet });

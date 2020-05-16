@@ -133,6 +133,14 @@ class BaseDiscoverer {
 	}
 
 	/**
+	 * Disable built-in Heartbeat logic. Used by TCP transporter
+	 */
+	disableHeartbeat() {
+		this.opts.heartbeatInterval = 0;
+		this.stopHeartbeatTimers();
+	}
+
+	/**
 	 * Heartbeat method.
 	 */
 	beat() {
