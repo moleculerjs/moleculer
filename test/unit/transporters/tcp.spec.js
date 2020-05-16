@@ -495,10 +495,16 @@ describe("Test TcpTransporter startUdpServer", () => {
 	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
+	const promUpdateLocalInfo = Promise.resolve();
+	const fakeNode = {
+		updateLocalInfo: jest.fn(() => promUpdateLocalInfo)
+	};
 
 	beforeEach(() => {
 		transporter = new TcpTransporter();
 		transporter.init(transit);
+		transporter.getLocalNodeInfo = jest.fn(() => fakeNode);
+		transporter.sendGossipRequest = jest.fn();
 	});
 
 	it("check startTimers", () => {
@@ -508,7 +514,24 @@ describe("Test TcpTransporter startUdpServer", () => {
 		transporter.stopTimers(); // clean up handle
 	});
 
-	it("check startTimers", () => {
+	it("check timer callback", async () => {
+		jest.useFakeTimers();
+		transporter.startTimers();
+
+		jest.advanceTimersByTime(2500);
+
+		await promUpdateLocalInfo;
+
+		expect(transporter.getLocalNodeInfo).toBeCalledTimes(1);
+		expect(fakeNode.updateLocalInfo).toBeCalledTimes(1);
+		expect(fakeNode.updateLocalInfo).toBeCalledWith(broker.getCpuUsage);
+
+		expect(transporter.sendGossipRequest).toBeCalledTimes(1);
+
+		transporter.stopTimers(); // clean up handle
+	});
+
+	it("check stopTimers", () => {
 		transporter.startTimers();
 		expect(transporter.gossipTimer).toBeDefined();
 		transporter.stopTimers();

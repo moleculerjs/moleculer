@@ -284,7 +284,10 @@ class TcpTransporter extends Transporter {
 	 * Start Gossip timers
 	 */
 	startTimers() {
-		this.gossipTimer = setInterval(() => this.sendGossipRequest(), Math.max(this.opts.gossipPeriod, 1) * 1000);
+		this.gossipTimer = setInterval(() => {
+			this.getLocalNodeInfo().updateLocalInfo(this.broker.getCpuUsage)
+				.then(() => this.sendGossipRequest());
+		}, Math.max(this.opts.gossipPeriod, 1) * 1000);
 		this.gossipTimer.unref();
 	}
 

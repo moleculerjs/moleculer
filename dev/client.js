@@ -23,11 +23,16 @@ const broker = new ServiceBroker({
 	*/
 	//transporter: "kafka://192.168.0.181:9092",
 	//transporter: "amqp://192.168.0.181:5672",
-	transporter: "NATS",
+	transporter: "TCP",
 	//serializer: "Thrift",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
+
+	registry: {
+		//strategy: Strategies.Random
+		//discoverer: "Redis"
+	},
 
 	cacher: true,
 
@@ -59,11 +64,6 @@ const broker = new ServiceBroker({
 
 	transit: {
 		//maxQueueSize: 10
-	},
-
-	registry: {
-		//strategy: Strategies.Random
-		discoverer: "Redis"
 	},
 
 	retryPolicy: {

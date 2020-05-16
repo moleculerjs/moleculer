@@ -22,7 +22,7 @@ const broker = new ServiceBroker({
 	*/
 	//transporter: "kafka://192.168.0.181:9092",
 	//transporter: "amqp://192.168.0.181:5672",
-	transporter: "NATS",
+	transporter: "TCP",
 	//serializer: "Thrift",
 
 	//disableBalancer: true,
@@ -33,7 +33,7 @@ const broker = new ServiceBroker({
 
 	registry: {
 		//strategy: Strategies.Random
-		discoverer: "Redis"
+		//discoverer: "Redis"
 	},
 
 	metrics: {
