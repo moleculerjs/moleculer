@@ -106,7 +106,7 @@ describe("Test ServiceBroker constructor", () => {
 			namespace: "test",
 			nodeID: "server-12",
 			transporter: null,
-			heartbeatTimeout: 20,
+			heartbeatTimeout: 25,
 			logger: {
 				type: "Console",
 				options: {
@@ -175,8 +175,8 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			serializer: null,
 			transporter: null,
-			heartbeatTimeout : 20,
-			heartbeatInterval: 5,
+			heartbeatTimeout : 25,
+			heartbeatInterval: 10,
 			tracking: {
 				enabled: true,
 				shutdownTimeout: 5000,

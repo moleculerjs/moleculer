@@ -75,8 +75,8 @@ describe("Test BaseDiscoverer 'init' method", () => {
 		expect(discoverer.transit).toBeUndefined();
 
 		expect(discoverer.opts).toEqual({
-			heartbeatInterval: 5,
-			heartbeatTimeout: 15,
+			heartbeatInterval: 10,
+			heartbeatTimeout: 30,
 
 			disableHeartbeatChecks: false,
 			disableOfflineNodeRemoving: false,
@@ -182,15 +182,15 @@ describe("Test BaseDiscoverer 'startHeartbeatTimers' method", () => {
 		expect(discoverer.offlineTimer).toBeDefined();
 
 		expect(discoverer.beat).toBeCalledTimes(0);
-		jest.advanceTimersByTime(6000);
+		jest.advanceTimersByTime(12000);
 		expect(discoverer.beat).toBeCalledTimes(1);
 
 		expect(discoverer.checkRemoteNodes).toBeCalledTimes(0);
-		jest.advanceTimersByTime(10000);
+		jest.advanceTimersByTime(20000);
 		expect(discoverer.checkRemoteNodes).toBeCalledTimes(1);
 
 		expect(discoverer.checkOfflineNodes).toBeCalledTimes(0);
-		jest.advanceTimersByTime(20000);
+		jest.advanceTimersByTime(30000);
 		expect(discoverer.checkOfflineNodes).toBeCalledTimes(1);
 
 	});
@@ -243,7 +243,7 @@ describe("Test BaseDiscoverer 'disableHeartbeat' method", () => {
 
 	it("should stop timers", async () => {
 		discoverer.stopHeartbeatTimers = jest.fn();
-		expect(discoverer.opts.heartbeatInterval).toBe(5);
+		expect(discoverer.opts.heartbeatInterval).toBe(10);
 
 		discoverer.disableHeartbeat();
 
@@ -311,7 +311,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 16;
+		node.lastHeartbeatTime = Number(process.uptime()) - 33;
 
 		discoverer.checkRemoteNodes();
 
@@ -324,7 +324,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 13;
+		node.lastHeartbeatTime = Number(process.uptime()) - 23;
 
 		discoverer.checkRemoteNodes();
 
@@ -336,7 +336,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 16;
+		node.lastHeartbeatTime = Number(process.uptime()) - 33;
 		node.available = false;
 
 		discoverer.checkRemoteNodes();

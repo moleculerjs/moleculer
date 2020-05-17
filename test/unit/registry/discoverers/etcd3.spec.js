@@ -238,7 +238,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(broker.metrics.timer).toBeCalledWith("moleculer.discoverer.etcd.collect.time");
 
 		expect(discoverer.client.lease).toBeCalledTimes(1);
-		expect(discoverer.client.lease).toBeCalledWith(15);
+		expect(discoverer.client.lease).toBeCalledWith(30);
 		expect(fakeLease.grant).toBeCalledTimes(1);
 		expect(discoverer.leaseBeat).toBe(fakeLease);
 
@@ -316,7 +316,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(fakeLease.revoke).toBeCalledTimes(1);
 
 		expect(discoverer.client.lease).toBeCalledTimes(1);
-		expect(discoverer.client.lease).toBeCalledWith(15);
+		expect(discoverer.client.lease).toBeCalledWith(30);
 		expect(fakeLease2.grant).toBeCalledTimes(1);
 		expect(discoverer.leaseBeat).toBe(fakeLease2);
 

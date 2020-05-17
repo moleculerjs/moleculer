@@ -104,7 +104,7 @@ class BaseDiscoverer {
 			this.checkNodesTimer.unref();
 
 			// Clean offline nodes timer
-			this.offlineTimer = setInterval(() => this.checkOfflineNodes(), 30 * 1000); // 30 secs
+			this.offlineTimer = setInterval(() => this.checkOfflineNodes(), 60 * 1000); // 1 min
 			this.offlineTimer.unref();
 		}
 	}

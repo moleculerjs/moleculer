@@ -300,7 +300,7 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 		expect(fakePipeline.del).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|0");
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(fakePipeline.setex).toBeCalledTimes(1);
-		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 15, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
+		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
 		expect(discoverer.lastBeatSeq).toBe(1);
@@ -334,7 +334,7 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 		expect(fakePipeline.del).toBeCalledTimes(0);
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(fakePipeline.setex).toBeCalledTimes(1);
-		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 15, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
+		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
 		expect(discoverer.lastBeatSeq).toBe(1);

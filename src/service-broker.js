@@ -53,8 +53,8 @@ const defaultOptions = {
 
 	contextParamsCloning: false,
 	maxCallLevel: 0,
-	heartbeatInterval: 5,
-	heartbeatTimeout: 15,
+	heartbeatInterval: 10,
+	heartbeatTimeout: 30,
 
 	tracking: {
 		enabled: false,
