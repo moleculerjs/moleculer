@@ -25,9 +25,15 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	/**
 	 * Creates an instance of Discoverer.
 	 *
+	 * TODO:
+	 * 	- the etcd3 lib has no reconnection logic
+	 *
 	 * @memberof Etcd3Discoverer
 	 */
 	constructor(opts) {
+		if (typeof opts === "string")
+			opts = { etcd: { hosts: opts.replace(/etcd3:\/\//g, "") } };
+
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {

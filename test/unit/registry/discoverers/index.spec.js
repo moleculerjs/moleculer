@@ -31,6 +31,12 @@ describe("Test Discoverers resolver", () => {
 		expect(discoverer).toBeInstanceOf(Discoverers.Etcd3);
 	});
 
+	it("should resolve Etcd3 reporter from connection string", () => {
+		const discoverer = Discoverers.resolve("etcd3://server:2345");
+		expect(discoverer).toBeInstanceOf(Discoverers.Etcd3);
+		expect(discoverer.opts.etcd).toEqual({ hosts: "server:2345" });
+	});
+
 	it("should resolve Etcd3 discoverer from obj", () => {
 		const options = { heartbeatInterval: 8 };
 		const discoverer = Discoverers.resolve({ type: "Etcd3", options });
@@ -47,6 +53,12 @@ describe("Test Discoverers resolver", () => {
 	it("should resolve Redis reporter from string", () => {
 		const discoverer = Discoverers.resolve("Redis");
 		expect(discoverer).toBeInstanceOf(Discoverers.Redis);
+	});
+
+	it("should resolve Redis reporter from connection string", () => {
+		const discoverer = Discoverers.resolve("redis://redis-server:6379");
+		expect(discoverer).toBeInstanceOf(Discoverers.Redis);
+		expect(discoverer.opts.redis).toEqual("redis://redis-server:6379");
 	});
 
 	it("should resolve Redis discoverer from obj", () => {

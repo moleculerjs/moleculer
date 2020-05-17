@@ -1,6 +1,231 @@
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.5...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.7...master)
+
+--------------------------------------------------
+<a name="0.14.7"></a>
+# [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-??)
+
+## New Discoverer module
+The Discoverer is a new built-in module in Moleculer framework. It's responsible for that all Moleculer nodes can discover each other and check them with heartbeats. In previous versions, it was an integrated module inside `ServiceRegistry` & `Transit` modules. In this version, the discovery logic has been extracted to a separated built-in module. It means you can replace it to other built-in implementations or a custom one. The current discovery & heartbeat logic is moved to the `Local` Discoverer. 
+
+Nevertheless, this version also contains other discoverers, like Redis & etcd3 discoverers. Both of them require an external server to make them work. 
+One of the main advantages of the external discoverers, the node discovery & heartbeat packets don't overload the communication on the transporter. The transporter transfers only the request, response, event packets.
+By the way, the external discoverers have some disadvantages, as well. These discoverers can detect lazier the new and disconnected nodes because they scan the heartbeat keys periodically on the remote Redis/etcd3 server. The period of checks depends on the `heartbeatInterval` broker option.
+
+>The Local Discoverer (which is the default) works like the discovery of previous versions, so if you want to keep the original logic, you'll have to do nothing.
+
+>Please note the TCP transporter uses Gossip protocol & UDP packets for discovery & heartbeats, it means it can work only with Local Discoverer.
+
+### Local Discoverer
+It's the default Discoverer, it uses the transporter module to discover all other moleculer nodes. It's quick and fast but if you have too many nodes (>100), the nodes can generate a lot of heartbeat packets which can reduce the performance of request/response packets.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Local"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Local",
+            options: {
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+### Redis Discoverer
+>**This is an experimental module. Do not use it in production yet!**
+
+This Discoverer uses a [Redis server](https://redis.io/) to discover Moleculer nodes. The heartbeat & discovery packets are stored in Redis keys. Thanks to Redis key expiration, if a node crashed or disconnected unexpectedly, the Redis will remove its heartbeat keys from the server and other nodes can detect it.
+
+
+**Example to connect local Redis server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Redis"
+    }    
+}
+```
+
+**Example to connect remote Redis server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "redis://redis-server:6379"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Redis",
+            options: {
+                redis: {
+                    // Redis connection options.
+                    // More info: https://github.com/luin/ioredis#connect-to-redis
+                    port: 6379,
+                    host: "redis-server",
+                    password: "123456",
+                    db: 3
+                }
+
+                // Serializer
+                serializer: "JSON",
+
+                // Full heartbeat checks. It generates more network traffic
+                // 10 means every 10 cycle.
+                fullCheck: 10,
+
+                // Key scanning size
+                scanLength: 100,
+
+                // Monitoring Redis commands
+                monitor: true,
+                
+                // --- COMMON DISCOVERER OPTIONS ---
+
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+>To be able to use this Discoverer, install the `ioredis` module with the npm install ioredis --save command.
+
+>Tip: To further network traffic reduction, you can use MsgPack/Notepack serializers instead of JSON.
+
+### Etcd3 Discoverer
+>This is an experimental module. Do not use it in production yet!
+
+This Discoverer uses an [etcd3 server](https://etcd.io/) to discover Moleculer nodes. The heartbeat & discovery packets are stored in the server. Thanks to etcd3 [lease](https://etcd.io/docs/v3.4.0/learning/api/#lease-api) solution, if a node crashed or disconnected unexpectedly, the etcd3 will remove its heartbeat keys from the server and other nodes can detect it.
+
+
+**Example to connect local etcd3 server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Etcd3"
+    }    
+}
+```
+
+**Example to connect remote etcd3 server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "etcd3://etcd-server:2379"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Etcd3",
+            options: {
+                etcd: {
+                    // etcd3 connection options.
+                    // More info: https://mixer.github.io/etcd3/interfaces/options_.ioptions.html
+                    hosts: "etcd-server:2379",
+                    auth: "12345678"
+                }
+
+                // Serializer
+                serializer: "JSON",
+
+                // Full heartbeat checks. It generates more network traffic
+                // 10 means every 10 cycle.
+                fullCheck: 10,
+                
+                // --- COMMON DISCOVERER OPTIONS ---
+
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+>To be able to use this Discoverer, install the `etcd3` module with the npm install etcd3--save command.
+
+>Tip: To further network traffic reduction, you can use MsgPack/Notepack serializers instead of JSON.
+
+### Custom Discoverer
+You can create your custom Discoverer. We recommend to copy the source of Redis Discoverer and implement the necessary methods.
+
+## Other changes
+- fixed multiple heartbeat sending issue at transporter reconnecting.
+- the `heartbeatInterval` default value has been changed to `10` seconds.
+- the `heartbeatTimeout` default value has been changed to `30` seconds.
+- the heartbeat check logics use process uptime instead of timestamps in order to avoid issues with time synchronization or daylight saving.
+- Notepack serializer initialization issue fixed. It caused problem when Redis cacher uses Notepack serializer.
+- new `removeFromArray` function in Utils.
+- `mcall` method definition fixed in Typescript definition.
+- dependencies updated.
 
 --------------------------------------------------
 <a name="0.14.6"></a>

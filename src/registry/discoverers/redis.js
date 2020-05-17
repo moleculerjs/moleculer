@@ -29,6 +29,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @memberof RedisDiscoverer
 	 */
 	constructor(opts) {
+		if (typeof opts === "string")
+			opts = { redis: opts };
+
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {

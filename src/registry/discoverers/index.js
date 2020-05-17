@@ -40,8 +40,14 @@ function resolve(opt) {
 		let DiscovererClass = getByName(opt);
 		if (DiscovererClass)
 			return new DiscovererClass();
-		else
-			throw new BrokerOptionsError(`Invalid Discoverer type '${opt}'.`, { type: opt });
+
+		if (opt.startsWith("redis://"))
+			return new Discoverers.Redis(opt);
+
+		if (opt.startsWith("etcd3://"))
+			return new Discoverers.Etcd3(opt);
+
+		throw new BrokerOptionsError(`Invalid Discoverer type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let DiscovererClass = getByName(opt.type || "Local");
