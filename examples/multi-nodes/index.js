@@ -3,7 +3,7 @@
 const cluster = require("cluster");
 
 process.env.TRANSPORTER = "Redis";
-process.env.DISCOVERER = "Etcd3";
+process.env.DISCOVERER = "Redis";
 //process.env.DISCOVERER_SERIALIZER = "MsgPack";
 process.env.NODE_COUNT = 2;
 
