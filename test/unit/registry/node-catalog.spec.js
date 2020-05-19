@@ -1,17 +1,17 @@
 "use strict";
 
-let NodeCatalog = require("../../../src/registry/node-catalog");
-let ServiceBroker = require("../../../src/service-broker");
+const NodeCatalog = require("../../../src/registry/node-catalog");
+const ServiceBroker = require("../../../src/service-broker");
 
 describe("Test NodeCatalog constructor", () => {
 
 	it("test properties", () => {
-		let broker = new ServiceBroker({ logger: false });
-		let registry = broker.registry;
+		const broker = new ServiceBroker({ logger: false });
+		const registry = broker.registry;
 
 		broker.localBus.on = jest.fn();
 
-		let catalog = new NodeCatalog(registry, broker);
+		const catalog = new NodeCatalog(registry, broker);
 
 		expect(catalog).toBeDefined();
 		expect(catalog.registry).toBe(registry);
@@ -19,52 +19,22 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.logger).toBe(registry.logger);
 
 		expect(catalog.nodes).toBeInstanceOf(Map);
-		expect(catalog.heartbeatTimer).toBeNull();
-		expect(catalog.checkNodesTimer).toBeNull();
-		expect(catalog.offlineTimer).toBeNull();
-
-		expect(catalog.disableHeartbeatChecks).toBe(false);
-		expect(catalog.disableOfflineNodeRemoving).toBe(false);
 
 		expect(catalog.localNode).toBeDefined();
 		expect(catalog.localNode.id).toBe(broker.nodeID);
 		expect(catalog.localNode.available).toBe(true);
 		expect(catalog.nodes.size).toBe(1);
-
-		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.disconnected", jasmine.any(Function));
-	});
-
-	it("should call startHeartbeatTimers & stortHeartbeatTimers", () => {
-		let broker = new ServiceBroker({ logger: false });
-		let catalog = new NodeCatalog(broker.registry, broker);
-
-		catalog.startHeartbeatTimers = jest.fn();
-		catalog.stoptHeartbeatTimers = jest.fn();
-
-		broker.broadcastLocal("$transporter.connected");
-
-		expect(catalog.heartbeatTimer).toBeDefined();
-		expect(catalog.checkNodesTimer).toBeDefined();
-		expect(catalog.offlineTimer).toBeDefined();
-
-		broker.broadcastLocal("$transporter.disconnected");
-
-		expect(catalog.heartbeatTimer).toBeNull();
-		expect(catalog.checkNodesTimer).toBeNull();
-		expect(catalog.offlineTimer).toBeNull();
 	});
 
 });
 
 describe("Test NodeCatalog localNode", () => {
 	const metadata = { region: "eu-west" };
-	let broker = new ServiceBroker({ logger: false, metadata });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false, metadata });
+	const catalog = new NodeCatalog(broker.registry, broker);
 
 	it("should load local values", () => {
-		let node = catalog.localNode;
+		const node = catalog.localNode;
 
 		expect(node.id).toBe(broker.nodeID);
 		expect(node.instanceID).toBe(broker.instanceID);
@@ -84,8 +54,8 @@ describe("Test NodeCatalog localNode", () => {
 });
 
 describe("Test NodeCatalog.add & has & get", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false });
+	const catalog = new NodeCatalog(broker.registry, broker);
 
 	it("should add new nodes", () => {
 		catalog.add("node-1", { a: 1 });
@@ -107,14 +77,14 @@ describe("Test NodeCatalog.add & has & get", () => {
 });
 
 describe("Test NodeCatalog.processNodeInfo", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false });
+	const catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.registerServices = jest.fn();
 	broker.broadcastLocal = jest.fn();
 	jest.spyOn(broker.registry, "updateMetrics");
 
 	it("should add new nodes", () => {
-		let payload = {
+		const payload = {
 			sender: "node-12",
 			services: [{}, {}]
 		};
@@ -128,7 +98,7 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(catalog.count()).toBe(2);
 		expect(catalog.onlineCount()).toBe(2);
 
-		let node = catalog.get("node-12");
+		const node = catalog.get("node-12");
 		expect(node.id).toBe("node-12");
 
 		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
@@ -147,12 +117,12 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.updateMetrics.mockClear();
 
-		let payload = {
+		const payload = {
 			sender: "node-12",
 			services: [{}, {}, {}]
 		};
 
-		let node = catalog.get("node-12");
+		const node = catalog.get("node-12");
 
 		catalog.processNodeInfo(payload);
 		expect(catalog.nodes.size).toBe(2);
@@ -171,10 +141,10 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.updateMetrics.mockClear();
 
-		let node = catalog.get("node-12");
+		const node = catalog.get("node-12");
 		node.update = jest.fn(() => false);
 
-		let payload = {
+		const payload = {
 			sender: "node-12",
 			services: [{}, {}, {}]
 		};
@@ -197,10 +167,10 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.updateMetrics.mockClear();
 
-		let node = catalog.get("node-12");
+		const node = catalog.get("node-12");
 		node.update = jest.fn(() => true);
 
-		let payload = {
+		const payload = {
 			sender: "node-12",
 			services: [{}, {}, {}]
 		};
@@ -219,21 +189,21 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 });
 
 describe("Test NodeCatalog.disconnected", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
+	const catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.unregisterServicesByNode = jest.fn();
 	broker.broadcastLocal = jest.fn();
 	broker.transit.removePendingRequestByNodeID = jest.fn();
 	broker.servicesChanged = jest.fn();
 	jest.spyOn(broker.registry, "updateMetrics");
 
-	let payload = {
+	const payload = {
 		sender: "node-11",
 		services: [{}, {}]
 	};
 
 	catalog.processNodeInfo(payload);
-	let node = catalog.get("node-11");
+	const node = catalog.get("node-11");
 	node.disconnected = jest.fn();
 
 	it("should call disconnected & unregister services", () => {
@@ -286,168 +256,13 @@ describe("Test NodeCatalog.disconnected", () => {
 	});
 });
 
-describe("Test NodeCatalog.heartbeat", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
-	let catalog = new NodeCatalog(broker.registry, broker);
-	broker.transit.discoverNode = jest.fn();
-
-	let payload = {
-		sender: "node-10",
-		services: []
-	};
-
-	catalog.processNodeInfo(payload);
-	let node = catalog.get("node-10");
-	node.heartbeat = jest.fn();
-	let hbPayload = { sender: "node-10" };
-
-	it("should call heartbeat", () => {
-		node.heartbeat.mockClear();
-
-		catalog.heartbeat(hbPayload);
-
-		expect(node.heartbeat).toHaveBeenCalledTimes(1);
-		expect(node.heartbeat).toHaveBeenCalledWith(hbPayload);
-
-		expect(broker.transit.discoverNode).toHaveBeenCalledTimes(0);
-	});
-
-	it("should call heartbeat & transit.discoverNode", () => {
-		node.heartbeat.mockClear();
-		node.available = false;
-
-		catalog.heartbeat(hbPayload);
-
-		expect(node.heartbeat).toHaveBeenCalledTimes(0);
-
-		expect(broker.transit.discoverNode).toHaveBeenCalledTimes(1);
-		expect(broker.transit.discoverNode).toHaveBeenCalledWith("node-10");
-	});
-
-	it("should call heartbeat & transit.discoverNode", () => {
-		node.heartbeat.mockClear();
-		broker.transit.discoverNode.mockClear();
-
-		let newPayload = { sender: "node-15" };
-		catalog.heartbeat(newPayload);
-
-		expect(node.heartbeat).toHaveBeenCalledTimes(0);
-
-		expect(broker.transit.discoverNode).toHaveBeenCalledTimes(1);
-		expect(broker.transit.discoverNode).toHaveBeenCalledWith("node-15");
-	});
-
-});
-
-describe("Test checkRemoteNodes", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
-	let catalog = new NodeCatalog(broker.registry, broker);
-
-	let payload = {
-		sender: "node-10",
-		services: []
-	};
-
-	catalog.processNodeInfo(payload);
-	let node = catalog.get("node-10");
-
-	catalog.disconnected = jest.fn();
-
-	it("should call 'disconnected' if the heartbeat time is too old", () => {
-		node.lastHeartbeatTime = Date.now();
-		catalog.checkRemoteNodes();
-		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
-
-		node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
-		catalog.checkRemoteNodes();
-
-		expect(catalog.disconnected).toHaveBeenCalledTimes(1);
-		expect(catalog.disconnected).toHaveBeenCalledWith("node-10", true);
-	});
-
-	it("should not call 'disconnected' if the node is local", () => {
-		catalog.disconnected.mockClear();
-		node.local = true;
-		catalog.checkRemoteNodes();
-		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
-		node.local = false;
-	});
-
-	it("should not call 'disconnected' if the node is not available", () => {
-		catalog.disconnected.mockClear();
-		node.available = false;
-		catalog.checkRemoteNodes();
-		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
-		node.available = true;
-	});
-
-});
-
-describe("Test checkOfflineNodes", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
-	let catalog = new NodeCatalog(broker.registry, broker);
-
-	let payload1 = {
-		sender: "node-1",
-		services: []
-	};
-
-	let payload2 = {
-		sender: "node-2",
-		services: []
-	};
-
-	catalog.processNodeInfo(payload1);
-	catalog.processNodeInfo(payload2);
-
-	let node1 = catalog.get("node-1");
-	let node2 = catalog.get("node-2");
-
-	it("should not remove available nodes", () => {
-		catalog.checkOfflineNodes();
-		expect(catalog.nodes.size).toBe(3);
-
-		node2.lastHeartbeatTime -= 4 * 60 * 1000;
-		catalog.checkOfflineNodes();
-		expect(catalog.nodes.size).toBe(3);
-	});
-
-	it("should not remove local node", () => {
-		expect(catalog.nodes.size).toBe(3);
-		node1.local = true;
-		catalog.checkOfflineNodes();
-		expect(catalog.nodes.size).toBe(3);
-		node1.local = false;
-	});
-
-	it("should remove old offline nodes", () => {
-		node1.lastHeartbeatTime = Date.now();
-		node2.lastHeartbeatTime = Date.now();
-
-		catalog.checkOfflineNodes();
-		expect(catalog.nodes.size).toBe(3);
-
-		node2.available = false;
-		node2.lastHeartbeatTime -= 11 * 60 * 1000;
-		catalog.checkOfflineNodes();
-
-		expect(catalog.nodes.size).toBe(2);
-
-		node1.available = false;
-		node1.lastHeartbeatTime -= 11 * 60 * 1000;
-		catalog.checkOfflineNodes();
-
-		expect(catalog.nodes.size).toBe(1);
-	});
-
-});
 
 describe("Test NodeCatalog.list", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "fake", metadata: { a: 5 } });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false, transporter: "fake", metadata: { a: 5 } });
+	const catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
-	let payload = {
+	const payload = {
 		sender: "node-10",
 		services: []
 	};
@@ -455,7 +270,7 @@ describe("Test NodeCatalog.list", () => {
 	catalog.processNodeInfo(payload);
 
 	it("should return with node list", () => {
-		let res = catalog.list({});
+		const res = catalog.list({});
 		expect(res).toEqual([
 			{
 				"available": true,
@@ -498,7 +313,7 @@ describe("Test NodeCatalog.list", () => {
 	});
 
 	it("should return node list with services", () => {
-		let res = catalog.list({ withServices: true });
+		const res = catalog.list({ withServices: true });
 		expect(res).toEqual([
 			{
 				"available": true,
@@ -544,7 +359,7 @@ describe("Test NodeCatalog.list", () => {
 
 	it("should return node list with services", () => {
 		catalog.disconnected("node-10");
-		let res = catalog.list({ onlyAvailable: true });
+		const res = catalog.list({ onlyAvailable: true });
 		expect(res).toEqual([
 			{
 				"available": true,
@@ -570,11 +385,11 @@ describe("Test NodeCatalog.list", () => {
 });
 
 describe("Test NodeCatalog.toArray", () => {
-	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
-	let catalog = new NodeCatalog(broker.registry, broker);
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
+	const catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
-	let payload = {
+	const payload = {
 		sender: "node-10",
 		services: []
 	};
@@ -582,7 +397,7 @@ describe("Test NodeCatalog.toArray", () => {
 	catalog.processNodeInfo(payload);
 
 	it("should return with node list array", () => {
-		let res = catalog.toArray();
+		const res = catalog.toArray();
 		expect(res).toEqual([
 			catalog.nodes.get("node-1"),
 			catalog.nodes.get("node-10"),

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -40,6 +40,7 @@ class Transit {
 		this.instanceID = broker.instanceID;
 		this.tx = transporter;
 		this.opts = opts;
+		this.discoverer = broker.registry.discoverer;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -111,14 +112,14 @@ class Transit {
 				if (wasReconnect) {
 					// After reconnecting, we should send a broadcast INFO packet because there may new nodes.
 					// In case of disabled balancer, it triggers the `makeBalancedSubscriptions` method.
-					return this.sendNodeInfo();
+					return this.discoverer.sendLocalNodeInfo();
 				} else {
 					// After connecting we should subscribe to topics
 					return this.makeSubscriptions();
 				}
 			})
 
-			.then(() => this.discoverNodes())
+			.then(() => this.discoverer.discoverAllNodes())
 			.delay(500) // Waiting for incoming INFO packets
 
 			.then(() => {
@@ -186,19 +187,18 @@ class Transit {
 		this.connected = false;
 		this.isReady = false;
 		this.disconnecting = true;
-		this.metrics.set(METRIC.MOLECULER_TRANSIT_CONNECTED, 1);
+		this.metrics.set(METRIC.MOLECULER_TRANSIT_CONNECTED, 0);
 
 		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
 
-		if (this.tx.connected) {
-			return this.sendDisconnectPacket()
-				.then(() => this.tx.disconnect())
-				.then(() => this.disconnecting = false);
-		}
-
-		this.disconnecting = false;
-		/* istanbul ignore next */
-		return this.Promise.resolve();
+		return this.Promise.resolve()
+			.then(() => {
+				if (this.tx.connected) {
+					return this.discoverer.localNodeDisconnected()
+						.then(() => this.tx.disconnect());
+				}
+			})
+			.then(() => this.disconnecting = false);
 	}
 
 	/**
@@ -209,7 +209,7 @@ class Transit {
 		if (this.connected) {
 			this.isReady = true;
 			this.metrics.set(METRIC.MOLECULER_TRANSIT_READY, 1);
-			return this.sendNodeInfo();
+			return this.discoverer.localNodeReady();
 		}
 	}
 
@@ -326,22 +326,22 @@ class Transit {
 
 			// Discover
 			else if (cmd === P.PACKET_DISCOVER) {
-				this.sendNodeInfo(payload.sender);
+				this.discoverer.sendLocalNodeInfo(payload.sender);
 			}
 
 			// Node info
 			else if (cmd === P.PACKET_INFO) {
-				this.broker.registry.processNodeInfo(payload);
+				this.discoverer.processRemoteNodeInfo(payload.sender, payload);
 			}
 
 			// Disconnect
 			else if (cmd === P.PACKET_DISCONNECT) {
-				this.broker.registry.nodeDisconnected(payload);
+				this.discoverer.remoteNodeDisconnected(payload.sender, false);
 			}
 
 			// Heartbeat
 			else if (cmd === P.PACKET_HEARTBEAT) {
-				this.broker.registry.nodeHeartbeat(payload);
+				this.discoverer.heartbeatReceived(payload.sender, payload);
 			}
 
 			// Ping
@@ -1052,10 +1052,8 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendNodeInfo(nodeID) {
+	sendNodeInfo(info, nodeID) {
 		if (!this.connected || !this.isReady) return this.Promise.resolve();
-
-		const info = this.broker.getLocalNodeInfo();
 
 		const p = !nodeID && this.broker.options.disableBalancer ? this.tx.makeBalancedSubscriptions() : this.Promise.resolve();
 		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
@@ -1120,8 +1118,9 @@ class Transit {
 	}
 
 	/**
-	 * Send a node heartbeat. It will be called with timer
+	 * Send a node heartbeat. It will be called with timer from local Discoverer.
 	 *
+	 * @params {Node} localNode
 	 * @memberof Transit
 	 */
 	sendHeartbeat(localNode) {

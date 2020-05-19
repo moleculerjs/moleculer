@@ -29,10 +29,15 @@ const broker = new ServiceBroker({
 
 	//disableBalancer: true,
 
+	registry: {
+		//strategy: Strategies.Random
+		//discoverer: "Redis"
+	},
+
 	cacher: true,
 
 	metrics: {
-		enabled: true,
+		enabled: false,
 		reporter: [
 			/*{
 				type: "Console",
@@ -61,21 +66,18 @@ const broker = new ServiceBroker({
 		//maxQueueSize: 10
 	},
 
-	registry: {
-		//strategy: Strategies.Random
-	},
-
 	retryPolicy: {
 		enabled: false,
 		retries: 3
 	},
 
 	circuitBreaker: {
-		enabled: true,
+		enabled: false,
 		threshold: 0.3,
 		windowTime: 30,
 		minRequestCount: 10
 	},
+
 	logger: console,
 	logLevel: "info",
 	logFormatter: "short",
@@ -84,6 +86,7 @@ const broker = new ServiceBroker({
 		//Middlewares.Transmit.Compression(),
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//Middlewares.Debugging.ActionLogger({ logParams: true, logResponse: true, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
+		//require("./RedisHeartbeat")
 	]
 
 });
@@ -118,9 +121,9 @@ broker.createService({
 
 		setInterval(() => {
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
-			broker.emit("echo.event", { counter: this.counter++, someData });
+			broker.emit("echo.event", { counter: this.counter++/*, someData*/ });
 
-			broker.ping("server").then(res => broker.logger.info(res));
+			//broker.ping("server").then(res => broker.logger.info(res));
 		}, 5000);
 	}
 });

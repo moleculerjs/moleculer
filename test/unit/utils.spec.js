@@ -42,6 +42,21 @@ describe("Test utils.generateToken", () => {
 	});
 });
 
+describe("Test utils.removeFromArray", () => {
+
+	it("should remove item from array", () => {
+		expect(utils.removeFromArray()).toBeUndefined();
+		expect(utils.removeFromArray([])).toEqual([]);
+
+		expect(utils.removeFromArray([10,20,30,40,50,60], 80)).toEqual([10,20,30,40,50,60]);
+		expect(utils.removeFromArray([10,20,30,40,50,60], 30)).toEqual([10,20,40,50,60]);
+
+		const arr = [{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }];
+		expect(utils.removeFromArray(arr, { a: 1 })).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }]);
+		expect(utils.removeFromArray(arr, arr[2])).toEqual([{ a: 1 }, { a: 2 }, { a: 4 }]);
+	});
+
+});
 
 describe("Test utils.isPromise", () => {
 

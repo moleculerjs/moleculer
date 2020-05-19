@@ -12,7 +12,8 @@
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"${fileBasenameNoExtension}"
-				//"hot"
+				//"client",
+				//"client2"
 			],
 		},
 		{
@@ -49,6 +50,13 @@
 				"TRANSPORTER": "TCP"
 			},
 			"args": ["client-debug"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch demo: multi-nodes",
+			"program": "${workspaceRoot}/examples/multi-nodes/index.js",
+			"cwd": "${workspaceRoot}"
 		},
 		{
 			"type": "node",

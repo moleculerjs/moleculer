@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,7 @@ const _ = require("lodash");
 
 const utils = require("../utils");
 const Strategies = require("../strategies");
+const Discoverers = require("./discoverers");
 const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
@@ -38,22 +39,26 @@ class Registry {
 		this.opts = Object.assign({}, broker.options.registry);
 
 		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
-
 		this.logger.info(`Strategy: ${this.StrategyFactory.name}`);
+
+		this.discoverer = Discoverers.resolve(this.opts.discoverer);
+		this.logger.info(`Discoverer: ${this.broker.getConstructorName(this.discoverer)}`);
 
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
 		this.events = new EventCatalog(this, broker, this.StrategyFactory);
 
-		this.broker.localBus.on("$broker.started", () => {
-			if (this.nodes.localNode) {
-				this.regenerateLocalRawInfo(true);
-			}
-		});
-
 		this.registerMoleculerMetrics();
 		this.updateMetrics();
+	}
+
+	init(broker) {
+		this.discoverer.init(this);
+	}
+
+	stop() {
+		return this.discoverer.stop();
 	}
 
 	/**
@@ -234,10 +239,10 @@ class Registry {
 
 			if (node.local) {
 				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
-			} else {
+			} else if (this.broker.transit) {
 				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 			}
-			if (this.broker.options.disableBalancer)
+			if (this.broker.options.disableBalancer && this.broker.transit)
 				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 
 			this.actions.add(node, service, action);
@@ -420,29 +425,6 @@ class Registry {
 	 */
 	processNodeInfo(payload) {
 		return this.nodes.processNodeInfo(payload);
-	}
-
-	/**
-	 * Process an incoming node DISCONNECTED packet
-	 *
-	 * @param {any} payload
-	 * @returns
-	 * @memberof Registry
-	 */
-	nodeDisconnected(payload) {
-		this.nodes.disconnected(payload.sender, false);
-		this.updateMetrics();
-	}
-
-	/**
-	 * Process an incoming node HEARTBEAT packet
-	 *
-	 * @param {any} payload
-	 * @returns
-	 * @memberof Registry
-	 */
-	nodeHeartbeat(payload) {
-		return this.nodes.heartbeat(payload);
 	}
 
 	/**

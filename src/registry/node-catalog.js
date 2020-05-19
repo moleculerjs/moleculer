@@ -33,72 +33,7 @@ class NodeCatalog {
 
 		this.nodes = new Map();
 
-		this.heartbeatTimer = null;
-		this.checkNodesTimer = null;
-		this.offlineTimer = null;
-
-		this.disableHeartbeatChecks = false;
-		this.disableOfflineNodeRemoving = false;
-
 		this.createLocalNode();
-
-		this.broker.localBus.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
-		this.broker.localBus.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
-	}
-
-	/**
-	 * Start heartbeat timers
-	 *
-	 * @memberof NodeCatalog
-	 */
-	startHeartbeatTimers() {
-		this.stopHeartbeatTimers();
-
-		if (this.broker.options.heartbeatInterval > 0) {
-			/* istanbul ignore next */
-			this.heartbeatTimer = setInterval(() => {
-				this.localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => {
-					if (this.broker.transit)
-						this.broker.transit.sendHeartbeat(this.localNode);
-				});
-
-			}, this.broker.options.heartbeatInterval * 1000);
-			this.heartbeatTimer.unref();
-
-			/* istanbul ignore next */
-			this.checkNodesTimer = setInterval(() => {
-				this.checkRemoteNodes();
-			}, this.broker.options.heartbeatTimeout * 1000);
-			this.checkNodesTimer.unref();
-
-			/* istanbul ignore next */
-			this.offlineTimer = setInterval(() => {
-				this.checkOfflineNodes();
-			}, 30 * 1000); // 30 secs
-			this.offlineTimer.unref();
-		}
-	}
-
-	/**
-	 * Stop heartbeat timers
-	 *
-	 * @memberof NodeCatalog
-	 */
-	stopHeartbeatTimers() {
-		if (this.heartbeatTimer) {
-			clearInterval(this.heartbeatTimer);
-			this.heartbeatTimer = null;
-		}
-
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-			this.checkNodesTimer = null;
-		}
-
-		if (this.offlineTimer) {
-			clearInterval(this.offlineTimer);
-			this.offlineTimer = null;
-		}
 	}
 
 	/**
@@ -161,6 +96,17 @@ class NodeCatalog {
 	}
 
 	/**
+	 * Delete a node by nodeID
+	 *
+	 * @param {String} id
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
+	delete(id) {
+		return this.nodes.delete(id);
+	}
+
+	/**
 	 * Get count of all registered nodes
 	 */
 	count() {
@@ -200,7 +146,7 @@ class NodeCatalog {
 			this.add(nodeID, node);
 		} else if (!node.available) {
 			isReconnected = true;
-			node.lastHeartbeatTime = Date.now();
+			node.lastHeartbeatTime = Math.round(process.uptime());
 			node.available = true;
 			node.offlineSince = null;
 		}
@@ -231,44 +177,6 @@ class NodeCatalog {
 	}
 
 	/**
-	 * Check all registered remote nodes are available.
-	 *
-	 * @memberof Transit
-	 */
-	checkRemoteNodes() {
-		if (this.disableHeartbeatChecks) return;
-
-		const now = Date.now();
-		this.nodes.forEach(node => {
-			if (node.local || !node.available) return;
-
-			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
-				this.disconnected(node.id, true);
-			}
-		});
-	}
-
-	/**
-	 * Check offline nodes. Remove which is older than 10 minutes.
-	 *
-	 * @memberof Transit
-	 */
-	checkOfflineNodes() {
-		if (this.disableOfflineNodeRemoving) return;
-
-		const now = Date.now();
-		this.nodes.forEach(node => {
-			if (node.local || node.available) return;
-
-			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
-				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
-				this.nodes.delete(node.id);
-			}
-		});
-	}
-
-	/**
 	 * Disconnected a node
 	 *
 	 * @param {String} nodeID
@@ -293,26 +201,6 @@ class NodeCatalog {
 		}
 	}
 
-	/**
-	 * Heartbeat
-	 *
-	 * @param {any} payload
-	 * @memberof NodeCatalog
-	 */
-	heartbeat(payload) {
-		const node = this.get(payload.sender);
-		if (node) {
-			if (!node.available) {
-				// Unknow node. Request an INFO from node
-				this.broker.transit.discoverNode(payload.sender);
-			} else
-				node.heartbeat(payload);
-
-		} else {
-			// Unknow node. Request an INFO from node
-			this.broker.transit.discoverNode(payload.sender);
-		}
-	}
 
 	/**
 	 * Get a node list
@@ -340,9 +228,7 @@ class NodeCatalog {
 	 * Get a copy from node list.
 	 */
 	toArray() {
-		let res = [];
-		this.nodes.forEach(node => res.push(node));
-		return res;
+		return Array.from(this.nodes.values());
 	}
 }
 

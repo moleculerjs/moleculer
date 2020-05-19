@@ -39,6 +39,8 @@ const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
 const { MoleculerError, MoleculerServerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
 
+jest.spyOn(Registry.prototype, "init");
+
 describe("Test ServiceBroker constructor", () => {
 	let broker;
 
@@ -48,6 +50,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
 		console.log = jest.fn();
+		Registry.prototype.init.mockClear();
 
 		broker = new ServiceBroker();
 		expect(broker).toBeDefined();
@@ -76,7 +79,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.tracer).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
+
 		expect(broker.registry).toBeInstanceOf(Registry);
+		expect(broker.registry.init).toBeCalledTimes(1);
+		expect(broker.registry.init).toBeCalledWith(broker);
 
 		expect(broker.middlewares).toBeInstanceOf(MiddlewareHandler);
 
@@ -100,7 +106,7 @@ describe("Test ServiceBroker constructor", () => {
 			namespace: "test",
 			nodeID: "server-12",
 			transporter: null,
-			heartbeatTimeout: 20,
+			heartbeatTimeout: 25,
 			logger: {
 				type: "Console",
 				options: {
@@ -169,8 +175,8 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			serializer: null,
 			transporter: null,
-			heartbeatTimeout : 20,
-			heartbeatInterval: 5,
+			heartbeatTimeout : 25,
+			heartbeatInterval: 10,
 			tracking: {
 				enabled: true,
 				shutdownTimeout: 5000,
@@ -445,99 +451,99 @@ describe("Test ServiceBroker constructor", () => {
 
 describe("Test broker.start", () => {
 
-	describe("if started success", () => {
-		let schema = {
+	describe("without transporter", () => {
+		const schema = {
 			name: "test",
 			started: jest.fn()
 		};
 
 		const optStarted = jest.fn();
 
-		let broker = new ServiceBroker({
+		const broker = new ServiceBroker({
 			logger: false,
-			transporter: "fake",
+			transporter: null,
 			started: optStarted
 		});
 
-		broker.createService(schema);
+		const svc = broker.createService(schema);
 
-		broker.transit.connect = jest.fn(() => Promise.resolve());
-		broker.transit.ready = jest.fn(() => Promise.resolve());
-		broker.broadcastLocal = jest.fn();
-		broker.metrics.set = jest.fn();
-		broker.callMiddlewareHook = jest.fn();
-		//broker.scope.enable = jest.fn();
-		//broker.tracer.restartScope = jest.fn();
+		it("should call started of services", async () => {
+			broker.services.forEach(svc => svc._start = jest.fn());
+			broker.broadcastLocal = jest.fn();
+			broker.metrics.set = jest.fn();
+			broker.callMiddlewareHook = jest.fn();
+			broker.registry.regenerateLocalRawInfo = jest.fn();
 
+			//broker.scope.enable = jest.fn();
+			//broker.tracer.restartScope = jest.fn();
 
-		beforeAll(() =>	broker.start());
-
-		it("should call started of services", () => {
+			await broker.start();
 			//expect(broker.scope.enable).toHaveBeenCalledTimes(1);
 			//expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
 
 			expect(optStarted).toHaveBeenCalledTimes(1);
-			expect(schema.started).toHaveBeenCalledTimes(1);
-			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+			expect(svc._start).toHaveBeenCalledTimes(1);
 			expect(broker.started).toBe(true);
-
-			expect(broker.broadcastLocal).toHaveBeenCalledTimes(3);
-			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
 
 			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
+			expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
+			expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
 
-			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
-
-			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
 			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
 			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("started", [broker]);
 		});
 	});
 
-	describe("if started return with Promise", () => {
-		let schema = {
+	describe("with transporter", () => {
+		const schema = {
 			name: "test",
 			started: jest.fn(() => Promise.resolve())
 		};
 
 		const optStarted = jest.fn();
-		let broker = new ServiceBroker({
+		const broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake",
 			started: optStarted
 		});
 
-		broker.createService(schema);
+		const svc = broker.createService(schema);
 
-		broker.transit.connect = jest.fn(() => Promise.resolve());
-		broker.transit.ready = jest.fn(() => Promise.resolve());
-		broker.broadcastLocal = jest.fn();
-		broker.metrics.set = jest.fn();
-		broker.callMiddlewareHook = jest.fn();
-		//broker.scope.enable = jest.fn();
-		//broker.tracer.restartScope = jest.fn();
+		it("should call started of services", async () => {
+			broker.services.forEach(svc => svc._start = jest.fn());
+			broker.transit.connect = jest.fn(() => Promise.resolve());
+			broker.transit.ready = jest.fn(() => Promise.resolve());
+			broker.broadcastLocal = jest.fn();
+			broker.metrics.set = jest.fn();
+			broker.callMiddlewareHook = jest.fn();
+			broker.registry.regenerateLocalRawInfo = jest.fn();
+			//broker.scope.enable = jest.fn();
+			//broker.tracer.restartScope = jest.fn();
 
-		beforeAll(() => broker.start());
+			await broker.start();
 
-		it("should call started of services", () => {
 			//expect(broker.scope.enable).toHaveBeenCalledTimes(1);
 			//expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
 
 			expect(optStarted).toHaveBeenCalledTimes(1);
-			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(svc._start).toHaveBeenCalledTimes(1);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(broker.started).toBe(true);
 
-			expect(broker.broadcastLocal).toHaveBeenCalledTimes(3);
-			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
-
 			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
+			expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
+			expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
 
 			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
 
-			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
 			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
 			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("started", [broker]);
 		});
@@ -594,24 +600,22 @@ describe("Test broker.start", () => {
 
 describe("Test broker.stop", () => {
 
-	describe("if stopped success", () => {
-		let schema = {
+	describe("without transporter", () => {
+		const schema = {
 			name: "test",
 			stopped: jest.fn()
 		};
 
 		const optStopped = jest.fn();
 
-		let broker = new ServiceBroker({
+		const broker = new ServiceBroker({
 			logger: false,
-			transporter: "Fake",
+			transporter: null,
 			stopped: optStopped
 		});
 
-		broker.createService(schema);
+		const svc = broker.createService(schema);
 
-		broker.transit.connect = jest.fn(() => Promise.resolve());
-		broker.transit.disconnect = jest.fn(() => Promise.resolve());
 		broker.callMiddlewareHook = jest.fn();
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.set = jest.fn();
@@ -627,20 +631,25 @@ describe("Test broker.stop", () => {
 		beforeAll(() => broker.start());
 
 		it("should call stopped of services", () => {
+			broker.services.forEach(svc => svc._stop = jest.fn());
 			broker.broadcastLocal.mockClear();
 			broker.metrics.set.mockClear();
 			broker.callMiddlewareHook.mockClear();
+			broker.registry.regenerateLocalRawInfo = jest.fn();
+			broker.registry.discoverer.sendLocalNodeInfo = jest.fn();
 
 			return broker.stop().then(() => {
+				expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(0);
+				expect(broker.registry.discoverer.sendLocalNodeInfo).toBeCalledTimes(0);
+
 				expect(optStopped).toHaveBeenCalledTimes(1);
-				expect(schema.stopped).toHaveBeenCalledTimes(1);
-				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
+				expect(svc._stop).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
 				expect(broker.tracer.stop).toHaveBeenCalledTimes(1);
 				expect(broker.loggerFactory.stop).toHaveBeenCalledTimes(1);
 
-				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopped", [broker], { reverse: true });
 
@@ -660,21 +669,20 @@ describe("Test broker.stop", () => {
 
 	describe("if stopped return with Promise", () => {
 
-		let broker;
-		let schema = {
+		const schema = {
 			name: "test",
 			stopped: jest.fn(() => Promise.resolve())
 		};
 
 		const optStopped = jest.fn(() => Promise.resolve());
-		broker = new ServiceBroker({
+		const broker = new ServiceBroker({
 			logger: false,
 			metrics: true,
 			transporter: "Fake",
 			stopped: optStopped
 		});
 
-		broker.createService(schema);
+		const svc = broker.createService(schema);
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.disconnect = jest.fn(() => Promise.resolve());
@@ -693,20 +701,28 @@ describe("Test broker.stop", () => {
 		beforeAll(() => broker.start());
 
 		it("should call stopped of services", () => {
+			broker.services.forEach(svc => svc._stop = jest.fn());
 			broker.broadcastLocal.mockClear();
 			broker.metrics.set.mockClear();
 			broker.callMiddlewareHook.mockClear();
+			broker.registry.regenerateLocalRawInfo = jest.fn();
+			broker.registry.discoverer.sendLocalNodeInfo = jest.fn();
+
 
 			return broker.stop().then(() => {
+				expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
+				expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
+				expect(broker.registry.discoverer.sendLocalNodeInfo).toBeCalledTimes(1);
+
 				expect(optStopped).toHaveBeenCalledTimes(1);
-				expect(schema.stopped).toHaveBeenCalledTimes(1);
+				expect(svc._stop).toHaveBeenCalledTimes(1);
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
 				expect(broker.tracer.stop).toHaveBeenCalledTimes(1);
 				expect(broker.loggerFactory.stop).toHaveBeenCalledTimes(1);
 
-				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopped", [broker], { reverse: true });
 
@@ -817,7 +833,7 @@ describe("Test broker.repl", () => {
 		repl.mockClear();
 		let broker = new ServiceBroker({
 			logger: false,
-			replDelimiter: 'mol # '
+			replDelimiter: "mol # "
 		});
 		broker.repl();
 
@@ -1435,32 +1451,32 @@ describe("Test broker.servicesChanged", () => {
 	});
 
 	broker.broadcastLocal = jest.fn();
-	broker.transit.sendNodeInfo = jest.fn();
+	broker.registry.discoverer.sendLocalNodeInfo = jest.fn();
 
 	beforeAll(() => broker.start());
 
 	it("should call broadcastLocal without transit.sendNodeInfo because remote changes", () => {
 		broker.broadcastLocal.mockClear();
-		broker.transit.sendNodeInfo.mockClear();
+		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
 
 		broker.servicesChanged(false);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: false });
 
-		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+		expect(broker.registry.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call broadcastLocal & transit.sendNodeInfo", () => {
-		broker.transit.sendNodeInfo.mockClear();
 		broker.broadcastLocal.mockClear();
+		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
 
 		broker.servicesChanged(true);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: true });
 
-		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
+		expect(broker.registry.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
 	});
 });
 

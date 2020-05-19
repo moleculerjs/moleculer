@@ -26,6 +26,7 @@ describe("Test Transporter constructor", () => {
 		expect(transit.nodeID).toBe(broker.nodeID);
 		expect(transit.instanceID).toBe(broker.instanceID);
 		expect(transit.tx).toBe(transporter);
+		expect(transit.discoverer).toBe(broker.registry.discoverer);
 
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 		expect(transit.pendingReqStreams).toBeInstanceOf(Map);
@@ -118,15 +119,15 @@ describe("Test Transit.afterConnect", () => {
 		resolver = jest.fn();
 		transit.__connectResolve = resolver;
 		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
-		transit.discoverNodes = jest.fn(() => Promise.resolve());
-		transit.sendNodeInfo = jest.fn(() => Promise.resolve());
+		transit.discoverer.discoverAllNodes = jest.fn(() => Promise.resolve());
+		transit.discoverer.sendLocalNodeInfo = jest.fn(() => Promise.resolve());
 	});
 
 	it("should call makeSubscriptions & discoverNodes", () => {
 		return transit.afterConnect().catch(protectReject).then(() => {
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
-			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
-			expect(transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+			expect(transit.discoverer.discoverAllNodes).toHaveBeenCalledTimes(1);
+			expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(0);
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
 			expect(transit.connected).toBe(true);
@@ -140,8 +141,8 @@ describe("Test Transit.afterConnect", () => {
 
 		return transit.afterConnect(true).catch(protectReject).then(() => {
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
-			expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
-			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+			expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
+			expect(transit.discoverer.discoverAllNodes).toHaveBeenCalledTimes(1);
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
 			expect(transit.connected).toBe(true);
@@ -158,26 +159,33 @@ describe("Test Transit.disconnect", () => {
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
-	transit.sendDisconnectPacket = jest.fn(() => Promise.resolve());
 	broker.broadcastLocal = jest.fn();
+	broker.metrics.set = jest.fn();
+	transit.discoverer.localNodeDisconnected = jest.fn(() => Promise.resolve());
 
 	beforeAll(() => transit.connect().then(() => transit.ready()));
 
-	it("should call transporter disconnect & sendDisconnectPacket", () => {
+	it("should call transporter disconnect & localNodeDisconnected", () => {
 		transporter.disconnect = jest.fn(() => {
 			expect(transit.disconnecting).toBe(true);
 			return Promise.resolve();
 		});
 		broker.broadcastLocal.mockClear();
+		broker.metrics.set.mockClear();
+		transit.discoverer.localNodeDisconnected.mockClear();
 		expect(transit.connected).toBe(true);
 		expect(transit.isReady).toBe(true);
 		expect(transit.disconnecting).toBe(false);
 		return transit.disconnect().catch(protectReject).then(() => {
 			expect(transporter.disconnect).toHaveBeenCalledTimes(1);
-			expect(transit.sendDisconnectPacket).toHaveBeenCalledTimes(1);
 
 			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.disconnected", { graceFul: true });
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.transit.connected", 0);
+
+			expect(transit.discoverer.localNodeDisconnected).toHaveBeenCalledTimes(1);
 
 			expect(transit.connected).toBe(false);
 			expect(transit.isReady).toBe(false);
@@ -193,7 +201,7 @@ describe("Test Transit.ready", () => {
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter, transitOptions);
 
-	transit.sendNodeInfo = jest.fn(() => Promise.resolve());
+	transit.discoverer.localNodeReady = jest.fn(() => Promise.resolve());
 
 	it("should not call sendNodeInfo if not connected", () => {
 		expect(transit.isReady).toBe(false);
@@ -201,7 +209,7 @@ describe("Test Transit.ready", () => {
 
 		transit.ready();
 
-		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(0);
 		expect(transit.isReady).toBe(false);
 	});
 
@@ -211,7 +219,7 @@ describe("Test Transit.ready", () => {
 
 		transit.ready();
 
-		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(1);
 		expect(transit.isReady).toBe(true);
 	});
 
@@ -370,42 +378,42 @@ describe("Test Transit.messageHandler", () => {
 
 	it("should call sendNodeInfo if topic is 'DISCOVER' ", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
-		transit.sendNodeInfo = jest.fn();
+		transit.discoverer.sendLocalNodeInfo = jest.fn();
 
 		let payload = { ver: "4", sender: "remote" };
 		transit.messageHandler("DISCOVER", { payload });
-		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
-		expect(transit.sendNodeInfo).toHaveBeenCalledWith("remote");
+		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledWith("remote");
 	});
 
 	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
-		broker.registry.processNodeInfo = jest.fn();
+		transit.discoverer.processRemoteNodeInfo = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", services: [] };
 		transit.messageHandler("INFO", { payload });
 
-		expect(broker.registry.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.registry.processNodeInfo).toHaveBeenCalledWith(payload);
+		expect(transit.discoverer.processRemoteNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.discoverer.processRemoteNodeInfo).toHaveBeenCalledWith("remote", payload);
 	});
 
 	it("should call broker.registry.disconnected if topic is 'DISCONNECT' ", () => {
-		broker.registry.nodeDisconnected = jest.fn();
+		transit.discoverer.remoteNodeDisconnected = jest.fn();
 
 		let payload = { ver: "4", sender: "remote" };
 		transit.messageHandler("DISCONNECT", { payload });
 
-		expect(broker.registry.nodeDisconnected).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodeDisconnected).toHaveBeenCalledWith(payload);
+		expect(transit.discoverer.remoteNodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(transit.discoverer.remoteNodeDisconnected).toHaveBeenCalledWith("remote", false);
 	});
 
 	it("should call broker.registry.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
-		broker.registry.nodeHeartbeat = jest.fn();
+		transit.discoverer.heartbeatReceived = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", cpu: 100 };
 		transit.messageHandler("HEARTBEAT", { payload });
 
-		expect(broker.registry.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodeHeartbeat).toHaveBeenCalledWith(payload);
+		expect(transit.discoverer.heartbeatReceived).toHaveBeenCalledTimes(1);
+		expect(transit.discoverer.heartbeatReceived).toHaveBeenCalledWith("remote", payload);
 	});
 
 	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", () => {
@@ -2355,39 +2363,36 @@ describe("Test Transit.sendNodeInfo", () => {
 
 	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 	const transit = broker.transit;
-	broker.getLocalNodeInfo = jest.fn(() => ({
+	const localNodeInfo = {
 		id: "node2",
 		services: [],
 		instanceID: "123456",
 		metadata: {
 			region: "eu-west1"
 		}
-	}));
+	};
 
 	transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should not call publish while not connected", () => {
-		return transit.sendNodeInfo("node2").then(() => {
+		return transit.sendNodeInfo(localNodeInfo, "node2").then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(0);
-			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should not call publish while not ready", () => {
 		transit.connected = true;
-		return transit.sendNodeInfo("node2").then(() => {
+		return transit.sendNodeInfo(localNodeInfo, "node2").then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(0);
-			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should call publish with correct params if has nodeID", () => {
 		transit.isReady = true;
-		return transit.sendNodeInfo("node2").then(() => {
+		return transit.sendNodeInfo(localNodeInfo, "node2").then(() => {
 			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(0);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.Packet);
 			expect(packet.type).toBe(P.PACKET_INFO);
@@ -2400,13 +2405,11 @@ describe("Test Transit.sendNodeInfo", () => {
 		// Set disableBalancer option
 		broker.options.disableBalancer = true;
 		transit.publish.mockClear();
-		broker.getLocalNodeInfo.mockClear();
 		transit.tx.makeBalancedSubscriptions.mockClear();
 
-		return transit.sendNodeInfo().then(() => {
+		return transit.sendNodeInfo(localNodeInfo).then(() => {
 			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.Packet);
 			expect(packet.type).toBe(P.PACKET_INFO);
@@ -2428,13 +2431,11 @@ describe("Test Transit.sendNodeInfo", () => {
 		// Set disableBalancer option
 		broker.options.disableBalancer = false;
 		transit.publish.mockClear();
-		broker.getLocalNodeInfo.mockClear();
 		transit.tx.makeBalancedSubscriptions.mockClear();
 
-		return transit.sendNodeInfo().then(() => {
+		return transit.sendNodeInfo(localNodeInfo).then(() => {
 			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(0);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.Packet);
 			expect(packet.type).toBe(P.PACKET_INFO);

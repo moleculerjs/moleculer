@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -62,12 +62,8 @@ class RedisCacher extends BaseCacher {
 				throw new BrokerOptionsError("No nodes defined for cluster");
 			}
 
-			this.logger.info("Setting Redis.Cluster Cacher");
-
 			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
 		} else {
-			this.logger.info("Setting Redis Cacher");
-
 			this.client = new Redis(this.opts.redis);
 		}
 
@@ -116,6 +112,7 @@ class RedisCacher extends BaseCacher {
 
 		// create an instance of serializer (default to JSON)
 		this.serializer = Serializers.resolve(this.opts.serializer);
+		this.serializer.init(this.broker);
 
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}

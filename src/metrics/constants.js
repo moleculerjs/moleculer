@@ -207,6 +207,11 @@ module.exports = {
 	MOLECULER_CACHER_CLEAN_TIME: "moleculer.cacher.clean.time",
 	MOLECULER_CACHER_EXPIRED_TOTAL: "moleculer.cacher.expired.total",
 
+	MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL: "moleculer.discoverer.redis.collect.total",
+	MOLECULER_DISCOVERER_REDIS_COLLECT_TIME: "moleculer.discoverer.redis.collect.time",
+
+	MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL: "moleculer.discoverer.etcd.collect.total",
+	MOLECULER_DISCOVERER_ETCD_COLLECT_TIME: "moleculer.discoverer.etcd.collect.time",
 
 	// --- COMMON UNITS ---
 	// Inspired by https://docs.datadoghq.com/developers/metrics/#units

@@ -7,13 +7,17 @@ const BaseSerializer = require("./base");
  * @class JSONSerializer
  */
 class NotepackSerializer extends BaseSerializer {
+
 	/**
-   * Creates an instance of JSONSerializer.
-   *
-   * @memberof NotepackSerializer
-   */
-	constructor() {
-		super();
+	 * Initialize Serializer
+	 *
+	 * @param {any} broker
+	 *
+	 * @memberof Serializer
+	 */
+	init(broker) {
+		super.init(broker);
+
 		try {
 			this.codec = require("notepack.io");
 		} catch(err) {

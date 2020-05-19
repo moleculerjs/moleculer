@@ -1,14 +1,13 @@
 "use strict";
 
-let Registry = require("../../../src/registry/registry");
-let ServiceBroker = require("../../../src/service-broker");
-let Strategies = require("../../../src/strategies");
+const Registry = require("../../../src/registry/registry");
+const ServiceBroker = require("../../../src/service-broker");
+const Strategies = require("../../../src/strategies");
+const Discoverers = require("../../../src/registry/discoverers");
 const { protectReject } = require("../utils");
 
 describe("Test Registry constructor", () => {
 	let broker = new ServiceBroker({ logger: false });
-	broker.localBus.on = jest.fn();
-
 
 	it("test properties", () => {
 		let registry = new Registry(broker);
@@ -23,6 +22,8 @@ describe("Test Registry constructor", () => {
 			strategy: "RoundRobin"
 		});
 		expect(registry.StrategyFactory).toBe(Strategies.RoundRobin);
+		expect(registry.discoverer).toBeInstanceOf(Discoverers.Local);
+
 		expect(registry.nodes).toBeDefined();
 		expect(registry.services).toBeDefined();
 		expect(registry.actions).toBeDefined();
@@ -30,14 +31,14 @@ describe("Test Registry constructor", () => {
 	});
 
 	it("test different strategy", () => {
-		let broker = new ServiceBroker({
+		const broker = new ServiceBroker({
 			logger: false,
 			registry: {
 				strategy: "Random",
 				preferLocal: false
 			}
 		});
-		let registry = new Registry(broker);
+		const registry = new Registry(broker);
 
 		expect(registry.opts).toEqual({
 			preferLocal: false,
@@ -46,24 +47,23 @@ describe("Test Registry constructor", () => {
 		expect(registry.StrategyFactory).toBe(Strategies.Random);
 	});
 
-	it("test $broker.started event handler", () => {
-		let cb;
-		broker.localBus.on = jest.fn((name, fn) => {
-			if (name == "$broker.started")
-				cb = fn;
+	it("test different discoverer", async () => {
+		const broker = new ServiceBroker({
+			logger: false,
+			registry: {
+				discoverer: "Redis"
+			}
 		});
+		const registry = new Registry(broker);
 
-		let registry = new Registry(broker);
+		expect(registry.opts).toEqual({
+			preferLocal: true,
+			discoverer: "Redis",
+			strategy: "RoundRobin"
+		});
+		expect(registry.discoverer).toBeInstanceOf(Discoverers.Redis);
 
-		expect(broker.localBus.on).toHaveBeenCalledTimes(3);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
-
-		registry.regenerateLocalRawInfo = jest.fn();
-
-		cb();
-
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+		await registry.discoverer.stop();
 	});
 
 	it("should register metrics", () => {
@@ -71,7 +71,7 @@ describe("Test Registry constructor", () => {
 		jest.spyOn(broker.metrics, "register");
 		jest.spyOn(broker.metrics, "set");
 
-		let registry = new Registry(broker);
+		const registry = new Registry(broker);
 
 		expect(broker.metrics.register).toHaveBeenCalledTimes(8);
 		expect(broker.metrics.set).toHaveBeenCalledTimes(5);
@@ -82,6 +82,36 @@ describe("Test Registry constructor", () => {
 		expect(broker.metrics.set).toHaveBeenNthCalledWith(4, "moleculer.registry.actions.total", 0);
 		expect(broker.metrics.set).toHaveBeenNthCalledWith(5, "moleculer.registry.events.total", 0);
 	});
+});
+
+describe("Test Registry.init", () => {
+	const broker = new ServiceBroker({ logger: false });
+	const registry = broker.registry;
+
+	it("should call discoverer.init", async () => {
+		registry.discoverer.init = jest.fn();
+
+		registry.init();
+
+		expect(registry.discoverer.init).toBeCalledTimes(1);
+		await registry.stop();
+	});
+
+});
+
+describe("Test Registry.stop", () => {
+	const broker = new ServiceBroker({ logger: false });
+	const registry = broker.registry;
+
+	it("should call discoverer.stop", async () => {
+		registry.init();
+		registry.discoverer.stop = jest.fn();
+
+		registry.stop();
+
+		expect(registry.discoverer.stop).toBeCalledTimes(1);
+	});
+
 });
 
 describe("Test Registry.registerLocalService", () => {
@@ -709,38 +739,6 @@ describe("Test Registry.processNodeInfo", () => {
 	});
 });
 
-describe("Test Registry.nodeDisconnected", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let registry = broker.registry;
-	registry.updateMetrics = jest.fn();
-
-	registry.nodes.disconnected = jest.fn();
-
-	it("should call registry.nodes.disconnected method", () => {
-		let payload = { sender: "node-2" };
-		registry.nodeDisconnected(payload);
-
-		expect(registry.nodes.disconnected).toHaveBeenCalledTimes(1);
-		expect(registry.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
-
-		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
-	});
-});
-
-describe("Test Registry.nodeHeartbeat", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let registry = broker.registry;
-
-	registry.nodes.heartbeat = jest.fn();
-
-	it("should call registry.nodes.heartbeat method", () => {
-		let payload = {};
-		registry.nodeHeartbeat(payload);
-
-		expect(registry.nodes.heartbeat).toHaveBeenCalledTimes(1);
-		expect(registry.nodes.heartbeat).toHaveBeenCalledWith(payload);
-	});
-});
 
 describe("Test Registry.getNodeList", () => {
 	let broker = new ServiceBroker({ logger: false });

@@ -98,7 +98,7 @@ describe("Test Node", () => {
 		let node = new Node("node-1");
 		node.cpuSeq = 1000;
 
-		const cpu = jest.fn(() => Promise.resolve({ avg: 12 }));
+		const cpu = jest.fn(() => Promise.resolve({ avg: 12.345 }));
 
 		return node.updateLocalInfo(cpu).then(() => {
 			expect(node.cpu).toBe(12);
