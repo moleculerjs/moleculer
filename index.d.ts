@@ -705,6 +705,12 @@ declare namespace Moleculer {
 		strategy?: Function | string;
 		strategyOptions?: GenericObject;
 		preferLocal?: boolean;
+		discoverer?: RegistryDiscovererOptions | string;
+	}
+
+	interface RegistryDiscovererOptions {
+		type: string,
+		options: GenericObject
 	}
 
 	interface BrokerTransitOptions {
@@ -1321,6 +1327,13 @@ declare namespace Moleculer {
 		publish(packet: Packet): Promise<void>;
 	}
 
+	interface ActionCatalogListOptions {
+		onlyLocal?:boolean;
+		onlyAvailable?:boolean;
+		skipInternal?:boolean;
+		withEndpoints?:boolean;
+	}
+
 	class ServiceRegistry {
 		broker: ServiceBroker;
 		metrics: MetricRegistry;
@@ -1334,6 +1347,8 @@ declare namespace Moleculer {
 		services: any;
 		actions: any;
 		events: any;
+
+		getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[]
 	}
 
 	class AsyncStorage {
