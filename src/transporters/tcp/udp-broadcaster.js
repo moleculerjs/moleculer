@@ -260,7 +260,7 @@ class UdpServer extends EventEmitter {
 		for (let iface in interfaces) {
 			for (let i in interfaces[iface]) {
 				const f = interfaces[iface][i];
-				if (f.family === "IPv4" && !f.internal) {
+				if (f.family === "IPv4") {
 					list.push(ipaddr.IPv4.broadcastAddressFromCIDR(f.cidr).toString());
 				}
 			}
@@ -280,7 +280,7 @@ class UdpServer extends EventEmitter {
 		for (let iface in interfaces) {
 			for (let i in interfaces[iface]) {
 				const f = interfaces[iface][i];
-				if (f.family === "IPv4" && !f.internal) {
+				if (f.family === "IPv4") {
 					list.push(f.address);
 				}
 			}
