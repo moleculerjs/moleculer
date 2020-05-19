@@ -449,21 +449,6 @@ describe("Test UdpServer.close", () => {
 
 describe("Test UdpServer getBroadcastAddresses", () => {
 	os.networkInterfaces = jest.fn(() => ({
-		"Local": [
-			{
-				address: "fe80::29a9:ffeb:4a65:9f82",
-				netmask: "ffff:ffff:ffff:ffff::",
-				family: "IPv6",
-				internal: false,
-				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
-			},
-			{ address: "192.168.2.100",
-				netmask: "255.255.255.0",
-				family: "IPv4",
-				internal: false,
-				cidr: "192.168.2.100/24"
-			}
-		],
 		"Loopback Pseudo-Interface 1": [
 			{
 				address: "::1",
@@ -478,6 +463,21 @@ describe("Test UdpServer getBroadcastAddresses", () => {
 				family: "IPv4",
 				internal: true,
 				cidr: "127.0.0.1/8"
+			}
+		],
+		"Local": [
+			{
+				address: "fe80::29a9:ffeb:4a65:9f82",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+			},
+			{ address: "192.168.2.100",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.2.100/24"
 			}
 		],
 		"VMware Network Adapter VMnet1": [
@@ -507,28 +507,13 @@ describe("Test UdpServer getBroadcastAddresses", () => {
 			}
 		};
 		let udp = new UdpServer(transporter);
-		expect(udp.getBroadcastAddresses()).toEqual(["192.168.2.255", "192.168.232.255"]);
+		expect(udp.getBroadcastAddresses()).toEqual(["127.255.255.255","192.168.2.255", "192.168.232.255"]);
 	});
 
 });
 
 describe("Test UdpServer getInterfaceAddresses", () => {
 	os.networkInterfaces = jest.fn(() => ({
-		"Local": [
-			{
-				address: "fe80::29a9:ffeb:4a65:9f82",
-				netmask: "ffff:ffff:ffff:ffff::",
-				family: "IPv6",
-				internal: false,
-				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
-			},
-			{ address: "192.168.2.100",
-				netmask: "255.255.255.0",
-				family: "IPv4",
-				internal: false,
-				cidr: "192.168.2.100/24"
-			}
-		],
 		"Loopback Pseudo-Interface 1": [
 			{
 				address: "::1",
@@ -543,6 +528,21 @@ describe("Test UdpServer getInterfaceAddresses", () => {
 				family: "IPv4",
 				internal: true,
 				cidr: "127.0.0.1/8"
+			}
+		],
+		"Local": [
+			{
+				address: "fe80::29a9:ffeb:4a65:9f82",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+			},
+			{ address: "192.168.2.100",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.2.100/24"
 			}
 		],
 		"VMware Network Adapter VMnet1": [
@@ -572,7 +572,7 @@ describe("Test UdpServer getInterfaceAddresses", () => {
 			}
 		};
 		let udp = new UdpServer(transporter);
-		expect(udp.getInterfaceAddresses()).toEqual(["192.168.2.100", "192.168.232.1"]);
+		expect(udp.getInterfaceAddresses()).toEqual(["127.0.0.1","192.168.2.100", "192.168.232.1"]);
 	});
 
 });

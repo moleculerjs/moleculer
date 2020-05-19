@@ -223,15 +223,28 @@ function updateCommonMetrics() {
 
 	// --- NETWORK INTERFACES ---
 
-	const interfaces = os.networkInterfaces();
-	for (let iface in interfaces) {
-		for (let i in interfaces[iface]) {
-			const f = interfaces[iface][i];
-			if (!f.internal) {
-				this.set(METRIC.OS_NETWORK_ADDRESS, f.address, { interface: iface, family: f.family });
-				this.set(METRIC.OS_NETWORK_MAC, f.mac, { interface: iface, family: f.family });
+
+	const getNetworkInterfaces = () =>{
+		const list = [];
+		const ilist = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.internal) {
+					ilist.push({f,iface})
+				} else{
+					list.push({f,iface})
+				}
 			}
 		}
+		return list.length > 0 ? list : ilist;
+	}
+
+	const interfaces = getNetworkInterfaces();
+	for (let {f,iface} of interfaces) {
+		this.set(METRIC.OS_NETWORK_ADDRESS, f.address, { interface: iface, family: f.family });
+		this.set(METRIC.OS_NETWORK_MAC, f.mac, { interface: iface, family: f.family });
 	}
 
 	const d = new Date();

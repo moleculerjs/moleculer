@@ -77,6 +77,100 @@ describe("Test utils.getNodeID", () => {
 	});
 });
 
+describe("Test utils.getIpList", () => {
+	let os = require("os");
+	it("should give only IPv4 external interfaces", () => {
+		os.networkInterfaces = jest.fn(() => ({
+			"Loopback Pseudo-Interface 1": [
+				{
+					address: "::1",
+					netmask: "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+					family: "IPv6",
+					internal: true,
+					cidr: "::1/128"
+				},
+				{
+					address: "127.0.0.1",
+					netmask: "255.0.0.0",
+					family: "IPv4",
+					internal: true,
+					cidr: "127.0.0.1/8"
+				}
+			],
+			"Local": [
+				{
+					address: "fe80::29a9:ffeb:4a65:9f82",
+					netmask: "ffff:ffff:ffff:ffff::",
+					family: "IPv6",
+					internal: false,
+					cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+				},
+				{ address: "192.168.2.100",
+					netmask: "255.255.255.0",
+					family: "IPv4",
+					internal: false,
+					cidr: "192.168.2.100/24"
+				}
+			],
+			"VMware Network Adapter VMnet1": [
+				{
+					address: "fe80::3c63:fab8:e6be:8059",
+					netmask: "ffff:ffff:ffff:ffff::",
+					family: "IPv6",
+					internal: false,
+					cidr: "fe80::3c63:fab8:e6be:8059/64"
+				},
+				{
+					address: "192.168.232.1",
+					netmask: "255.255.255.0",
+					family: "IPv4",
+					internal: false,
+					cidr: "192.168.232.1/24"
+				}
+			]
+		}));
+		expect(utils.getIpList()).toEqual(["192.168.2.100", "192.168.232.1"]);
+	});
+	it("should give all IPv4 internal interfaces", () => {
+		os.networkInterfaces = jest.fn(() => ({
+			"Loopback Pseudo-Interface 1": [
+				{
+					address: "::1",
+					netmask: "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+					family: "IPv6",
+					internal: true,
+					cidr: "::1/128"
+				},
+				{
+					address: "127.0.0.1",
+					netmask: "255.0.0.0",
+					family: "IPv4",
+					internal: true,
+					cidr: "127.0.0.1/8"
+				}
+			],
+			"Loopback Pseudo-Interface 2": [
+				{
+					address: "::2",
+					netmask: "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+					family: "IPv6",
+					internal: true,
+					cidr: "::2/128"
+				},
+				{
+					address: "127.0.0.2",
+					netmask: "255.0.0.0",
+					family: "IPv4",
+					internal: true,
+					cidr: "127.0.0.2/8"
+				}
+			],
+
+		}));
+		expect(utils.getIpList()).toEqual(["127.0.0.1","127.0.0.2"]);
+	});
+});
+
 describe("Test match", () => {
 
 	expect(utils.match("1.2.3", "1.2.3")).toBe(true);
