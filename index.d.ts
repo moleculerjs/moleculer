@@ -705,6 +705,20 @@ declare namespace Moleculer {
 		strategy?: Function | string;
 		strategyOptions?: GenericObject;
 		preferLocal?: boolean;
+		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
+	}
+
+	interface RegistryDiscovererOptions {
+		type: string,
+		options: DiscovererOptions
+	}
+
+	interface DiscovererOptions extends GenericObject  {
+		heartbeatInterval?: number;
+		heartbeatTimeout?: number;
+		disableHeartbeatChecks?: boolean;
+		disableOfflineNodeRemoving?: boolean;
+		cleanOfflineNodesTimeout?: number;
 	}
 
 	interface BrokerTransitOptions {
@@ -1201,6 +1215,44 @@ declare namespace Moleculer {
 		class Shard extends ShardStrategy {}
 	}
 
+	abstract class BaseDiscoverer {
+		constructor(opts?:DiscovererOptions);
+
+		transit?: Transit;
+		localNode?: BrokerNode;
+
+		heartbeatTimer: NodeJS.Timeout;
+		checkNodesTimer: NodeJS.Timeout;
+		offlineTimer: NodeJS.Timeout;
+
+		init(registry: ServiceRegistry): void;
+
+		stop(): Promise<void>;
+		startHeartbeatTimers(): void;
+		stopHeartbeatTimers(): void;
+		disableHeartbeat(): void;
+		beat(): Promise<void>;
+		checkRemoteNodes(): void;
+		checkOfflineNodes(): void;
+		heartbeatReceived(nodeID:string, payload:GenericObject): void;
+		processRemoteNodeInfo(nodeID:string, payload:GenericObject): BrokerNode;
+		sendHeartbeat(): Promise<void>;
+		discoverNode(nodeID: string): Promise<void>;
+		discoverAllNodes(): Promise<void>;
+		localNodeReady(): Promise<void>;
+		sendLocalNodeInfo(nodeID: string): Promise<void>;
+		localNodeDisconnected(): Promise<void>;
+		remoteNodeDisconnected(nodeID:string, isUnexpected:boolean): void;
+
+	}
+
+	namespace Discoverers {
+		class Base extends BaseDiscoverer {}
+		class Local extends BaseDiscoverer {}
+		class Redis extends BaseDiscoverer {}
+		class Etcd3 extends BaseDiscoverer {}
+	}
+
 	namespace Transporters {
 		class Base extends Transporter {}
 		class Fake extends Base { }
@@ -1321,6 +1373,13 @@ declare namespace Moleculer {
 		publish(packet: Packet): Promise<void>;
 	}
 
+	interface ActionCatalogListOptions {
+		onlyLocal?:boolean;
+		onlyAvailable?:boolean;
+		skipInternal?:boolean;
+		withEndpoints?:boolean;
+	}
+
 	class ServiceRegistry {
 		broker: ServiceBroker;
 		metrics: MetricRegistry;
@@ -1334,6 +1393,8 @@ declare namespace Moleculer {
 		services: any;
 		actions: any;
 		events: any;
+
+		getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[]
 	}
 
 	class AsyncStorage {
@@ -1375,7 +1436,7 @@ declare namespace Moleculer {
 		ui: Vorpal.UI;
 		activeCommand: Vorpal.CommandInstance;
 	}
-	
+
 	namespace Vorpal {
 		interface Args {
 			[key: string]: any;
@@ -1383,14 +1444,14 @@ declare namespace Moleculer {
 				[key: string]: any;
 			};
 		}
-	
+
 		interface PromptObject {
 			[key: string]: any;
 		}
-	
+
 		type Action = (args: Args) => Promise<void>;
 		type Cancel = () => void;
-	
+
 		class Command {
 			_name: string;
 			_fn: Action;
@@ -1408,11 +1469,11 @@ declare namespace Moleculer {
 			cancel(cancel: Cancel): this;
 			allowUnknownOptions(): this;
 		}
-	
+
 		class Catch extends Command { }
-	
+
 		class Extension { }
-	
+
 		class UI {
 			delimiter(text?: string): string;
 			input(text?: string): string;
@@ -1425,7 +1486,7 @@ declare namespace Moleculer {
 				done(): void;
 			};
 		}
-	
+
 		class CommandInstance {
 			log(value: string, ...values: string[]): void;
 			prompt(prompt: object | ReadonlyArray<object>): Promise<PromptObject>;
