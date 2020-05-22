@@ -4,7 +4,7 @@
 
 --------------------------------------------------
 <a name="0.14.7"></a>
-# [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-??)
+# [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-22)
 
 ## New Discoverer module
 The Discoverer is a new built-in module in Moleculer framework. It's responsible for that all Moleculer nodes can discover each other and check them with heartbeats. In previous versions, it was an integrated module inside `ServiceRegistry` & `Transit` modules. In this version, the discovery logic has been extracted to a separated built-in module. It means you can replace it to other built-in implementations or a custom one. The current discovery & heartbeat logic is moved to the `Local` Discoverer. 
