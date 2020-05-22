@@ -2,6 +2,7 @@ import { Redis } from 'ioredis';
 import { expectType } from "tsd";
 import { Cachers, Cacher, ServiceBroker } from "../../../index";
 
+
 // base cacher tests
 expectType<Cacher>(new Cachers.Base());
 expectType<Cachers.Base>(new Cachers.Base());
