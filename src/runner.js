@@ -149,7 +149,7 @@ class MoleculerRunner {
 					const content = require(filePath);
 					return Promise.resolve()
 						.then(() => {
-							if (_.isFunction(content))
+							if (utils.isFunction(content))
 								return content.call(this);
 							else
 								return content;

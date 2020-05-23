@@ -8,6 +8,7 @@
 
 const BaseLogger = require("./base");
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 /**
  * Pino logger for Moleculer
@@ -65,7 +66,7 @@ class PinoLogger extends BaseLogger {
 		if (!level)
 			return null;
 
-		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.pino.child({ level, ...bindings });
+		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.pino.child({ level, ...bindings });
 
 		return (type, args) => logger[type](...args);
 	}

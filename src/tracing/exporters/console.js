@@ -1,9 +1,9 @@
 "use strict";
 
-const _ 			= require("lodash");
-const r 			= _.repeat;
-const kleur 		= require("kleur");
-const { humanize }  = require("../../utils");
+const _ 						= require("lodash");
+const r 						= _.repeat;
+const kleur 					= require("kleur");
+const { humanize, isFunction }  = require("../../utils");
 
 const BaseTraceExporter = require("./base");
 
@@ -290,7 +290,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	}
 
 	log(...args) {
-		if (_.isFunction(this.opts.logger)) {
+		if (isFunction(this.opts.logger)) {
 			return this.opts.logger(...args);
 		} else {
 			return this.logger.info(...args);

@@ -20,6 +20,23 @@ describe("Test utils.isObject", () => {
 	});
 });
 
+describe("Test utils.isFunction", () => {
+
+	it("should return true for function types", () => {
+		expect(utils.isFunction(function() {})).toBe(true);
+		expect(utils.isFunction(()=>{})).toBe(true);
+		expect(utils.isFunction(async ()=>{})).toBe(true);
+		expect(utils.isFunction(class Dummy {})).toBe(true);
+
+		expect(utils.isFunction({})).toBe(false);
+		expect(utils.isFunction([])).toBe(false);
+		expect(utils.isFunction(null)).toBe(false);
+		expect(utils.isFunction(1)).toBe(false);
+		expect(utils.isFunction("string")).toBe(false);
+		expect(utils.isFunction(NaN)).toBe(false);
+	});
+});
+
 describe("Test utils.humanize", () => {
 
 	it("should humanize elapsed milliseconds", () => {

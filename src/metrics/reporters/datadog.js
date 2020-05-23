@@ -12,6 +12,7 @@ const os = require("os");
 const fetch = require("node-fetch");
 const { MoleculerError } = require("../../errors");
 const METRIC = require("../constants");
+const { isFunction } = require("../../utils");
 
 const BASE_URL = "https://api.datadoghq.com/api/";
 
@@ -65,7 +66,7 @@ class DatadogReporter extends BaseReporter {
 			this.timer.unref();
 		}
 
-		this.defaultLabels = _.isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
+		this.defaultLabels = isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
 	}
 
 	/**

@@ -12,6 +12,7 @@ const http = require("http");
 const zlib = require("zlib");
 const { MoleculerError } = require("../../errors");
 const METRIC = require("../constants");
+const { isFunction } = require("../../utils");
 
 /**
  * Prometheus reporter for Moleculer.
@@ -74,7 +75,7 @@ class PrometheusReporter extends BaseReporter {
 
 			this.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
 		});
-		this.defaultLabels = _.isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
+		this.defaultLabels = isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
 	}
 
 	/**

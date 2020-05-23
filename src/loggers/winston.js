@@ -8,6 +8,7 @@
 
 const BaseLogger = require("./base");
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 /**
  * Winston logger for Moleculer
@@ -61,7 +62,7 @@ class WinstonLogger extends BaseLogger {
 
 		const levelIdx = BaseLogger.LEVELS.indexOf(level);
 
-		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.winston.child({ level, ...bindings });
+		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.winston.child({ level, ...bindings });
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);

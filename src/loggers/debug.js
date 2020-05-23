@@ -8,6 +8,7 @@
 
 const BaseLogger = require("./base");
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 /**
  * Debug logger for Moleculer
@@ -58,7 +59,7 @@ class DebugLogger extends BaseLogger {
 
 		const levelIdx = BaseLogger.LEVELS.indexOf(level);
 
-		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.debug.extend(mod);
+		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.debug.extend(mod);
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);

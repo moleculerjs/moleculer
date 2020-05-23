@@ -9,7 +9,7 @@
 const _ 						= require("lodash");
 const functionArguments 		= require("fn-args");
 const { ServiceSchemaError, MoleculerError } 	= require("./errors");
-const { isObject }				= require("./utils");
+const { isObject, isFunction }	= require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -18,7 +18,7 @@ const { isObject }				= require("./utils");
  * @returns {Object}
  */
 function wrapToHander(o) {
-	return _.isFunction(o) ? { handler: o } : o;
+	return isFunction(o) ? { handler: o } : o;
 }
 
 /**
@@ -209,7 +209,7 @@ class Service {
 	 */
 	_init() {
 		this.logger.debug(`Service '${this.fullName}' is creating...`);
-		if (_.isFunction(this.schema.created)) {
+		if (isFunction(this.schema.created)) {
 			this.schema.created.call(this);
 		} else if (Array.isArray(this.schema.created)) {
 			this.schema.created.forEach(fn => fn.call(this));
@@ -241,7 +241,7 @@ class Service {
 					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
 			})
 			.then(() => {
-				if (_.isFunction(this.schema.started))
+				if (isFunction(this.schema.started))
 					return this.Promise.method(this.schema.started).call(this);
 
 				if (Array.isArray(this.schema.started)) {
@@ -275,7 +275,7 @@ class Service {
 				return this.broker.callMiddlewareHook("serviceStopping", [this], { reverse: true });
 			})
 			.then(() => {
-				if (_.isFunction(this.schema.stopped))
+				if (isFunction(this.schema.stopped))
 					return this.Promise.method(this.schema.stopped).call(this);
 
 				if (Array.isArray(this.schema.stopped)) {
@@ -305,7 +305,7 @@ class Service {
 	 */
 	_createAction(actionDef, name) {
 		let action;
-		if (_.isFunction(actionDef)) {
+		if (isFunction(actionDef)) {
 			// Wrap to an object
 			action = {
 				handler: actionDef
@@ -317,7 +317,7 @@ class Service {
 		}
 
 		let handler = action.handler;
-		if (!_.isFunction(handler)) {
+		if (!isFunction(handler)) {
 			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.fullName}' service!`);
 		}
 
@@ -346,7 +346,7 @@ class Service {
 	 */
 	_createMethod(methodDef, name) {
 		let method;
-		if (_.isFunction(methodDef)) {
+		if (isFunction(methodDef)) {
 			// Wrap to an object
 			method = {
 				handler: methodDef
@@ -357,7 +357,7 @@ class Service {
 			throw new ServiceSchemaError(`Invalid method definition in '${name}' method in '${this.fullName}' service!`);
 		}
 
-		if (!_.isFunction(method.handler)) {
+		if (!isFunction(method.handler)) {
 			throw new ServiceSchemaError(`Missing method handler on '${name}' method in '${this.fullName}' service!`);
 		}
 
@@ -382,7 +382,7 @@ class Service {
 	 */
 	_createEvent(eventDef, name) {
 		let event;
-		if (_.isFunction(eventDef) || Array.isArray(eventDef)) {
+		if (isFunction(eventDef) || Array.isArray(eventDef)) {
 			event = {
 				handler: eventDef
 			};
@@ -392,7 +392,7 @@ class Service {
 			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.fullName}' service!`);
 		}
 
-		if (!_.isFunction(event.handler) && !Array.isArray(event.handler)) {
+		if (!isFunction(event.handler) && !Array.isArray(event.handler)) {
 			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.fullName}' service!`);
 		}
 
@@ -400,7 +400,7 @@ class Service {
 		// Legacy: handler(payload, sender, eventName)
 		// New: handler(ctx)
 		let handler;
-		if (_.isFunction(event.handler)) {
+		if (isFunction(event.handler)) {
 			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
 			handler.__newSignature = event.context === true || isNewSignature(args);
@@ -418,7 +418,7 @@ class Service {
 
 		event.service = this;
 		const self = this;
-		if (_.isFunction(handler)) {
+		if (isFunction(handler)) {
 			// Call single handler
 			event.handler = function(ctx) {
 				return handler.apply(self, handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]);
@@ -563,7 +563,7 @@ class Service {
 
 			} else {
 				const customFnName = "mergeSchema" + key.replace(/./, key[0].toUpperCase()); // capitalize first letter
-				if (_.isFunction(Service[customFnName])) {
+				if (isFunction(Service[customFnName])) {
 					res[key] = Service[customFnName](mods[key], res[key]);
 				} else {
 					res[key] = Service.mergeSchemaUnknown(mods[key], res[key]);

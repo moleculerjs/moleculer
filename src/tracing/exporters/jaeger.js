@@ -8,6 +8,7 @@
 
 const _ 					= require("lodash");
 const BaseTraceExporter 	= require("./base");
+const { isFunction } 		= require("../../utils");
 
 let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTTPSender;
 
@@ -82,7 +83,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			this.tracer.broker.fatal("The 'jaeger-client' package is missing! Please install it with 'npm install jaeger-client --save' command!", err, true);
 		}
 
-		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags);
 		}
@@ -119,7 +120,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 *
 	 */
 	getSampler(serviceName) {
-		if (_.isFunction(this.opts.sampler))
+		if (isFunction(this.opts.sampler))
 			return this.opts.sampler;
 
 		if (this.opts.sampler.type == "RateLimiting")

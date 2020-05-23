@@ -69,6 +69,10 @@ const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
 
 const utils = {
 
+	isFunction(fn) {
+		return typeof fn === "function";
+	},
+
 	isObject(o) {
 		return o !== null && typeof o === "object";
 	},
@@ -159,7 +163,7 @@ const utils = {
 	 * @param {PromiseClass} P
 	 */
 	polyfillPromise(P) {
-		if (!_.isFunction(P.method)) {
+		if (!utils.isFunction(P.method)) {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
 			P.method = function(fn) {
 				return function() {
@@ -173,7 +177,7 @@ const utils = {
 			};
 		}
 
-		if (!_.isFunction(P.delay)) {
+		if (!utils.isFunction(P.delay)) {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/timers.js#L15
 			P.delay = function(ms) {
 				return new P(resolve => setTimeout(resolve, +ms));
@@ -184,7 +188,7 @@ const utils = {
 			};
 		}
 
-		if (!_.isFunction(P.prototype.timeout)) {
+		if (!utils.isFunction(P.prototype.timeout)) {
 			P.TimeoutError = TimeoutError;
 
 			P.prototype.timeout = function(ms, message) {
@@ -208,7 +212,7 @@ const utils = {
 			};
 		}
 
-		if (!_.isFunction(P.mapSeries)) {
+		if (!utils.isFunction(P.mapSeries)) {
 
 			P.mapSeries = function(arr, fn) {
 				const promFn = Promise.method(fn);

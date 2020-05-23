@@ -8,6 +8,7 @@
 
 const BaseLogger = require("./base");
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 /**
  * Log4js logger for Moleculer
@@ -71,7 +72,7 @@ class Log4jsLogger extends BaseLogger {
 			return null;
 
 		let logger;
-		if (_.isFunction(this.opts.createLogger))
+		if (isFunction(this.opts.createLogger))
 			logger = this.opts.createLogger(level, bindings);
 		else {
 			logger = this.log4js.getLogger(bindings.mod.toUpperCase());
