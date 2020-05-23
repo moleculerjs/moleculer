@@ -10,7 +10,7 @@ const _ = require("lodash");
 const kleur = require("kleur");
 const fs = require("fs");
 const path = require("path");
-const { makeDirs, match } = require("../../utils");
+const { makeDirs, match, isObject } = require("../../utils");
 
 module.exports = function ActionLoggerMiddleware(opts) {
 	opts = _.defaultsDeep(opts, {
@@ -68,7 +68,7 @@ module.exports = function ActionLoggerMiddleware(opts) {
 		call(next) {
 			return (actionName, params, callingOpts) => {
 				// Whitelist filtering
-				if (!isWhiteListed(_.isObject(actionName) ? actionName.action.name : actionName)) {
+				if (!isWhiteListed(isObject(actionName) ? actionName.action.name : actionName)) {
 					return next(actionName, params, callingOpts);
 				}
 

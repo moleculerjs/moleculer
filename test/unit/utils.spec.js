@@ -2,6 +2,24 @@ const utils = require("../../src/utils");
 const { protectReject } = require("./utils");
 const lolex = require("@sinonjs/fake-timers");
 
+
+describe("Test utils.isObject", () => {
+
+	it("should return true for POJOs and Arrays and false for anything else", () => {
+		expect(utils.isObject({})).toBe(true);
+		expect(utils.isObject([])).toBe(true);
+
+		expect(utils.isObject(null)).toBe(false);
+		expect(utils.isObject(function() {})).toBe(false);
+		expect(utils.isObject(()=>{})).toBe(false);
+		expect(utils.isObject(async ()=>{})).toBe(false);
+		expect(utils.isObject(class Dummy {})).toBe(false);
+		expect(utils.isObject(1)).toBe(false);
+		expect(utils.isObject("string")).toBe(false);
+		expect(utils.isObject(NaN)).toBe(false);
+	});
+});
+
 describe("Test utils.humanize", () => {
 
 	it("should humanize elapsed milliseconds", () => {

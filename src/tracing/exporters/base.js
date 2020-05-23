@@ -1,6 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../../utils");
 
 /**
  * Abstract Trace Exporter
@@ -91,7 +92,7 @@ class BaseTraceExporter {
 			const o = obj[k];
 			const pp = (path ? path + "." : "") + k;
 
-			if (_.isObject(o))
+			if (isObject(o))
 				Object.assign(res, this.flattenTags(o, convertToString, pp));
 			else if (o !== undefined) {
 				res[pp] = convertToString ? String(o) : o;

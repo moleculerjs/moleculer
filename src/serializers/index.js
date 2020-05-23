@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Serializers = {
@@ -46,7 +47,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid serializer type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "JSON");
 		if (SerializerClass)
 			return new SerializerClass(opt.options);

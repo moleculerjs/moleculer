@@ -145,7 +145,7 @@ class FileLogger extends FormattedLogger {
 			return null;
 
 		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
-		const printArgs = args => args.map(p => (_.isObject(p) || _.isArray(p)) ? this.objectPrinter(p) : p);
+		const printArgs = args => args.map(p => (isObject(p) || _.isArray(p)) ? this.objectPrinter(p) : p);
 
 		return (type, args) => {
 			const typeIdx = FormattedLogger.LEVELS.indexOf(type);

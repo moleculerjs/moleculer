@@ -9,6 +9,7 @@
 const _ 			= require("lodash");
 const crypto		= require("crypto");
 const { METRIC }	= require("../metrics");
+const { isObject }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -186,13 +187,13 @@ class Cacher {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
 					const val = this.getParamMetaValue(keys[0], params, meta);
-					return keyPrefix + this._hashedKey(_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+					return keyPrefix + this._hashedKey(isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 				}
 
 				if (keys.length > 0) {
 					return keyPrefix + this._hashedKey(keys.reduce((a, key, i) => {
 						const val = this.getParamMetaValue(key, params, meta);
-						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+						return a + (i ? "|" : "") + (isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 					}, ""));
 				}
 			}
@@ -221,7 +222,7 @@ class Cacher {
 		if (Array.isArray(obj)) {
 			return obj.map(o => this._generateKeyFromObject(o)).join("|");
 		}
-		else if (_.isObject(obj)) {
+		else if (isObject(obj)) {
 			return Object.keys(obj).map(key => [key, this._generateKeyFromObject(obj[key])].join("|")).join("|");
 		}
 		else if (obj != null) {
@@ -255,8 +256,8 @@ class Cacher {
 	 */
 	middleware() {
 		return (handler, action) => {
-			const opts = _.defaultsDeep({}, _.isObject(action.cache) ? action.cache : { enabled: !!action.cache });
-			opts.lock = _.defaultsDeep({}, _.isObject(opts.lock) ? opts.lock : { enabled: !!opts.lock });
+			const opts = _.defaultsDeep({}, isObject(action.cache) ? action.cache : { enabled: !!action.cache });
+			opts.lock = _.defaultsDeep({}, isObject(opts.lock) ? opts.lock : { enabled: !!opts.lock });
 			if (opts.enabled !== false) {
 				const isEnabledFunction = _.isFunction(opts.enabled);
 

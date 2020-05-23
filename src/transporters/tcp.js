@@ -8,6 +8,7 @@
 
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
+const { isObject }	= require("../utils");
 const fs 			= require("fs");
 const kleur 		= require("kleur");
 
@@ -209,7 +210,7 @@ class TcpTransporter extends Transporter {
 			.then(urls => {
 				if (_.isString(urls)) {
 					urls = urls.split(",").map(s => s.trim());
-				} else if (_.isObject(urls) && !Array.isArray(urls)) {
+				} else if (isObject(urls) && !Array.isArray(urls)) {
 					const list = [];
 					_.forIn(urls, (s, nodeID) => list.push(`${s}/${nodeID}`));
 					urls = list;

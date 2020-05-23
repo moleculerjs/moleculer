@@ -69,6 +69,10 @@ const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
 
 const utils = {
 
+	isObject(o) {
+		return o !== null && typeof o === "object";
+	},
+
 	humanize(milli) {
 		if (milli == null) return "?";
 

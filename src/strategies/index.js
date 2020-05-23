@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Strategies = {
@@ -45,7 +46,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "RoundRobin");
 		if (SerializerClass)
 			return SerializerClass;
