@@ -243,7 +243,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		let gstart = (startTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime) * 100;
 		let gstop = (finishTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime) * 100;
 
-		if (_.isNaN(gstart) && _.isNaN(gstop)) {
+		if (Number.isNaN(gstart) && Number.isNaN(gstop)) {
 			gstart = 0;
 			gstop = 100;
 		}
