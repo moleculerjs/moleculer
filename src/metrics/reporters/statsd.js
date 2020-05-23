@@ -146,7 +146,7 @@ class StatsDReporter extends BaseReporter {
 				return line;
 			}
 			case METRIC.TYPE_INFO: {
-				let line = `${metricName}:${_.isNumber(item.value) ? item.value : "\"" + item.value + "\""}|s`;
+				let line = `${metricName}:${typeof item.value == "number" ? item.value : "\"" + item.value + "\""}|s`;
 				if (metric.labelNames.length > 0)
 					line += "|#" + this.labelsToTags(item.labels);
 				return line;
