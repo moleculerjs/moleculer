@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Cachers = {
@@ -50,7 +51,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid cacher type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let CacherClass = getByName(opt.type || "Memory");
 		if (CacherClass)
 			return new CacherClass(opt.options);

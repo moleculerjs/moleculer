@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../../utils");
 const { BrokerOptionsError } = require("../../errors");
 
 const Exporters = {
@@ -48,7 +49,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let ExporterClass = getByName(opt.type);
 		if (ExporterClass)
 			return new ExporterClass(opt.options);

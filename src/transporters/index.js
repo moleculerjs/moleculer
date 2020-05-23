@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Transporters = {
@@ -68,7 +69,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid transporter type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let TransporterClass = getByName(opt.type || "NATS");
 
 		if (TransporterClass)

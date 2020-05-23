@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 const Base = require("./base");
 
@@ -51,7 +52,7 @@ function resolve(opt) {
 		if (LoggerClass)
 			return new LoggerClass();
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let LoggerClass = getByName(opt.type);
 		if (LoggerClass)
 			return new LoggerClass(opt.options);

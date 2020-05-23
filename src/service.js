@@ -9,6 +9,7 @@
 const _ 						= require("lodash");
 const functionArguments 		= require("fn-args");
 const { ServiceSchemaError, MoleculerError } 	= require("./errors");
+const { isObject }				= require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -50,7 +51,7 @@ class Service {
 	 * @memberof Service
 	 */
 	constructor(broker, schema) {
-		if (!_.isObject(broker))
+		if (!isObject(broker))
 			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
 		this.broker = broker;
@@ -68,7 +69,7 @@ class Service {
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {
-		if (!_.isObject(schema))
+		if (!isObject(schema))
 			throw new ServiceSchemaError("The service schema can't be null. Maybe is it not a service schema?");
 
 		this.originalSchema = _.cloneDeep(schema);
@@ -113,7 +114,7 @@ class Service {
 		};
 
 		// Register methods
-		if (_.isObject(schema.methods)) {
+		if (isObject(schema.methods)) {
 
 			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
@@ -126,7 +127,7 @@ class Service {
 		}
 
 		// Register actions
-		if (_.isObject(schema.actions)) {
+		if (isObject(schema.actions)) {
 			_.forIn(schema.actions, (action, name) => {
 				if (action === false)
 					return;
@@ -154,7 +155,7 @@ class Service {
 		}
 
 		// Event subscriptions
-		if (_.isObject(schema.events)) {
+		if (isObject(schema.events)) {
 			_.forIn(schema.events, (event, name) => {
 				const innerEvent = this._createEvent(event, name);
 				serviceSpecification.events[innerEvent.name] = innerEvent;
@@ -309,7 +310,7 @@ class Service {
 			action = {
 				handler: actionDef
 			};
-		} else if (_.isObject(actionDef)) {
+		} else if (isObject(actionDef)) {
 			action = _.cloneDeep(actionDef);
 		} else {
 			throw new ServiceSchemaError(`Invalid action definition in '${name}' action in '${this.fullName}' service!`);
@@ -350,7 +351,7 @@ class Service {
 			method = {
 				handler: methodDef
 			};
-		} else if (_.isObject(methodDef)) {
+		} else if (isObject(methodDef)) {
 			method = methodDef;
 		} else {
 			throw new ServiceSchemaError(`Invalid method definition in '${name}' method in '${this.fullName}' service!`);
@@ -385,7 +386,7 @@ class Service {
 			event = {
 				handler: eventDef
 			};
-		} else if (_.isObject(eventDef)) {
+		} else if (isObject(eventDef)) {
 			event = _.cloneDeep(eventDef);
 		} else {
 			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.fullName}' service!`);

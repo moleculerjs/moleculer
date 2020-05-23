@@ -905,7 +905,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	registerInternalServices(opts) {
-		opts = _.isObject(opts) ? opts : {};
+		opts = utils.isObject(opts) ? opts : {};
 		this.createService(require("./internals")(this), opts["$node"]);
 	}
 
@@ -1217,7 +1217,7 @@ class ServiceBroker {
 		if (Array.isArray(def)) {
 			return this.Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
 
-		} else if (_.isObject(def)) {
+		} else if (utils.isObject(def)) {
 			let results = {};
 			let promises = Object.keys(def).map(name => {
 				const item = def[name];

@@ -14,6 +14,7 @@ fetch.Promise = Promise;
 const { MoleculerError } = require("../errors");
 
 const util = require("util");
+const { isObject }	= require("../utils");
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -92,7 +93,7 @@ class DatadogLogger extends BaseLogger {
 
 		const printArgs = args => {
 			return args.map(p => {
-				if (_.isObject(p) || _.isArray(p))
+				if (isObject(p) || _.isArray(p))
 					return this.objectPrinter(p);
 				return p;
 			});

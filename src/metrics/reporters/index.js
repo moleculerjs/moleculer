@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isObject } = require("../../utils");
 const { BrokerOptionsError } = require("../../errors");
 
 const Reporters = {
@@ -44,7 +45,7 @@ function resolve(opt) {
 		if (ReporterClass)
 			return new ReporterClass();
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let ReporterClass = getByName(opt.type);
 		if (ReporterClass)
 			return new ReporterClass(opt.options);

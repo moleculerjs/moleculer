@@ -12,7 +12,7 @@ const BaseLogger 	= require("./base");
 const _ 			= require("lodash");
 const kleur 		= require("kleur");
 const util 			= require("util");
-//const { match }		= require("../utils");
+const { isObject }	= require("../utils");
 
 
 function getColor(type) {
@@ -121,7 +121,7 @@ class FormattedLogger extends BaseLogger {
 
 		const printArgs = args => {
 			return args.map(p => {
-				if (_.isObject(p) || _.isArray(p))
+				if (isObject(p) || _.isArray(p))
 					return this.objectPrinter(p);
 				return p;
 			});

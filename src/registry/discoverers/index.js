@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 const { BrokerOptionsError } = require("../../errors");
+const { isObject } = require("../../utils");
 
 const Discoverers = {
 	Base: require("./base"),
@@ -49,7 +50,7 @@ function resolve(opt) {
 
 		throw new BrokerOptionsError(`Invalid Discoverer type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let DiscovererClass = getByName(opt.type || "Local");
 		if (DiscovererClass)
 			return new DiscovererClass(opt.options);

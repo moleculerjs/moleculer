@@ -2,6 +2,7 @@
 
 const _ 					= require("lodash");
 const BaseTraceExporter 	= require("./base");
+const { isObject }			= require("../../utils");
 
 /**
  * Event Trace Exporter. It sends same trace events as in Moleculer <= v0.13.
@@ -133,7 +134,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 */
 	processExtraMetrics(ctx, payload) {
 		// extra metrics (params and meta)
-		if (_.isObject(ctx.action.metrics)) {
+		if (isObject(ctx.action.metrics)) {
 			// custom metrics def
 			this.assignExtraMetrics(ctx, "params", payload);
 			this.assignExtraMetrics(ctx, "meta", payload);

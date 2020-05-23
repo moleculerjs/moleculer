@@ -15,6 +15,9 @@ jest.mock("../../src/utils", () => ({
 	getIpList() { return []; },
 	safetyObject(obj) { return obj; },
 	isPromise(p) {return p && p.then != null; },
+	isObject(o) {
+		return o !== null && typeof o === "object";
+	},
 	polyfillPromise(p) {
 		return polyfillPromise(p);
 	}
