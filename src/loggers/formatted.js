@@ -121,7 +121,7 @@ class FormattedLogger extends BaseLogger {
 
 		const printArgs = args => {
 			return args.map(p => {
-				if (isObject(p) || _.isArray(p))
+				if (isObject(p) || Array.isArray(p))
 					return this.objectPrinter(p);
 				return p;
 			});

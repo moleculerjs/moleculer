@@ -117,7 +117,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		// if metrics definitions is boolean do default, metrics=true
 		if (def === true) {
 			payload[name] = ctx[name];
-		} else if (_.isArray(def)) {
+		} else if (Array.isArray(def)) {
 			payload[name] = _.pick(ctx[name], def);
 		} else if (_.isFunction(def)) {
 			payload[name] = def(ctx[name]);
