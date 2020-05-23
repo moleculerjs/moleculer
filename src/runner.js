@@ -154,7 +154,7 @@ class MoleculerRunner {
 							else
 								return content;
 						})
-						.then(res => this.configFile = res);
+						.then(res => this.configFile = res.default != null && res.__esModule ? res.default : res);
 				}
 				default: return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
