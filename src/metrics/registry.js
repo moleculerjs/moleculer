@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match } = require("../utils");
+const { match, isFunction } = require("../utils");
 const METRIC = require("./constants");
 const Types = require("./types");
 const Reporters = require("./reporters");
@@ -192,7 +192,7 @@ class MetricRegistry {
 			return null;
 
 		const item = this.getMetric(name);
-		if (!_.isFunction(item.increment))
+		if (!isFunction(item.increment))
 			throw new Error("Invalid metric type. Incrementing works only with counter & gauge metric types.");
 
 		return item.increment(labels, value, timestamp);
@@ -213,7 +213,7 @@ class MetricRegistry {
 			return null;
 
 		const item = this.getMetric(name);
-		if (!_.isFunction(item.decrement))
+		if (!isFunction(item.decrement))
 			throw new Error("Invalid metric type. Decrementing works only with gauge metric type.");
 
 		return item.decrement(labels, value, timestamp);
@@ -234,7 +234,7 @@ class MetricRegistry {
 			return null;
 
 		const item = this.getMetric(name);
-		if (!_.isFunction(item.set))
+		if (!isFunction(item.set))
 			throw new Error("Invalid metric type. Value setting works only with counter, gauge & info metric types.");
 
 		return item.set(value, labels, timestamp);
@@ -255,7 +255,7 @@ class MetricRegistry {
 			return null;
 
 		const item = this.getMetric(name);
-		if (!_.isFunction(item.observe))
+		if (!isFunction(item.observe))
 			throw new Error("Invalid metric type. Observing works only with histogram metric type.");
 
 		return item.observe(value, labels, timestamp);
@@ -307,7 +307,7 @@ class MetricRegistry {
 		let item;
 		if (name && this.opts.enabled) {
 			item = this.getMetric(name);
-			if (!_.isFunction(item.observe) && !_.isFunction(item.set)) {
+			if (!isFunction(item.observe) && !isFunction(item.set)) {
 				/* istanbul ignore next */
 				throw new Error("Invalid metric type. Timing works only with histogram or gauge metric types");
 			}

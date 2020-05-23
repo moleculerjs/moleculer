@@ -7,11 +7,12 @@
 "use strict";
 
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
 
 	function callHook(hook, service, ctx, res) {
-		if (_.isFunction(hook)) {
+		if (isFunction(hook)) {
 			return hook.call(service, ctx, res);
 		} else if (Array.isArray(hook)) {
 			return hook.reduce((p, fn) => p.then(res => fn.call(service, ctx, res)), broker.Promise.resolve(res));
@@ -19,7 +20,7 @@ module.exports = function actionHookMiddleware(broker) {
 	}
 
 	function callErrorHook(hook, service, ctx, err) {
-		if (_.isFunction(hook)) {
+		if (isFunction(hook)) {
 			return hook.call(service, ctx, err);
 		} else if (Array.isArray(hook)) {
 			return hook.reduce((p, fn) => p.catch(err => fn.call(service, ctx, err)), broker.Promise.reject(err));
@@ -35,12 +36,12 @@ module.exports = function actionHookMiddleware(broker) {
 	 */
 	function sanitizeHooks(hooks, service) {
 		if (_.isString(hooks))
-			return service && _.isFunction(service[hooks]) ? service[hooks] : null;
+			return service && isFunction(service[hooks]) ? service[hooks] : null;
 
 		if (Array.isArray(hooks)) {
 			return _.compact(hooks.map(h => {
 				if (_.isString(h))
-					return service && _.isFunction(service[h]) ? service[h] : null;
+					return service && isFunction(service[h]) ? service[h] : null;
 
 				return h;
 			}));

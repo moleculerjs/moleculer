@@ -9,6 +9,7 @@
 const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 const { METRIC }	= require("../metrics");
+const { isFunction } = require("../utils");
 
 module.exports = function FallbackMiddleware(broker) {
 
@@ -17,7 +18,7 @@ module.exports = function FallbackMiddleware(broker) {
 		broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: ctx.action.name });
 		ctx.fallbackResult = true;
 
-		if (_.isFunction(ctx.options.fallbackResponse))
+		if (isFunction(ctx.options.fallbackResponse))
 			return ctx.options.fallbackResponse(ctx, err);
 		else
 			return Promise.resolve(ctx.options.fallbackResponse);
@@ -38,7 +39,7 @@ module.exports = function FallbackMiddleware(broker) {
 					const svc = action.service;
 
 					const fallback = _.isString(action.fallback) ? svc[action.fallback] : action.fallback;
-					if (!_.isFunction(fallback)) {
+					if (!isFunction(fallback)) {
 						/* istanbul ignore next */
 						throw new MoleculerError(`The 'fallback' of '${action.name}' action is not a Function or valid method name: ${action.fallback}`);
 					}

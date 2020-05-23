@@ -11,6 +11,7 @@ const Exporters = require("./exporters");
 //const AsyncStorage = require("../async-storage");
 const RateLimiter = require("./rate-limiter");
 const Span = require("./span");
+const { isFunction } = require("../utils");
 
 /**
  * Moleculer Tracer class
@@ -80,7 +81,7 @@ class Tracer {
 	init() {
 		if (this.opts.enabled) {
 
-			this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, this) : this.opts.defaultTags;
+			this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, this) : this.opts.defaultTags;
 
 			// Create Exporter instances
 			if (this.opts.exporter) {

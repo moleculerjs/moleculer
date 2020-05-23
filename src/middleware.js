@@ -9,7 +9,7 @@
 const _ 			= require("lodash");
 const Middlewares 	= require("./middlewares");
 const { BrokerOptionsError } = require("./errors");
-const { isObject }	= require("./utils");
+const { isObject, isFunction }	= require("./utils");
 
 class MiddlewareHandler {
 
@@ -31,14 +31,14 @@ class MiddlewareHandler {
 			mw = found;
 		}
 
-		if (_.isFunction(mw))
+		if (isFunction(mw))
 			mw = mw.call(this.broker, this.broker);
 
 		if (!isObject(mw))
 			throw new BrokerOptionsError(`Invalid middleware type '${typeof mw}'. Accepted only Object of Function.`, { type: typeof mw });
 
 		Object.keys(mw).forEach(key => {
-			if (_.isFunction(mw[key])) {
+			if (isFunction(mw[key])) {
 				if (Array.isArray(this.registeredHooks[key]))
 					this.registeredHooks[key].push(mw[key]);
 				else

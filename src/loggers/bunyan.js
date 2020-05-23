@@ -8,6 +8,7 @@
 
 const BaseLogger = require("./base");
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 /**
  * Bunyan logger for Moleculer
@@ -59,7 +60,7 @@ class BunyanLogger extends BaseLogger {
 		if (!level)
 			return null;
 
-		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.bunyan.child({ level, ...bindings });
+		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.bunyan.child({ level, ...bindings });
 
 		return (type, args) => logger[type](...args);
 	}

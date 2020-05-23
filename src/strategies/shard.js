@@ -10,6 +10,7 @@ const _ = require("lodash");
 const BaseStrategy = require("./base");
 const crypto = require("crypto");
 const LRU = require("lru-cache");
+const { isFunction } = require("../utils");
 
 /**
  * Sharding invocation strategy
@@ -51,7 +52,7 @@ class ShardStrategy extends BaseStrategy {
 	getKeyFromContext(ctx) {
 		if (!this.opts.shardKey)  return null;
 
-		if (_.isFunction(this.opts.shardKey))
+		if (isFunction(this.opts.shardKey))
 			return this.opts.shardKey.call(this, ctx);
 
 		if (this.opts.shardKey.startsWith("#"))

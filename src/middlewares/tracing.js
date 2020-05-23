@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isFunction } = require("../utils");
 
 module.exports = function TracingMiddleware(broker) {
 
@@ -39,7 +40,7 @@ module.exports = function TracingMiddleware(broker) {
 					}
 				};
 
-				if (_.isFunction(opts.tags)) {
+				if (isFunction(opts.tags)) {
 					const res = opts.tags.call(ctx.service, ctx);
 					if (res)
 						Object.assign(tags, res);
@@ -86,7 +87,7 @@ module.exports = function TracingMiddleware(broker) {
 						fromCache: ctx.cachedResult
 					};
 
-					if (_.isFunction(opts.tags)) {
+					if (isFunction(opts.tags)) {
 						const r = opts.tags.call(ctx.service, ctx, res);
 						if (r)
 							Object.assign(tags, r);
@@ -144,7 +145,7 @@ module.exports = function TracingMiddleware(broker) {
 					nodeID: broker.nodeID
 				};
 
-				if (_.isFunction(opts.tags)) {
+				if (isFunction(opts.tags)) {
 					const res = opts.tags.call(service, ctx);
 					if (res)
 						Object.assign(tags, res);

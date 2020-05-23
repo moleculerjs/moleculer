@@ -9,7 +9,7 @@
 const _ 			= require("lodash");
 const crypto		= require("crypto");
 const { METRIC }	= require("../metrics");
-const { isObject }	= require("../utils");
+const { isObject, isFunction }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -243,7 +243,7 @@ class Cacher {
 	 * @returns {String}
 	 */
 	getCacheKey(actionName, params, meta, keys) {
-		if (_.isFunction(this.opts.keygen))
+		if (isFunction(this.opts.keygen))
 			return this.opts.keygen.call(this, actionName, params, meta, keys);
 		else
 			return this.defaultKeygen(actionName, params, meta, keys);
@@ -259,7 +259,7 @@ class Cacher {
 			const opts = _.defaultsDeep({}, isObject(action.cache) ? action.cache : { enabled: !!action.cache });
 			opts.lock = _.defaultsDeep({}, isObject(opts.lock) ? opts.lock : { enabled: !!opts.lock });
 			if (opts.enabled !== false) {
-				const isEnabledFunction = _.isFunction(opts.enabled);
+				const isEnabledFunction = isFunction(opts.enabled);
 
 				return function cacherMiddleware(ctx) {
 					if (isEnabledFunction) {

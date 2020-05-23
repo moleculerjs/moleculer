@@ -90,7 +90,7 @@ class FileLogger extends FormattedLogger {
 			return a;
 		}, {});
 
-		if (_.isFunction(this.opts.formatter))
+		if (isFunction(this.opts.formatter))
 			return this.opts.formatter;
 
 		if (this.opts.formatter == "json")

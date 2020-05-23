@@ -1,8 +1,8 @@
 "use strict";
 
-const _ 					= require("lodash");
-const BaseTraceExporter 	= require("./base");
-const { isObject }			= require("../../utils");
+const _ 						= require("lodash");
+const BaseTraceExporter 		= require("./base");
+const { isObject, isFunction }	= require("../../utils");
 
 /**
  * Event Trace Exporter. It sends same trace events as in Moleculer <= v0.13.
@@ -119,7 +119,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 			payload[name] = ctx[name];
 		} else if (_.isArray(def)) {
 			payload[name] = _.pick(ctx[name], def);
-		} else if (_.isFunction(def)) {
+		} else if (isFunction(def)) {
 			payload[name] = def(ctx[name]);
 		}
 	}

@@ -3,6 +3,7 @@
 const _ 					= require("lodash");
 const fetch 				= require("node-fetch");
 const BaseTraceExporter 	= require("./base");
+const { isFunction } 		= require("../../utils");
 
 /**
  * Trace Exporter for NewRelic using Zipkin data.
@@ -65,7 +66,7 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 			this.timer.unref();
 		}
 
-		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}

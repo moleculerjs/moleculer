@@ -275,7 +275,7 @@ class ServiceBroker {
 			this.callMiddlewareHookSync("created", [this]);
 
 			// Call `created` event handler from options
-			if (_.isFunction(this.options.created))
+			if (utils.isFunction(this.options.created))
 				this.options.created(this);
 
 			// Graceful exit
@@ -327,7 +327,7 @@ class ServiceBroker {
 			this.middlewares.add("ActionHook");
 
 			// 1. Validator
-			if (this.validator && _.isFunction(this.validator.middleware)) {
+			if (this.validator && utils.isFunction(this.validator.middleware)) {
 				const mw = this.validator.middleware(this);
 				if (_.isPlainObject(mw))
 					this.middlewares.add(mw);
@@ -339,7 +339,7 @@ class ServiceBroker {
 			this.middlewares.add("Bulkhead");
 
 			// 3. Cacher
-			if (this.cacher && _.isFunction(this.cacher.middleware)) {
+			if (this.cacher && utils.isFunction(this.cacher.middleware)) {
 				const mw = this.cacher.middleware();
 				if (_.isPlainObject(mw))
 					this.middlewares.add(mw);
@@ -461,7 +461,7 @@ class ServiceBroker {
 				return this.callMiddlewareHook("started", [this]);
 			})
 			.then(() => {
-				if (_.isFunction(this.options.started))
+				if (utils.isFunction(this.options.started))
 					return this.options.started(this);
 			})
 			.then(() => {
@@ -523,7 +523,7 @@ class ServiceBroker {
 				return this.callMiddlewareHook("stopped", [this], { reverse: true });
 			})
 			.then(() => {
-				if (_.isFunction(this.options.stopped))
+				if (utils.isFunction(this.options.stopped))
 					return this.options.stopped(this);
 			})
 			.catch(err => {
@@ -751,7 +751,7 @@ class ServiceBroker {
 				if (this.started)
 					this._restartService(svc);
 
-			} else if (_.isFunction(schema)) {
+			} else if (utils.isFunction(schema)) {
 				// Function
 				svc = schema(this);
 				if (!(svc instanceof this.ServiceFactory)) {

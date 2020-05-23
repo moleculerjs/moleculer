@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const path = require("path");
 const _ = require("lodash");
 
-const { clearRequireCache, makeDirs } = require("../utils");
+const { clearRequireCache, makeDirs, isFunction } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -97,7 +97,7 @@ module.exports = function HotReloadMiddleware(broker) {
 					watchItem.others.forEach(f => clearRequireCache(f));
 				}
 
-				if (watchItem.brokerRestart && broker.runner && _.isFunction(broker.runner.restartBroker)) {
+				if (watchItem.brokerRestart && broker.runner && isFunction(broker.runner.restartBroker)) {
 					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache

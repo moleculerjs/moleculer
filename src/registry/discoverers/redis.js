@@ -12,7 +12,7 @@ const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
-const { removeFromArray } = require("../../utils");
+const { removeFromArray, isFunction } = require("../../utils");
 
 let Redis;
 
@@ -111,7 +111,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.logger.error(err);
 		});
 
-		if (this.opts.monitor && _.isFunction(this.client.monitor)) {
+		if (this.opts.monitor && isFunction(this.client.monitor)) {
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis Discoverer entering monitoring mode...");
 				monitor.on("monitor", (time, args/*, source, database*/) => this.logger.debug(args));

@@ -2,6 +2,7 @@
 
 const _ 					= require("lodash");
 const BaseTraceExporter 	= require("./base");
+const { isFunction } 		= require("../../utils");
 
 /**
  * Event Trace Exporter.
@@ -55,7 +56,7 @@ class EventTraceExporter extends BaseTraceExporter {
 			this.timer.unref();
 		}
 
-		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 	}
 
 	/**
@@ -124,7 +125,7 @@ class EventTraceExporter extends BaseTraceExporter {
 	 * @memberof EventTraceExporter
 	 */
 	generateTracingData() {
-		if (_.isFunction(this.opts.spanConverter))
+		if (isFunction(this.opts.spanConverter))
 			return this.queue.map(span => this.opts.spanConverter.call(this, span));
 
 		return Array.from(this.queue);

@@ -10,6 +10,7 @@ const BaseReporter = require("./base");
 const _ = require("lodash");
 const kleur = require("kleur");
 const METRIC = require("../constants");
+const { isFunction } = require("../../utils");
 
 /**
  * Console reporter for Moleculer Metrics
@@ -161,7 +162,7 @@ class ConsoleReporter extends BaseReporter {
 	 * @param  {...any} args
 	 */
 	log(...args) {
-		if (_.isFunction(this.opts.logger)) {
+		if (isFunction(this.opts.logger)) {
 			return this.opts.logger(...args);
 		} else {
 			return this.logger.info(...args);
