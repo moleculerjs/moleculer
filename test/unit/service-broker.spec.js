@@ -28,6 +28,7 @@ jest.mock("../../src/utils", () => ({
 polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
 
 const utils = require("../../src/utils");
+utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
 
 const { protectReject } = require("./utils");
 const path = require("path");

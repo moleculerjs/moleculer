@@ -873,7 +873,7 @@ class ServiceBroker {
 				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
 			})
 			.then(() => {
-				_.remove(this.services, svc => svc == service);
+				utils.removeFromArray(this.services, service);
 				this.registry.unregisterService(service.fullName, this.nodeID);
 
 				this.logger.info(`Service '${service.fullName}' is stopped.`);

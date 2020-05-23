@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 const ServiceItem = require("./service-item");
+const { removeFromArray } = require("../utils");
 
 /**
  * Catalog for services
@@ -218,7 +219,7 @@ class ServiceCatalog {
 			this.registry.actions.removeByService(service);
 			this.registry.events.removeByService(service);
 
-			_.remove(this.services, svc => svc == service);
+			removeFromArray(this.services, service);
 		}
 	}
 }
