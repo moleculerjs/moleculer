@@ -37,6 +37,15 @@ describe("Test utils.isFunction", () => {
 	});
 });
 
+describe("Test utils.flatten", () => {
+
+	it("should flat the array", () => {
+		expect(utils.flatten([])).toEqual([]);
+		expect(utils.flatten([1,2])).toEqual([1,2]);
+		expect(utils.flatten([1,[2], [3, [4], 5]])).toEqual([1, 2, 3, [4], 5]);
+	});
+});
+
 describe("Test utils.humanize", () => {
 
 	it("should humanize elapsed milliseconds", () => {

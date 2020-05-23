@@ -8,6 +8,7 @@
 
 const _	= require("lodash");
 const P = require("../packets");
+const { flatten } = require("../utils");
 const { BrokerDisconnectedError } = require("../errors");
 
 /**
@@ -274,7 +275,7 @@ class BaseTransporter {
 					}));
 				}
 
-				return this.broker.Promise.all(_.compact(_.flatten(p, true)));
+				return this.broker.Promise.all(_.compact(flatten(p, true)));
 			}));
 		});
 	}

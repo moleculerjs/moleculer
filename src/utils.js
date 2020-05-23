@@ -77,6 +77,10 @@ const utils = {
 		return o !== null && typeof o === "object";
 	},
 
+	flatten(arr) {
+		return Array.prototype.reduce.call(arr, (a, b) => a.concat(b), []);
+	},
+
 	humanize(milli) {
 		if (milli == null) return "?";
 

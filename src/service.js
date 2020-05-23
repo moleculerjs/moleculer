@@ -9,7 +9,7 @@
 const _ 						= require("lodash");
 const functionArguments 		= require("fn-args");
 const { ServiceSchemaError, MoleculerError } 	= require("./errors");
-const { isObject, isFunction }	= require("./utils");
+const { isObject, isFunction, flatten }	= require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -613,7 +613,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaUniqArray(src, target) {
-		return _.uniqWith(_.compact(_.flatten([src, target])), _.isEqual);
+		return _.uniqWith(_.compact(flatten([src, target])), _.isEqual);
 	}
 
 	/**
@@ -647,7 +647,7 @@ class Service {
 				const modHook = wrapToArray(src[k][k2]);
 				const resHook = wrapToArray(target[k][k2]);
 
-				target[k][k2] = _.compact(_.flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
+				target[k][k2] = _.compact(flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
 			});
 		});
 
@@ -678,7 +678,7 @@ class Service {
 					const modHook = wrapToArray(srcAction.hooks[k]);
 					const resHook = wrapToArray(targetAction.hooks[k]);
 
-					srcAction.hooks[k] = _.compact(_.flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
+					srcAction.hooks[k] = _.compact(flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
 				});
 			}
 
@@ -715,7 +715,7 @@ class Service {
 			const modEvent = wrapToHander(src[k]);
 			const resEvent = wrapToHander(target[k]);
 
-			let handler = _.compact(_.flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null]));
+			let handler = _.compact(flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null]));
 			if (handler.length == 1) handler = handler[0];
 
 			target[k] = _.defaultsDeep(modEvent, resEvent);
@@ -735,7 +735,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaLifecycleHandlers(src, target) {
-		return _.compact(_.flatten([target, src]));
+		return _.compact(flatten([target, src]));
 	}
 
 	/**
