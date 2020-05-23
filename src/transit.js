@@ -582,7 +582,7 @@ class Transit {
 		req.ctx.nodeID = packet.sender;
 
 		// Merge response meta with original meta
-		_.assign(req.ctx.meta, packet.meta);
+		Object.assign(req.ctx.meta || {}, packet.meta || {});
 
 		// Handle stream response
 		if (packet.stream != null) {

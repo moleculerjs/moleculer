@@ -141,7 +141,7 @@ class Context {
 
 		// Meta
 		if (opts.parentCtx != null && opts.parentCtx.meta != null)
-			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
+			ctx.meta = Object.assign({}, opts.parentCtx.meta || {}, opts.meta || {});
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 

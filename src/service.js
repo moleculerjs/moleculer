@@ -698,7 +698,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaMethods(src, target) {
-		return _.assign(target, src);
+		return Object.assign(target || {}, src || {});
 	}
 
 	/**
