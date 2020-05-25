@@ -6,8 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
-const { isObject } = require("../../utils");
+const { isObject, isString } = require("../../utils");
 const { BrokerOptionsError } = require("../../errors");
 
 const Reporters = {
@@ -40,7 +39,7 @@ function getByName(name) {
 function resolve(opt) {
 	if (opt instanceof Reporters.Base) {
 		return opt;
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let ReporterClass = getByName(opt);
 		if (ReporterClass)
 			return new ReporterClass();

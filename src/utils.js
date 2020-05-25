@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _ 		= require("lodash");
 const kleur		= require("kleur");
 const os 	 	= require("os");
 const path 	 	= require("path");
@@ -71,6 +70,10 @@ const utils = {
 
 	isFunction(fn) {
 		return typeof fn === "function";
+	},
+
+	isString(s) {
+		return typeof s === "string";
 	},
 
 	isObject(o) {

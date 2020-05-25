@@ -8,7 +8,7 @@
 
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
-const { isObject }	= require("../utils");
+const { isObject, isString }	= require("../utils");
 const fs 			= require("fs");
 const kleur 		= require("kleur");
 
@@ -44,7 +44,7 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	constructor(opts) {
-		if (_.isString(opts))
+		if (isString(opts))
 			opts = { urls: opts };
 
 		super(opts);
@@ -192,7 +192,7 @@ class TcpTransporter extends Transporter {
 
 		return this.Promise.resolve(this.opts.urls)
 			.then(str => {
-				if (_.isString(str) && str.startsWith("file://")) {
+				if (isString(str) && str.startsWith("file://")) {
 					const fName = str.replace("file://", "");
 					this.logger.debug(`Load nodes list from file '${fName}'...`);
 					let content = fs.readFileSync(fName);
@@ -208,7 +208,7 @@ class TcpTransporter extends Transporter {
 				return str;
 			})
 			.then(urls => {
-				if (_.isString(urls)) {
+				if (isString(urls)) {
 					urls = urls.split(",").map(s => s.trim());
 				} else if (isObject(urls) && !Array.isArray(urls)) {
 					const list = [];

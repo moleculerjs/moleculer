@@ -24,6 +24,9 @@ jest.mock("../../src/utils", () => ({
 	isFunction(fn) {
 		return typeof fn === "function";
 	},
+	isString(s) {
+		return typeof s === "string";
+	},
 	polyfillPromise(p) {
 		return polyfillPromise(p);
 	}

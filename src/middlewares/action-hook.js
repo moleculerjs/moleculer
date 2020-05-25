@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isFunction } = require("../utils");
+const { isFunction, isString } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
 
@@ -35,12 +35,12 @@ module.exports = function actionHookMiddleware(broker) {
 	 * @returns
 	 */
 	function sanitizeHooks(hooks, service) {
-		if (_.isString(hooks))
+		if (isString(hooks))
 			return service && isFunction(service[hooks]) ? service[hooks] : null;
 
 		if (Array.isArray(hooks)) {
 			return _.compact(hooks.map(h => {
-				if (_.isString(h))
+				if (isString(h))
 					return service && isFunction(service[h]) ? service[h] : null;
 
 				return h;

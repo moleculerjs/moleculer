@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isPlainObject } = require("./utils");
+const { isPlainObject, isString } = require("./utils");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
@@ -57,7 +57,7 @@ class LoggerFactory {
 
 			this.appenders = _.compact(opts).map(o => {
 				// Built-in shorthand
-				if (_.isString(o))
+				if (isString(o))
 					return Loggers.resolve({ type: o, options: { level: globalLogLevel } });
 
 				// Build-in with options

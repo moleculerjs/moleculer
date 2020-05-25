@@ -853,7 +853,7 @@ class ServiceBroker {
 	destroyService(service) {
 		let serviceName;
 		let serviceVersion;
-		if (_.isString(service)) {
+		if (utils.isString(service)) {
 			serviceName = service;
 			service = this.getLocalService(service);
 		} else if (utils.isPlainObject(service)) {
@@ -924,7 +924,7 @@ class ServiceBroker {
 	 */
 	getLocalService(name, version) {
 		if (arguments.length == 1) {
-			if (_.isString(name))
+			if (utils.isString(name))
 				return this.services.find(service => service.fullName == name);
 			else if (utils.isPlainObject(name))
 				return this.services.find(service => service.name == name.name && service.version == name.version);
@@ -951,7 +951,7 @@ class ServiceBroker {
 			if (utils.isPlainObject(x) && x.name)
 				return this.ServiceFactory.getVersionedFullName(x.name, x.version);
 
-			if (_.isString(x))
+			if (utils.isString(x))
 				return x;
 		})));
 
@@ -1248,7 +1248,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	emit(eventName, payload, opts) {
-		if (Array.isArray(opts) || _.isString(opts))
+		if (Array.isArray(opts) || utils.isString(opts))
 			opts = { groups: opts };
 		else if (opts == null)
 			opts = {};
@@ -1333,7 +1333,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcast(eventName, payload, opts) {
-		if (Array.isArray(opts) || _.isString(opts))
+		if (Array.isArray(opts) || utils.isString(opts))
 			opts = { groups: opts };
 		else if (opts == null)
 			opts = {};
@@ -1396,7 +1396,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, opts) {
-		if (Array.isArray(opts) || _.isString(opts))
+		if (Array.isArray(opts) || utils.isString(opts))
 			opts = { groups: opts };
 		else if (opts == null)
 			opts = {};
@@ -1428,7 +1428,7 @@ class ServiceBroker {
 	 */
 	ping(nodeID, timeout = 2000) {
 		if (this.transit && this.transit.connected) {
-			if (_.isString(nodeID)) {
+			if (utils.isString(nodeID)) {
 				// Ping a single node
 				return new this.Promise(resolve => {
 

@@ -6,8 +6,6 @@
 
 "use strict";
 
-const _ 				= require("lodash");
-
 const P 				= require("./packets");
 const { Packet } 		= require("./packets");
 const E 				= require("./errors");

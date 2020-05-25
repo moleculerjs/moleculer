@@ -96,7 +96,7 @@ class FileLogger extends FormattedLogger {
 		if (this.opts.formatter == "json")
 			return row => JSON.stringify(row);
 
-		if (_.isString(this.opts.formatter)) {
+		if (isString(this.opts.formatter)) {
 			let format = this.opts.formatter;
 			if (this.opts.formatter == "full")
 				format = "[{timestamp}] {level} {nodeID}/{mod}: {msg}";

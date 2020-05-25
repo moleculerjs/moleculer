@@ -6,8 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
-const { isObject } = require("../utils");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Transporters = {
@@ -42,7 +41,7 @@ function getByName(name) {
 function resolve(opt) {
 	if (opt instanceof Transporters.Base) {
 		return opt;
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let TransporterClass = getByName(opt);
 		if (TransporterClass)
 			return new TransporterClass();

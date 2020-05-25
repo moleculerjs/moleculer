@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match } = require("../../utils");
+const { match, isString } = require("../../utils");
 
 /**
  * Metric reporter base class.
@@ -34,10 +34,10 @@ class BaseReporter {
 			labelNameFormatter: null,
 		});
 
-		if (_.isString(this.opts.includes))
+		if (isString(this.opts.includes))
 			this.opts.includes = [this.opts.includes];
 
-		if (_.isString(this.opts.excludes))
+		if (isString(this.opts.excludes))
 			this.opts.excludes = [this.opts.excludes];
 	}
 

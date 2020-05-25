@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match, isFunction, isPlainObject } = require("../utils");
+const { match, isFunction, isPlainObject, isString} = require("../utils");
 const METRIC = require("./constants");
 const Types = require("./types");
 const Reporters = require("./reporters");
@@ -357,9 +357,9 @@ class MetricRegistry {
 		const res = [];
 		opts = opts || {};
 
-		const types = opts.types != null ? (_.isString(opts.types) ? [opts.types] : opts.types) : null;
-		const includes = opts.includes != null ? (_.isString(opts.includes) ? [opts.includes] : opts.includes) : null;
-		const excludes = opts.excludes != null ? (_.isString(opts.excludes) ? [opts.excludes] : opts.excludes) : null;
+		const types = opts.types != null ? (isString(opts.types) ? [opts.types] : opts.types) : null;
+		const includes = opts.includes != null ? (isString(opts.includes) ? [opts.includes] : opts.includes) : null;
+		const excludes = opts.excludes != null ? (isString(opts.excludes) ? [opts.excludes] : opts.excludes) : null;
 
 		this.store.forEach(metric => {
 			if (types && !types.some(type => metric.type == type))
