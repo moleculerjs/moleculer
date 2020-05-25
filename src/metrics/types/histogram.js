@@ -10,7 +10,7 @@ const BaseMetric = require("./base");
 const _ = require("lodash");
 const METRIC = require("../constants");
 const MetricRate = require("../rates");
-const { isPlainObject } = require("../../utils")
+const { isPlainObject } = require("../../utils");
 const sortAscending = (a, b) => a - b;
 const setProp = (o, k, v) => {
 	o[k] = v;

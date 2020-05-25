@@ -8,7 +8,6 @@
 
 const _ = require("lodash");
 const { isPlainObject, isString } = require("./utils");
-const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
 const noop = () => {};

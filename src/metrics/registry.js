@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match, isFunction, isPlainObject, isString} = require("../utils");
+const { match, isFunction, isPlainObject, isString } = require("../utils");
 const METRIC = require("./constants");
 const Types = require("./types");
 const Reporters = require("./reporters");

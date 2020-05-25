@@ -81,7 +81,7 @@ const utils = {
 	},
 
 	isPlainObject(o) {
-		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false
+		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
 
 	flatten(arr) {

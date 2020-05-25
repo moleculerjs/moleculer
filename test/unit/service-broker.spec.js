@@ -19,7 +19,7 @@ jest.mock("../../src/utils", () => ({
 		return o !== null && typeof o === "object";
 	},
 	isPlainObject(o) {
-		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false
+		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
 	isFunction(fn) {
 		return typeof fn === "function";
