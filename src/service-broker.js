@@ -329,7 +329,7 @@ class ServiceBroker {
 			// 1. Validator
 			if (this.validator && utils.isFunction(this.validator.middleware)) {
 				const mw = this.validator.middleware(this);
-				if (_.isPlainObject(mw))
+				if (utils.isPlainObject(mw))
 					this.middlewares.add(mw);
 				else
 					this.middlewares.add({ localAction: mw });
@@ -341,7 +341,7 @@ class ServiceBroker {
 			// 3. Cacher
 			if (this.cacher && utils.isFunction(this.cacher.middleware)) {
 				const mw = this.cacher.middleware();
-				if (_.isPlainObject(mw))
+				if (utils.isPlainObject(mw))
 					this.middlewares.add(mw);
 				else
 					this.middlewares.add({ localAction: mw });
@@ -856,7 +856,7 @@ class ServiceBroker {
 		if (_.isString(service)) {
 			serviceName = service;
 			service = this.getLocalService(service);
-		} else if (_.isPlainObject(service)) {
+		} else if (utils.isPlainObject(service)) {
 			serviceName = service.name;
 			serviceVersion  = service.version;
 			service = this.getLocalService(service.name, service.version);
@@ -926,7 +926,7 @@ class ServiceBroker {
 		if (arguments.length == 1) {
 			if (_.isString(name))
 				return this.services.find(service => service.fullName == name);
-			else if (_.isPlainObject(name))
+			else if (utils.isPlainObject(name))
 				return this.services.find(service => service.name == name.name && service.version == name.version);
 		}
 		// Deprecated
@@ -948,7 +948,7 @@ class ServiceBroker {
 			serviceNames = [serviceNames];
 
 		serviceNames = _.uniq(_.compact(serviceNames.map(x => {
-			if (_.isPlainObject(x) && x.name)
+			if (utils.isPlainObject(x) && x.name)
 				return this.ServiceFactory.getVersionedFullName(x.name, x.version);
 
 			if (_.isString(x))

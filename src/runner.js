@@ -181,7 +181,7 @@ class MoleculerRunner {
 				obj[key] = this.normalizeEnvValue(process.env[envName]);
 			}
 
-			if (_.isPlainObject(obj[key]))
+			if (utils.isPlainObject(obj[key]))
 				obj[key] = this.overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
 

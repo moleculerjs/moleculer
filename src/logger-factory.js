@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { isPlainObject } = require("./utils");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
@@ -60,7 +61,7 @@ class LoggerFactory {
 					return Loggers.resolve({ type: o, options: { level: globalLogLevel } });
 
 				// Build-in with options
-				if (_.isPlainObject(o))
+				if (isPlainObject(o))
 					return Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } }));
 
 				// Custom logger instance

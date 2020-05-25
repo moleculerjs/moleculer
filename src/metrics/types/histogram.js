@@ -10,7 +10,7 @@ const BaseMetric = require("./base");
 const _ = require("lodash");
 const METRIC = require("../constants");
 const MetricRate = require("../rates");
-
+const { isPlainObject } = require("../../utils")
 const sortAscending = (a, b) => a - b;
 const setProp = (o, k, v) => {
 	o[k] = v;
@@ -36,9 +36,9 @@ class HistogramMetric extends BaseMetric {
 		this.type = METRIC.TYPE_HISTOGRAM;
 
 		// Create buckets
-		if (_.isPlainObject(opts.linearBuckets)) {
+		if (isPlainObject(opts.linearBuckets)) {
 			this.buckets = HistogramMetric.generateLinearBuckets(opts.linearBuckets.start, opts.linearBuckets.width, opts.linearBuckets.count);
-		} else if (_.isPlainObject(opts.exponentialBuckets)) {
+		} else if (isPlainObject(opts.exponentialBuckets)) {
 			this.buckets = HistogramMetric.generateExponentialBuckets(opts.exponentialBuckets.start, opts.exponentialBuckets.factor, opts.exponentialBuckets.count);
 		} else if (Array.isArray(opts.buckets)) {
 			this.buckets = Array.from(opts.buckets);

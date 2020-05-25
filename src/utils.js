@@ -77,6 +77,10 @@ const utils = {
 		return o !== null && typeof o === "object";
 	},
 
+	isPlainObject(o) {
+		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false
+	},
+
 	flatten(arr) {
 		return Array.prototype.reduce.call(arr, (a, b) => a.concat(b), []);
 	},

@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match, isFunction } = require("../utils");
+const { match, isFunction, isPlainObject } = require("../utils");
 const METRIC = require("./constants");
 const Types = require("./types");
 const Reporters = require("./reporters");
@@ -121,7 +121,7 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	register(opts) {
-		if (!_.isPlainObject(opts))
+		if (!isPlainObject(opts))
 			throw new Error("Wrong argument. Must be an Object.");
 
 		if (!opts.type)
