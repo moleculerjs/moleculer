@@ -104,6 +104,7 @@ const defaultOptions = {
 
 	internalServices: true,
 	internalMiddlewares: true,
+	dependencyInterval: 1000,
 
 	hotReload: false,
 
@@ -977,7 +978,7 @@ class ServiceBroker {
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
 
-				setTimeout(check, interval || 1000);
+				setTimeout(check, interval || this.options.dependencyInterval || 1000);
 			};
 
 			check();

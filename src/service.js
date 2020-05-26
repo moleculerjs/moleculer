@@ -238,7 +238,7 @@ class Service {
 			.then(() => {
 				// Wait for dependent services
 				if (this.schema.dependencies)
-					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
+					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0, this.settings.$dependencyInterval || 1000);
 			})
 			.then(() => {
 				if (isFunction(this.schema.started))
