@@ -244,6 +244,7 @@ describe("Test ServiceBroker constructor", () => {
 			validator: false,
 			internalServices: false,
 			internalMiddlewares: true,
+			dependencyInterval: 1000,
 			hotReload: true,
 			middlewares: null,
 			replCommands: null,

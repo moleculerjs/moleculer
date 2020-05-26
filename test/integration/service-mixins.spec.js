@@ -366,7 +366,7 @@ describe("Test Service mixins", () => {
 			"math"
 		]);
 		expect(svc.waitForServices).toHaveBeenCalledTimes(1);
-		expect(svc.waitForServices).toHaveBeenCalledWith(["posts", { name: "users", version: 2 }, "math"], 0);
+		expect(svc.waitForServices).toHaveBeenCalledWith(["posts", { name: "users", version: 2 }, "math"], 0, 0);
 	});
 
 	it("should merge metadata", () => {
