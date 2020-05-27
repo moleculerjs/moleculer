@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isFunction } = require("../utils");
+const { isFunction, isPlainObject } = require("../utils");
 
 module.exports = function TracingMiddleware(broker) {
 
@@ -45,7 +45,7 @@ module.exports = function TracingMiddleware(broker) {
 					if (res)
 						Object.assign(tags, res);
 
-				} else if (_.isPlainObject(opts.tags)) {
+				} else if (isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
 						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))
@@ -92,7 +92,7 @@ module.exports = function TracingMiddleware(broker) {
 						if (r)
 							Object.assign(tags, r);
 
-					} else if (_.isPlainObject(opts.tags)) {
+					} else if (isPlainObject(opts.tags)) {
 						if (opts.tags.response === true)
 							tags.response = res != null ? Object.assign({}, res) : res;
 						else if (Array.isArray(opts.tags.response))
@@ -150,7 +150,7 @@ module.exports = function TracingMiddleware(broker) {
 					if (res)
 						Object.assign(tags, res);
 
-				} else if (_.isPlainObject(opts.tags)) {
+				} else if (isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
 						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))

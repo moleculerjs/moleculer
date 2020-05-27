@@ -3,7 +3,7 @@
 // !!! WORK-IN-PROGRESS !!!
 
 const ServiceBroker = require("../src/service-broker");
-const _ = require("lodash");
+const { isString } = require("../src/utils");
 const ObservableSlim = require("observable-slim");
 
 
@@ -55,7 +55,7 @@ const SharedObj = function(opts) {
 			opts = [opts];
 
 		opts.forEach(opt => {
-			const name = _.isString(opt) ? opt : opt.name;
+			const name = isString(opt) ? opt : opt.name;
 			sharedObjects[opt] = createSharedObj({}, getOnChanges(opt));
 			res.events[`sharedObject.${name}`] = function(changes) {
 				// TODO: apply changes

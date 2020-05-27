@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _ 		= require("lodash");
 const kleur		= require("kleur");
 const os 	 	= require("os");
 const path 	 	= require("path");
@@ -73,8 +72,16 @@ const utils = {
 		return typeof fn === "function";
 	},
 
+	isString(s) {
+		return typeof s === "string" || s instanceof String;
+	},
+
 	isObject(o) {
-		return o !== null && typeof o === "object";
+		return o !== null && typeof o === "object" && !(o instanceof String);
+	},
+
+	isPlainObject(o) {
+		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
 
 	flatten(arr) {

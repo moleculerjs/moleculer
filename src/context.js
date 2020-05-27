@@ -7,6 +7,7 @@
 "use strict";
 
 const util = require("util");
+const { isString } = require("./utils");
 const _ = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
@@ -357,7 +358,7 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, opts) {
-		if (Array.isArray(opts) || _.isString(opts))
+		if (Array.isArray(opts) || isString(opts))
 			opts = { groups: opts };
 		else if (opts == null)
 			opts = {};
@@ -383,7 +384,7 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, opts) {
-		if (Array.isArray(opts) || _.isString(opts))
+		if (Array.isArray(opts) || isString(opts))
 			opts = { groups: opts };
 		else if (opts == null)
 			opts = {};

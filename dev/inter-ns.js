@@ -1,7 +1,7 @@
 "use strict";
 
 const { ServiceBroker } = require("../");
-const _ = require("lodash");
+const { isString } = require("../src/utils");
 
 // --- INTER-NAMESPACE MIDDLEWARE ---
 const InterNamespaceMiddleware = function(opts) {
@@ -15,7 +15,7 @@ const InterNamespaceMiddleware = function(opts) {
 		created(broker) {
 			thisBroker = broker;
 			opts.forEach(nsOpts => {
-				if (_.isString(nsOpts)) {
+				if (isString(nsOpts)) {
 					nsOpts = {
 						namespace: nsOpts
 					};
@@ -38,7 +38,7 @@ const InterNamespaceMiddleware = function(opts) {
 
 		call(next) {
 			return function(actionName, params, opts = {}) {
-				if (_.isString(actionName) && actionName.includes("@")) {
+				if (isString(actionName) && actionName.includes("@")) {
 					const [action, namespace] = actionName.split("@");
 
 					if (brokers[namespace]) {

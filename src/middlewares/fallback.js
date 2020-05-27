@@ -6,10 +6,9 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 const { METRIC }	= require("../metrics");
-const { isFunction } = require("../utils");
+const { isFunction, isString } = require("../utils");
 
 module.exports = function FallbackMiddleware(broker) {
 
@@ -38,7 +37,7 @@ module.exports = function FallbackMiddleware(broker) {
 				if (action.fallback && action.service) {
 					const svc = action.service;
 
-					const fallback = _.isString(action.fallback) ? svc[action.fallback] : action.fallback;
+					const fallback = isString(action.fallback) ? svc[action.fallback] : action.fallback;
 					if (!isFunction(fallback)) {
 						/* istanbul ignore next */
 						throw new MoleculerError(`The 'fallback' of '${action.name}' action is not a Function or valid method name: ${action.fallback}`);

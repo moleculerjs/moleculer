@@ -26,10 +26,10 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String} Base URL for NewRelic server. */
 			baseURL:
-			process.env.NEW_RELIC_TRACE_API_URL || 'https://trace-api.newrelic.com',
+			process.env.NEW_RELIC_TRACE_API_URL || "https://trace-api.newrelic.com",
 
 		  /** @type {String} NewRelic Insert API Key */
-		  insertKey: '',
+		  insertKey: "",
 
 		  /** @type {Number} Batch send time interval in seconds. */
 		  interval: 5,
@@ -37,10 +37,10 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		  /** @type {Object} Additional payload options. */
 		  payloadOptions: {
 			/** @type {Boolean} Set `debug` property in v2 payload. */
-			debug: false,
+				debug: false,
 
-			/** @type {Boolean} Set `shared` property in v2 payload. */
-			shared: false,
+				/** @type {Boolean} Set `shared` property in v2 payload. */
+				shared: false,
 		  },
 
 		  /** @type {Object?} Default span tags */
@@ -72,7 +72,7 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		}
 	}
 
-		/**
+	/**
 	 * Stop Trace exporter
 	 */
 	stop() {
@@ -105,16 +105,16 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		this.queue.length = 0;
 
 		fetch(`${this.opts.baseURL}/trace/v1`,
-		{
-			method: "post",
-			body: JSON.stringify(data),
-			headers: {
-				"Content-Type": "application/json",
-				"Api-Key": this.opts.insertKey,
+			{
+				method: "post",
+				body: JSON.stringify(data),
+				headers: {
+					"Content-Type": "application/json",
+					"Api-Key": this.opts.insertKey,
  				"Data-Format": "zipkin",
  				"Data-Format-Version": "2"
-			}
-		}).then(res => {
+				}
+			}).then(res => {
 			if (res.status >= 400) {
 				this.logger.warn(`Unable to upload tracing spans to NewRelic. Status: ${res.status} ${res.statusText}`);
 			} else {

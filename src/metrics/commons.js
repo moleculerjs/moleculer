@@ -232,17 +232,17 @@ function updateCommonMetrics() {
 			for (let i in interfaces[iface]) {
 				const f = interfaces[iface][i];
 				if (f.internal) {
-					ilist.push({f,iface})
+					ilist.push({ f,iface });
 				} else{
-					list.push({f,iface})
+					list.push({ f,iface });
 				}
 			}
 		}
 		return list.length > 0 ? list : ilist;
-	}
+	};
 
 	const interfaces = getNetworkInterfaces();
-	for (let {f,iface} of interfaces) {
+	for (let { f,iface } of interfaces) {
 		this.set(METRIC.OS_NETWORK_ADDRESS, f.address, { interface: iface, family: f.family });
 		this.set(METRIC.OS_NETWORK_MAC, f.mac, { interface: iface, family: f.family });
 	}

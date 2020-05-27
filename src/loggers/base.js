@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match, isObject }	= require("../utils");
+const { match, isObject, isString }	= require("../utils");
 
 const LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
@@ -54,7 +54,7 @@ class BaseLogger {
 		mod = mod ? mod.toUpperCase() : "";
 
 		const level = this.opts.level;
-		if (_.isString(level))
+		if (isString(level))
 			return level;
 
 		if (isObject(level)) {

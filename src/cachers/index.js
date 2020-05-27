@@ -6,8 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
-const { isObject } = require("../utils");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Cachers = {
@@ -38,7 +37,7 @@ function resolve(opt) {
 		return opt;
 	} else if (opt === true) {
 		return new Cachers.Memory();
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let CacherClass = getByName(opt);
 		if (CacherClass)
 			return new CacherClass();

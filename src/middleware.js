@@ -9,7 +9,7 @@
 const _ 			= require("lodash");
 const Middlewares 	= require("./middlewares");
 const { BrokerOptionsError } = require("./errors");
-const { isObject, isFunction }	= require("./utils");
+const { isObject, isFunction, isString }	= require("./utils");
 
 class MiddlewareHandler {
 
@@ -24,7 +24,7 @@ class MiddlewareHandler {
 	add(mw) {
 		if (!mw) return;
 
-		if (_.isString(mw)) {
+		if (isString(mw)) {
 			const found = _.get(Middlewares, mw);
 			if (!found)
 				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, { type: mw });

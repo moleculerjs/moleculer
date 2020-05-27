@@ -6,8 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
-const { isObject } = require("../utils");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 const Base = require("./base");
 
@@ -47,7 +46,7 @@ function getByName(name) {
 function resolve(opt) {
 	if (opt instanceof Loggers.Base) {
 		return opt;
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let LoggerClass = getByName(opt);
 		if (LoggerClass)
 			return new LoggerClass();
