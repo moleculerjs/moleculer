@@ -73,11 +73,11 @@ const utils = {
 	},
 
 	isString(s) {
-		return typeof s === "string";
+		return typeof s === "string" || s instanceof String;
 	},
 
 	isObject(o) {
-		return o !== null && typeof o === "object";
+		return o !== null && typeof o === "object" && !(o instanceof String);
 	},
 
 	isPlainObject(o) {

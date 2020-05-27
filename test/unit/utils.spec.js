@@ -5,9 +5,14 @@ const lolex = require("@sinonjs/fake-timers");
 
 describe("Test utils.isObject", () => {
 
-	it("should return true for POJOs and Arrays and false for anything else", () => {
+	it("should return true for Objects and Arrays and false for anything else", () => {
 		expect(utils.isObject({})).toBe(true);
+		expect(utils.isObject(Object.create(null))).toBe(true);
+		expect(utils.isObject(new Object(null))).toBe(true);
+		expect(utils.isObject(new (function() {}))).toBe(true);
 		expect(utils.isObject([])).toBe(true);
+		expect(utils.isObject(Array.from([]))).toBe(true);
+		expect(utils.isObject(new Array(null))).toBe(true);
 
 		expect(utils.isObject(null)).toBe(false);
 		expect(utils.isObject(function() {})).toBe(false);
@@ -16,7 +21,55 @@ describe("Test utils.isObject", () => {
 		expect(utils.isObject(class Dummy {})).toBe(false);
 		expect(utils.isObject(1)).toBe(false);
 		expect(utils.isObject("string")).toBe(false);
+		expect(utils.isObject(new String(""))).toBe(false);
 		expect(utils.isObject(NaN)).toBe(false);
+	});
+});
+
+describe("Test utils.isPlainObject", () => {
+
+	it("should return true for POJOs false for anything else", () => {
+		expect(utils.isPlainObject({})).toBe(true);
+		expect(utils.isPlainObject(Object.create(null))).toBe(true);
+		expect(utils.isPlainObject(new Object(null))).toBe(true);
+
+		expect(utils.isPlainObject(new (function() {}))).toBe(false);
+		expect(utils.isPlainObject([])).toBe(false);
+		expect(utils.isPlainObject(Array.from([]))).toBe(false);
+		expect(utils.isPlainObject(new Array(null))).toBe(false);
+		expect(utils.isPlainObject([])).toBe(false);
+		expect(utils.isPlainObject(null)).toBe(false);
+		expect(utils.isPlainObject(function() {})).toBe(false);
+		expect(utils.isPlainObject(()=>{})).toBe(false);
+		expect(utils.isPlainObject(async ()=>{})).toBe(false);
+		expect(utils.isPlainObject(class Dummy {})).toBe(false);
+		expect(utils.isPlainObject(1)).toBe(false);
+		expect(utils.isPlainObject("string")).toBe(false);
+		expect(utils.isPlainObject(new String(""))).toBe(false);
+		expect(utils.isPlainObject(NaN)).toBe(false);
+	});
+});
+
+describe("Test utils.isString", () => {
+
+	it("should return true for strings and false for anything else", () => {
+		expect(utils.isString("string")).toBe(true);
+		expect(utils.isString(new String(""))).toBe(true);
+
+		expect(utils.isString({})).toBe(false);
+		expect(utils.isString(Object.create(null))).toBe(false);
+		expect(utils.isString(new Object(null))).toBe(false);
+		expect(utils.isString(new (function() {}))).toBe(false);
+		expect(utils.isString([])).toBe(false);
+		expect(utils.isString(Array.from([]))).toBe(false);
+		expect(utils.isString(new Array(null))).toBe(false);
+		expect(utils.isString(null)).toBe(false);
+		expect(utils.isString(function() {})).toBe(false);
+		expect(utils.isString(()=>{})).toBe(false);
+		expect(utils.isString(async ()=>{})).toBe(false);
+		expect(utils.isString(class Dummy {})).toBe(false);
+		expect(utils.isString(1)).toBe(false);
+		expect(utils.isString(NaN)).toBe(false);
 	});
 });
 
