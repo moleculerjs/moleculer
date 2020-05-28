@@ -1780,6 +1780,54 @@ describe("Test broker.waitForServices", () => {
 
 });
 
+describe("Test waitForServices using dependencyInterval from options", () => {
+
+	it("should call waitForServices with dependencyInterval from settings", async () => {
+
+		let broker = new ServiceBroker({logger: false, dependencyInterval: 100});
+		jest.spyOn(broker, "createService")
+		jest.spyOn(broker, "waitForServices")
+
+		let services = [
+			{name: "users"},
+			{name: "auth"},
+			{name: "posts", dependencies: ["users","auth"]},
+		].map(svc => broker.createService(svc))
+
+		await broker.start()
+
+		expect(broker.createService).toHaveBeenCalledTimes(3);
+		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
+		expect(broker.waitForServices).toHaveBeenLastCalledWith(["users","auth"], 0, 100, broker.logger);
+	})
+
+	it("should start fast despite multiple levels of dependencies", async () => {
+
+		let broker = new ServiceBroker({logger: false, dependencyInterval: 10});
+
+		jest.spyOn(broker, "createService")
+		jest.spyOn(broker, "waitForServices")
+
+		// create multiple levels of dependencies, starting to "max level" and down to 1
+		// each level has to wait for the previous one
+		// 10 levels ensure a test timeout if dependencyInterval is not set to a lower value
+		let nb_levels = 10
+		for(let i = nb_levels ; i > 0 ; i--) {
+			broker.createService({
+				name: `level_${i}`,
+				dependencies: i > 1 ? [`level_${i-1}`] : null,
+				$dependencyTimeout: 1000
+			})
+		}
+
+		await broker.start()
+
+		expect(broker.createService).toHaveBeenCalledTimes(nb_levels);
+		expect(broker.waitForServices).toHaveBeenCalledTimes(nb_levels-1);
+		expect(broker.waitForServices).toHaveBeenLastCalledWith(["level_1"], 0, broker.options.dependencyInterval, broker.logger);
+	})
+});
+
 describe("Test broker.findNextActionEndpoint", () => {
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let actionHandler = jest.fn(ctx => ctx);

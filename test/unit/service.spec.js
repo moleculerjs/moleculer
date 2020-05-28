@@ -514,7 +514,7 @@ describe("Test Service class", () => {
 			expect(broker.registerLocalService).toBeCalledWith(svc._serviceSpecification);
 
 			expect(svc.waitForServices).toBeCalledTimes(1);
-			expect(svc.waitForServices).toBeCalledWith(["users", "auth"], 0, 0);
+			expect(svc.waitForServices).toBeCalledWith(["users", "auth"], 0, 1000);
 		});
 
 		it("should call waitForServices if dependencies are defined & $dependencyTimeout", async () => {
@@ -531,7 +531,7 @@ describe("Test Service class", () => {
 			await svc._start();
 
 			expect(svc.waitForServices).toBeCalledTimes(1);
-			expect(svc.waitForServices).toBeCalledWith(["users", "auth"], 3000, 0);
+			expect(svc.waitForServices).toBeCalledWith(["users", "auth"], 3000, 1000);
 		});
 
 		it("should call waitForServices if dependencies are defined & $dependencyInterval", async () => {
