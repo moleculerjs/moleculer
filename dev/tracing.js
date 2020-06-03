@@ -4,7 +4,7 @@
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	url: "http://192.168.0.181:8126",
-	//debug: true,
+	debug: true,
 	samplingPriority: "USER_KEEP",
 });
 

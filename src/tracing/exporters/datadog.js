@@ -278,7 +278,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	convertID(id) {
 		if (id) {
 			if (id.indexOf("-") !== -1)
-				return DatadogID(id.replace(/-/g, ""));
+				return DatadogID(id.replace(/-/g, "").substring(0,16));
 			return DatadogID(id);
 		}
 
