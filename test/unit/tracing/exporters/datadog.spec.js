@@ -253,8 +253,8 @@ describe("Test Datadog tracing exporter class", () => {
 			//expect(fakeSpanContext._traceId).toBeInstanceOf("Identifier");
 			//expect(fakeSpanContext._spanId).toBeInstanceOf(DatadogID.Identifier);
 
-			expect(fakeSpanContext._traceId.toString()).toEqual("cde123456789012345678900");
-			expect(fakeSpanContext._spanId.toString()).toEqual("abc123456789012345678900");
+			expect(fakeSpanContext._traceId.toString()).toEqual("cde1234567890123");
+			expect(fakeSpanContext._spanId.toString()).toEqual("abc1234567890123");
 
 			expect(span.meta.datadog).toEqual({
 				span: fakeDdSpan,
@@ -568,9 +568,9 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(exporter.convertID("")).toBeNull();
 			expect(exporter.convertID("12345678").toString()).toEqual("12345678");
 			expect(exporter.convertID("123456789-0123456").toString()).toEqual("1234567890123456");
-			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual("1234567890123456789abcde0f");
+			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual("1234567890123456");
 			expect(exporter.convertID("abc-def").toString()).toEqual("abcdef");
-			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual("abcdefabcdefabcdef");
+			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual("abcdefabcdefabcd");
 		});
 
 	});
