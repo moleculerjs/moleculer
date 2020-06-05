@@ -79,7 +79,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 	});
 
 	describe("Test generateMetricPayload", () => {
-		const fakeTracer = { broker, logger: broker.logger };
+		const fakeTracer = { broker, logger: broker.logger, opts: { errorFields: ["name", "message", "code" ] } };
 		const exporter = new EventLegacyTraceExporter();
 		exporter.init(fakeTracer);
 		exporter.processExtraMetrics = jest.fn();

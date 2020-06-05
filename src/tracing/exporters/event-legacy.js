@@ -91,12 +91,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 			payload.fromCache = span.tags.fromCache;
 
 			if (span.error) {
-				payload.error = {
-					name: span.error.name,
-					code: span.error.code,
-					type: span.error.type,
-					message: span.error.message
-				};
+				payload.error = this.errorToObject(span.error);
 			}
 		}
 

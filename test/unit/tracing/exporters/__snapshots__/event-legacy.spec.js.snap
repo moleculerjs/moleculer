@@ -13,7 +13,6 @@ Object {
     "code": 512,
     "message": "Something happened",
     "name": "MoleculerRetryableError",
-    "type": "SOMETHING",
   },
   "fromCache": true,
   "id": "span-id-123",
