@@ -54,6 +54,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		// Last sequence numbers
 		this.lastInfoSeq = 0;
 		this.lastBeatSeq = 0;
+
+		this.reconnecting = false;
 	}
 
 	/**
@@ -99,11 +101,18 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
 			this.logger.info("Redis Discoverer client connected.");
+			if (this.reconnecting) {
+				this.reconnecting = false;
+				this.sendLocalNodeInfo();
+			}
 		});
 
 		this.client.on("reconnecting", () => {
 			/* istanbul ignore next */
 			this.logger.warn("Redis Discoverer client reconnecting...");
+			this.reconnecting = true;
+			this.lastInfoSeq = 0;
+			this.lastBeatSeq = 0;
 		});
 
 		this.client.on("error", (err) => {

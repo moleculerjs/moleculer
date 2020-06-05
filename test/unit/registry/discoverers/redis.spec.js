@@ -38,6 +38,8 @@ describe("Test RedisDiscoverer constructor", () => {
 
 		expect(discoverer.lastInfoSeq).toBe(0);
 		expect(discoverer.lastBeatSeq).toBe(0);
+
+		expect(discoverer.reconnecting).toBe(false);
 	});
 
 	it("test constructor with opts", () => {
@@ -81,6 +83,8 @@ describe("Test RedisDiscoverer constructor", () => {
 
 		expect(discoverer.lastInfoSeq).toBe(0);
 		expect(discoverer.lastBeatSeq).toBe(0);
+
+		expect(discoverer.reconnecting).toBe(false);
 	});
 
 });
@@ -181,6 +185,64 @@ describe("Test RedisDiscoverer 'init' method", () => {
 
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledTimes(1);
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledWith(broker);
+	});
+
+	describe("check Redis client events", () => {
+		const discoverer = new RedisDiscoverer();
+
+		Redis.mockClear();
+		const redisCallbacks = {};
+		Redis.prototype.on = jest.fn((name, cb) => redisCallbacks[name] = cb);
+
+		it("should register callbacks", () => {
+			Redis.prototype.on.mockClear();
+			// ---- ^ SETUP ^ ---
+			discoverer.init(broker.registry);
+			// ---- ˇ ASSERTS ˇ ---
+			expect(Redis.prototype.on).toHaveBeenCalledTimes(3);
+			expect(Redis.prototype.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(Redis.prototype.on).toHaveBeenCalledWith("reconnecting", expect.any(Function));
+			expect(Redis.prototype.on).toHaveBeenCalledWith("error", expect.any(Function));
+		});
+
+		it("should not call sendLocalNodeInfo", () => {
+			Redis.prototype.on.mockClear();
+			discoverer.sendLocalNodeInfo = jest.fn();
+			discoverer.init(broker.registry);
+			// ---- ^ SETUP ^ ---
+			redisCallbacks["connect"]();
+			// ---- ˇ ASSERTS ˇ ---
+			expect(discoverer.reconnecting).toBe(false);
+			expect(discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(0);
+		});
+
+		it("should call sendLocalNodeInfo", () => {
+			Redis.prototype.on.mockClear();
+			discoverer.sendLocalNodeInfo = jest.fn();
+			discoverer.init(broker.registry);
+			discoverer.reconnecting = true;
+			// ---- ^ SETUP ^ ---
+			redisCallbacks["connect"]();
+			// ---- ˇ ASSERTS ˇ ---
+			expect(discoverer.reconnecting).toBe(false);
+			expect(discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
+			expect(discoverer.sendLocalNodeInfo).toHaveBeenCalledWith();
+		});
+
+		it("should set reconnecting property", () => {
+			Redis.prototype.on.mockClear();
+			discoverer.sendLocalNodeInfo = jest.fn();
+			discoverer.init(broker.registry);
+			discoverer.reconnecting = false;
+			discoverer.lastInfoSeq = 5;
+			discoverer.lastBeatSeq = 5;
+			// ---- ^ SETUP ^ ---
+			redisCallbacks["reconnecting"]();
+			// ---- ˇ ASSERTS ˇ ---
+			expect(discoverer.reconnecting).toBe(true);
+			expect(discoverer.lastInfoSeq).toBe(0);
+			expect(discoverer.lastBeatSeq).toBe(0);
+		});
 	});
 
 });
