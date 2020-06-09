@@ -220,7 +220,7 @@ class Cacher {
 
 	_generateKeyFromObject(obj) {
 		if (Array.isArray(obj)) {
-			return obj.map(o => this._generateKeyFromObject(o)).join("|");
+			return "[" + obj.map(o => this._generateKeyFromObject(o)).join("|") + "]";
 		}
 		else if (isObject(obj)) {
 			return Object.keys(obj).map(key => [key, this._generateKeyFromObject(obj[key])].join("|")).join("|");
