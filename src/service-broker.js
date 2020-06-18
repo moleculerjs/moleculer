@@ -16,7 +16,7 @@ const Registry 				= require("./registry");
 const E 					= require("./errors");
 const utils 				= require("./utils");
 const LoggerFactory			= require("./logger-factory");
-const Validator 			= require("./validator");
+const Validators 			= require("./validators");
 //const AsyncStorage 			= require("./async-storage");
 
 const Cachers 				= require("./cachers");
@@ -230,8 +230,10 @@ class ServiceBroker {
 
 			// Validator
 			if (this.options.validator) {
-				this.validator = this.options.validator === true ? new Validator() : this.options.validator;
+				this.validator = Validators.resolve(this.options.validator);
 				if (this.validator) {
+					const validatorName = this.getConstructorName(this.validator);
+					this.logger.info(`Validator: ${validatorName}`);
 					this.validator.init(this);
 				}
 			}
