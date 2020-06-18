@@ -22,7 +22,7 @@ const broker = new ServiceBroker({
 				options: {
 					onlyChanges: false,
 					//interval: 1000,
-					includes: "moleculer.request.*",
+					includes: "moleculer.event.received.*",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
@@ -81,6 +81,7 @@ broker.createService({
 	actions: {
 		async hello(ctx) {
 			await this.Promise.delay(Math.random() * 100);
+			ctx.emit("something.happened", { a: 5 });
 			return "Hello Metrics";
 		}
 	}
@@ -92,6 +93,11 @@ broker.createService({
 		"$metrics.state"(payload) {
 			this.broker.logger.info("Metrics event received! Size:", payload.length);
 			this.broker.logger.info(util.inspect(payload, { depth: 4, colors: true }));
+		},
+
+		async "something.happened"(ctx) {
+			this.logger.info("Event received");
+			await this.Promise.delay(Math.random() * 500);
 		}
 	}
 });

@@ -144,6 +144,9 @@ module.exports = {
 	MOLECULER_EVENT_BROADCAST_TOTAL: "moleculer.event.broadcast.total",
 	MOLECULER_EVENT_BROADCASTLOCAL_TOTAL: "moleculer.event.broadcast-local.total",
 	MOLECULER_EVENT_RECEIVED_TOTAL: "moleculer.event.received.total",
+	MOLECULER_EVENT_RECEIVED_ACTIVE: "moleculer.event.received.active",
+	MOLECULER_EVENT_RECEIVED_ERROR_TOTAL: "moleculer.event.received.error.total",
+	MOLECULER_EVENT_RECEIVED_TIME: "moleculer.event.received.time", //msec
 
 	// --- MOLECULER TRANSIT METRICS ---
 

@@ -48,7 +48,7 @@ describe("Test MetricsMiddleware", () => {
 
 	it("should register metrics & CB event handlers", () => {
 		mw.created(broker);
-		expect(broker.metrics.register).toBeCalledTimes(17);
+		expect(broker.metrics.register).toBeCalledTimes(20);
 	});
 
 	it("should not wrap handler if metrics is disabled", () => {
@@ -206,7 +206,7 @@ describe("Test MetricsMiddleware", () => {
 	});
 
 	describe("Test localEvent", () => {
-		const handler = jest.fn();
+		const handler = jest.fn(() => Promise.resolve());
 
 		const event = {
 			name: "user.created",
@@ -218,6 +218,8 @@ describe("Test MetricsMiddleware", () => {
 			handler.mockClear();
 			broker.isMetricsEnabled = jest.fn(() => true);
 			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
 
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
@@ -226,13 +228,58 @@ describe("Test MetricsMiddleware", () => {
 			ctx.eventGroup = "";
 			ctx.caller = "posts";
 
-			newHandler(ctx);
+			return newHandler(ctx).catch(protectReject).then(() => {
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
 
-			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.event.received.time", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
 
-			expect(handler).toHaveBeenCalledTimes(1);
-			expect(handler).toHaveBeenCalledWith(ctx);
+				expect(handler).toHaveBeenCalledTimes(1);
+				expect(handler).toHaveBeenCalledWith(ctx);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+			});
+		});
+
+		it("should update event handler metrics events if handler is rejected", () => {
+			const error = new MoleculerError("Something went wrong", 503, "WENT_WRONG", { a: 5 });
+			const handler = jest.fn(() => Promise.reject(error));
+
+			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
+
+			const newHandler = mw.localEvent.call(broker, handler, event);
+
+			const ctx = Context.create(broker, {}, { a: 5 });
+			ctx.eventName = "user.created";
+			ctx.eventGroup = "";
+			ctx.caller = "posts";
+
+			return newHandler(ctx).then(protectReject).catch(err => {
+				expect(err).toBe(error);
+
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.event.received.time", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+
+				expect(handler).toHaveBeenCalledTimes(1);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.event.received.error.total", {
+					event : "user.created", service: "posts",  group: "users", caller: "posts",
+					errorName: "MoleculerError",
+					errorCode: 503,
+					errorType: "WENT_WRONG"
+				});
+			});
 		});
 
 		it("should not wrap handler if metrics is disabled", () => {

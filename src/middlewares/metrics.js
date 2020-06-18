@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -64,7 +64,11 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_EVENT_EMIT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of emitted events", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of broadcast events", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of local broadcast events", rate: true });
+
 				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "group", "event", "caller"], unit: METRIC.UNIT_EVENT, description: "Number of received events", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["service", "group", "event", "caller"], unit: METRIC.UNIT_REQUEST, description: "Number of active event executions" });
+				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_ERROR_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "group", "event", "caller", "errorName", "errorCode", "errorType"], unit: METRIC.UNIT_REQUEST, description: "Number of event execution errors", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["service", "group", "event", "caller"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS, description: "Execution time of events in milliseconds", rate: true });
 
 				// --- MOLECULER TRANSIT METRICS ---
 
@@ -103,8 +107,25 @@ module.exports = function MetricsMiddleware(broker) {
 			const service = event.service ? event.service.name : null;
 			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(ctx) {
-					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: ctx.eventName, group: event.group || service, caller: ctx.caller });
-					return next.apply(this, arguments);
+					const group = event.group || service;
+					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: ctx.eventName, group, caller: ctx.caller });
+					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_ACTIVE, { service, event: ctx.eventName, group, caller: ctx.caller });
+					const timeEnd = metrics.timer(METRIC.MOLECULER_EVENT_RECEIVED_TIME, { service, event: ctx.eventName, group, caller: ctx.caller });
+					return next.apply(this, arguments).then(res => {
+						timeEnd();
+						metrics.decrement(METRIC.MOLECULER_EVENT_RECEIVED_ACTIVE, { service, event: ctx.eventName, group, caller: ctx.caller });
+						return res;
+					}).catch(err => {
+						timeEnd();
+						metrics.decrement(METRIC.MOLECULER_EVENT_RECEIVED_ACTIVE, { service, event: ctx.eventName, group, caller: ctx.caller });
+						metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_ERROR_TOTAL, {
+							service, event: ctx.eventName, group, caller: ctx.caller,
+							errorName: err ? err.name : null,
+							errorCode: err ? err.code : null,
+							errorType: err ? err.type : null
+						});
+						throw err;
+					});
 				}.bind(this);
 			}
 
