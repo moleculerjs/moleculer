@@ -48,10 +48,7 @@
     "type": "git",
     "url": "https://github.com/moleculerjs/moleculer.git"
   },
-  "funding": {
-    "type": "patreon",
-    "url": "https://www.patreon.com/moleculer"
-  },
+  "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
   "bin": {
     "moleculer-runner": "./bin/moleculer-runner.js"
   },
@@ -61,8 +58,8 @@
     "@sinonjs/fake-timers": "^6.0.1",
     "@types/bunyan": "^1.8.6",
     "@types/ioredis": "^4.16.6",
-    "@types/node": "^14.0.9",
-    "@types/pino": "^6.0.1",
+    "@types/node": "^14.0.13",
+    "@types/pino": "^6.3.0",
     "amqplib": "^0.5.6",
     "avsc": "^5.4.21",
     "benchmarkify": "^2.1.2",
@@ -71,7 +68,7 @@
     "dd-trace": "^0.22.0",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
-    "eslint": "^7.1.0",
+    "eslint": "^7.2.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
@@ -103,7 +100,7 @@
     "thrift": "^0.12.0",
     "ts-node": "^8.10.2",
     "tsd": "^0.11.0",
-    "typescript": "^3.9.3",
+    "typescript": "^3.9.5",
     "v8-natives": "^1.2.0",
     "winston": "^3.2.1",
     "winston-context": "^0.0.7"
@@ -112,7 +109,7 @@
     "args": "^5.0.1",
     "es6-error": "^4.1.1",
     "eventemitter2": "^6.4.2",
-    "fastest-validator": "^1.4.2",
+    "fastest-validator": "^1.5.0",
     "fn-args": "^5.0.0",
     "glob": "^7.1.6",
     "ipaddr.js": "^1.9.1",
