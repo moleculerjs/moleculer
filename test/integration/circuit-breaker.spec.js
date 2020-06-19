@@ -25,13 +25,13 @@ describe("Test circuit breaker", () => {
 	const cbOpenedHandler = jest.fn();
 	master1.localBus.on("$circuit-breaker.opened", cbOpenedHandler);
 
-	const slave1 = new ServiceBroker({
+	const replica1 = new ServiceBroker({
 		logger: false,
 		transporter: new FakeTransporter(),
-		nodeID: "slave-1",
+		nodeID: "replica-1",
 	});
 
-	slave1.createService({
+	replica1.createService({
 		name: "cb",
 		actions: {
 			happy() {
@@ -53,14 +53,14 @@ describe("Test circuit breaker", () => {
 
 	beforeAll(() => {
 		return master1.start()
-			.then(() => slave1.start())
+			.then(() => replica1.start())
 			.delay(100)
 			.then(() => clock = lolex.install());
 	});
 
 	afterAll(() => {
 		return master1.stop()
-			.then(() => slave1.stop())
+			.then(() => replica1.stop())
 			.then(() => clock.uninstall());
 	});
 
@@ -101,7 +101,7 @@ describe("Test circuit breaker", () => {
 				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
-					nodeID: "slave-1",
+					nodeID: "replica-1",
 					service: "cb",
 					action: "cb.angry",
 					failures: 3,
@@ -124,7 +124,7 @@ describe("Test circuit breaker", () => {
 				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
-					nodeID: "slave-1",
+					nodeID: "replica-1",
 					service: "cb",
 					action: "cb.angry",
 					failures: 4,

@@ -22,11 +22,11 @@ describe("Test LatencyStrategy constructor", () => {
 		expect(broker.localBus.on).toHaveBeenCalledTimes(7);
 		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
 		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyMaster", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyReplica", jasmine.any(Function));
 		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", jasmine.any(Function));
 		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", jasmine.any(Function));
 		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyReplica", jasmine.any(Function));
 
 		// Test callbacks
 		/* Can't work due to bindings
@@ -48,7 +48,7 @@ describe("Test LatencyStrategy constructor", () => {
 		});
 	});
 
-	it("should be the slave", () => {
+	it("should be the replica", () => {
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 		broker.localBus.listenerCount = jest.fn(() => 1);
@@ -57,8 +57,8 @@ describe("Test LatencyStrategy constructor", () => {
 		let strategy = new LatencyStrategy(broker.registry, broker, {});
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyReplica.removeHost", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyReplica", jasmine.any(Function));
 
 		return broker.start().catch(protectReject).then(() => {
 			expect(strategy.hostMap.size).toBe(0);
@@ -177,7 +177,7 @@ describe("Test LatencyStrategy.processPong method", () => {
 	const broker = new ServiceBroker({ logger: false });
 	const strategy = new LatencyStrategy(broker.registry, broker);
 
-	it("should calc avg latency and send to slaves", () => {
+	it("should calc avg latency and send to replicas", () => {
 		broker.localBus.emit = jest.fn();
 		const mockNode = {
 			id: "node-a1",
@@ -197,7 +197,7 @@ describe("Test LatencyStrategy.processPong method", () => {
 		expect(strategy.getHostLatency).toHaveBeenCalledWith(mockNode);
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.emit).toHaveBeenCalledWith("$node.latencySlave", {
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$node.latencyReplica", {
 			avgLatency: 56,
 			hostname: "host-a"
 		});
@@ -327,7 +327,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		expect(strategy.hostMap.get("host-a")).toBeUndefined();
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.emit).toHaveBeenCalledWith("$node.latencySlave.removeHost", "host-a");
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$node.latencyReplica.removeHost", "host-a");
 	});
 
 });

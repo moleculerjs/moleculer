@@ -24,18 +24,18 @@ module.exports = function(transporter, serializer)  {
 	describe("Test normal calling", () => {
 
 		// Creater brokers
-		const [master, slaveA, slaveB, slaveC] = createBrokers(["master", "slaveA", "slaveB", "slaveC"], {
+		const [master, replicaA, replicaB, replicaC] = createBrokers(["master", "replicaA", "replicaB", "replicaC"], {
 			namespace: "call",
 			transporter,
 			serializer
 		});
 
 		// Load services
-		[slaveA, slaveB, slaveC].forEach(broker => broker.createService(mathService));
+		[replicaA, replicaB, replicaC].forEach(broker => broker.createService(mathService));
 
 		// Start & Stop
-		beforeAll(() => Promise.all([master.start(), slaveA.start(), slaveB.start()]));
-		afterAll(() => Promise.all([master.stop(), slaveA.stop(), slaveB.stop()]));
+		beforeAll(() => Promise.all([master.start(), replicaA.start(), replicaB.start()]));
+		afterAll(() => Promise.all([master.stop(), replicaA.stop(), replicaB.stop()]));
 
 		it("should call actions with balancing between 2 nodes", () => {
 			return master.waitForServices("math")
@@ -46,13 +46,13 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 63)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveA")).toHaveLength(3);
-					expect(res.filter(o => o.node == "slaveB")).toHaveLength(3);
+					expect(res.filter(o => o.node == "replicaA")).toHaveLength(3);
+					expect(res.filter(o => o.node == "replicaB")).toHaveLength(3);
 				});
 		});
 
-		it("start slaveC", () => {
-			return slaveC.start().delay(500);
+		it("start replicaC", () => {
+			return replicaC.start().delay(500);
 		});
 
 		it("should call actions with balancing between 3 nodes", () => {
@@ -64,17 +64,17 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 50)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveA")).toHaveLength(2);
-					expect(res.filter(o => o.node == "slaveB")).toHaveLength(2);
-					expect(res.filter(o => o.node == "slaveC")).toHaveLength(2);
+					expect(res.filter(o => o.node == "replicaA")).toHaveLength(2);
+					expect(res.filter(o => o.node == "replicaB")).toHaveLength(2);
+					expect(res.filter(o => o.node == "replicaC")).toHaveLength(2);
 				});
 		});
 
-		it("stop slaveC", () => {
-			return slaveC.stop().delay(500);
+		it("stop replicaC", () => {
+			return replicaC.stop().delay(500);
 		});
 
-		it("should call actions without slaveC node", () => {
+		it("should call actions without replicaC node", () => {
 			return master.waitForServices("math")
 				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }))))
@@ -83,9 +83,9 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 50)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveA")).toHaveLength(3);
-					expect(res.filter(o => o.node == "slaveB")).toHaveLength(3);
-					expect(res.filter(o => o.node == "slaveC")).toHaveLength(0);
+					expect(res.filter(o => o.node == "replicaA")).toHaveLength(3);
+					expect(res.filter(o => o.node == "replicaB")).toHaveLength(3);
+					expect(res.filter(o => o.node == "replicaC")).toHaveLength(0);
 				});
 		});
 
@@ -93,14 +93,14 @@ module.exports = function(transporter, serializer)  {
 		it("should direct call action on the specified node", () => {
 			return master.waitForServices("math")
 				.delay(500)
-				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "slaveB" }))))
+				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "replicaB" }))))
 				.catch(protectReject)
 				.then(res => {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 50)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveA")).toHaveLength(0);
-					expect(res.filter(o => o.node == "slaveB")).toHaveLength(6);
+					expect(res.filter(o => o.node == "replicaA")).toHaveLength(0);
+					expect(res.filter(o => o.node == "replicaB")).toHaveLength(6);
 				});
 		});
 	});
@@ -108,20 +108,20 @@ module.exports = function(transporter, serializer)  {
 	describe("Test normal calling with versioned services", () => {
 
 		// Creater brokers
-		const [master, slaveA, slaveB, slaveC] = createBrokers(["master", "slaveA", "slaveB", "slaveC"], {
+		const [master, replicaA, replicaB, replicaC] = createBrokers(["master", "replicaA", "replicaB", "replicaC"], {
 			namespace: "version-call",
 			transporter,
 			serializer
 		});
 
 		// Load services
-		slaveA.createService(Object.assign({}, mathService, { version: 2 }));
-		slaveB.createService(Object.assign({}, mathService, { version: "beta" }));
-		slaveC.createService(mathService);
+		replicaA.createService(Object.assign({}, mathService, { version: 2 }));
+		replicaB.createService(Object.assign({}, mathService, { version: "beta" }));
+		replicaC.createService(mathService);
 
 		// Start & Stop
-		beforeAll(() => Promise.all([master.start(), slaveA.start(), slaveB.start(), slaveC.start()]));
-		afterAll(() => Promise.all([master.stop(), slaveA.stop(), slaveB.stop(), slaveC.stop()]));
+		beforeAll(() => Promise.all([master.start(), replicaA.start(), replicaB.start(), replicaC.start()]));
+		afterAll(() => Promise.all([master.stop(), replicaA.stop(), replicaB.stop(), replicaC.stop()]));
 
 		it("should call numeric versioned service", () => {
 			return master.waitForServices({ name: "math", version: 2 })
@@ -132,7 +132,7 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 63)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveA")).toHaveLength(6);
+					expect(res.filter(o => o.node == "replicaA")).toHaveLength(6);
 				});
 		});
 
@@ -145,7 +145,7 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 63)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveB")).toHaveLength(6);
+					expect(res.filter(o => o.node == "replicaB")).toHaveLength(6);
 				});
 		});
 
@@ -158,7 +158,7 @@ module.exports = function(transporter, serializer)  {
 					//console.log(res);
 					expect(res).toHaveLength(6);
 					expect(res.filter(o => o.result == 63)).toHaveLength(6);
-					expect(res.filter(o => o.node == "slaveC")).toHaveLength(6);
+					expect(res.filter(o => o.node == "replicaC")).toHaveLength(6);
 				});
 		});
 

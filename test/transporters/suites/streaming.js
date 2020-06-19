@@ -35,23 +35,23 @@ module.exports = function(transporter, serializer)  {
 	describe("Test streaming", () => {
 
 		// Creater brokers
-		const [master, slaveA, slaveB] = createBrokers(["master", "slaveA", "slaveB"], {
+		const [master, replicaA, replicaB] = createBrokers(["master", "replicaA", "replicaB"], {
 			namespace: "streaming",
 			transporter,
 			serializer
 		});
 		// Load services
-		[slaveA, slaveB].forEach(broker => broker.createService(AESService));
+		[replicaA, replicaB].forEach(broker => broker.createService(AESService));
 
 		let originalHash;
 
 		// Start & Stop
 		beforeAll(() => {
-			return Promise.all([master.start(), slaveA.start(), slaveB.start()])
+			return Promise.all([master.start(), replicaA.start(), replicaB.start()])
 				.then(() => getSHA(filename))
 				.then(hash => originalHash = hash);
 		});
-		afterAll(() => Promise.all([master.stop(), slaveA.stop(), slaveB.stop()]));
+		afterAll(() => Promise.all([master.stop(), replicaA.stop(), replicaB.stop()]));
 
 		it("should encode & decode the data and send as streams", () => {
 			return master.waitForServices("aes")

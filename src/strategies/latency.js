@@ -15,7 +15,7 @@ const BaseStrategy = require("./base");
  *
  * Since Strategy can be instantiated multiple times, therefore,
  * we need to have a "master" instance to send ping, and each
- * individual "slave" instance will update their list dynamically
+ * individual "replica" instance will update their list dynamically
  *
  * These options can be configured in broker registry options:
  *
@@ -76,10 +76,10 @@ class LatencyStrategy extends BaseStrategy {
 			this.broker.localBus.on("$broker.stopped", () => this.brokerStopped = true);
 		} else {
 			// remove node if we are told by master
-			this.broker.localBus.on("$node.latencySlave.removeHost", this.removeHostLatency.bind(this));
+			this.broker.localBus.on("$node.latencyReplica.removeHost", this.removeHostLatency.bind(this));
 		}
 
-		this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
+		this.broker.localBus.on("$node.latencyReplica", this.updateLatency.bind(this));
 	}
 
 	// Master
@@ -129,7 +129,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		const avgLatency = info.historicLatency.reduce((sum, latency) => sum + latency, 0) / info.historicLatency.length;
 
-		this.broker.localBus.emit("$node.latencySlave", {
+		this.broker.localBus.emit("$node.latencyReplica", {
 			hostname: node.hostname,
 			avgLatency: avgLatency
 		});
@@ -173,17 +173,17 @@ class LatencyStrategy extends BaseStrategy {
 
 		if (info.nodeList.length == 0) {
 			// only remove the host if the last node disconnected
-			this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
+			this.broker.localBus.emit("$node.latencyReplica.removeHost", node.hostname);
 			this.hostMap.delete(node.hostname);
 		}
 	}
 
-	// Master + Slave
+	// Master + Replica
 	updateLatency(payload) {
 		this.hostAvgLatency.set(payload.hostname, payload.avgLatency);
 	}
 
-	// Slave
+	// Replica
 	removeHostLatency(hostname) {
 		this.hostAvgLatency.delete(hostname);
 	}
