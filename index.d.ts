@@ -777,7 +777,7 @@ declare namespace Moleculer {
 
 		cacher?: boolean | Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
-		validator?: boolean | BaseValidator;
+		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions;
 
 		metrics?: boolean | MetricRegistryOptions;
 		tracing?: boolean | TracerOptions;
@@ -1203,6 +1203,8 @@ declare namespace Moleculer {
 		select(list: any[], ctx?: Context): Endpoint;
 	}
 
+	type ValidatorNames = "Fastest"
+
 	class RoundRobinStrategy extends BaseStrategy {}
 	class RandomStrategy extends BaseStrategy {}
 	class CpuUsageStrategy extends BaseStrategy {}
@@ -1256,9 +1258,14 @@ declare namespace Moleculer {
 		class Etcd3 extends BaseDiscoverer {}
 	}
 
+	interface ValidatorOptions {
+		type: string,
+		options?: GenericObject
+	}
+
 	namespace Validators {
-		class Base extends Validator {}
-		class Fastest extends Validator {}
+		class Base extends BaseValidator {}
+		class Fastest extends BaseValidator {}
 	}
 
 	namespace Transporters {
