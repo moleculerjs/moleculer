@@ -47,6 +47,7 @@ const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const Cachers = require("../../src/cachers");
 const Serializers = require("../../src/serializers");
+const Validators = require("../../src/validators");
 const Transporters = require("../../src/transporters");
 const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
@@ -101,7 +102,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.cacher).toBeNull();
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
-		expect(broker.validator).toBeDefined();
+		expect(broker.validator).toBeInstanceOf(Validators.Fastest);
 		expect(broker.transit).toBeUndefined();
 
 		expect(broker.getLocalService("$node")).toBeDefined();
@@ -320,11 +321,12 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should set validator", () => {
 		broker = new ServiceBroker({ logger: false });
-		expect(broker.validator).toBeDefined();
+		expect(broker.validator).toBeInstanceOf(Validators.Fastest);
 		broker.stop();
 
 		broker = new ServiceBroker({ logger: false, validator: true });
-		expect(broker.validator).toBeDefined();
+		expect(broker.validator).toBeInstanceOf(Validators.Fastest);
+		broker.stop();
 	});
 
 	it("should not set validator", () => {
@@ -334,6 +336,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		broker = new ServiceBroker({ logger: false, validator: null });
 		expect(broker.validator).toBeUndefined();
+		broker.stop();
 	});
 
 	it("should disable balancer if transporter has no built-in balancer", () => {
@@ -1790,48 +1793,48 @@ describe("Test waitForServices using dependencyInterval from options", () => {
 
 	it("should call waitForServices with dependencyInterval from settings", async () => {
 
-		let broker = new ServiceBroker({logger: false, dependencyInterval: 100});
-		jest.spyOn(broker, "createService")
-		jest.spyOn(broker, "waitForServices")
+		let broker = new ServiceBroker({ logger: false, dependencyInterval: 100 });
+		jest.spyOn(broker, "createService");
+		jest.spyOn(broker, "waitForServices");
 
 		let services = [
-			{name: "users"},
-			{name: "auth"},
-			{name: "posts", dependencies: ["users","auth"]},
-		].map(svc => broker.createService(svc))
+			{ name: "users" },
+			{ name: "auth" },
+			{ name: "posts", dependencies: ["users","auth"] },
+		].map(svc => broker.createService(svc));
 
-		await broker.start()
+		await broker.start();
 
 		expect(broker.createService).toHaveBeenCalledTimes(3);
 		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
 		expect(broker.waitForServices).toHaveBeenLastCalledWith(["users","auth"], 0, 100, broker.logger);
-	})
+	});
 
 	it("should start fast despite multiple levels of dependencies", async () => {
 
-		let broker = new ServiceBroker({logger: false, dependencyInterval: 10});
+		let broker = new ServiceBroker({ logger: false, dependencyInterval: 10 });
 
-		jest.spyOn(broker, "createService")
-		jest.spyOn(broker, "waitForServices")
+		jest.spyOn(broker, "createService");
+		jest.spyOn(broker, "waitForServices");
 
 		// create multiple levels of dependencies, starting to "max level" and down to 1
 		// each level has to wait for the previous one
 		// 10 levels ensure a test timeout if dependencyInterval is not set to a lower value
-		let nb_levels = 10
+		let nb_levels = 10;
 		for(let i = nb_levels ; i > 0 ; i--) {
 			broker.createService({
 				name: `level_${i}`,
 				dependencies: i > 1 ? [`level_${i-1}`] : null,
 				$dependencyTimeout: 1000
-			})
+			});
 		}
 
-		await broker.start()
+		await broker.start();
 
 		expect(broker.createService).toHaveBeenCalledTimes(nb_levels);
 		expect(broker.waitForServices).toHaveBeenCalledTimes(nb_levels-1);
 		expect(broker.waitForServices).toHaveBeenLastCalledWith(["level_1"], 0, broker.options.dependencyInterval, broker.logger);
-	})
+	});
 });
 
 describe("Test broker.findNextActionEndpoint", () => {

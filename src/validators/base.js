@@ -1,40 +1,57 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Validator = require("fastest-validator");
-const { ValidationError } = require("./errors");
+const { ValidationError } = require("../errors");
 
-class ParamValidator {
+class BaseValidator {
 
-	constructor() {
-		this.validator = new Validator();
+	constructor(opts) {
+		this.opts = opts || {};
 	}
 
 	init(broker) {
 		this.broker = broker;
 	}
 
-	compile(schema) {
-		return this.validator.compile(schema);
+	/**
+	 * Compile a validation schema to a checker function.
+	 * @param {any} schema
+	 * @returns {Function}
+	 */
+	compile(/*schema*/) {
+		throw new Error("Abstract method");
 	}
 
-	validate(params, schema) {
-		const res = this.validator.validate(params, schema);
-		if (res !== true)
-			throw new ValidationError("Parameters validation error!", null, res);
+	/**
+	 * Validate params againt the schema
+	 * @param {any} params
+	 * @param {any} schema
+	 * @returns {boolean}
+	 */
+	validate(/*params, schema*/) {
+		throw new Error("Abstract method");
+	}
 
-		return true;
+	/**
+	 * Convert the specific validation schema to
+	 * the Moleculer (fastest-validator) validation schema format.
+	 *
+	 * @param {any} schema
+	 * @returns {Object}
+	 */
+	convertSchemaToMoleculer(/*schema*/) {
+		throw new Error("Abstract method");
 	}
 
 	/**
 	 * Register validator as a middleware
 	 *
-	 * @memberof ParamValidator
+	 * @memberof BaseValidator
 	 */
 	middleware(broker) {
 		const self = this;
@@ -78,4 +95,4 @@ class ParamValidator {
 }
 
 
-module.exports = ParamValidator;
+module.exports = BaseValidator;

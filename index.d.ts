@@ -777,7 +777,7 @@ declare namespace Moleculer {
 
 		cacher?: boolean | Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
-		validator?: boolean | Validator;
+		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions;
 
 		metrics?: boolean | MetricRegistryOptions;
 		tracing?: boolean | TracerOptions;
@@ -950,7 +950,7 @@ declare namespace Moleculer {
 
 		cacher?: Cacher;
 		serializer?: Serializer;
-		validator?: Validator;
+		validator?: BaseValidator;
 
 		tracer: Tracer;
 
@@ -1187,18 +1187,23 @@ declare namespace Moleculer {
 		Notepack: Serializer
 	};
 
-	class Validator {
+	class BaseValidator {
 		constructor();
 		init(broker: ServiceBroker): void;
 		compile(schema: GenericObject): Function;
 		validate(params: GenericObject, schema: GenericObject): boolean;
 		middleware(): ((handler: ActionHandler, action: ActionSchema) => any);
+		convertSchemaToMoleculer(schema: any): GenericObject;
 	}
+
+	class Validator extends BaseValidator {} // deprecated
 
 	abstract class BaseStrategy {
 		constructor(registry:ServiceRegistry, broker:ServiceBroker, opts?:object);
 		select(list: any[], ctx?: Context): Endpoint;
 	}
+
+	type ValidatorNames = "Fastest"
 
 	class RoundRobinStrategy extends BaseStrategy {}
 	class RandomStrategy extends BaseStrategy {}
@@ -1251,6 +1256,16 @@ declare namespace Moleculer {
 		class Local extends BaseDiscoverer {}
 		class Redis extends BaseDiscoverer {}
 		class Etcd3 extends BaseDiscoverer {}
+	}
+
+	interface ValidatorOptions {
+		type: string,
+		options?: GenericObject
+	}
+
+	namespace Validators {
+		class Base extends BaseValidator {}
+		class Fastest extends BaseValidator {}
 	}
 
 	namespace Transporters {

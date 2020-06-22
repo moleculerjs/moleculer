@@ -24,7 +24,8 @@ module.exports = {
 	Transporters: require("./src/transporters"),
 	Serializers: require("./src/serializers"),
 	Strategies: require("./src/strategies"),
-	Validator: require("./src/validator"),
+	Validators: require("./src/validators"),
+	Validator: require("./src/validators/fastest"), // deprecated
 	TracerExporters: require("./src/tracing/exporters"),
 	MetricTypes: require("./src/metrics/types"),
 	MetricReporters: require("./src/metrics/reporters"),
