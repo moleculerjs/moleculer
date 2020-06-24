@@ -543,12 +543,15 @@ declare namespace Moleculer {
 		static create(broker: ServiceBroker): Context;
 	}
 
-	interface ServiceSettingSchema {
+	interface ServiceSettingBaseSchema {
 		$noVersionPrefix?: boolean;
 		$noServiceNamePrefix?: boolean;
 		$dependencyTimeout?: number;
 		$shutdownTimeout?: number;
 		$secureSettings?: Array<string>;
+	}
+
+	interface ServiceSettingSchema extends ServiceSettingBaseSchema {
 		[name: string]: any;
 	}
 
@@ -614,7 +617,7 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	interface ServiceSchema<S = ServiceSettingSchema> {
+	interface ServiceSchema<S extends ServiceSettingBaseSchema = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
 		settings?: S;
@@ -639,7 +642,7 @@ declare namespace Moleculer {
 		[name: string]: ServiceAction;
 	}
 
-	class Service<S = ServiceSettingSchema> implements ServiceSchema {
+	class Service<S extends ServiceSettingBaseSchema = ServiceSettingSchema> implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
 		protected parseServiceSchema(schema: ServiceSchema<S>): void;
