@@ -1,10 +1,14 @@
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.7...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.8...master)
 
 --------------------------------------------------
 <a name="0.14.8"></a>
 # [0.14.8](https://github.com/moleculerjs/moleculer/compare/v0.14.7...v0.14.8) (2020-06-27)
+
+## Github Sponsoring is available for Moleculer :tada:
+We have been approved in Github Sponsors program, so you can sponsor the Moleculer project via [Github Sponsors](https://github.com/sponsors/moleculerjs).
+_If you have taxing problem with Patreon, change to Github Sponsors._
 
 ## New Validator configuration
 The `validator` has the same module configuration in broker options like other modules. It means you can configure the validation constructor options via broker options (moleculer.config.js).
@@ -57,12 +61,19 @@ module.exports = {
 }
 ```
 
-# Other changes
-- support using moleculer.config with `export default`
+## New metrics
+Added the following new metrics:
+- `moleculer.event.received.active`: Number of active event executions.
+- `moleculer.event.received.error.total`: Number of event execution errors.
+- `moleculer.event.received.time`: Execution time of events in milliseconds.
+- `os.memory.total`: OS used memory size.
+
+## Other changes
+- support using `moleculer.config.js` with `export default`.
 - remove some lodash methods.
-- upgrade to the latest `tsd`
+- upgrade to the latest `tsd`.
 - new `dependencyInterval` broker option. Using as default value for `broker.waitForServices` [#761](https://github.com/moleculerjs/moleculer/pull/761)
-- fix Datadog traceID, spanID generation logic to work with latest `dd-trace`
+- fix Datadog traceID, spanID generation logic to work with latest `dd-trace`.
 - add error stack trace to `EventLegacy` trace exporter.
 - fix INFO key issue in Redis Discoverer after Redis server restarting.
 
