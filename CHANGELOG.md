@@ -1,4 +1,3 @@
---------------------------------------------------
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.8...master)
 
