@@ -3,6 +3,70 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.7...master)
 
 --------------------------------------------------
+<a name="0.14.8"></a>
+# [0.14.8](https://github.com/moleculerjs/moleculer/compare/v0.14.7...v0.14.8) (2020-06-27)
+
+## New Validator configuration
+The `validator` has the same module configuration in broker options like other modules. It means you can configure the validation constructor options via broker options (moleculer.config.js).
+
+**Default usage:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: true // Using the default Fastest Validator
+}
+```
+
+**Using built-in validator name:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: "FastestValidator" // Using the Fastest Validator
+}
+```
+
+**Example with options:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: {
+        type: "FastestValidator",
+        options: {
+            useNewCustomCheckerFunction: true,
+            defaults: { /*...*/ },
+            messages: { /*...*/ },
+            aliases: { /*...*/ }
+        }
+    }
+}
+```
+
+**Example with custom validator**
+```js
+//moleculer.config.js
+const BaseValidator = require("moleculer").Validators.Base;
+
+class MyValidator extends BaseValidator {}
+
+module.exports = {
+    nodeID: "node-100",
+    validator: new MyValidator()
+}
+```
+
+# Other changes
+- support using moleculer.config with `export default`
+- remove some lodash methods.
+- upgrade to the latest `tsd`
+- new `dependencyInterval` broker option. Using as default value for `broker.waitForServices` [#761](https://github.com/moleculerjs/moleculer/pull/761)
+- fix Datadog traceID, spanID generation logic to work with latest `dd-trace`
+- add error stack trace to `EventLegacy` trace exporter.
+- fix INFO key issue in Redis Discoverer after Redis server restarting.
+
+--------------------------------------------------
 <a name="0.14.7"></a>
 # [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-22)
 
