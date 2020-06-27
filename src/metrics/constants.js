@@ -69,6 +69,7 @@ module.exports = {
 	// --- OS METRICS ---
 
 	OS_MEMORY_FREE: "os.memory.free", // bytes
+	OS_MEMORY_USED: "os.memory.used", // bytes
 	OS_MEMORY_TOTAL: "os.memory.total", // bytes
 	OS_UPTIME: "os.uptime", // seconds
 	OS_TYPE: "os.type",

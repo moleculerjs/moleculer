@@ -67,6 +67,7 @@ function registerCommonMetrics() {
 	// --- OS METRICS ---
 
 	this.register({ name: METRIC.OS_MEMORY_FREE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "OS free memory size" });
+	this.register({ name: METRIC.OS_MEMORY_USED, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "OS used memory size" });
 	this.register({ name: METRIC.OS_MEMORY_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "OS total memory size" });
 	this.register({ name: METRIC.OS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS, description: "OS uptime" });
 	this.register({ name: METRIC.OS_TYPE, type: METRIC.TYPE_INFO, description: "OS type" }).set(os.type());
@@ -212,8 +213,12 @@ function updateCommonMetrics() {
 
 	// --- OS METRICS ---
 
-	this.set(METRIC.OS_MEMORY_FREE, os.freemem());
-	this.set(METRIC.OS_MEMORY_TOTAL, os.totalmem());
+	const freeMem = os.freemem();
+	const totalMem = os.totalmem();
+	const usedMem = totalMem - freeMem;
+	this.set(METRIC.OS_MEMORY_FREE, freeMem);
+	this.set(METRIC.OS_MEMORY_USED, usedMem);
+	this.set(METRIC.OS_MEMORY_TOTAL, totalMem);
 	this.set(METRIC.OS_UPTIME, os.uptime());
 	this.set(METRIC.OS_TYPE, os.type());
 	this.set(METRIC.OS_RELEASE, os.release());

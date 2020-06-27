@@ -22,7 +22,7 @@ const broker = new ServiceBroker({
 				options: {
 					onlyChanges: false,
 					//interval: 1000,
-					includes: "moleculer.event.received.*",
+					includes: ["moleculer.event.received.*", "os.memory.*"],
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
