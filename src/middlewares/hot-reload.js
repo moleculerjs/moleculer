@@ -20,6 +20,7 @@ module.exports = function HotReloadMiddleware(broker) {
 
 	let projectFiles = new Map();
 	let prevProjectFiles = new Map();
+	let hotReloadModules = [];
 
 	function hotReloadService(service) {
 		const relPath = path.relative(process.cwd(), service.__filename);
@@ -190,7 +191,8 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Skip node_modules files, if there is parent project file
 		if ((service || parents) && fName.indexOf("node_modules") !== -1)
-			return;
+			if (hotReloadModules.find(modulePath => fName.indexOf(modulePath) !== -1) == null)
+				return;
 
 		// Avoid circular dependency in project files
 		if (parents && parents.indexOf(fName) !== -1)
@@ -315,6 +317,11 @@ module.exports = function HotReloadMiddleware(broker) {
 		started(broker) {
 			if (broker.options.hotReload) {
 				broker.logger.info("Hot-reload is ACTIVE.");
+
+				if (Array.isArray(broker.options.hotReloadModules)) {
+					hotReloadModules = broker.options.hotReloadModules.map(moduleName => `/node_modules/${moduleName}/`);
+				}
+
 				watchProjectFiles();
 
 				watchProjectFolders();
