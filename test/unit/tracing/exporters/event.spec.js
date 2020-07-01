@@ -4,6 +4,7 @@ const lolex = require("@sinonjs/fake-timers");
 
 const EventTraceExporter = require("../../../../src/tracing/exporters/event");
 const ServiceBroker = require("../../../../src/service-broker");
+const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false });
 
@@ -344,6 +345,27 @@ describe("Test Event tracing exporter class", () => {
 			]);
 
 			expect(res).not.toBe(exporter.queue);
+		});
+
+		it("should convert Errors", () => {
+			const error = new MoleculerRetryableError("Something happened", 503, "SOMETHING_HAPPENED", { c: "bug" });
+			exporter = new EventTraceExporter({});
+			exporter.init(fakeTracer);
+
+			exporter.errorToObject = jest.fn(err => err.name);
+
+			exporter.queue.push({ a: 5 }, { b: 10, error });
+
+			const res = exporter.generateTracingData();
+
+			expect(res).toEqual([
+				{ a: 5 },
+				{ b: 10, error: "MoleculerRetryableError" }
+			]);
+
+			expect(res).not.toBe(exporter.queue);
+			expect(exporter.errorToObject).toBeCalledTimes(1);
+			expect(exporter.errorToObject).toBeCalledWith(error);
 		});
 
 		it("should call spanConverter", () => {

@@ -128,7 +128,13 @@ class EventTraceExporter extends BaseTraceExporter {
 		if (isFunction(this.opts.spanConverter))
 			return this.queue.map(span => this.opts.spanConverter.call(this, span));
 
-		return Array.from(this.queue);
+		return Array.from(this.queue).map(span => {
+			const newSpan = Object.assign({}, span);
+			if (newSpan.error)
+				newSpan.error = this.errorToObject(span.error);
+
+			return newSpan;
+		});
 	}
 
 }
