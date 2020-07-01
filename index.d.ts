@@ -65,6 +65,10 @@ declare namespace Moleculer {
 		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
+	interface HotReloadOptions {
+		modules?: Array<string>;
+	}
+
 	interface TracerExporterOptions {
 		type: string;
 		options?: GenericObject;
@@ -789,7 +793,7 @@ declare namespace Moleculer {
 
 		dependencyInterval?: number;
 
-		hotReload?: boolean;
+		hotReload?: boolean | HotReloadOptions;
 
 		middlewares?: Array<Middleware | string>;
 
