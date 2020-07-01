@@ -318,9 +318,6 @@ module.exports = function HotReloadMiddleware(broker) {
 			if (broker.options.hotReload == null) {
 				return;
 			} else if (typeof broker.options.hotReload === 'object') {
-				if (broker.options.hotReload.enabled !== true) {
-					return;
-				}
 				if (Array.isArray(broker.options.hotReload.modules)) {
 					hotReloadModules = broker.options.hotReload.modules.map(moduleName => `/node_modules/${moduleName}/`);
 				}
