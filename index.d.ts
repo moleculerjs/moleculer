@@ -792,6 +792,8 @@ declare namespace Moleculer {
 		};
 		internalMiddlewares?: boolean;
 
+		dependencyInterval?: number;
+
 		hotReload?: boolean | HotReloadOptions;
 
 		middlewares?: Array<Middleware | string>;
