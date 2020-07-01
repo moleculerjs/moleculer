@@ -315,17 +315,22 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// After broker started
 		started(broker) {
-			if (broker.options.hotReload) {
-				broker.logger.info("Hot-reload is ACTIVE.");
-
-				if (Array.isArray(broker.options.hotReloadModules)) {
-					hotReloadModules = broker.options.hotReloadModules.map(moduleName => `/node_modules/${moduleName}/`);
+			if (broker.options.hotReload == null) {
+				return;
+			} else if (typeof broker.options.hotReload === 'object') {
+				if (broker.options.hotReload.enabled !== true) {
+					return;
 				}
-
-				watchProjectFiles();
-
-				watchProjectFolders();
+				if (Array.isArray(broker.options.hotReload.modules)) {
+					hotReloadModules = broker.options.hotReload.modules.map(moduleName => `/node_modules/${moduleName}/`);
+				}
+			} else if (broker.options.hotReload !== true) {
+				return;
 			}
+
+			watchProjectFiles();
+
+			watchProjectFolders();
 		},
 
 		serviceStarted() {
