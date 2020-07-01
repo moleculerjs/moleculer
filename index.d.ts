@@ -66,7 +66,6 @@ declare namespace Moleculer {
 	type ActionParams = { [key: string]: ActionParamTypes };
 
 	interface HotReloadOptions {
-		enabled?: boolean;
 		modules?: Array<string>;
 	}
 
