@@ -1,6 +1,6 @@
 "use strict";
 
-
+/*
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	url: "http://192.168.0.181:8126",
@@ -10,7 +10,7 @@ const tracer = require("dd-trace").init({
 
 tracer.use("http");
 tracer.use("ioredis");
-
+*/
 
 const ServiceBroker = require("../src/service-broker");
 "use strict";
@@ -46,12 +46,12 @@ const broker = new ServiceBroker({
 					logger: console.info
 				}
 			},
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					tracer
 				}
-			},
+			},*/
 			/*{
 				type: "Zipkin",
 				options: {
@@ -64,11 +64,11 @@ const broker = new ServiceBroker({
 					host: "192.168.0.181",
 				}
 			},*/
-			/*{
+			{
 				type: "Event",
 				options: {
 				}
-			}*/
+			}
 			/*{
 				type: "EventLegacy"
 			}*/
@@ -89,6 +89,15 @@ broker.createService({
 	actions: {
 		get(ctx) {
 			return {};
+		}
+	}
+});
+
+broker.createService({
+	name: "greeter",
+	actions: {
+		welcome(ctx) {
+			return `Hello ${ctx.params}`;
 		}
 	}
 });
@@ -290,8 +299,12 @@ broker.createService({
 broker.createService({
 	name: "event-handler",
 	events: {
-		"$tracing.spans"(ctx) {
-			this.logger.info("Tracing event received", ctx.params);
+		"$tracing.spans": {
+			tracing: false,
+			handler(ctx) {
+				this.logger.info("Tracing event received");
+				ctx.params.forEach(span => this.logger.info(span));
+			}
 		},
 		"metrics.trace.span.start"(ctx) {
 			this.logger.info("Legacy tracing start event received");
@@ -345,7 +358,7 @@ broker.createService({
 	},
 
 	started() {
-		this.server.listen(3000);
+		this.server.listen(3333);
 	},
 
 	stopped() {
@@ -360,7 +373,8 @@ broker.start().then(() => {
 	// Call action
 	//setInterval(() => {
 	broker
-		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
+		//.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
+		.call("greeter.welcome", "Moleculer")
 		//.then(console.log)
 		.catch(console.error);
 	//}, 5000);

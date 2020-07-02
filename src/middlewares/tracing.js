@@ -47,7 +47,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				} else if (isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
-						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
+						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))
 						tags.params = _.pick(ctx.params, opts.tags.params);
 
@@ -94,7 +94,7 @@ module.exports = function TracingMiddleware(broker) {
 
 					} else if (isPlainObject(opts.tags)) {
 						if (opts.tags.response === true)
-							tags.response = res != null ? Object.assign({}, res) : res;
+							tags.response = res != null && isPlainObject(res) ? Object.assign({}, res) : res;
 						else if (Array.isArray(opts.tags.response))
 							tags.response = _.pick(res, opts.tags.response);
 					}
@@ -152,7 +152,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				} else if (isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
-						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
+						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))
 						tags.params = _.pick(ctx.params, opts.tags.params);
 
