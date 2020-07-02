@@ -11,6 +11,7 @@ const { isPlainObject, isString } = require("./utils");
 const Loggers = require("./loggers");
 
 const noop = () => {};
+const cwd = process.cwd();
 
 /**
  * Log factory class.
@@ -77,6 +78,27 @@ class LoggerFactory {
 	 */
 	stop() {
 		return this.broker.Promise.all(this.appenders.map(appender => appender.stop()));
+	}
+
+	/**
+	 * Get caller information from error stack trace.
+	 */
+	getCallerFromStack() {
+		const _prepareStackTrace = Error.prepareStackTrace;
+		Error.prepareStackTrace = (_, stack) => stack;
+		const stack = new Error().stack;
+		Error.prepareStackTrace = _prepareStackTrace;
+
+		if (stack.length > 2) {
+			const site = stack[2];
+			return {
+				filename: site.getFileName().substring(cwd.length + 1),
+				lineNumber: site.getLineNumber(),
+				columnNumber: site.getColumnNumber(),
+				methodName: site.getMethodName(),
+				functionName: site.getFunctionName(),
+			};
+		}
 	}
 
 	/**
