@@ -533,8 +533,8 @@ declare namespace Moleculer {
 		broadcast<D>(eventName: string, data: D): Promise<void>;
 		broadcast(eventName: string): Promise<void>;
 
-		copy(endpoint: Endpoint): Context;
-		copy(): Context;
+		copy(endpoint: Endpoint): this;
+		copy(): this;
 
 		startSpan(name: string, opts: GenericObject): Span;
 		finishSpan(span: Span, time?: number): void;
