@@ -14,6 +14,7 @@ Array [
     "count": 5,
     "key": "",
     "labels": Object {},
+    "lastValue": 5,
     "max": 8,
     "mean": 4.8,
     "min": 2,
@@ -42,6 +43,7 @@ Array [
     "labels": Object {
       "a": 5,
     },
+    "lastValue": 4,
     "max": 4,
     "mean": 2.25,
     "min": 1,
