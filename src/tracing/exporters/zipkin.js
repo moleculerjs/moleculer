@@ -145,7 +145,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 		const serviceName = span.service ? span.service.fullName : null;
 		const payload = {
 			name: span.name,
-			kind: "CONSUMER",
+			kind: "SERVER",
 
 			// Trace & span IDs
 			traceId: this.convertID(span.traceID),
@@ -155,10 +155,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			localEndpoint: { serviceName },
 			remoteEndpoint: { serviceName },
 
-			annotations: [
-				{ timestamp: this.convertTime(span.startTime), value: "sr" },
-				{ timestamp: this.convertTime(span.finishTime), value: "ss" },
-			],
+			annotations: [],
 
 			timestamp: this.convertTime(span.startTime),
 			duration: this.convertTime(span.duration),
