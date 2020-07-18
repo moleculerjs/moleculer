@@ -37,6 +37,12 @@ module.exports = function RetryMiddleware(broker) {
 							// Retry call
 							ctx._retryAttempts++;
 
+							// Correct tracing
+							if (ctx.span) {
+								ctx.span.setError(err);
+								ctx.finishSpan(ctx.span);
+							}
+
 							// Calculate next delay
 							const delay = Math.min(opts.delay * Math.pow(opts.factor, ctx._retryAttempts - 1), opts.maxDelay);
 
@@ -45,10 +51,13 @@ module.exports = function RetryMiddleware(broker) {
 							// Wait & recall
 							return broker.Promise.delay(delay)
 								.then(() => {
-									if (action.visibility == "private")
-										return ctx.service.actions[action.rawName](ctx.params, { ctx });
+									const newCtx = ctx.copy();
+									newCtx._retryAttempts = ctx._retryAttempts;
 
-									return broker.call(actionName, ctx.params, { ctx });
+									if (action.visibility == "private")
+										return ctx.service.actions[action.rawName](ctx.params, { ctx: newCtx });
+
+									return broker.call(actionName, ctx.params, { ctx: newCtx });
 								});
 						}
 					}

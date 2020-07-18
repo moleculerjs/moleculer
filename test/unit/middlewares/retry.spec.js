@@ -4,8 +4,12 @@ const Context 						= require("../../../src/context");
 const Middleware 					= require("../../../src/middlewares").Retry;
 const { protectReject } 			= require("../utils");
 
+let currID = 1;
+const uidGenerator = () => (currID++).toString();
+
 describe("Test RetryMiddleware", () => {
-	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, transporter: "Fake" });
+
+	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, transporter: "Fake", uidGenerator });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
 		name: "posts.find",
@@ -72,16 +76,27 @@ describe("Test RetryMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint);
 		ctx.setParams({ offset: 10 });
+		ctx.span = { setError: jest.fn() };
+		ctx.finishSpan = jest.fn();
 
 		broker.call = jest.fn(() => Promise.resolve("Next call"));
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Next call");
+			expect(ctx.id).toBe("1");
 			expect(ctx._retryAttempts).toBe(1);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(1);
-			expect(broker.call).toHaveBeenCalledWith("posts.find", { offset: 10 }, { ctx });
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { offset: 10 }, { ctx: expect.any(Context) });
+			expect(broker.call.mock.calls[0][2].ctx.id).toBe("2");
+			expect(broker.call.mock.calls[0][2].ctx._retryAttempts).toBe(1);
+
+			expect(ctx.span.setError).toHaveBeenCalledTimes(1);
+			expect(ctx.span.setError).toHaveBeenCalledWith(error);
+
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(ctx.span);
 
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
 			expect(broker.Promise.delay).toHaveBeenCalledWith(100);
@@ -131,11 +146,12 @@ describe("Test RetryMiddleware", () => {
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Next direct call");
 			expect(ctx._retryAttempts).toBe(1);
+			expect(ctx.id).toBe("3");
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(action.service.actions.list).toHaveBeenCalledTimes(1);
-			expect(action.service.actions.list).toHaveBeenCalledWith({ limit: 5 }, { ctx });
+			expect(action.service.actions.list).toHaveBeenCalledWith({ limit: 5 }, { ctx: { ...ctx, id: "4" } });
 
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
 			expect(broker.Promise.delay).toHaveBeenCalledWith(100);
