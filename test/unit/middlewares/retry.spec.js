@@ -76,7 +76,7 @@ describe("Test RetryMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint);
 		ctx.setParams({ offset: 10 });
-		ctx.span = { setError: jest.fn() };
+		ctx.span = { setError: jest.fn(), addTags: jest.fn() };
 		ctx.finishSpan = jest.fn();
 
 		broker.call = jest.fn(() => Promise.resolve("Next call"));
@@ -94,6 +94,9 @@ describe("Test RetryMiddleware", () => {
 
 			expect(ctx.span.setError).toHaveBeenCalledTimes(1);
 			expect(ctx.span.setError).toHaveBeenCalledWith(error);
+
+			expect(ctx.span.addTags).toHaveBeenCalledTimes(1);
+			expect(ctx.span.addTags).toHaveBeenCalledWith({ retryAttempts: 1 });
 
 			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.finishSpan).toHaveBeenCalledWith(ctx.span);

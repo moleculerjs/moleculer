@@ -40,6 +40,7 @@ module.exports = function RetryMiddleware(broker) {
 							// Correct tracing
 							if (ctx.span) {
 								ctx.span.setError(err);
+								ctx.span.addTags({ retryAttempts: ctx._retryAttempts });
 								ctx.finishSpan(ctx.span);
 							}
 
