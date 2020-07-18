@@ -121,3 +121,23 @@ describe("Test Loggers resolver", () => {
 	});
 
 });
+
+describe("Test Logger register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Loggers.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Loggers.register("MyCustom", MyCustom);
+		expect(Loggers.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const logger = Loggers.resolve("MyCustom");
+		expect(logger).toBeInstanceOf(MyCustom);
+	});
+});

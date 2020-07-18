@@ -61,5 +61,9 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = Object.assign(Cachers, { resolve });
+function register(name, value) {
+	Cachers[name] = value;
+}
+
+module.exports = Object.assign(Cachers, { resolve, register });
 

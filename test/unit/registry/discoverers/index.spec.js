@@ -79,3 +79,24 @@ describe("Test Discoverers resolver", () => {
 		expect(() => Discoverers.resolve({ type: "xyz" })).toThrowError(BrokerOptionsError);
 	});
 });
+
+
+describe("Test Discoverer register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Discoverers.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Discoverers.register("MyCustom", MyCustom);
+		expect(Discoverers.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const discoverer = Discoverers.resolve("MyCustom");
+		expect(discoverer).toBeInstanceOf(MyCustom);
+	});
+});

@@ -16,3 +16,23 @@ describe("Test MetricTypes resolver", () => {
 	});
 
 });
+
+describe("Test MetricTypes register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			MetricTypes.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		MetricTypes.register("MyCustom", MyCustom);
+		expect(MetricTypes.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const type = MetricTypes.resolve("MyCustom");
+		expect(type).toBe(MyCustom);
+	});
+});

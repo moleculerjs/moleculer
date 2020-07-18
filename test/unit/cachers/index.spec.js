@@ -1,4 +1,4 @@
-const { MoleculerError } = require("../../../src/errors");
+const { BrokerOptionsError } = require("../../../src/errors");
 const Cachers = require("../../../src/cachers");
 
 describe("Test Cacher resolver with valid instances", () => {
@@ -77,10 +77,30 @@ describe("Test Cacher resolver with invalid instances", () => {
 	it("should throw error if type if not correct", () => {
 		expect(() => {
 			Cachers.resolve({ type: "xyz" });
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
 
 		expect(() => {
 			Cachers.resolve("xyz");
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
+	});
+});
+
+describe("Test Cacher register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Cachers.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Cachers.register("MyCustom", MyCustom);
+		expect(Cachers.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const cacher = Cachers.resolve("MyCustom");
+		expect(cacher).toBeInstanceOf(MyCustom);
 	});
 });

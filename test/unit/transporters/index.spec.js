@@ -1,4 +1,4 @@
-const { MoleculerError } = require("../../../src/errors");
+const { BrokerOptionsError } = require("../../../src/errors");
 const Transporters = require("../../../src/transporters");
 
 describe("Test Transporter resolver", () => {
@@ -231,13 +231,33 @@ describe("Test Transporter resolver", () => {
 		it("should throw error if type if not correct", () => {
 			expect(() => {
 				Transporters.resolve("xyz");
-			}).toThrowError(MoleculerError);
+			}).toThrowError(BrokerOptionsError);
 
 			expect(() => {
 				Transporters.resolve({ type: "xyz" });
-			}).toThrowError(MoleculerError);
+			}).toThrowError(BrokerOptionsError);
 		});
 
 	});
 
+});
+
+describe("Test Transporters register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Transporters.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Transporters.register("MyCustom", MyCustom);
+		expect(Transporters.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const transporter = Transporters.resolve("MyCustom");
+		expect(transporter).toBeInstanceOf(MyCustom);
+	});
 });

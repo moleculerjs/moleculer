@@ -80,4 +80,9 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = Object.assign(Transporters, { resolve });
+function register(name, value) {
+	Transporters[name] = value;
+}
+
+
+module.exports = Object.assign(Transporters, { resolve, register });

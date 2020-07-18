@@ -52,4 +52,8 @@ function resolve(opt) {
 	return new Validators.Fastest();
 }
 
-module.exports = Object.assign(Validators, { resolve });
+function register(name, value) {
+	Validators[name] = value;
+}
+
+module.exports = Object.assign(Validators, { resolve, register });

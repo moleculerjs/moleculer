@@ -55,5 +55,9 @@ function resolve(opt) {
 	throw new BrokerOptionsError(`Invalid metric reporter type '${opt}'.`, { type: opt });
 }
 
-module.exports = Object.assign(Reporters, { resolve });
+function register(name, value) {
+	Reporters[name] = value;
+}
+
+module.exports = Object.assign(Reporters, { resolve, register });
 

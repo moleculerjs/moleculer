@@ -60,4 +60,8 @@ function resolve(opt) {
 	return new Discoverers.Local();
 }
 
-module.exports = Object.assign(Discoverers, { resolve });
+function register(name, value) {
+	Discoverers[name] = value;
+}
+
+module.exports = Object.assign(Discoverers, { resolve, register });
