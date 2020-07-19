@@ -12,7 +12,7 @@ describe("Test FastestValidator constructor", () => {
 		const validator = new FastestValidator();
 
 		expect(validator).toBeDefined();
-		expect(validator.opts).toEqual({});
+		expect(validator.opts).toEqual({ paramName: "params" });
 	});
 
 	it("test constructor with opts", () => {
@@ -22,6 +22,7 @@ describe("Test FastestValidator constructor", () => {
 
 		expect(validator).toBeDefined();
 		expect(validator.opts).toEqual({
+			paramName: "params",
 			useNewCustomCheckerFunction: true
 		});
 	});
