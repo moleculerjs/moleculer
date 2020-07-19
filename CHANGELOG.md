@@ -1,6 +1,66 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.8...master)
 
+## Register method in module resolver
+If you create a custom module (e.g. serializer), you can register it into the built-in modules with the `register` method. This method is also available in all other built-in module resolver.
+
+**Example**
+```js
+// SafeJsonSerializer.js
+const { Serializers } = require("moleculer");
+
+class SafeJsonSerializer {}
+
+Serializers.register("SafeJSON", SafeJSON);
+
+module.exports = SafeJsonSerializer;
+```
+
+```js
+// moleculer.config.js
+require("./SafeJsonSerializer");
+
+module.exports = {
+    nodeID: "node-100",
+    serializer: "SafeJSON"
+    // ...
+});
+```
+
+## Changeable validation property name
+You can change the `params` property name in validator options. It can be useful if you have a custom Validator implementation.
+
+```js
+const broker = new ServiceBroker({
+	validator: {
+		type: "Fastest",
+		options: {
+			paramName: "myParams" // using `myParams` instead of `params`
+		}
+	}
+});
+
+broker.createService({
+    name: "posts",
+    actions: {
+        create: {
+            myParams: {
+                title: "string"
+            }
+        },
+        handler(ctx) { /* ... */ }
+    }
+});
+```
+
+## Other changes
+- fix multiple trace spans with same ID issue in case of retries.
+- update dependencies
+- add drive letter case fixing to Runner on Windows.
+- add `lastValue` property to histogram metric type.
+- update return type of context's copy method. 
+- add configuration hotReloadModules [#779](https://github.com/moleculerjs/moleculer/pull/779)
+
 --------------------------------------------------
 <a name="0.14.8"></a>
 # [0.14.8](https://github.com/moleculerjs/moleculer/compare/v0.14.7...v0.14.8) (2020-06-27)

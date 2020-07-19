@@ -39,6 +39,7 @@ const apiService = broker.createService({
 					id: span.id,
 					name: span.name,
 					duration: span.duration,
+					retryAttempts: span.tags.retryAttempts,
 					error: span.error ? span.error.name : undefined
 				};
 			}));

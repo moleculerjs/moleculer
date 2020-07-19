@@ -7,11 +7,14 @@
 "use strict";
 
 const { ValidationError } = require("../errors");
+const _ = require("lodash");
 
 class BaseValidator {
 
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = _.defaultsDeep(opts, {
+			paramName: "params"
+		});
 	}
 
 	init(broker) {
@@ -55,12 +58,14 @@ class BaseValidator {
 	 */
 	middleware(broker) {
 		const self = this;
+		const paramName = this.opts.paramName;
+
 		return {
 			name: "Validator",
 			localAction: function validatorMiddleware(handler, action) {
 				// Wrap a param validator
-				if (action.params && typeof action.params === "object") {
-					const check = self.compile(action.params);
+				if (action[paramName] && typeof action[paramName] === "object") {
+					const check = self.compile(action[paramName]);
 					return function validateContextParams(ctx) {
 						let res = check(ctx.params != null ? ctx.params : {});
 						if (res === true)
@@ -76,8 +81,8 @@ class BaseValidator {
 
 			localEvent: function validatorMiddleware(handler, event) {
 				// Wrap a param validator
-				if (event.params && typeof event.params === "object") {
-					const check = self.compile(event.params);
+				if (event[paramName] && typeof event[paramName] === "object") {
+					const check = self.compile(event[paramName]);
 					return function validateContextParams(ctx) {
 						let res = check(ctx.params != null ? ctx.params : {});
 						if (res === true)
