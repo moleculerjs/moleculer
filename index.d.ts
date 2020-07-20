@@ -79,7 +79,7 @@ declare namespace Moleculer {
 		exporter?: TracerExporterOptions | Array<TracerExporterOptions> | null;
 		sampling?: {
 			rate?: number | null;
-			tracerPerSecond?: number | null;
+			tracesPerSecond?: number | null;
 			minPriority?: number | null;
 		}
 
