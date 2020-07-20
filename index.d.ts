@@ -79,7 +79,7 @@ declare namespace Moleculer {
 		exporter?: TracerExporterOptions | Array<TracerExporterOptions> | null;
 		sampling?: {
 			rate?: number | null;
-			tracerPerSecond?: number | null;
+			tracesPerSecond?: number | null;
 			minPriority?: number | null;
 		}
 
@@ -104,7 +104,7 @@ declare namespace Moleculer {
 		isEnabled(): boolean;
 		shouldSample(span: Span): boolean;
 
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 
 		//getCurrentSpan(): Span | null;
 		getCurrentTraceID(): string | null;
@@ -153,7 +153,7 @@ declare namespace Moleculer {
 		log(name: string, fields?: GenericObject, time?: number): Span;
 		setError(err: Error): Span;
 		finish(time?: number): Span;
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 	}
 
 	type TracingTagsFuncType = (ctx: Context, response?: any) => any;
@@ -536,7 +536,7 @@ declare namespace Moleculer {
 		copy(endpoint: Endpoint): this;
 		copy(): this;
 
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 		finishSpan(span: Span, time?: number): void;
 
 		toJSON(): GenericObject;
