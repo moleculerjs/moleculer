@@ -4,14 +4,6 @@ exports[`Test Zipkin tracing exporter class Test makePayload should convert erro
 Object {
   "annotations": Array [
     Object {
-      "timestamp": 1000000,
-      "value": "sr",
-    },
-    Object {
-      "timestamp": 1050000,
-      "value": "ss",
-    },
-    Object {
       "endpoint": Object {
         "ipv4": "",
         "port": 0,
@@ -24,7 +16,7 @@ Object {
   "debug": false,
   "duration": 50000,
   "id": "spanid1234567890",
-  "kind": "CONSUMER",
+  "kind": "SERVER",
   "localEndpoint": Object {
     "serviceName": "v1.posts",
   },
@@ -56,20 +48,11 @@ Object {
 
 exports[`Test Zipkin tracing exporter class Test makePayload should convert normal span to zipkin payload 1`] = `
 Object {
-  "annotations": Array [
-    Object {
-      "timestamp": 1000000,
-      "value": "sr",
-    },
-    Object {
-      "timestamp": 1050000,
-      "value": "ss",
-    },
-  ],
+  "annotations": Array [],
   "debug": false,
   "duration": 50000,
   "id": "spanid1234567890",
-  "kind": "CONSUMER",
+  "kind": "SERVER",
   "localEndpoint": Object {
     "serviceName": "v1.posts",
   },
