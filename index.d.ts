@@ -161,7 +161,7 @@ declare namespace Moleculer {
 		startSpan(name: string, opts?: GenericObject): Span;
 	}
 
-	type TracingActionTagsFuncType = (ctx: Context, response: any) => GenericObject;
+	type TracingActionTagsFuncType = (ctx: Context, response?: any) => GenericObject;
 	type TracingActionTags = TracingActionTagsFuncType | {
 		params?: boolean | string[];
 		meta?: boolean | string[];
