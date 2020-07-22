@@ -90,6 +90,11 @@ declare namespace Moleculer {
 		events?: boolean;
 
 		defaultTags?: GenericObject | Function | null;
+
+		tags?: {
+			action?: TracingActionTags;
+			event?: TracingEventTags;
+		}
 	}
 
 	class Tracer {
@@ -156,14 +161,31 @@ declare namespace Moleculer {
 		startSpan(name: string, opts?: GenericObject): Span;
 	}
 
-	type TracingTagsFuncType = (ctx: Context, response?: any) => any;
+	type TracingActionTagsFuncType = (ctx: Context, response?: any) => GenericObject;
+	type TracingActionTags = TracingActionTagsFuncType | {
+		params?: boolean | string[];
+		meta?: boolean | string[];
+		response?: boolean | string[];
+	}
+
+	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
+	type TracingEventTags = TracingEventTagsFuncType | {
+		params?: boolean | string[];
+		meta?: boolean | string[];
+	}
+
+
 	interface TracingOptions {
 		enabled?: boolean;
-		tags?: TracingTagsFuncType | {
-			params?: boolean | string[];
-			meta?: boolean | string[];
-			response?: boolean | string[];
-		}
+		tags?: TracingActionTags | TracingEventTags;
+	}
+
+	interface TracingActionOptions extends TracingOptions {
+		tags?: TracingActionTags;
+	}
+
+	interface TracingEventOptions extends TracingOptions {
+		tags?: TracingEventTags;
 	}
 
 	class BaseTraceExporter {
@@ -427,7 +449,7 @@ declare namespace Moleculer {
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
 		handler?: ActionHandler;
-		tracing?: boolean | TracingOptions;
+		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 		retryPolicy?: RetryPolicyOptions;
@@ -442,7 +464,7 @@ declare namespace Moleculer {
 		group?: string;
 		params?: ActionParams;
 		service?: Service;
-		tracing?: boolean | TracingOptions;
+		tracing?: boolean | TracingEventOptions;
 		bulkhead?: BulkheadOptions;
 		handler?: ActionHandler;
 		context?: boolean;

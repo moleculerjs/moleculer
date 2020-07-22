@@ -70,6 +70,11 @@ describe("Test Tracer", () => {
 				stackTrace: false,
 
 				defaultTags: null,
+
+				tags: {
+					action: null,
+					event: null,
+				}
 			});
 
 			expect(tracer.rateLimiter).toBeUndefined();
@@ -118,6 +123,11 @@ describe("Test Tracer", () => {
 				defaultTags: {
 					a: 5
 				},
+
+				tags: {
+					action: null,
+					event: null,
+				}
 			});
 
 			expect(tracer.rateLimiter).toBeInstanceOf(RateLimiter);

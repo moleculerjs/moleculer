@@ -54,6 +54,11 @@ class Tracer {
 			stackTrace: false,
 
 			defaultTags: null,
+
+			tags: {
+				action: null,
+				event: null,
+			}
 		});
 
 		if (this.opts.stackTrace && this.opts.errorFields.indexOf("stack") === -1)
