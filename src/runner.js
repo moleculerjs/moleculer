@@ -118,6 +118,7 @@ class MoleculerRunner {
 
 	/**
 	 * Fix Uppercase drive letter issue on Windows. It causes problem on custom modules detection (XY instanceof Base)
+	 * Unused currently, because it causes problem: https://github.com/moleculerjs/moleculer/issues/788
 	 *
 	 * More info: https://github.com/nodejs/node/issues/6978
 	 * @param {String} s
@@ -154,8 +155,6 @@ class MoleculerRunner {
 		if (filePath) {
 			if (!fs.existsSync(filePath))
 				return Promise.reject(new Error(`Config file not found: ${filePath}`));
-
-			filePath = this.fixDriveLetterCase(filePath);
 
 			const ext = path.extname(filePath);
 			switch (ext) {
