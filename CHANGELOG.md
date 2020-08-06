@@ -1,5 +1,9 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.8...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.9...master)
+
+--------------------------------------------------
+<a name="0.14.9"></a>
+# [0.14.9](https://github.com/moleculerjs/moleculer/compare/v0.14.8...v0.14.9) (2020-08-06)
 
 ## Register method in module resolver
 If you create a custom module (e.g. serializer), you can register it into the built-in modules with the `register` method. This method is also available in all other built-in module resolver.
