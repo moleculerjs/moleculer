@@ -32,12 +32,12 @@ You can change the `params` property name in validator options. It can be useful
 
 ```js
 const broker = new ServiceBroker({
-	validator: {
-		type: "Fastest",
-		options: {
-			paramName: "myParams" // using `myParams` instead of `params`
-		}
-	}
+    validator: {
+        type: "Fastest",
+        options: {
+            paramName: "myParams" // using `myParams` instead of `params`
+        }
+    }
 });
 
 broker.createService({
@@ -53,13 +53,39 @@ broker.createService({
 });
 ```
 
+## Global tracing span tags for actions & events
+Thanks for [@kthompson23](https://github.com/kthompson23), you can configure the action & events tracing span tags globally. These tags will be used for all actions & events where tracing is enabled. Of course, you can overwrite them locally in the action & event schema.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    tracing: {
+        enabled: true,
+        exporter: 'Zipkin',
+        tags: {
+            action: {
+                meta: ['app.id', 'user.email', 'workspace.name'],
+                params: false,  // overrides default behavior of all params being adding as tags
+                response: true,
+            },
+            event: (ctx) {
+                return {
+                    caller: ctx.caller,
+                }
+            }  
+        }
+    }
+}
+```
+
 ## Other changes
 - fix multiple trace spans with same ID issue in case of retries.
 - update dependencies
-- add drive letter case fixing to Runner on Windows.
 - add `lastValue` property to histogram metric type.
 - update return type of context's copy method. 
 - add configuration hotReloadModules [#779](https://github.com/moleculerjs/moleculer/pull/779)
+- Remove Zipkin v1 annotations and change kind to SERVER
 
 --------------------------------------------------
 <a name="0.14.8"></a>
