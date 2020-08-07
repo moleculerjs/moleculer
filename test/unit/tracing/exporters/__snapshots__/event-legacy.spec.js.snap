@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Event Legacy tracing exporter class Test generateMetricPayload should convert errored span to legacy payload 1`] = `
+Object {
+  "action": Object {
+    "name": "posts.find",
+    "rawName": "find",
+  },
+  "callerNodeID": "other-node",
+  "duration": 50,
+  "endTime": 1050,
+  "error": Object {
+    "code": 512,
+    "message": "Something happened",
+    "name": "MoleculerRetryableError",
+  },
+  "fromCache": true,
+  "id": "span-id-123",
+  "level": 5,
+  "nodeID": "node-123",
+  "parent": "parent-id-123",
+  "remoteCall": true,
+  "requestID": "trace-id-123",
+  "service": Object {
+    "fullName": "v1.posts",
+    "name": "posts",
+    "version": 1,
+  },
+  "startTime": 1000,
+}
+`;
+
+exports[`Test Event Legacy tracing exporter class Test generateMetricPayload should convert normal span to legacy payload 1`] = `
+Object {
+  "action": Object {
+    "name": "posts.find",
+    "rawName": "find",
+  },
+  "callerNodeID": "other-node",
+  "duration": 50,
+  "endTime": 1050,
+  "fromCache": true,
+  "id": "span-id-123",
+  "level": 5,
+  "nodeID": "node-123",
+  "parent": "parent-id-123",
+  "remoteCall": true,
+  "requestID": "trace-id-123",
+  "service": Object {
+    "fullName": "v1.posts",
+    "name": "posts",
+    "version": 1,
+  },
+  "startTime": 1000,
+}
+`;

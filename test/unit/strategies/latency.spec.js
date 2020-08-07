@@ -1,11 +1,10 @@
 "use strict";
 
-let LatencyStrategy = require("../../../src/strategies/latency");
-let { extendExpect, protectReject } = require("../utils");
+const LatencyStrategy = require("../../../src/strategies/latency");
+const { extendExpect, protectReject } = require("../utils");
 const ServiceBroker = require("../../../src/service-broker");
-const Promise = require("bluebird");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 extendExpect(expect);
 
@@ -55,11 +54,7 @@ describe("Test LatencyStrategy constructor", () => {
 		broker.localBus.listenerCount = jest.fn(() => 1);
 		broker.localBus.on = jest.fn();
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {});
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
 		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", jasmine.any(Function));
@@ -78,11 +73,7 @@ describe("Test LatencyStrategy constructor", () => {
 		const broker = new ServiceBroker({ logger: false });
 		broker.localBus.on = jest.fn();
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {});
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(0);
 
@@ -96,16 +87,12 @@ describe("Test LatencyStrategy constructor", () => {
 
 		const broker = new ServiceBroker({ logger: false });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 15,
-					lowLatency: 20,
-					collectCount: 10,
-					pingInterval: 15
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 15,
+			lowLatency: 20,
+			collectCount: 10,
+			pingInterval: 15
+		});
 
 		expect(strategy.opts.pingInterval).toBe(15);
 		expect(strategy.opts.sampleCount).toBe(15);
@@ -123,16 +110,12 @@ describe("Test LatencyStrategy.discovery method", () => {
 	it("should call sendPing in transit", () => {
 		const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 15,
-					lowLatency: 20,
-					collectCount: 10,
-					pingInterval: 15
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 15,
+			lowLatency: 20,
+			collectCount: 10,
+			pingInterval: 15
+		});
 
 		strategy.pingHosts = jest.fn();
 		broker.transit.sendPing = jest.fn(() => Promise.resolve());
@@ -160,16 +143,12 @@ describe("Test LatencyStrategy.pingHosts method", () => {
 	it("should call sendPing in transit", () => {
 		const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 15,
-					lowLatency: 20,
-					collectCount: 10,
-					pingInterval: 15
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 15,
+			lowLatency: 20,
+			collectCount: 10,
+			pingInterval: 15
+		});
 
 		strategy.hostMap.set("host-a", {
 			nodeList: ["node-a1", "node-a2", "node-a3"]
@@ -317,7 +296,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-b",
 			id: "node-3"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-1", "node-2"]
@@ -330,7 +309,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-a",
 			id: "node-1"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-2"]
@@ -343,7 +322,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-a",
 			id: "node-2"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toBeUndefined();
 
@@ -383,16 +362,12 @@ describe("Test LatencyStrategy.select method", () => {
 
 		const broker = new ServiceBroker({ logger: false });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 5,
-					lowLatency: 10,
-					collectCount: 10,
-					pingInterval: 1
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 5,
+			lowLatency: 10,
+			collectCount: 10,
+			pingInterval: 1
+		});
 
 		const list = [
 			{ a: "hello", node: { id: "a" } },
@@ -414,16 +389,12 @@ describe("Test LatencyStrategy.select method", () => {
 
 		const broker = new ServiceBroker({ logger: false });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 5,
-					lowLatency: 10,
-					collectCount: 10,
-					pingInterval: 1
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 5,
+			lowLatency: 10,
+			collectCount: 10,
+			pingInterval: 1
+		});
 
 		strategy.hostAvgLatency.set("a", 20);
 		strategy.hostAvgLatency.set("b", 5);
@@ -445,16 +416,12 @@ describe("Test LatencyStrategy.select method", () => {
 
 		const broker = new ServiceBroker({ logger: false });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 5,
-					lowLatency: 10,
-					collectCount: 10,
-					pingInterval: 1
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 5,
+			lowLatency: 10,
+			collectCount: 10,
+			pingInterval: 1
+		});
 
 		strategy.hostAvgLatency.set("a", 50);
 		strategy.hostAvgLatency.set("b", 20);
@@ -477,16 +444,12 @@ describe("Test LatencyStrategy.select method", () => {
 
 		const broker = new ServiceBroker({ logger: false });
 
-		let strategy = new LatencyStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 15,
-					lowLatency: 10,
-					collectCount: 10,
-					pingInterval: 1
-				}
-			}
-		}, broker);
+		let strategy = new LatencyStrategy(broker.registry, broker, {
+			sampleCount: 15,
+			lowLatency: 10,
+			collectCount: 10,
+			pingInterval: 1
+		});
 
 		strategy.hostAvgLatency.set("a", 50);
 		strategy.hostAvgLatency.set("b", 20);

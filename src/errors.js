@@ -61,6 +61,20 @@ class MoleculerRetryableError extends MoleculerError {
 }
 
 /**
+ * Moleculer Error class for Broker disconnections which is retryable.
+ *
+ * @class MoleculerServerError
+ * @extends {MoleculerRetryableError}
+ */
+class BrokerDisconnectedError extends MoleculerRetryableError {
+	constructor() {
+		super("The broker's transporter has disconnected. Please try again when a connection is reestablished.", 502, "BAD_GATEWAY");
+		// Stack trace is hidden because it creates a lot of logs and, in this case, won't help users find the issue
+		this.stack = "";
+	}
+}
+
+/**
  * Moleculer Error class for server error which is retryable.
  *
  * @class MoleculerServerError
@@ -108,10 +122,15 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 	 */
 	constructor(data = {}) {
 		let msg;
-		if (data.nodeID)
+		if (data.nodeID && data.action)
 			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
-		else
+		else if (data.action)
 			msg = `Service '${data.action}' is not found.`;
+
+		if (data.service && data.version)
+			msg = `Service '${data.version}.${data.service}' not found.`;
+		else if (data.service)
+			msg = `Service '${data.service}' not found.`;
 
 		super(msg, 404, "SERVICE_NOT_FOUND", data);
 	}
@@ -308,14 +327,18 @@ class GracefulStopTimeoutError extends MoleculerError {
 	/**
 	 * Creates an instance of GracefulStopTimeoutError.
 	 *
-	 * @param {Object} data
+	 * @param {Object?} data
 	 * @memberof GracefulStopTimeoutError
 	 */
 	constructor(data) {
-		super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", {
-			name: data.service.name,
-			version: data.service.version
-		});
+		if (data && data.service)  {
+			super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", data && data.service ? {
+				name: data.service.name,
+				version: data.service.version
+			} : null);
+		} else {
+			super("Unable to stop ServiceBroker gracefully.", 500, "GRACEFUL_STOP_TIMEOUT");
+		}
 	}
 }
 
@@ -414,6 +437,8 @@ module.exports = {
 
 	ProtocolVersionMismatchError,
 	InvalidPacketDataError,
+
+	BrokerDisconnectedError,
 
 	recreateError
 };

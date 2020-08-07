@@ -6,7 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Transporters = {
@@ -16,6 +16,7 @@ const Transporters = {
 	MQTT: require("./mqtt"),
 	Redis: require("./redis"),
 	AMQP: require("./amqp"),
+	AMQP10: require("./amqp10"),
 	Kafka: require("./kafka"),
 	STAN: require("./stan"),
 	TCP: require("./tcp")
@@ -40,19 +41,21 @@ function getByName(name) {
 function resolve(opt) {
 	if (opt instanceof Transporters.Base) {
 		return opt;
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let TransporterClass = getByName(opt);
 		if (TransporterClass)
 			return new TransporterClass();
 
 		if (opt.startsWith("nats://"))
 			TransporterClass = Transporters.NATS;
-		else if (opt.startsWith("mqtt://") || opt.startsWith("mqtt+ssl://"))
+		else if (opt.startsWith("mqtt://") || opt.startsWith("mqtts://"))
 			TransporterClass = Transporters.MQTT;
 		else if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
 			TransporterClass = Transporters.Redis;
 		else if (opt.startsWith("amqp://") || opt.startsWith("amqps://"))
 			TransporterClass = Transporters.AMQP;
+		else if (opt.startsWith("amqp10://"))
+			TransporterClass = Transporters.AMQP10;
 		else if (opt.startsWith("kafka://"))
 			TransporterClass = Transporters.Kafka;
 		else if (opt.startsWith("stan://"))
@@ -65,7 +68,7 @@ function resolve(opt) {
 		else
 			throw new BrokerOptionsError(`Invalid transporter type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let TransporterClass = getByName(opt.type || "NATS");
 
 		if (TransporterClass)
@@ -77,4 +80,9 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = Object.assign({ resolve }, Transporters);
+function register(name, value) {
+	Transporters[name] = value;
+}
+
+
+module.exports = Object.assign(Transporters, { resolve, register });

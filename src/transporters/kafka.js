@@ -1,14 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const { defaultsDeep } 	= require("lodash");
-const chalk				= require("chalk");
-const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 
 /**
@@ -34,20 +32,16 @@ class KafkaTransporter extends Transporter {
 	 * @memberof KafkaTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string") {
+		if (typeof opts === "string") {
 			opts = { host: opts.replace("kafka://", "") };
 		} else if (opts == null) {
 			opts = {};
 		}
 
 		opts = defaultsDeep(opts, {
-			host: undefined,
-
-			// KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
+			// KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#options
 			client: {
-				zkOptions: undefined,
-				noAckBatchOptions: undefined,
-				sslOptions: undefined,
+				kafkaHost: opts.host
 			},
 
 			// KafkaProducer options. More info: https://github.com/SOHU-Co/kafka-node#producerclient-options-custompartitioner
@@ -78,9 +72,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberof KafkaTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
-
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Kafka;
 			try {
 				Kafka = require("kafka-node");
@@ -89,8 +81,11 @@ class KafkaTransporter extends Transporter {
 				this.broker.fatal("The 'kafka-node' package is missing. Please install it with 'npm install kafka-node --save' command.", err, true);
 			}
 
-			this.client = new Kafka.Client(this.opts.host,  this.opts.client.zkOptions, this.opts.client.noAckBatchOptions, this.opts.client.sslOptions);
-			this.client.once("connect", () => {
+			this.client = new Kafka.KafkaClient(this.opts.client);
+
+			// Create Producer
+			this.producer = new Kafka.Producer(this.client, this.opts.producer, this.opts.customPartitioner);
+			this.producer.on("ready", () => {
 				/* Moved to ConsumerGroup
 				// Create Consumer
 
@@ -111,26 +106,14 @@ class KafkaTransporter extends Transporter {
 					this.incomingMessage(cmd, message.value);
 				});*/
 
-
-				// Create Producer
-				this.producer = new Kafka.Producer(this.client, this.opts.producer, this.opts.customPartitioner);
-				/* istanbul ignore next */
-				this.producer.on("error", e => {
-					this.logger.error("Kafka Producer error", e.message);
-					this.logger.debug(e);
-
-					if (!this.connected)
-						reject(e);
-				});
-
 				this.logger.info("Kafka client is connected.");
 
 				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("error", e => {
-				this.logger.error("Kafka Client error", e.message);
+			this.producer.on("error", e => {
+				this.logger.error("Kafka Producer error", e.message);
 				this.logger.debug(e);
 
 				if (!this.connected)
@@ -170,9 +153,9 @@ class KafkaTransporter extends Transporter {
 	makeSubscriptions(topics) {
 		topics = topics.map(({ cmd, nodeID }) => this.getTopicName(cmd, nodeID));
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 
-			this.producer.createTopics(topics, true, (err, data) => {
+			this.producer.createTopics(topics, true, (err) => {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Unable to create topics!", topics, err);
@@ -181,8 +164,8 @@ class KafkaTransporter extends Transporter {
 
 				const consumerOptions = Object.assign({
 					id: "default-kafka-consumer",
-					host: this.opts.host,
-					groupId: this.nodeID,
+					kafkaHost: this.opts.host,
+					groupId: this.broker.instanceID, //this.nodeID,
 					fromOffset: "latest",
 					encoding: "buffer",
 				}, this.opts.consumer);
@@ -202,7 +185,7 @@ class KafkaTransporter extends Transporter {
 				this.consumer.on("message", message => {
 					const topic = message.topic;
 					const cmd = topic.split(".")[1];
-					this.incomingMessage(cmd, message.value);
+					this.receive(cmd, message.value);
 				});
 
 				this.consumer.on("connect", () => {
@@ -225,7 +208,7 @@ class KafkaTransporter extends Transporter {
 		const topic = this.getTopicName(cmd, nodeID);
 		this.topics.push(topic);
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			this.producer.createTopics([topic], true, (err, data) => {
 				if (err) {
 					this.logger.error("Unable to create topics!", topic, err);
@@ -245,25 +228,25 @@ class KafkaTransporter extends Transporter {
 	}*/
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof KafkaTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
-		/* istanbul ignore next */
-		if (!this.producer) return Promise.resolve();
+	send(topic, data, { packet }) {
+		/* istanbul ignore next*/
+		if (!this.client) return this.broker.Promise.resolve();
 
-		return new Promise((resolve, reject) => {
-			const data = this.serialize(packet);
-			this.incStatSent(data.length);
+		return new this.broker.Promise((resolve, reject) => {
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),
 				messages: [data],
 				partition: this.opts.publish.partition,
 				attributes: this.opts.publish.attributes,
-			}], (err, result) => {
+			}], (err) => {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Publish error", err);
@@ -273,7 +256,6 @@ class KafkaTransporter extends Transporter {
 			});
 		});
 	}
-
 }
 
 module.exports = KafkaTransporter;

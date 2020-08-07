@@ -6,7 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Serializers = {
@@ -39,14 +39,14 @@ function getByName(name) {
 function resolve(opt) {
 	if (opt instanceof Serializers.Base) {
 		return opt;
-	} else if (_.isString(opt)) {
+	} else if (isString(opt)) {
 		let SerializerClass = getByName(opt);
 		if (SerializerClass)
 			return new SerializerClass();
 		else
 			throw new BrokerOptionsError(`Invalid serializer type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
+	} else if (isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "JSON");
 		if (SerializerClass)
 			return new SerializerClass(opt.options);
@@ -57,4 +57,8 @@ function resolve(opt) {
 	return new Serializers.JSON();
 }
 
-module.exports = Object.assign({ resolve }, Serializers);
+function register(name, value) {
+	Serializers[name] = value;
+}
+
+module.exports = Object.assign(Serializers, { resolve, register });

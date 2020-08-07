@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 
-const Promise 							= require("bluebird");
 const _ 								= require("lodash");
 //const { ServiceBroker } 				= require("../../../");
 const { createBrokers } 				= require("../helper");
@@ -20,7 +19,7 @@ const mathService = {
 	}
 };
 
-module.exports = function(transporter, serializer, meta)  {
+module.exports = function(transporter, serializer)  {
 
 	describe("Test normal calling", () => {
 
@@ -40,6 +39,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call actions with balancing between 2 nodes", () => {
 			return master.waitForServices("math")
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 50, b: 13 }))))
 				.catch(protectReject)
 				.then(res => {
@@ -57,6 +57,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call actions with balancing between 3 nodes", () => {
 			return master.waitForServices("math")
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }))))
 				.catch(protectReject)
 				.then(res => {
@@ -75,6 +76,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call actions without slaveC node", () => {
 			return master.waitForServices("math")
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }))))
 				.catch(protectReject)
 				.then(res => {
@@ -90,7 +92,8 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should direct call action on the specified node", () => {
 			return master.waitForServices("math")
-				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "slaveB"}))))
+				.delay(500)
+				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "slaveB" }))))
 				.catch(protectReject)
 				.then(res => {
 					//console.log(res);
@@ -122,6 +125,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call numeric versioned service", () => {
 			return master.waitForServices({ name: "math", version: 2 })
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("v2.math.add", { a: 50, b: 13 }))))
 				.catch(protectReject)
 				.then(res => {
@@ -134,6 +138,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call string versioned service", () => {
 			return master.waitForServices({ name: "math", version: "beta" })
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("beta.math.add", { a: 50, b: 13 }))))
 				.catch(protectReject)
 				.then(res => {
@@ -146,6 +151,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should call unversioned service", () => {
 			return master.waitForServices({ name: "math" })
+				.delay(500)
 				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 50, b: 13 }))))
 				.catch(protectReject)
 				.then(res => {

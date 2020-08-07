@@ -6,10 +6,9 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 
-function wrapErrorHandler(handler, action) {
+function wrapActionErrorHandler(handler) {
 	return function errorHandlerMiddleware(ctx) {
 		// Call the handler
 		return handler(ctx)
@@ -17,16 +16,56 @@ function wrapErrorHandler(handler, action) {
 				if (!(err instanceof Error))
 					err = new MoleculerError(err, 500);
 
-				if (ctx.nodeID != this.nodeID) {
+				if (ctx.nodeID !== this.nodeID) {
 					// Remove pending request (the request didn't reach the target service)
-					this.transit.removePendingRequest(ctx.id);
+					if (this.transit)
+						this.transit.removePendingRequest(ctx.id);
 				}
 
 				this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
-				err.ctx = ctx;
+				Object.defineProperty(err, "ctx", {
+					value: ctx,
+					writable: true,
+					enumerable: false
+				});
 
-				return Promise.reject(err);
+				// Call global errorHandler
+				return ctx.broker.errorHandler(err, {
+					ctx,
+					service: ctx.service,
+					action: ctx.action
+				});
+			});
+
+	}.bind(this);
+}
+
+function wrapEventErrorHandler(handler) {
+	return function errorHandlerMiddleware(ctx) {
+		// Call the handler
+		return handler(ctx)
+			.catch(err => {
+				if (!(err instanceof Error))
+					err = new MoleculerError(err, 500);
+
+				this.logger.debug(`Error occured in the '${ctx.event.name}' event handler in the '${ctx.service.fullName}' service.`, { requestID: ctx.requestID }, err);
+
+				Object.defineProperty(err, "ctx", {
+					value: ctx,
+					writable: true,
+					enumerable: false
+				});
+
+				// Call global errorHandler
+				return ctx.broker.errorHandler(err, {
+					ctx,
+					service: ctx.service,
+					event: ctx.event
+				});
+			}).catch(err => {
+				// No global error Handler, or thrown further, so we handle it because it's an event handler.
+				ctx.broker.logger.error(err);
 			});
 
 	}.bind(this);
@@ -34,7 +73,11 @@ function wrapErrorHandler(handler, action) {
 
 module.exports = function() {
 	return {
-		localAction: wrapErrorHandler,
-		remoteAction: wrapErrorHandler
+		name: "ErrorHandler",
+
+		localAction: wrapActionErrorHandler,
+		remoteAction: wrapActionErrorHandler,
+
+		localEvent: wrapEventErrorHandler
 	};
 };

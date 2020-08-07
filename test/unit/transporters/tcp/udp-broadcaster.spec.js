@@ -3,12 +3,12 @@
 const ServiceBroker = require("../../../../src/service-broker");
 const { protectReject } = require("../../utils");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const os = require("os");
 
-jest.mock("dgram");
 const dgram = require("dgram");
+jest.mock("dgram");
 
 const UdpServer = require("../../../../src/transporters/tcp/udp-broadcaster");
 
@@ -38,7 +38,7 @@ describe("Test UdpServer constructor", () => {
 });
 
 describe("Test UdpServer.startServer", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -65,10 +65,10 @@ describe("Test UdpServer.startServer", () => {
 			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
-			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
+			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "127.0.0.1", "port": 4567}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "127.0.0.1", "port": 4567 }, jasmine.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
 			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
@@ -93,10 +93,10 @@ describe("Test UdpServer.startServer", () => {
 			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
-			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
+			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "10.0.0.4", "port": 4567}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "10.0.0.4", "port": 4567 }, jasmine.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
 			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
@@ -143,7 +143,7 @@ describe("Test UdpServer.startServer", () => {
 });
 
 describe("Test UdpServer.bind", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -257,7 +257,7 @@ describe("Test UdpServer.bind", () => {
 });
 
 describe("Test UdpServer.discover", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -301,7 +301,7 @@ describe("Test UdpServer.discover", () => {
 });
 
 describe("Test UdpServer.onMessage", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -370,7 +370,7 @@ describe("Test UdpServer.onMessage", () => {
 });
 
 describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -422,7 +422,7 @@ describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
 });
 
 describe("Test UdpServer.close", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -449,21 +449,6 @@ describe("Test UdpServer.close", () => {
 
 describe("Test UdpServer getBroadcastAddresses", () => {
 	os.networkInterfaces = jest.fn(() => ({
-		"Local": [
-			{
-				address: "fe80::29a9:ffeb:4a65:9f82",
-				netmask: "ffff:ffff:ffff:ffff::",
-				family: "IPv6",
-				internal: false,
-				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
-			},
-			{ address: "192.168.2.100",
-				netmask: "255.255.255.0",
-				family: "IPv4",
-				internal: false,
-				cidr: "192.168.2.100/24"
-			}
-		],
 		"Loopback Pseudo-Interface 1": [
 			{
 				address: "::1",
@@ -478,6 +463,21 @@ describe("Test UdpServer getBroadcastAddresses", () => {
 				family: "IPv4",
 				internal: true,
 				cidr: "127.0.0.1/8"
+			}
+		],
+		"Local": [
+			{
+				address: "fe80::29a9:ffeb:4a65:9f82",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+			},
+			{ address: "192.168.2.100",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.2.100/24"
 			}
 		],
 		"VMware Network Adapter VMnet1": [
@@ -507,28 +507,13 @@ describe("Test UdpServer getBroadcastAddresses", () => {
 			}
 		};
 		let udp = new UdpServer(transporter);
-		expect(udp.getBroadcastAddresses()).toEqual(["192.168.2.255", "192.168.232.255"]);
+		expect(udp.getBroadcastAddresses()).toEqual(["127.255.255.255","192.168.2.255", "192.168.232.255"]);
 	});
 
 });
 
 describe("Test UdpServer getInterfaceAddresses", () => {
 	os.networkInterfaces = jest.fn(() => ({
-		"Local": [
-			{
-				address: "fe80::29a9:ffeb:4a65:9f82",
-				netmask: "ffff:ffff:ffff:ffff::",
-				family: "IPv6",
-				internal: false,
-				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
-			},
-			{ address: "192.168.2.100",
-				netmask: "255.255.255.0",
-				family: "IPv4",
-				internal: false,
-				cidr: "192.168.2.100/24"
-			}
-		],
 		"Loopback Pseudo-Interface 1": [
 			{
 				address: "::1",
@@ -543,6 +528,21 @@ describe("Test UdpServer getInterfaceAddresses", () => {
 				family: "IPv4",
 				internal: true,
 				cidr: "127.0.0.1/8"
+			}
+		],
+		"Local": [
+			{
+				address: "fe80::29a9:ffeb:4a65:9f82",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+			},
+			{ address: "192.168.2.100",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.2.100/24"
 			}
 		],
 		"VMware Network Adapter VMnet1": [
@@ -572,7 +572,7 @@ describe("Test UdpServer getInterfaceAddresses", () => {
 			}
 		};
 		let udp = new UdpServer(transporter);
-		expect(udp.getInterfaceAddresses()).toEqual(["192.168.2.100", "192.168.232.1"]);
+		expect(udp.getInterfaceAddresses()).toEqual(["127.0.0.1","192.168.2.100", "192.168.232.1"]);
 	});
 
 });

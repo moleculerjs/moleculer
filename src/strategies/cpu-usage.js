@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -37,10 +37,10 @@ const BaseStrategy = require("./base");
  */
 class CpuUsageStrategy extends BaseStrategy {
 
-	constructor(registry, broker) {
-		super(registry, broker);
+	constructor(registry, broker, opts) {
+		super(registry, broker, opts);
 
-		this.opts = _.defaultsDeep(registry.opts.strategyOptions, {
+		this.opts = _.defaultsDeep(opts, {
 			sampleCount: 3,
 			lowCpuUsage: 10
 		});

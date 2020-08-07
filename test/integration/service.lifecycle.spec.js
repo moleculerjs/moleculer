@@ -35,7 +35,7 @@ describe("Test Service handlers", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created");
+		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
 	});
 
 	it("should call stop handler", () => {
@@ -80,7 +80,7 @@ describe("Test Service handlers after broker.start", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created");
+		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
 	});
 
 	it("should call stop handler", () => {
@@ -110,7 +110,7 @@ describe("Test Service requesting during stopping", () => {
 			});
 		}
 	};
-	const svc = broker2.createService(schema1);
+	broker2.createService(schema1);
 
 	const schema2 = {
 		name: "users",

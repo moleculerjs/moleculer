@@ -4,8 +4,8 @@ const _ = require("lodash");
 const ServiceBroker = require("../../src/service-broker");
 
 const H = {
-	createNode(namespace, nodeID, services) {
-		let node = new ServiceBroker({ namespace, logger: false, nodeID, transporter: "Fake" });
+	createNode(opts, services) {
+		let node = new ServiceBroker(_.defaultsDeep(opts, { logger: false, transporter: "Fake" }));
 		if (services)
 			H.addServices(node, services);
 		return node;
@@ -23,8 +23,8 @@ const H = {
 		});
 	},
 
-	hasService(broker, name, nodeID, version) {
-		return broker.registry.services.has(name, version, nodeID);
+	hasService(broker, fullName, nodeID) {
+		return broker.registry.services.has(fullName, nodeID);
 	},
 
 	hasAction(broker, name) {

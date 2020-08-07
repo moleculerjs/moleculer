@@ -7,3 +7,6 @@ stats.json
 yarn-error.log
 benchmark/results
 *.exe
+.npmrc
+.prettierrc.js
+.prettierrc

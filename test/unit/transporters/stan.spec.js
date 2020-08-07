@@ -3,7 +3,7 @@ const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
 const { protectReject } = require("../utils");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 
 jest.mock("node-nats-streaming");
 
@@ -52,7 +52,7 @@ describe("Test StanTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { host: "localhost", port: 1234};
+		let opts = { host: "localhost", port: 1234 };
 		let transporter = new StanTransporter(opts);
 		expect(transporter.opts).toEqual({ clusterID: "test-cluster", host: "localhost", port: 1234, preserveBuffers: true } );
 	});
@@ -137,11 +137,6 @@ describe("Test StanTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
-	};
-
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new StanTransporter();
@@ -157,7 +152,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		let subscribeOn = jest.fn((msg, cb) => {
 			subCb = cb;
 		});
-		transporter.client.subscribe = jest.fn((topic, opts) => {
+		transporter.client.subscribe = jest.fn(() => {
 			return {
 				on: subscribeOn
 			};
@@ -193,7 +188,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		let subscribeOn = jest.fn((msg, cb) => {
 			subCb = cb;
 		});
-		transporter.client.subscribe = jest.fn((topic, opts) => {
+		transporter.client.subscribe = jest.fn(() => {
 			return {
 				on: subscribeOn,
 			};
@@ -233,7 +228,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 			subCb = cb;
 		});
 		let unsubscribe = jest.fn();
-		transporter.client.subscribe = jest.fn((topic, opts) => {
+		transporter.client.subscribe = jest.fn(() => {
 			return {
 				on: subscribeOn,
 				unsubscribe: unsubscribe,

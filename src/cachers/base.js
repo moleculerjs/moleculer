@@ -1,13 +1,15 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const _ 		= require("lodash");
-const crypto	= require("crypto");
+const _ 			= require("lodash");
+const crypto		= require("crypto");
+const { METRIC }	= require("../metrics");
+const { isObject, isFunction }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -40,6 +42,8 @@ class Cacher {
 	 */
 	init(broker) {
 		this.broker = broker;
+		this.metrics = broker.metrics;
+
 		if (this.broker) {
 			this.logger = broker.getLogger("cacher");
 
@@ -50,7 +54,30 @@ class Cacher {
 				if (this.broker.namespace)
 					this.prefix += this.broker.namespace + "-";
 			}
+
+			this.registerMoleculerMetrics();
 		}
+	}
+
+	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_FOUND_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_EXPIRED_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 	}
 
 	/**
@@ -76,6 +103,18 @@ class Cacher {
 	}
 
 	/**
+	 * Get a cached content and ttl by key
+	 *
+	 * @param {any} key
+	 *
+	 * @memberof Cacher
+	 */
+	getWithTTL(/*key*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented method!");
+	}
+
+	/**
 	 * Set a content by key to cache
 	 *
 	 * @param {any} key
@@ -92,7 +131,7 @@ class Cacher {
 	/**
 	 * Delete a content by key from cache
 	 *
-	 * @param {any} key
+	 * @param {string|Array<string>} key
 	 *
 	 * @memberof Cacher
 	 */
@@ -104,7 +143,7 @@ class Cacher {
 
 	/**
 	 * Clean cache. Remove every key by match
-	 * @param {any} match string. Default is "**"
+	 * @param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
@@ -135,7 +174,7 @@ class Cacher {
 	 * Default cache key generator
 	 *
 	 * @param {String} actionName
-	 * @param {Object} params
+	 * @param {Object|null} params
 	 * @param {Object} meta
 	 * @param {Array|null} keys
 	 * @returns {String}
@@ -148,13 +187,13 @@ class Cacher {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
 					const val = this.getParamMetaValue(keys[0], params, meta);
-					return keyPrefix + this._hashedKey(_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+					return keyPrefix + this._hashedKey(isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 				}
 
 				if (keys.length > 0) {
 					return keyPrefix + this._hashedKey(keys.reduce((a, key, i) => {
 						const val = this.getParamMetaValue(key, params, meta);
-						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+						return a + (i ? "|" : "") + (isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 					}, ""));
 				}
 			}
@@ -183,7 +222,7 @@ class Cacher {
 		if (Array.isArray(obj)) {
 			return obj.map(o => this._generateKeyFromObject(o)).join("|");
 		}
-		else if (_.isObject(obj)) {
+		else if (isObject(obj)) {
 			return Object.keys(obj).map(key => [key, this._generateKeyFromObject(obj[key])].join("|")).join("|");
 		}
 		else if (obj != null) {
@@ -204,7 +243,7 @@ class Cacher {
 	 * @returns {String}
 	 */
 	getCacheKey(actionName, params, meta, keys) {
-		if (_.isFunction(this.opts.keygen))
+		if (isFunction(this.opts.keygen))
 			return this.opts.keygen.call(this, actionName, params, meta, keys);
 		else
 			return this.defaultKeygen(actionName, params, meta, keys);
@@ -217,9 +256,80 @@ class Cacher {
 	 */
 	middleware() {
 		return (handler, action) => {
-			if (action.cache) {
+			const opts = _.defaultsDeep({}, isObject(action.cache) ? action.cache : { enabled: !!action.cache });
+			opts.lock = _.defaultsDeep({}, isObject(opts.lock) ? opts.lock : { enabled: !!opts.lock });
+			if (opts.enabled !== false) {
+				const isEnabledFunction = isFunction(opts.enabled);
+
 				return function cacherMiddleware(ctx) {
-					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, action.cache.keys);
+					if (isEnabledFunction) {
+						if (!opts.enabled.call(ctx.service, ctx)) {
+							// Cache is disabled. Call the handler only.
+							return handler(ctx);
+						}
+					}
+
+					// Disable caching with `ctx.meta.$cache = false`
+					if (ctx.meta["$cache"] === false)
+						return handler(ctx);
+
+					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, opts.keys);
+					// Using lock
+					if(opts.lock.enabled !== false){
+						let cachePromise;
+						if(opts.lock.staleTime && this.getWithTTL){ // If enable cache refresh
+							cachePromise = this.getWithTTL(cacheKey).then(({ data, ttl }) => {
+								if (data != null) {
+									if(opts.lock.staleTime && ttl && ttl < opts.lock.staleTime){
+										// Cache is stale, try to refresh it.
+										this.tryLock(cacheKey, opts.lock.ttl).then(unlock=>{
+											return handler(ctx).then(result => {
+												// Save the result to the cache and realse the lock.
+												return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
+											}).catch((/*err*/) => {
+												return this.del(cacheKey).then(()=>unlock());
+											});
+										}).catch((/*err*/)=>{
+											// The cache is refreshing on somewhere else.
+										});
+									}
+								}
+								return data;
+							});
+						} else {
+							cachePromise = this.get(cacheKey);
+						}
+						return cachePromise.then(data=>{
+							if (data != null) {
+								// Found in the cache! Don't call handler, return with the content
+								ctx.cachedResult = true;
+								return data;
+							}
+							// Not found in the cache! Acquire a lock
+							return this.lock(cacheKey, opts.lock.ttl).then(unlock => {
+								return this.get(cacheKey).then(content => {
+									if (content != null) {
+										// Cache found. Realse the lock and return the value.
+										ctx.cachedResult = true;
+										return unlock().then(() => {
+											return content;
+										});
+									}
+									// Call the handler
+									return handler(ctx).then(result => {
+										// Save the result to the cache and realse the lock.
+										this.set(cacheKey, result, opts.ttl).then(()=>unlock());
+										return result;
+									}).catch(e => {
+										return unlock().then(() => {
+											return Promise.reject(e);
+										});
+									});
+								});
+							});
+						});
+					}
+					// Not using lock
 					return this.get(cacheKey).then(content => {
 						if (content != null) {
 							// Found in the cache! Don't call handler, return with the content
@@ -230,7 +340,7 @@ class Cacher {
 						// Call the handler
 						return handler(ctx).then(result => {
 							// Save the result to the cache
-							this.set(cacheKey, result, action.cache.ttl);
+							this.set(cacheKey, result, opts.ttl);
 
 							return result;
 						});

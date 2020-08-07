@@ -1,39 +1,32 @@
-"use strict";
-
 const ServiceBroker = require("../src/service-broker");
-const util = require("util");
 
 const broker = new ServiceBroker({
-	nodeID: "dev",// + process.pid,
-	//transporter: "mqtt://localhost:1833",
-	transporter: {
-		type: "MQTT",
+	validator: {
+		type: "Fastest",
 		options: {
-			host: "localhost",
-			qos: 1,
-			topicSeparator: "/"
-		}
-	},
-	metrics: true,
-	//logLevel: "debug",
-	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object
-});
-
-broker.createService({
-	name: "test",
-	actions: {
-		hello(ctx) {
-			return "Hello Moleculer";
+			messages: {
+				required: "Missing field!"
+			}
 		}
 	}
 });
 
-//broker.loadService("./examples/stat.service.js");
+broker.createService({
+	name: "greeter",
+	actions: {
+		welcome: {
+			params: {
+				name: "string"
+			},
+			handler(ctx) {
+				return `Hello ${ctx.params.name}`;
+			}
+		}
+	}
+});
 
 broker.start()
-	.then(() => broker.repl());
-/*	.delay(1000)
-	.then(() => broker.call("stat.snapshot"))
-	.then(res => broker.logger.info(res))
+	.then(() => broker.repl())
+	.then(() => broker.call("greeter.welcome", { name: "Icebob" }))
+	.then(res => broker.logger.info("Result:", res))
 	.catch(err => broker.logger.error(err));
-*/

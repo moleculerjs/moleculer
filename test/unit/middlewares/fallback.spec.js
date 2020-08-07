@@ -11,8 +11,9 @@ describe("Test FallbackMiddleware", () => {
 		name: "posts.find",
 		handler,
 		service: {
+			fullName: "posts",
 			logger: broker.getLogger(),
-			someFallbackMethod: jest.fn((ctx, err) => "Fallback response from method")
+			someFallbackMethod: jest.fn(() => "Fallback response from method")
 		}
 	};
 	const endpoint = {
@@ -22,9 +23,14 @@ describe("Test FallbackMiddleware", () => {
 		}
 	};
 
-	const mw = Middleware();
+	broker.isMetricsEnabled = jest.fn(() => true);
+	broker.metrics.register = jest.fn();
+	broker.metrics.increment = jest.fn();
+
+	const mw = Middleware(broker);
 
 	it("should register hooks", () => {
+		expect(mw.created).toBeInstanceOf(Function);
 		expect(mw.localAction).toBeInstanceOf(Function);
 		expect(mw.remoteAction).toBeInstanceOf(Function);
 	});
@@ -34,7 +40,14 @@ describe("Test FallbackMiddleware", () => {
 		expect(newHandler).not.toBe(handler);
 	});
 
+	it("should register metrics", () => {
+		mw.created(broker);
+		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["service", "action"], rate: true });
+	});
+
 	it("should call fallback Function and return", () => {
+		broker.metrics.increment.mockClear();
 		action.fallback = jest.fn(() => "Fallback response");
 		let error = new MoleculerError("Some error");
 		let handler = jest.fn(() => Promise.reject(error));
@@ -47,11 +60,15 @@ describe("Test FallbackMiddleware", () => {
 
 			expect(action.fallback).toHaveBeenCalledTimes(1);
 			expect(action.fallback).toHaveBeenCalledWith(ctx, error);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
 		});
 	});
 
 
 	it("should call fallback Function and return", () => {
+		broker.metrics.increment.mockClear();
 		action.fallback = "someFallbackMethod";
 		let error = new MoleculerError("Some error");
 		let handler = jest.fn(() => Promise.reject(error));
@@ -64,10 +81,14 @@ describe("Test FallbackMiddleware", () => {
 
 			expect(action.service.someFallbackMethod).toHaveBeenCalledTimes(1);
 			expect(action.service.someFallbackMethod).toHaveBeenCalledWith(ctx, error);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
 		});
 	});
 
 	it("should return fallbackResponse (native type)", () => {
+		broker.metrics.increment.mockClear();
 		action.fallback = null;
 		let error = new MoleculerError("Some error");
 		let handler = jest.fn(() => Promise.reject(error));
@@ -79,10 +100,14 @@ describe("Test FallbackMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("fallback response");
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
 		});
 	});
 
 	it("should return fallbackResponse (function)", () => {
+		broker.metrics.increment.mockClear();
 		let error = new MoleculerError("Some error");
 		let handler = jest.fn(() => Promise.reject(error));
 		let fallbackResponse = jest.fn(() => "fallback response");
@@ -95,6 +120,10 @@ describe("Test FallbackMiddleware", () => {
 			expect(res).toBe("fallback response");
 			expect(fallbackResponse).toHaveBeenCalledTimes(1);
 			expect(fallbackResponse).toHaveBeenCalledWith(ctx, error);
+
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
 		});
 	});
 });

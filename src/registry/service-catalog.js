@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 const ServiceItem = require("./service-item");
+const { removeFromArray } = require("../utils");
 
 /**
  * Catalog for services
@@ -35,17 +36,15 @@ class ServiceCatalog {
 	 * Add a new service
 	 *
 	 * @param {Node} node
-	 * @param {String} name
-	 * @param {any} version
-	 * @param {Object} settings
-	 * @param {Object} metadata
+	 * @param {Object} service
+	 * @param {Boolean} local
 	 *
 	 * @returns {ServiceItem}
 	 *
 	 * @memberof ServiceCatalog
 	 */
-	add(node, name, version, settings, metadata) {
-		const item = new ServiceItem(node, name, version, settings, metadata, node.id == this.broker.nodeID);
+	add(node, service, local) {
+		const item = new ServiceItem(node, service, local);
 		this.services.push(item);
 		return item;
 	}
@@ -53,41 +52,39 @@ class ServiceCatalog {
 	/**
 	 * Check the service is exist
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns
 	 * @memberof ServiceCatalog
 	 */
-	has(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID)) != null;
+	has(fullName, nodeID) {
+		return this.services.find(svc => svc.equals(fullName, nodeID)) != null;
 	}
 
 	/**
-	 * Get a service by name, version & nodeID
+	 * Get a service by fullName & nodeID
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns
 	 * @memberof ServiceCatalog
 	 */
-	get(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID));
+	get(fullName, nodeID) {
+		return this.services.find(svc => svc.equals(fullName, nodeID));
 	}
 
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false}
+	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false}
 	 * @returns {Array}
 	 *
 	 * @memberof Registry
 	 */
-	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false }) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false }) {
 		let res = [];
 		this.services.forEach(service => {
-			if (skipInternal && /^\$node/.test(service.name))
+			if (skipInternal && /^\$/.test(service.name))
 				return;
 
 			if (onlyLocal && !service.local)
@@ -96,37 +93,54 @@ class ServiceCatalog {
 			if (onlyAvailable && !service.node.available)
 				return;
 
-			let item = {
-				name: service.name,
-				version: service.version,
-				settings: service.settings,
-				metadata: service.metadata,
-				nodeID: service.node.id,
-				available: service.node.available,
-			};
+			let item;
+			if (grouping)
+				item = res.find(svc => svc.fullName == service.fullName);
 
-			if (withActions) {
-				item.actions = {};
+			if (!item) {
+				let item = {
+					name: service.name,
+					version: service.version,
+					fullName: service.fullName,
+					settings: service.settings,
+					metadata: service.metadata,
 
-				_.forIn(service.actions, action => {
-					if (action.protected) return;
+					local: service.local,
+					available: service.node.available,
+				};
 
-					item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
-				});
+				if (grouping)
+					item.nodes = [service.node.id];
+				else
+					item.nodeID = service.node.id;
+
+				if (withActions) {
+					item.actions = {};
+
+					_.forIn(service.actions, action => {
+						if (action.protected) return;
+
+						item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
+					});
+				}
+
+				if (withEvents) {
+					item.events = {};
+
+					_.forIn(service.events, event => {
+						// Skip internal event handlers
+						if (/^\$/.test(event.name)) return;
+
+						item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
+					});
+				}
+
+				res.push(item);
+
+			} else {
+				if (item.nodes.indexOf(service.node.id) === -1)
+					item.nodes.push(service.node.id);
 			}
-
-			if (withEvents) {
-				item.events = {};
-
-				_.forIn(service.events, event => {
-					// Skip internal event handlers
-					if (/^\$/.test(event.name)) return;
-
-					item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
-				});
-			}
-
-			res.push(item);
 		});
 
 		return res;
@@ -147,6 +161,7 @@ class ServiceCatalog {
 			let item = {
 				name: service.name,
 				version: service.version,
+				fullName: service.fullName,
 				settings: service.settings,
 				metadata: service.metadata,
 				dependencies: service.dependencies
@@ -163,8 +178,8 @@ class ServiceCatalog {
 			item.events = {};
 
 			_.forIn(service.events, event => {
-				// Skip internal event handlers
-				if (/^\$/.test(event.name)) return;
+				// Leave internal event handlers, because it can be used for internal events.
+				//if (/^\$/.test(event.name)) return;
 
 				item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
 			});
@@ -192,20 +207,19 @@ class ServiceCatalog {
 	}
 
 	/**
-	 * Remove endpoint by name, version & nodeID
+	 * Remove endpoint by fullName & nodeID
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @memberof ServiceCatalog
 	 */
-	remove(name, version, nodeID) {
-		let service = this.get(name, version, nodeID);
+	remove(fullName, nodeID) {
+		let service = this.get(fullName, nodeID);
 		if (service) {
 			this.registry.actions.removeByService(service);
 			this.registry.events.removeByService(service);
 
-			_.remove(this.services, svc => svc == service);
+			removeFromArray(this.services, service);
 		}
 	}
 }

@@ -1,7 +1,5 @@
 "use strict";
 
-let Promise	= require("bluebird");
-
 const Benchmarkify = require("benchmarkify");
 const benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
 
@@ -42,8 +40,15 @@ const bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	const mw1 = handler => {
-		return ctx => handler(ctx).then(res => res);
+	const broker = createBroker({ internalMiddlewares: false });
+	bench2.ref("Call without internal middlewares", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+(function() {
+	const mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
 
 	const broker = createBroker({
@@ -56,9 +61,10 @@ const bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	const mw1 = handler => {
-		return ctx => handler(ctx).then(res => res);
+	const mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
+
 	const broker = createBroker({
 		middlewares: [mw1, mw1, mw1, mw1, mw1]
 	});
@@ -136,7 +142,26 @@ const bench5 = benchmark.createSuite("Call with metrics");
 	});
 })();
 
-Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5]));
+// ----------------------------------------------------------------
+const bench6 = benchmark.createSuite("Call with tracing");
+
+(function() {
+	const broker = createBroker();
+	bench6.ref("No tracing", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+(function() {
+	const broker = createBroker({ tracing: true });
+	bench6.add("With tracing", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+setTimeout(() => {
+	benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]);
+}, 1000);
 
 /*
 

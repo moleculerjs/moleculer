@@ -7,7 +7,7 @@
 "use strict";
 
 // Packet types
-const PACKET_UNKNOW			= "???";
+const PACKET_UNKNOWN		= "???";
 const PACKET_EVENT 			= "EVENT";
 const PACKET_REQUEST 		= "REQ";
 const PACKET_RESPONSE		= "RES";
@@ -21,6 +21,11 @@ const PACKET_PONG 			= "PONG";
 const PACKET_GOSSIP_REQ		= "GOSSIP_REQ";
 const PACKET_GOSSIP_RES		= "GOSSIP_RES";
 const PACKET_GOSSIP_HELLO	= "GOSSIP_HELLO";
+
+const DATATYPE_UNDEFINED = 0;
+const DATATYPE_NULL = 1;
+const DATATYPE_JSON = 2;
+const DATATYPE_BUFFER = 3;
 
 /**
  * Packet for transporters
@@ -38,14 +43,14 @@ class Packet {
 	 * @memberof Packet
 	 */
 	constructor(type, target, payload) {
-		this.type = type || PACKET_UNKNOW;
+		this.type = type || PACKET_UNKNOWN;
 		this.target = target;
 		this.payload = payload || {};
 	}
 }
 
 module.exports = {
-	PACKET_UNKNOW,
+	PACKET_UNKNOWN,
 	PACKET_EVENT,
 	PACKET_REQUEST,
 	PACKET_RESPONSE,
@@ -58,6 +63,11 @@ module.exports = {
 	PACKET_GOSSIP_REQ,
 	PACKET_GOSSIP_RES,
 	PACKET_GOSSIP_HELLO,
+
+	DATATYPE_UNDEFINED,
+	DATATYPE_NULL,
+	DATATYPE_JSON,
+	DATATYPE_BUFFER,
 
 	Packet
 };

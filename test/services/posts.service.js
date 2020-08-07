@@ -1,8 +1,7 @@
-let _ = require("lodash");
-let fakerator = require("fakerator")();
-const Promise = require("bluebird");
+const _ = require("lodash");
+const fakerator = require("fakerator")();
 
-let { delay } = require("../../src/utils");
+const { delay } = require("../../src/utils");
 
 module.exports = function() {
 	let posts = fakerator.times(fakerator.entity.post, 10);
@@ -23,7 +22,7 @@ module.exports = function() {
 
 					// Resolve authors
 					let promises = result.map(post => {
-						return ctx.call("users.get", { id: post.author}).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
+						return ctx.call("users.get", { id: post.author }).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
 					});
 
 					return Promise.all(promises).then(() => {

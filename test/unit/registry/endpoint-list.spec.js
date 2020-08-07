@@ -1,7 +1,8 @@
 "use strict";
 
+jest.mock("../../../src/strategies/round-robin");
+let Strategy = require("../../../src/strategies/round-robin");
 let { MoleculerError } = require("../../../src/errors");
-let Strategy = require("../../../src/strategies").RoundRobin;
 let EndpointList = require("../../../src/registry/endpoint-list");
 let ActionEndpoint = require("../../../src/registry/endpoint-action");
 let ServiceBroker = require("../../../src/service-broker");
@@ -10,10 +11,13 @@ describe("Test EndpointList constructor", () => {
 
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
+	const strategyOptions = { count: 5 };
 	let list;
 
 	it("should create a new list", () => {
-		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+		Strategy.mockClear();
+
+		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy, strategyOptions);
 
 		expect(list).toBeDefined();
 		expect(list.registry).toBe(registry);
@@ -26,6 +30,9 @@ describe("Test EndpointList constructor", () => {
 		expect(list.EndPointFactory).toBe(ActionEndpoint);
 		expect(list.endpoints).toBeInstanceOf(Array);
 		expect(list.localEndpoints).toEqual([]);
+
+		expect(Strategy).toHaveBeenCalledTimes(1);
+		expect(Strategy).toHaveBeenCalledWith(registry, broker, strategyOptions);
 	});
 
 	it("should set internal flag", () => {
@@ -95,6 +102,25 @@ describe("Test EndpointList.add", () => {
 
 });
 
+describe("Test EndpointList.getFirst", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let registry = broker.registry;
+	let ep = {};
+	let select = jest.fn(() => ep);
+
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+
+	it("should return null if empty", () => {
+		expect(list.getFirst()).toBeNull();
+	});
+
+	it("should return the first endpoint", () => {
+		list.endpoints = [{ a: 5 }, { b: 10 }];
+		expect(list.getFirst()).toBe(list.endpoints[0]);
+	});
+
+});
+
 describe("Test EndpointList.select", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
@@ -109,12 +135,13 @@ describe("Test EndpointList.select", () => {
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, MockStrategy);
 
 	let arr = [{}, ep];
+	let ctx = {};
 
 	it("should call strategy select", () => {
-		let res = list.select(arr);
+		let res = list.select(arr, ctx);
 		expect(res).toBe(ep);
 		expect(select).toHaveBeenCalledTimes(1);
-		expect(select).toHaveBeenCalledWith(arr);
+		expect(select).toHaveBeenCalledWith(arr, ctx);
 	});
 
 	it("should throw exception if select return with null", () => {
@@ -135,6 +162,7 @@ describe("Test EndpointList.next", () => {
 	let node = { id: "node-1" };
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
+	let ctx = {};
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
@@ -143,7 +171,7 @@ describe("Test EndpointList.next", () => {
 	it("should return null if no endpoints", () => {
 		expect(list.endpoints.length).toBe(0);
 
-		let ep = list.next();
+		let ep = list.next(ctx);
 
 		expect(ep).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
@@ -153,14 +181,14 @@ describe("Test EndpointList.next", () => {
 	it("should return only one ep", () => {
 		ep1 = list.add(node, service, action);
 
-		expect(list.next()).toBe(ep1);
+		expect(list.next(ctx)).toBe(ep1);
 		expect(list.count()).toBe(1);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
-		expect(list.next()).toBeNull();
+		expect(list.next(ctx)).toBeNull();
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -176,9 +204,9 @@ describe("Test EndpointList.next", () => {
 		expect(ep3.local).toBe(true);
 		expect(list.localEndpoints).toEqual([ep3]);
 
-		expect(list.next()).toBe(ep3);
-		expect(list.next()).toBe(ep3);
-		expect(list.next()).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
@@ -186,10 +214,10 @@ describe("Test EndpointList.next", () => {
 	it("should call select if no local ep", () => {
 		ep3.state = false;
 
-		expect(list.next()).toBe(ep1);
+		expect(list.next(ctx)).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
-		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep4]);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep4], ctx);
 
 		ep3.state = true;
 	});
@@ -198,10 +226,10 @@ describe("Test EndpointList.next", () => {
 		list.select.mockClear();
 		registry.opts.preferLocal = false;
 
-		expect(list.next()).toBe(ep1);
+		expect(list.next(ctx)).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
-		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep3, ep4]);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep3, ep4], ctx);
 	});
 
 	it("should find the first available ep", () => {
@@ -212,9 +240,9 @@ describe("Test EndpointList.next", () => {
 		ep3.state = false;
 		ep4.state = true;
 
-		expect(list.next()).toBe(ep4);
+		expect(list.next(ctx)).toBe(ep4);
 		expect(list.select).toHaveBeenCalledTimes(1);
-		expect(list.select).toHaveBeenCalledWith([ep4]);
+		expect(list.select).toHaveBeenCalledWith([ep4], ctx);
 	});
 
 	it("should return null, if no available ep", () => {
@@ -225,7 +253,7 @@ describe("Test EndpointList.next", () => {
 		ep3.state = false;
 		ep4.state = false;
 
-		expect(list.next()).toBeNull();
+		expect(list.next(ctx)).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
@@ -233,7 +261,7 @@ describe("Test EndpointList.next", () => {
 		list.select.mockClear();
 		list.internal = true;
 
-		expect(list.next()).toBe(null);
+		expect(list.next(ctx)).toBe(null);
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
@@ -243,9 +271,9 @@ describe("Test EndpointList.next", () => {
 
 		ep3.state = true;
 
-		expect(list.next()).toBe(ep3);
-		expect(list.next()).toBe(ep3);
-		expect(list.next()).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).toBe(ep3);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -258,11 +286,12 @@ describe("Test EndpointList.nextLocal", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
-	let ep1, ep2, ep3, ep4;
+	let ep1, ep3;
 
 	let node = { id: broker.nodeID };
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
+	let ctx = {};
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 	list.select = jest.fn(() => ep1);
@@ -270,7 +299,7 @@ describe("Test EndpointList.nextLocal", () => {
 	it("should return null if no endpoints", () => {
 		expect(list.endpoints.length).toBe(0);
 
-		let ep = list.nextLocal();
+		let ep = list.nextLocal(ctx);
 
 		expect(ep).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
@@ -281,14 +310,14 @@ describe("Test EndpointList.nextLocal", () => {
 	it("should return only one ep", () => {
 		ep1 = list.add(node, service, action);
 
-		expect(list.nextLocal()).toBe(ep1);
+		expect(list.nextLocal(ctx)).toBe(ep1);
 		expect(list.count()).toBe(1);
 		expect(list.localEndpoints.length).toBe(1);
 	});
 
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
-		expect(list.nextLocal()).toBeNull();
+		expect(list.nextLocal(ctx)).toBeNull();
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -296,17 +325,17 @@ describe("Test EndpointList.nextLocal", () => {
 	});
 
 	it("should call select if there are more ep", () => {
-		ep2 = list.add({ id: "node-2" }, service, action);
+		list.add({ id: "node-2" }, service, action);
 		ep3 = list.add(node, { name: "test2" }, action);
-		ep4 = list.add({ id: "node-3" }, service, action);
+		list.add({ id: "node-3" }, service, action);
 
 		expect(list.localEndpoints.length).toBe(2);
 		expect(ep3.local).toBe(true);
 		expect(list.localEndpoints).toEqual([ep1, ep3]);
 
-		expect(list.nextLocal()).toBe(ep1);
+		expect(list.nextLocal(ctx)).toBe(ep1);
 		expect(list.select).toHaveBeenCalledTimes(1);
-		expect(list.select).toHaveBeenCalledWith([ep1, ep3]);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep3], ctx);
 	});
 
 	it("should find the first available ep", () => {
@@ -315,9 +344,9 @@ describe("Test EndpointList.nextLocal", () => {
 		ep1.state = false;
 		ep3.state = true;
 
-		expect(list.nextLocal()).toBe(ep3);
+		expect(list.nextLocal(ctx)).toBe(ep3);
 		expect(list.select).toHaveBeenCalledTimes(1);
-		expect(list.select).toHaveBeenCalledWith([ep3]);
+		expect(list.select).toHaveBeenCalledWith([ep3], ctx);
 	});
 
 	it("should return null, if no available ep", () => {
@@ -326,7 +355,7 @@ describe("Test EndpointList.nextLocal", () => {
 		ep1.state = false;
 		ep3.state = false;
 
-		expect(list.nextLocal()).toBeNull();
+		expect(list.nextLocal(ctx)).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 

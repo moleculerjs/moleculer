@@ -1,12 +1,11 @@
 language: node_js
 sudo: false
-dist: precise
+dist: xenial
 
 node_js:
+    - "14"
+    - "12"
     - "10"
-    - "9"
-    - "8"
-    - "6"
 
 cache:
   directories:
@@ -22,12 +21,13 @@ addons:
       - sourceline: 'ppa:mosquitto-dev/mosquitto-ppa'
     packages:
       - mosquitto
+      - rabbitmq-server
 
 before_script:
   # install NATS server
-  - wget https://github.com/nats-io/gnatsd/releases/download/v1.1.0/gnatsd-v1.1.0-linux-amd64.zip -qO gnatsd.zip
-  - unzip gnatsd.zip
-  - ./gnatsd-v1.1.0-linux-amd64/gnatsd &
+  - wget https://github.com/nats-io/nats-server/releases/download/v2.0.0/nats-server-v2.0.0-linux-amd64.zip -qO nats-server.zip
+  - unzip nats-server.zip
+  - ./nats-server-v2.0.0-linux-amd64/nats-server &
 
 script:
   - npm run test:travis

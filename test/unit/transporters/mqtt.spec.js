@@ -12,7 +12,7 @@ MQTT.connect = jest.fn(() => {
 	return {
 		on: jest.fn((event, cb) => onCallbacks[event] = cb),
 		end: jest.fn(),
-		subscribe: jest.fn((topic, opts = {}, cb) => cb(undefined, [{topic, qos: opts.qos ? opts.qos : 0}])),
+		subscribe: jest.fn((topic, opts = {}, cb) => cb(undefined, [{ topic, qos: opts.qos ? opts.qos : 0 }])),
 		publish: jest.fn((topic, data, opts, cb) => cb()),
 
 		onCallbacks
@@ -119,12 +119,12 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", {qos: 0}, jasmine.any(Function));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", { qos: 0 }, jasmine.any(Function));
 	});
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.client.onCallbacks.message("prefix.event.name", "incoming data");
+		transporter.client.onCallbacks.message("MOL-TEST.event.name", "incoming data");
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});
@@ -135,7 +135,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
 		return transporter.publish(packet).catch(protectReject).then(() => {
 			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", Buffer.from("json data"), {qos: 0}, jasmine.any(Function));
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", Buffer.from("json data"), { qos: 0 }, jasmine.any(Function));
 
 			expect(transporter.serialize).toHaveBeenCalledTimes(1);
 			expect(transporter.serialize).toHaveBeenCalledWith(packet);
@@ -164,7 +164,7 @@ describe("Test MqttTransporter subscribe & publish with different QoS", () => {
 	it("check subscribe", () => {
 		return transporter.subscribe("REQ", "node").catch(protectReject).then(() => {
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", {qos: 1}, jasmine.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", { qos: 1 }, jasmine.any(Function));
 		});
 	});
 
@@ -172,7 +172,7 @@ describe("Test MqttTransporter subscribe & publish with different QoS", () => {
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
 		return transporter.publish(packet).catch(protectReject).then(() => {
 			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", {qos: 1}, jasmine.any(Function));
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", { qos: 1 }, jasmine.any(Function));
 		});
 	});
 
@@ -212,12 +212,12 @@ describe("Test MqttTransporter subscribe & publish with different topicSeparator
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST/REQ/node", {qos: 0}, jasmine.any(Function));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST/REQ/node", { qos: 0 }, jasmine.any(Function));
 	});
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.client.onCallbacks.message("prefix/event/name", "incoming data");
+		transporter.client.onCallbacks.message("MOL-TEST/event/name", "incoming data");
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});
@@ -228,7 +228,7 @@ describe("Test MqttTransporter subscribe & publish with different topicSeparator
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
 		return transporter.publish(packet).catch(protectReject).then(() => {
 			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST/INFO/node2", Buffer.from("json data"), {qos: 0}, jasmine.any(Function));
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST/INFO/node2", Buffer.from("json data"), { qos: 0 }, jasmine.any(Function));
 
 			expect(transporter.serialize).toHaveBeenCalledTimes(1);
 			expect(transporter.serialize).toHaveBeenCalledWith(packet);

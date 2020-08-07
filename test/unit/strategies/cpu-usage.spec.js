@@ -1,7 +1,7 @@
 "use strict";
 
-let CpuUsageStrategy = require("../../../src/strategies/cpu-usage");
-let { extendExpect } = require("../utils");
+const CpuUsageStrategy = require("../../../src/strategies/cpu-usage");
+const { extendExpect } = require("../utils");
 
 extendExpect(expect);
 
@@ -9,11 +9,7 @@ describe("Test CpuUsageStrategy", () => {
 
 	it("test with empty opts", () => {
 
-		let strategy = new CpuUsageStrategy({
-			opts: {
-				strategyOptions: {}
-			}
-		});
+		let strategy = new CpuUsageStrategy(null, null, {});
 
 		expect(strategy.opts.sampleCount).toBe(3);
 		expect(strategy.opts.lowCpuUsage).toBe(10);
@@ -30,13 +26,9 @@ describe("Test CpuUsageStrategy", () => {
 
 	it("test with options", () => {
 
-		let strategy = new CpuUsageStrategy({
-			opts: {
-				strategyOptions: {
-					sampleCount: 5,
-					lowCpuUsage: 30
-				}
-			}
+		let strategy = new CpuUsageStrategy(null, null, {
+			sampleCount: 5,
+			lowCpuUsage: 30
 		});
 
 		expect(strategy.opts.sampleCount).toBe(5);

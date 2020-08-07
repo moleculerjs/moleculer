@@ -53,7 +53,7 @@ describe("Test AmqpTransporter constructor", () => {
 		let transporter = new AmqpTransporter("amqp://localhost");
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 1,
 			eventTimeToLive: null,
 			heartbeatTimeToLive: null,
@@ -61,7 +61,7 @@ describe("Test AmqpTransporter constructor", () => {
 			messageOptions: {},
 			queueOptions: {},
 			consumeOptions: {},
-			autoDeleteQueues: -1
+			autoDeleteQueues: 120000
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
@@ -72,7 +72,7 @@ describe("Test AmqpTransporter constructor", () => {
 
 	it("check constructor with options", () => {
 		let opts = {
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 3,
 			eventTimeToLive: 10000,
 			heartbeatTimeToLive: 30000,
@@ -80,7 +80,7 @@ describe("Test AmqpTransporter constructor", () => {
 			messageOptions: { expiration: 120000, persistent: true, mandatory: true },
 			queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
 			consumeOptions: { priority: 5 },
-			autoDeleteQueues: -1
+			autoDeleteQueues: 31337
 		};
 		let transporter = new AmqpTransporter(opts);
 		expect(transporter.opts).toEqual(opts);
@@ -118,11 +118,42 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 	});
 
 	it("check onConnected after connect", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		return transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.onConnected).toHaveBeenCalledWith();
+			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transporter.onConnected).toHaveBeenCalledWith(false);
 		});
+	});
+
+	it("check onConnected after connect (start -> stop -> start)", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		return transporter.connect()
+			.then(() => transporter.disconnect())
+			.then(() => transporter.connect())
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(2);
+				expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+				expect(transporter.onConnected.mock.calls).toEqual([[false], [false]]);
+			});
+	});
+
+	it("check onConnected after reconnect", () => {
+		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		return transporter.connect(() => transporter.connect())
+			.then(() => transporter.connection.connectionOnCallbacks.close())
+			.catch(protectReject).then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(2);
+				expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected.mock.calls).toEqual([[false], [true]]);
+			});
 	});
 
 	it("check disconnect", () => {
@@ -253,7 +284,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.RES.node", {});
+					.toHaveBeenCalledWith("MOL-TEST.RES.node", { expires: 120000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.RES.node", jasmine.any(Function), { noAck: true });
 
@@ -272,7 +303,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.INFO.node", {"autoDelete": true});
+					.toHaveBeenCalledWith("MOL-TEST.INFO.node", { "autoDelete": true });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.INFO.node", jasmine.any(Function), { noAck: true });
 
@@ -292,7 +323,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.node", {});
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", { expires: 120000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: false });
 
@@ -313,7 +344,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { messageTtl: 3000 }); // use ttl option
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { expires: 120000, messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", jasmine.any(Function), { noAck: true });
 
@@ -334,7 +365,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT.node", { autoDelete: true, messageTtl: 4000});
+					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT.node", { autoDelete: true, messageTtl: 4000 });
 				expect(transporter.channel.assertExchange)
 					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT", "fanout", {});
 				expect(transporter.channel.bindQueue)
@@ -410,7 +441,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear",
-						{ messageTtl: 3000});
+						{ expires: 120000, messageTtl: 3000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", jasmine.any(Function), {});
 
@@ -426,11 +457,6 @@ describe("Test AmqpTransporter subscribe", () => {
 describe("Test AmqpTransporter publish", () => {
 	let transporter;
 	let msgHandler;
-
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
-	};
 
 	beforeEach(() => {
 		msgHandler = jest.fn();

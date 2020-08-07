@@ -1,4 +1,4 @@
-const { MoleculerError } = require("../../../src/errors");
+const { BrokerOptionsError } = require("../../../src/errors");
 const Strategies = require("../../../src/strategies");
 
 describe("Test Strategies resolver", () => {
@@ -32,11 +32,32 @@ describe("Test Strategies resolver", () => {
 	it("should throw error if type if not correct", () => {
 		expect(() => {
 			Strategies.resolve("xyz");
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
 
 		expect(() => {
 			Strategies.resolve({ type: "xyz" });
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
 	});
 
+});
+
+
+describe("Test Strategies register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Strategies.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Strategies.register("MyCustom", MyCustom);
+		expect(Strategies.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const strategy = Strategies.resolve("MyCustom");
+		expect(strategy).toBe(MyCustom);
+	});
 });

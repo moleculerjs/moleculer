@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -21,11 +21,13 @@ class Node {
 	 */
 	constructor(id) {
 		this.id = id;
+		this.instanceID = null;
 		this.available = true;
 		this.local = false;
-		this.lastHeartbeatTime = Date.now();
+		this.lastHeartbeatTime = Math.round(process.uptime());
 		this.config = {};
 		this.client = {};
+		this.metadata = null;
 
 		this.ipList = null;
 		this.port = null;
@@ -51,10 +53,13 @@ class Node {
 	 */
 	update(payload, isReconnected) {
 		// Update properties
+		this.metadata = payload.metadata;
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
 		this.port = payload.port;
 		this.client = payload.client || {};
+		this.config = payload.config || {};
+		this.instanceID = payload.instanceID;
 
 		// Process services & events
 		this.services = payload.services;
@@ -68,15 +73,16 @@ class Node {
 	}
 
 	/**
-	 * Update local properties
+	 * Update local properties.
 	 *
 	 * @memberof Node
+	 * @param {Function} cpuUsage
 	 */
 	updateLocalInfo(cpuUsage) {
 		return cpuUsage().then(res => {
 			const newVal = Math.round(res.avg);
 			if (this.cpu != newVal) {
-				this.cpu = Math.round(res.avg);
+				this.cpu = newVal;
 				this.cpuSeq++;
 			}
 		}).catch(() => { /* silent */ });
@@ -94,10 +100,12 @@ class Node {
 			this.offlineSince = null;
 		}
 
-		this.cpu = payload.cpu;
-		this.cpuSeq = payload.cpuSeq || 1;
+		if (payload.cpu != null) {
+			this.cpu = payload.cpu;
+			this.cpuSeq = payload.cpuSeq || 1;
+		}
 
-		this.lastHeartbeatTime = Date.now();
+		this.lastHeartbeatTime = Math.round(process.uptime());
 	}
 
 	/**
@@ -107,7 +115,7 @@ class Node {
 	 */
 	disconnected() {
 		if (this.available) {
-			this.offlineSince = Date.now();
+			this.offlineSince = Math.round(process.uptime());
 			this.seq++;
 		}
 

@@ -20,8 +20,11 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
 	transporter,
 	logger: console,
-	logLevel: "warn"
-	//metrics: true
+	logLevel: "warn",
+	//metrics: true,
+	registry: {
+		discoverer: process.env.DISCOVERER || "Local"
+	}
 });
 
 broker.createService({

@@ -1,3 +1,2878 @@
+<a name="Unreleased"></a>
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.9...master)
+
+--------------------------------------------------
+<a name="0.14.9"></a>
+# [0.14.9](https://github.com/moleculerjs/moleculer/compare/v0.14.8...v0.14.9) (2020-08-06)
+
+## Register method in module resolver
+If you create a custom module (e.g. serializer), you can register it into the built-in modules with the `register` method. This method is also available in all other built-in module resolver.
+
+**Example**
+```js
+// SafeJsonSerializer.js
+const { Serializers } = require("moleculer");
+
+class SafeJsonSerializer {}
+
+Serializers.register("SafeJSON", SafeJSON);
+
+module.exports = SafeJsonSerializer;
+```
+
+```js
+// moleculer.config.js
+require("./SafeJsonSerializer");
+
+module.exports = {
+    nodeID: "node-100",
+    serializer: "SafeJSON"
+    // ...
+});
+```
+
+## Changeable validation property name
+You can change the `params` property name in validator options. It can be useful if you have a custom Validator implementation.
+
+```js
+const broker = new ServiceBroker({
+    validator: {
+        type: "Fastest",
+        options: {
+            paramName: "myParams" // using `myParams` instead of `params`
+        }
+    }
+});
+
+broker.createService({
+    name: "posts",
+    actions: {
+        create: {
+            myParams: {
+                title: "string"
+            }
+        },
+        handler(ctx) { /* ... */ }
+    }
+});
+```
+
+## Global tracing span tags for actions & events
+Thanks for [@kthompson23](https://github.com/kthompson23), you can configure the action & events tracing span tags globally. These tags will be used for all actions & events where tracing is enabled. Of course, you can overwrite them locally in the action & event schema.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    tracing: {
+        enabled: true,
+        exporter: 'Zipkin',
+        tags: {
+            action: {
+                meta: ['app.id', 'user.email', 'workspace.name'],
+                params: false,  // overrides default behavior of all params being adding as tags
+                response: true,
+            },
+            event: (ctx) {
+                return {
+                    caller: ctx.caller,
+                }
+            }  
+        }
+    }
+}
+```
+
+## Other changes
+- fix multiple trace spans with same ID issue in case of retries.
+- update dependencies
+- add `lastValue` property to histogram metric type.
+- update return type of context's copy method. 
+- add configuration hotReloadModules [#779](https://github.com/moleculerjs/moleculer/pull/779)
+- Remove Zipkin v1 annotations and change kind to SERVER
+
+--------------------------------------------------
+<a name="0.14.8"></a>
+# [0.14.8](https://github.com/moleculerjs/moleculer/compare/v0.14.7...v0.14.8) (2020-06-27)
+
+## Github Sponsoring is available for Moleculer :tada:
+We have been approved in Github Sponsors program, so you can sponsor the Moleculer project via [Github Sponsors](https://github.com/sponsors/moleculerjs).
+_If you have taxing problem with Patreon, change to Github Sponsors._
+
+## New Validator configuration
+The `validator` has the same module configuration in broker options like other modules. It means you can configure the validation constructor options via broker options (moleculer.config.js).
+
+**Default usage:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: true // Using the default Fastest Validator
+}
+```
+
+**Using built-in validator name:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: "FastestValidator" // Using the Fastest Validator
+}
+```
+
+**Example with options:**
+```js
+//moleculer.config.js
+module.exports = {
+    nodeID: "node-100",
+    validator: {
+        type: "FastestValidator",
+        options: {
+            useNewCustomCheckerFunction: true,
+            defaults: { /*...*/ },
+            messages: { /*...*/ },
+            aliases: { /*...*/ }
+        }
+    }
+}
+```
+
+**Example with custom validator**
+```js
+//moleculer.config.js
+const BaseValidator = require("moleculer").Validators.Base;
+
+class MyValidator extends BaseValidator {}
+
+module.exports = {
+    nodeID: "node-100",
+    validator: new MyValidator()
+}
+```
+
+## New metrics
+Added the following new metrics:
+- `moleculer.event.received.active`: Number of active event executions.
+- `moleculer.event.received.error.total`: Number of event execution errors.
+- `moleculer.event.received.time`: Execution time of events in milliseconds.
+- `os.memory.total`: OS used memory size.
+
+## Other changes
+- support using `moleculer.config.js` with `export default`.
+- remove some lodash methods.
+- upgrade to the latest `tsd`.
+- new `dependencyInterval` broker option. Using as default value for `broker.waitForServices` [#761](https://github.com/moleculerjs/moleculer/pull/761)
+- fix Datadog traceID, spanID generation logic to work with latest `dd-trace`.
+- add error stack trace to `EventLegacy` trace exporter.
+- fix INFO key issue in Redis Discoverer after Redis server restarting.
+
+--------------------------------------------------
+<a name="0.14.7"></a>
+# [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-22)
+
+## New Discoverer module
+The Discoverer is a new built-in module in Moleculer framework. It's responsible for that all Moleculer nodes can discover each other and check them with heartbeats. In previous versions, it was an integrated module inside `ServiceRegistry` & `Transit` modules. In this version, the discovery logic has been extracted to a separated built-in module. It means you can replace it to other built-in implementations or a custom one. The current discovery & heartbeat logic is moved to the `Local` Discoverer. 
+
+Nevertheless, this version also contains other discoverers, like Redis & etcd3 discoverers. Both of them require an external server to make them work. 
+One of the main advantages of the external discoverers, the node discovery & heartbeat packets don't overload the communication on the transporter. The transporter transfers only the request, response, event packets.
+By the way, the external discoverers have some disadvantages, as well. These discoverers can detect lazier the new and disconnected nodes because they scan the heartbeat keys periodically on the remote Redis/etcd3 server. The period of checks depends on the `heartbeatInterval` broker option.
+
+>The Local Discoverer (which is the default) works like the discovery of previous versions, so if you want to keep the original logic, you'll have to do nothing.
+
+>Please note the TCP transporter uses Gossip protocol & UDP packets for discovery & heartbeats, it means it can work only with Local Discoverer.
+
+### Local Discoverer
+It's the default Discoverer, it uses the transporter module to discover all other moleculer nodes. It's quick and fast but if you have too many nodes (>100), the nodes can generate a lot of heartbeat packets which can reduce the performance of request/response packets.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Local"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Local",
+            options: {
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+### Redis Discoverer
+>**This is an experimental module. Do not use it in production yet!**
+
+This Discoverer uses a [Redis server](https://redis.io/) to discover Moleculer nodes. The heartbeat & discovery packets are stored in Redis keys. Thanks to Redis key expiration, if a node crashed or disconnected unexpectedly, the Redis will remove its heartbeat keys from the server and other nodes can detect it.
+
+
+**Example to connect local Redis server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Redis"
+    }    
+}
+```
+
+**Example to connect remote Redis server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "redis://redis-server:6379"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Redis",
+            options: {
+                redis: {
+                    // Redis connection options.
+                    // More info: https://github.com/luin/ioredis#connect-to-redis
+                    port: 6379,
+                    host: "redis-server",
+                    password: "123456",
+                    db: 3
+                }
+
+                // Serializer
+                serializer: "JSON",
+
+                // Full heartbeat checks. It generates more network traffic
+                // 10 means every 10 cycle.
+                fullCheck: 10,
+
+                // Key scanning size
+                scanLength: 100,
+
+                // Monitoring Redis commands
+                monitor: true,
+                
+                // --- COMMON DISCOVERER OPTIONS ---
+
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+>To be able to use this Discoverer, install the `ioredis` module with the npm install ioredis --save command.
+
+>Tip: To further network traffic reduction, you can use MsgPack/Notepack serializers instead of JSON.
+
+### Etcd3 Discoverer
+>This is an experimental module. Do not use it in production yet!
+
+This Discoverer uses an [etcd3 server](https://etcd.io/) to discover Moleculer nodes. The heartbeat & discovery packets are stored in the server. Thanks to etcd3 [lease](https://etcd.io/docs/v3.4.0/learning/api/#lease-api) solution, if a node crashed or disconnected unexpectedly, the etcd3 will remove its heartbeat keys from the server and other nodes can detect it.
+
+
+**Example to connect local etcd3 server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "Etcd3"
+    }    
+}
+```
+
+**Example to connect remote etcd3 server**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: "etcd3://etcd-server:2379"
+    }    
+}
+```
+
+**Example with options**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        discoverer: {
+            type: "Etcd3",
+            options: {
+                etcd: {
+                    // etcd3 connection options.
+                    // More info: https://mixer.github.io/etcd3/interfaces/options_.ioptions.html
+                    hosts: "etcd-server:2379",
+                    auth: "12345678"
+                }
+
+                // Serializer
+                serializer: "JSON",
+
+                // Full heartbeat checks. It generates more network traffic
+                // 10 means every 10 cycle.
+                fullCheck: 10,
+                
+                // --- COMMON DISCOVERER OPTIONS ---
+
+                // Send heartbeat in every 10 seconds
+                heartbeatInterval: 10,
+
+                // Heartbeat timeout in seconds
+                heartbeatTimeout: 30,
+
+                // Disable heartbeat checking & sending, if true
+                disableHeartbeatChecks: false,
+
+                // Disable removing offline nodes from registry, if true
+                disableOfflineNodeRemoving: false,
+
+                // Remove offline nodes after 10 minutes
+                cleanOfflineNodesTimeout: 10 * 60
+            }
+        }
+    }    
+}
+```
+
+>To be able to use this Discoverer, install the `etcd3` module with the npm install etcd3--save command.
+
+>Tip: To further network traffic reduction, you can use MsgPack/Notepack serializers instead of JSON.
+
+### Custom Discoverer
+You can create your custom Discoverer. We recommend to copy the source of Redis Discoverer and implement the necessary methods.
+
+## Other changes
+- fixed multiple heartbeat sending issue at transporter reconnecting.
+- the `heartbeatInterval` default value has been changed to `10` seconds.
+- the `heartbeatTimeout` default value has been changed to `30` seconds.
+- the heartbeat check logics use process uptime instead of timestamps in order to avoid issues with time synchronization or daylight saving.
+- Notepack serializer initialization issue fixed. It caused problem when Redis cacher uses Notepack serializer.
+- new `removeFromArray` function in Utils.
+- `mcall` method definition fixed in Typescript definition.
+- dependencies updated.
+
+--------------------------------------------------
+<a name="0.14.6"></a>
+# [0.14.6](https://github.com/moleculerjs/moleculer/compare/v0.14.5...v0.14.6) (2020-04-11)
+
+## New NewRelic zipkin tracing exporter
+Thanks for [@jalerg](https://github.com/jalerg), there is a NewRelic tracing exporter. [PR #713](https://github.com/moleculerjs/moleculer/pull/713)
+
+```js
+// moleculer.config.js
+{
+    tracing: {
+        enabled: true,
+        events: true,
+        exporter: [
+            {
+                type: 'NewRelic',
+                options: {
+                    // NewRelic Insert Key
+                    insertKey: process.env.NEW_RELIC_INSERT_KEY,
+                    // Sending time interval in seconds.
+                    interval: 5,
+                    // Additional payload options.
+                    payloadOptions: {
+                        // Set `debug` property in payload.
+                        debug: false,
+                        // Set `shared` property in payload.
+                        shared: false,
+                    },
+                    // Default tags. They will be added into all span tags.
+                    defaultTags: null,
+                },
+            },
+        ],
+    },    
+}
+```
+
+## Other changes
+- fix stream chunking issue. [PR #712](https://github.com/moleculerjs/moleculer/pull/712)
+- fix INFO packet sending issue after reconnecting
+- safely handling disconnected state for transporters (heartbeat queuing issue). [PR #715](https://github.com/moleculerjs/moleculer/pull/715)
+- fix orhpan response issue in case of streaming with disabled balancer. [#709](https://github.com/moleculerjs/moleculer/issues/709)
+- update dependencies, audit fix
+
+--------------------------------------------------
+<a name="0.14.5"></a>
+# [0.14.5](https://github.com/moleculerjs/moleculer/compare/v0.14.4...v0.14.5) (2020-03-25)
+
+## Wrapping service methods with middlewares
+New `localMethod` hook in middlewares which wraps the service methods.
+
+**Example**
+```js
+// my.middleware.js
+module.exports = {
+    name: "MyMiddleware",
+
+    localMethod(next, method) {
+        return (...args) => {
+            console.log(`The '${method.name}' method is called in '${method.service.fullName}' service.`, args);
+            return handler(...args);
+        }
+    }
+}
+```
+
+## Schema for service methods
+Similar for action schema, you can define service methods with schema. It can be useful when middleware wraps service methods.
+
+**Example for new method schema**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    methods: {
+        list: {
+            async handler(count) {
+                // Do something
+                return posts;
+            }
+        }
+    }
+};
+```
+
+## Changes
+- add chunk limit for streams in message transporting. [#683](https://github.com/moleculerjs/moleculer/issues/683)
+- add `baseUrl` option to Datadog metric reporter. [#694](https://github.com/moleculerjs/moleculer/issues/694)
+- fix open handles in unit tests. [#695](https://github.com/moleculerjs/moleculer/issues/695)
+- update d.ts [#699](https://github.com/moleculerjs/moleculer/issues/699) [#700](https://github.com/moleculerjs/moleculer/issues/700) [#703](https://github.com/moleculerjs/moleculer/issues/703)
+
+--------------------------------------------------
+<a name="0.14.4"></a>
+# [0.14.4](https://github.com/moleculerjs/moleculer/compare/v0.14.3...v0.14.4) (2020-03-08)
+
+## Changes
+- add `maxSafeObjectSize` to service broker options. Fixes [#697](https://github.com/moleculerjs/moleculer/pull/697)
+- add `stop` method to tracing exporters. Fixes [#689](https://github.com/moleculerjs/moleculer/issues/689)
+- fix `EventLegacy` tracing exporter. Fixes  [#676](https://github.com/moleculerjs/moleculer/issues/676)
+- the `defaultTags` property in `tracer` options can be a `Function`, as well.
+
+--------------------------------------------------
+<a name="0.14.3"></a>
+# [0.14.3](https://github.com/moleculerjs/moleculer/compare/v0.14.2...v0.14.3) (2020-02-24)
+
+## Changes
+- fix issue in AMQP 1.0 transporter
+
+--------------------------------------------------
+<a name="0.14.2"></a>
+# [0.14.2](https://github.com/moleculerjs/moleculer/compare/v0.14.1...v0.14.2) (2020-02-14)
+
+## Support custom loggers
+If you have your custom logger you should wrap it into a `Logger` class and implement the `getLogHandler` method.
+
+**Using a custom logger**
+```js
+// moleculer.config.js
+ const BaseLogger = require("moleculer").Loggers.Base;
+
+class MyLogger extends BaseLogger {
+    getLogHandler(bindings) {
+        return (type, args) => console[type](`[MYLOG-${bindings.mod}]`, ...args);
+    }
+}
+
+module.exports = {
+    logger: new MyLogger()
+};
+```
+
+--------------------------------------------------
+<a name="0.14.1"></a>
+# [0.14.1](https://github.com/moleculerjs/moleculer/compare/v0.14.0...v0.14.1) (2020-02-12)
+
+## Changes
+- fix bluebird import issue [#674](https://github.com/moleculerjs/moleculer/issues/674)
+
+--------------------------------------------------
+<a name="0.14.0"></a>
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2020-02-12)
+
+[**Migration guide from 0.13 to 0.14**](https://github.com/moleculerjs/moleculer/blob/next/docs/MIGRATION_GUIDE_0.14.md)
+
+# Breaking changes
+
+## Minimum Node version is 10
+The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
+
+## Bluebird dropped
+The Bluebird Promise library has been dropped from the project because as of Node 10 the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.
+
+Nonetheless, you can use your desired Promise library, just set the `Promise` broker options.
+
+**Using Bluebird**
+```js
+const BluebirdPromise = require("bluebird");
+
+// moleculer.config.js
+module.exports = {
+    Promise: BluebirdPromise
+};
+```
+>Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer core modules).
+
+## Communication protocol has been changed
+The Moleculer communication protocol has been changed. The new protocol version is `4`.
+It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
+
+## Fastest validator upgraded to 1.x.x
+Fastest-validator, the default validation has been upgraded to the 1.0.0 version. It means breaking changes but the new version more faster and contains many sanitization functions.
+If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/releases/tag/v1.0.0-beta1)
+
+## Logger settings changed
+The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes. You can't use some old custom logger configuration form. The new configuration same as the other Moleculer module configurations. This new version supports all famous loggers like [Pino](https://github.com/pinojs/pino), [Winston](https://github.com/winstonjs/winston), [Bunyan](https://github.com/trentm/node-bunyan), [Debug](https://github.com/visionmedia/debug) & [Log4js](https://github.com/log4js-node/log4js-node).
+
+_If you are using the built-in default console logger, this breaking change doesn't affect you._
+
+The `logFormatter` and `logObjectPrinter` broker options has been removed and moved into the `Console` and `File` logger options.
+
+**Not changed usable configurations**
+```js
+// moleculer.config.js
+module.exports = {
+    // Enable console logger
+    logger: true,
+
+    // Disable all loggers
+    logger: false
+};
+```
+
+**You CANNOT use these legacy configurations**
+```js
+// moleculer.config.js
+module.exports = {
+    // DON'T use a custom create function, like
+    logger: bindings => pino.child(bindings),
+
+    // DON'T use a custom logger, like
+    logger: {
+        error: () => { ... },
+        warn: () => { ... },
+        info: () => { ... },
+        debug: () => { ... }
+    }
+};
+```
+
+### Console logger
+This logger prints all log messags to the `console`. It supports several built-in formatters or you can use your custom formatter, as well.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Console",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Console",
+        options: {
+            // Logging level
+            level: "info",
+            // Using colors on the output
+            colors: true,
+            // Print module names with different colors (like docker-compose for containers)
+            moduleColors: false,
+            // Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            formatter: "full",
+            // Custom object printer. If not defined, it uses the `util.inspect` method.
+            objectPrinter: null,
+            // Auto-padding the module name in order to messages begin at the same column.
+            autoPadding: false
+        }
+    }
+};
+```
+
+### File logger
+This logger saves all log messages to file(s). It supports JSON & formatted text files or you can use your custom formatter, as well.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "File",
+};
+```
+_It will save the log messages to the `logs` folder in the current directory with `moleculer-{date}.log` filename._
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "File",
+        options: {
+            // Logging level
+            level: "info",
+            // Folder path to save files. You can use {nodeID} & {namespace} variables.
+            folder: "./logs",
+            // Filename template. You can use {date}, {nodeID} & {namespace} variables.
+            filename: "moleculer-{date}.log",
+            // Line formatter. It can be "json", "jsonext", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            formatter: "json",
+            // Custom object printer. If not defined, it uses the `util.inspect` method.
+            objectPrinter: null,
+            // End of line. Default values comes from the OS settings.
+            eol: "\n",
+            // File appending interval in milliseconds.
+            interval: 1 * 1000
+        }
+    }
+};
+```
+
+### Pino logger
+This logger uses the [Pino](https://github.com/pinojs/pino) logger.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Pino",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Pino",
+        options: {
+            // Logging level
+            level: "info",
+
+            pino: {
+                // More info: http://getpino.io/#/docs/api?id=options-object
+                options: null,
+
+                // More info: http://getpino.io/#/docs/api?id=destination-sonicboom-writablestream-string
+                destination: "/logs/moleculer.log",
+            }
+        }
+    }
+};
+```
+
+> To use this logger please install the `pino` module with `npm install pino --save` command.
+
+
+### Bunyan logger
+This logger uses the [Bunyan](https://github.com/trentm/node-bunyan) logger.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Bunyan",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Bunyan",
+        options: {
+            // Logging level
+            level: "info",
+
+            bunyan: {
+                // More settings: https://github.com/trentm/node-bunyan#constructor-api
+                name: "moleculer"
+            }
+        }
+    }
+};
+```
+
+> To use this logger please install the `bunyan` module with `npm install bunyan --save` command.
+
+
+### Winston logger
+This logger uses the [Winston](https://github.com/winstonjs/winston) logger.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Winston",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+const winston = require("winston");
+
+module.exports = {
+    logger: {
+        type: "Winston",
+        options: {
+            // Logging level
+            level: "info",
+
+            winston: {
+                // More settings: https://github.com/winstonjs/winston#creating-your-own-logger
+                transports: [
+                    new winston.transports.Console(),
+                    new winston.transports.File({ filename: "/logs/moleculer.log" })
+                ]
+            }
+        }
+    }
+};
+```
+
+> To use this logger please install the `winston` module with `npm install winston --save` command.
+
+### `debug` logger
+This logger uses the [debug](https://github.com/visionmedia/debug) logger.
+To see messages you have to set the `DEBUG` environment variable to `export DEBUG=moleculer:*`.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Debug",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Debug",
+        options: {
+            // Logging level
+            level: "info",
+        }
+    }
+};
+```
+
+> To use this logger please install the `debug` module with `npm install debug --save` command.
+
+### Log4js logger
+This logger uses the [Log4js](https://github.com/log4js-node/log4js-node) logger.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Log4js",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Log4js",
+        options: {
+            // Logging level
+            level: "info",
+            
+            log4js: {
+                // More info: https://github.com/log4js-node/log4js-node#usage
+                appenders: {
+                    app: { type: "file", filename: "/logs/moleculer.log" }
+                },
+                categories: {
+                    default: { appenders: [ "app" ], level: "debug" }
+                }
+            }
+        }
+    }
+};
+```
+
+> To use this logger please install the `log4js` module with `npm install log4js --save` command.
+
+### Datadog logger
+This logger uploads log messages to the [Datadog](https://www.datadoghq.com/) server.
+
+> Please note, this logger doesn't print any messages to the console, just collects & uploads. Use it beside another logger which also prints the messages.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Datadog",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Datadog",
+        options: {
+            // Logging level
+            level: "info",
+
+            // Datadog server endpoint. https://docs.datadoghq.com/api/?lang=bash#send-logs-over-http
+            url: "https://http-intake.logs.datadoghq.com/v1/input/",
+            // Datadog API key
+            apiKey: process.env.DATADOG_API_KEY,
+            // Datadog source variable
+            ddSource: "moleculer",
+            // Datadog env variable
+            env: undefined,
+            // Datadog hostname variable
+            hostname: os.hostname(),
+            // Custom object printer function for `Object` & `Ąrray`
+            objectPrinter: null,
+            // Data uploading interval
+            interval: 10 * 1000
+        }
+    }
+};
+```
+
+### Multiple loggers
+This new logger configuration admits to use multiple loggers even from the same logger type and different logging levels.
+
+**Define multiple loggers with different logging levels**
+
+This configuration demonstrates how you can define a `Console` logger, a `File` logger to save all log messages in formatted text file and another `File` logger to save only error messages in JSON format.
+
+```js
+// moleculer.config.js
+module.exports = {
+    logger: [
+        {
+            type: "Console",
+            options: {
+                level: "info",
+            }
+        },
+        {            
+            type: "File",
+            options: {
+                level: "info",
+                folder: "/logs/moleculer",
+                filename: "all-{date}.log",
+                formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            }
+        },
+        {
+            type: "File",
+            options: {
+                level: "error",
+                folder: "/logs/moleculer",
+                filename: "errors-{date}.json",
+                formatter: "json"
+            }
+        }
+    ]   
+};
+```
+
+**Using different loggers for different modules**
+
+This configuration demonstrates how you can define loggers for certain modules.
+
+```js
+// moleculer.config.js
+module.exports = {
+    logger: [
+        // Shorthand `Console` logger configuration
+        "Console",
+        {            
+            // This logger saves messages from all modules except "greeter" service.
+            type: "File",
+            options: {
+                level: {
+                    "GREETER": false,
+                    "**": "info"
+                },
+                filename: "moleculer-{date}.log"
+            }
+        },
+        {
+            // This logger saves messages from only "greeter" service.
+            type: "File",
+            options: {
+                level: {
+                    "GREETER": "debug",
+                    "**": false
+                },
+                filename: "greeter-{date}.log"
+            }
+        }
+    ],
+
+    logLevel: "info" // global log level. All loggers inherits it. 
+};
+```
+
+## Logging level setting.
+To configure logging levels, you can use the well-known `logLevel` broker option which can be a `String` or an `Object`. But it is possible to overwrite it in all logger `options` with the `level` property.
+
+**Complex logging level configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: [
+        // The console logger will use the `logLevel` global setting.
+        "Console",
+        {            
+            type: "File",
+            options: {
+                // Overwrite the global setting.
+                level: {
+                    "GREETER": false,
+                    "**": "warn"
+                }
+            }
+        }
+    ],
+
+    logLevel: {
+        "TRACING": "trace",
+        "TRANS*": "warn",
+        "GREETER": "debug",
+        "**": "info",
+    }
+};
+```
+
+
+## Validation settings changed
+The `validation: true` broker options was removed to follow other module configuration. Use `validator` option, instead.
+
+**Enable validation with built-in validator (default option)**
+```js
+const broker = new ServiceBroker({
+    validator: true
+});
+```
+
+**Disable validation/validator**
+```js
+const broker = new ServiceBroker({
+    validator: false
+});
+```
+
+**Use custom validation**
+```js
+const broker = new ServiceBroker({
+    validator: new MyCustomValidator()
+});
+```
+
+## The `broker.use` removed
+The `broker.use` has been deprecated in version 0.13 and now it is removed. Use `middleware: []` broker options to define middlewares. 
+
+_loading middleware after the broker has started is no longer available._
+
+## The `$node.health` response changed
+The `$node.health` action's response has been changed. The `transit` property is removed. To get transit metrics, use the new `$node.metrics` internal action.
+
+## Middleware shorthand definition is dropped
+In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
+In version 0.14 this legacy shorthand is dropped. When you define a middleware as a `Function`, the middleware handler will call it as an initialization and pass the ServiceBroker instance as a parameter.
+
+**Old shorthand middleware definition as a `Function`**
+```js
+const MyMiddleware = function(next, action) {
+    return ctx => next(ctx);
+};
+
+const broker = new ServiceBroker({
+    middlewares: [MyMiddleware]
+});
+```
+
+**New middleware definition as a `Function`**
+```js
+const MyMiddleware = function(broker) {
+    // Create a custom named logger
+    const myLogger = broker.getLogger("MY-LOGGER");
+
+    return {
+        localAction: function(next, action) {
+            return ctx => {
+                myLogger.info(`${action.name} has been called`);
+                return next(ctx);
+            }
+        }
+    }
+};
+
+const broker = new ServiceBroker({
+    middlewares: [MyMiddleware]
+});
+```
+
+## The `localEvent` middleware hook signature changed
+
+**Old signature**
+```js
+// my-middleware.js
+module.exports = {
+    // Wrap local event handlers
+    localEvent(next, event) {
+        return (payload, sender, event) => {
+            return next(payload, sender, event);
+        };
+    },
+};
+```
+
+**New context-based signature**
+```js
+// my-middleware.js
+module.exports = {
+    // Wrap local event handlers
+    localEvent(next, event) {
+        return (ctx) => {
+            return next(ctx);
+        };
+    },
+};
+```
+
+
+# New
+
+## Experimental transporters have become stable
+The Kafka, NATS Streaming & TCP transporter have become stable because we didn't find and receive any issue about them.
+
+## Context-based events
+The new 0.14 version comes context-based event handler. It is very useful when you are using event-driven architecture and you would like to tracing the event. The Event Context is same as Action Context. They are the same properties except a few new properties related to the event.
+It doesn't mean you should rewrite all existing event handlers. Moleculer detects the signature of your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
+
+**Use Context-based event handler & emit a nested event**
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(ctx) {
+            console.log("Payload:", ctx.params);
+            console.log("Sender:", ctx.nodeID);
+            console.log("We have also metadata:", ctx.meta);
+            console.log("The called event name:", ctx.eventName);
+
+            ctx.emit("accounts.created", { user: ctx.params.user });
+        }
+    }
+};
+```
+
+If you want to use different variable name or the service can't detect properly the signature, use `context: true` in the event definition:
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created": {
+            context: true,
+            handler({ params, nodeID }) {
+                console.log("Payload:", ctx.params);
+                console.log("Sender:", ctx.nodeID);
+            }
+        }
+    }
+};
+```
+
+## Event parameter validation
+Similar to action parameter validation, the event parameter validation is supported.
+Like in action definition, you should define `params` in even definition and the built-in `Validator` validates the parameters in events.
+
+```js
+// mailer.service.js
+module.exports = {
+    name: "mailer",
+    events: {
+        "send.mail": {
+            // Validation schema
+            params: {
+                from: "string|optional",
+                to: "email",
+                subject: "string"
+            },
+            handler(ctx) {
+                this.logger.info("Event received, parameters OK!", ctx.params);
+            }
+        }
+    }
+};
+```
+>The validation errors are not sent back to the caller, they are logged or you can catch them with the new [global error handler](#global-error-handler).
+
+## New built-in metrics
+Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
+Multiple reporters can be defined.
+
+**Enable metrics & define console reporter**
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            "Console"
+        ]
+    }
+});
+```
+
+**Define custom metrics**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    actions: {
+        get(ctx) {
+            // Update metrics
+            this.broker.metrics.increment("posts.get.total");
+            return posts;
+        }
+    },
+
+    created() {
+        // Register new custom metrics
+        this.broker.metrics.register({ type: "counter", name: "posts.get.total" });
+    }
+};
+```
+
+**Enable metrics & define Prometheus reporter with filtering**
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Prometheus",
+                options: {
+                    port: 3030,
+                    includes: ["moleculer.**"],
+                    excludes: ["moleculer.transit.**"]
+                }
+            }
+        ]
+    }
+});
+```
+
+### Supported metric types
+- `counter` - A counter is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero. For example, you can use a counter to represent the number of requests served, tasks completed, or errors.
+
+- `gauge` - A gauge is a metric that represents a single numerical value that can arbitrarily go up and down. Gauges are typically used for measured values like current memory usage, but also "counts" that can go up and down, like the number of concurrent requests.
+
+- `histogram` - A histogram samples observations (usually things like request durations or response sizes) and counts them in configurable buckets. It also provides a sum of all observed values and calculates configurable quantiles over a sliding time window.
+
+- `info` - An info is a single string or number value like process arguments, hostname or version numbers.
+
+### Internal metrics
+
+**Process metrics**
+- `process.arguments` (info)
+- `process.pid` (info)
+- `process.ppid` (info)
+- `process.eventloop.lag.min` (gauge)
+- `process.eventloop.lag.avg` (gauge)
+- `process.eventloop.lag.max` (gauge)
+- `process.eventloop.lag.count` (gauge)
+- `process.memory.heap.size.total` (gauge)
+- `process.memory.heap.size.used` (gauge)
+- `process.memory.rss` (gauge)
+- `process.memory.external` (gauge)
+- `process.memory.heap.space.size.total` (gauge)
+- `process.memory.heap.space.size.used` (gauge)
+- `process.memory.heap.space.size.available` (gauge)
+- `process.memory.heap.space.size.physical` (gauge)
+- `process.memory.heap.stat.heap.size.total` (gauge)
+- `process.memory.heap.stat.executable.size.total` (gauge)
+- `process.memory.heap.stat.physical.size.total` (gauge)
+- `process.memory.heap.stat.available.size.total` (gauge)
+- `process.memory.heap.stat.used.heap.size` (gauge)
+- `process.memory.heap.stat.heap.size.limit` (gauge)
+- `process.memory.heap.stat.mallocated.memory` (gauge)
+- `process.memory.heap.stat.peak.mallocated.memory` (gauge)
+- `process.memory.heap.stat.zap.garbage` (gauge)
+- `process.uptime` (gauge)
+- `process.internal.active.handles` (gauge)
+- `process.internal.active.requests` (gauge)
+- `process.versions.node` (info)
+- `process.gc.time` (gauge)
+- `process.gc.total.time` (gauge)
+- `process.gc.executed.total` (gauge)
+
+**OS metrics**
+- `os.memory.free` (gauge)
+- `os.memory.total` (gauge)
+- `os.uptime` (gauge)
+- `os.type` (info)
+- `os.release` (info)
+- `os.hostname` (info)
+- `os.arch` (info)
+- `os.platform` (info)
+- `os.user.uid` (info)
+- `os.user.gid` (info)
+- `os.user.username` (info)
+- `os.user.homedir` (info)
+- `os.network.address` (info)
+- `os.network.mac` (info)
+- `os.datetime.unix` (gauge)
+- `os.datetime.iso` (info)
+- `os.datetime.utc` (info)
+- `os.datetime.tz.offset` (gauge)
+- `os.cpu.load.1` (gauge)
+- `os.cpu.load.5` (gauge)
+- `os.cpu.load.15` (gauge)
+- `os.cpu.utilization` (gauge)
+- `os.cpu.user` (gauge)
+- `os.cpu.system` (gauge)
+- `os.cpu.total` (gauge)
+- `os.cpu.info.model` (info)
+- `os.cpu.info.speed` (gauge)
+- `os.cpu.info.times.user` (gauge)
+- `os.cpu.info.times.sys` (gauge)
+
+**Moleculer metrics**
+- `moleculer.node.type` (info)
+- `moleculer.node.versions.moleculer` (info)
+- `moleculer.node.versions.protocol` (info)
+- `moleculer.broker.namespace` (info)
+- `moleculer.broker.started` (gauge)
+- `moleculer.broker.local.services.total` (gauge)
+- `moleculer.broker.middlewares.total` (gauge)
+- `moleculer.registry.nodes.total` (gauge)
+- `moleculer.registry.nodes.online.total` (gauge)
+- `moleculer.registry.services.total` (gauge)
+- `moleculer.registry.service.endpoints.total` (gauge)
+- `moleculer.registry.actions.total` (gauge)
+- `moleculer.registry.action.endpoints.total` (gauge)
+- `moleculer.registry.events.total` (gauge)
+- `moleculer.registry.event.endpoints.total` (gauge)
+- `moleculer.request.bulkhead.inflight` (gauge)
+- `moleculer.request.bulkhead.queue.size` (gauge)
+- `moleculer.event.bulkhead.inflight` (gauge)
+- `moleculer.event.bulkhead.queue.size` (gauge)
+- `moleculer.request.timeout.total` (counter)
+- `moleculer.request.retry.attempts.total` (counter)
+- `moleculer.request.fallback.total` (counter)
+- `moleculer.request.total` (counter)
+- `moleculer.request.active` (gauge)
+- `moleculer.request.error.total` (counter)
+- `moleculer.request.time` (histogram)
+- `moleculer.request.levels` (counter)
+- `moleculer.event.emit.total` (counter)
+- `moleculer.event.broadcast.total` (counter)
+- `moleculer.event.broadcast-local.total` (counter)
+- `moleculer.event.received.total` (counter)
+- `moleculer.transit.publish.total` (counter)
+- `moleculer.transit.receive.total` (counter)
+- `moleculer.transit.requests.active` (gauge)
+- `moleculer.transit.streams.send.active` (gauge)
+- `moleculer.transporter.packets.sent.total` (counter)
+- `moleculer.transporter.packets.sent.bytes` (counter)
+- `moleculer.transporter.packets.received.total` (counter)
+- `moleculer.transporter.packets.received.bytes` (counter)
+
+>To use the GC & Event loop metrics you should install the `gc-stats` and `event-loop-stats` packages manually.
+
+### Built-in reporters
+
+All reporters have the following options:
+```js
+{
+    includes: null,
+    excludes: null,
+
+    metricNamePrefix: null,
+    metricNameSuffix: null,
+
+    metricNameFormatter: null,
+    labelNameFormatter: null
+}
+```
+
+#### Console reporter
+This is a debugging reporter which prints metrics to the console periodically.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Console",
+                options: {
+                    interval: 5 * 1000,
+                    logger: null,
+                    colors: true,
+                    onlyChanges: true
+                }
+            }
+        ]
+    }
+});
+```
+
+#### CSV reporter
+CSV reporter saves changed to CSV file.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "CSV",
+                options: {
+                    folder: "./reports/metrics",
+                    delimiter: ",",
+                    rowDelimiter: "\n",
+
+                    mode: MODE_METRIC, // MODE_METRIC, MODE_LABEL
+
+                    types: null,
+
+                    interval: 5 * 1000,
+
+                    filenameFormatter: null,
+                    rowFormatter: null,
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Datadog reporter
+Datadog reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Datadog",
+                options: {
+                    host: "my-host",
+                    apiVersion: "v1",
+                    path: "/series",
+                    apiKey: process.env.DATADOG_API_KEY,
+                    defaultLabels: (registry) => ({
+                        namespace: registry.broker.namespace,
+                        nodeID: registry.broker.nodeID
+                    }),
+                    interval: 10 * 1000
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Event reporter
+Event reporter sends Moleculer events with metric values.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Event",
+                options: {
+                    eventName: "$metrics.snapshot",
+
+                    broadcast: false,
+                    groups: null,
+
+                    onlyChanges: false,
+
+                    interval: 5 * 1000,
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Prometheus reporter
+Prometheus reporter publishes metrics in Prometheus format. The [Prometheus](https://prometheus.io/) server can collect them. Default port is `3030`.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Prometheus",
+                options: {
+                    port: 3030,
+                    path: "/metrics",
+                    defaultLabels: registry => ({
+                        namespace: registry.broker.namespace,
+                        nodeID: registry.broker.nodeID
+                    })
+                }
+            }
+        ]
+    }
+});
+```
+
+#### StatsD reporter
+The StatsD reporter sends metric values to [StatsD](https://github.com/statsd/statsd) server via UDP.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "StatsD",
+                options: {
+                    protocol: "udp",
+                    host: "localhost",
+                    port: 8125,
+
+                    maxPayloadSize: 1300,
+                }
+            }
+        ]
+    }
+});
+```
+
+## New tracing feature
+An enhanced tracing middleware has been implemented in version 0.14. It support several exporters and custom tracing spans.
+
+**Enable tracing**
+```js
+const broker = new ServiceBroker({
+    tracing: true
+});
+```
+
+**Tracing with console exporter**
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Console",
+                options: {
+                    width: 80,
+                    colors: true,
+                }
+            }
+        ]        
+    }
+});
+```
+
+**Tracing with Zipkin exporter**
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Zipkin",
+                options: {
+                    baseURL: "http://zipkin-server:9411",
+                }
+            }
+        ]        
+    }
+});
+```
+
+### Add context values to span tags
+In action defintion you can define which Context params or meta values want to add to the span tags.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                // Add `ctx.params.id` and `ctx.meta.loggedIn.username` values
+                // to tracing span tags.
+                tags: {
+                    params: ["id"],
+                    meta: ["loggedIn.username"],
+                    response: ["id", "title"] // add response data values to tags
+                }
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**Example with all properties of params without meta _(actually it is the default)_**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                // Add all params without meta
+                tags: {
+                    params: true,
+                    meta: false,
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**Example with custom function**
+Please note, the `tags` function will be called two times in case of success execution. First with `ctx`, and second times with `ctx` & `response` as the response of action call.
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                tags(ctx, response) {
+                    return {
+                        params: ctx.params,
+                        meta: ctx.meta,
+                        custom: {
+                            a: 5
+                        },
+                        response
+                    };
+                }
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**Example with all properties of params in event definition**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    events: {
+        "user.created": {
+            tracing: {
+                // Add all params without meta
+                tags: {
+                    params: true,
+                    meta: false,
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+### Built-in exporters
+
+#### Console exporter
+This is a debugging exporter which prints the full local trace to the console.
+
+>Please note that it can't follow remote calls, only locals.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Console",
+                options: {
+                    logger: null,
+                    colors: true,
+                    width: 100,
+                    gaugeWidth: 40
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Datadog exporter
+Datadog exporter sends tracing data to Datadog server via `dd-trace`. It is able to merge tracing spans between instrumented Node.js modules and Moleculer modules.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Datadog",
+                options: {
+                    agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
+                    env: process.env.DD_ENVIRONMENT || null,
+                    samplingPriority: "AUTO_KEEP",
+                    defaultTags: null,
+                    tracerOptions: null,
+                }
+            }
+        ]
+    }
+});
+```
+
+>To use this exporter, install the `dd-trace` module with `npm install dd-trace --save` command.
+
+#### Event exporter
+Event exporter sends Moleculer events (`$tracing.spans`) with tracing data.
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Event",
+                options: {
+                    eventName: "$tracing.spans",
+
+                    sendStartSpan: false,
+                    sendFinishSpan: true,
+
+                    broadcast: false,
+
+                    groups: null,
+
+                    /** @type {Number} Batch send time interval. */
+                    interval: 5,
+
+                    spanConverter: null,
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Event (legacy) exporter
+This is another event exporter which sends legacy moleculer events (`metrics.trace.span.start` & `metrics.trace.span.finish`). _It is compatible with <= 0.13 Moleculer metrics trace events._
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            "EventLegacy"
+        ]
+    }
+});
+```
+
+#### Jaeger exporter
+Jaeger exporter sends tracing spans information to a [Jaeger](https://www.jaegertracing.io) server.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Jaeger",
+                options: {
+                    /** @type {String?} HTTP Reporter endpoint. If set, HTTP Reporter will be used. */
+                    endpoint: null,                    
+                    /** @type {String} UDP Sender host option. */
+                    host: "127.0.0.1",
+                    /** @type {Number?} UDP Sender port option. */
+                    port: 6832,
+
+                    /** @type {Object?} Sampler configuration. */
+                    sampler: {
+                        /** @type {String?} Sampler type */
+                        type: "Const",
+
+                        /** @type: {Object?} Sampler specific options. */
+                        options: {}
+                    },
+
+                    /** @type {Object?} Additional options for `Jaeger.Tracer` */
+                    tracerOptions: {},
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+                }
+            }
+        ]
+    }
+});
+```
+
+>To use this exporter, install the `jaeger-client` module with `npm install jaeger-client --save` command.
+
+
+#### Zipkin exporter
+Zipkin exporter sends tracing spans information to a [Zipkin](https://zipkin.apache.org/) server.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Zipkin",
+                options: {
+                    /** @type {String} Base URL for Zipkin server. */
+                    baseURL: process.env.ZIPKIN_URL || "http://localhost:9411",
+
+                    /** @type {Number} Batch send time interval. */
+                    interval: 5,
+
+                    /** @type {Object} Additional payload options. */
+                    payloadOptions: {
+
+                        /** @type {Boolean} Set `debug` property in v2 payload. */
+                        debug: false,
+
+                        /** @type {Boolean} Set `shared` property in v2 payload. */
+                        shared: false
+                    },
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+                }
+            }
+        ]
+    }
+});
+```
+
+
+### Custom tracing spans
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        async find(ctx) {
+            const span1 = ctx.startSpan("get data from DB", {
+                tags: {
+                    ...ctx.params
+                }
+            }); 
+            const data = await this.getDataFromDB(ctx.params);
+            ctx.finishSpan(span1);
+
+            const span2 = ctx.startSpan("populating");
+            const res = await this.populate(data);
+            ctx.finishSpan(span2);
+
+            return res;
+        }
+    }
+};
+```
+## Caller action
+There is a new `caller` property in Context. It contains the service name of the caller when you use `ctx.call` in action or event handlers.
+
+```js
+broker2.createService({
+    name: "greeter",
+    actions: {
+        hello(ctx) {
+            this.logger.info(`This action is called from '${ctx.caller}' on '${ctx.nodeID}'`);
+        }
+    }
+});
+```
+>If you cann an action with `broker.call`, the caller will be `null`. In this case, you can set the `caller` manually in the calling options.
+
+## Bulkhead supports events
+Bulkhead feature supports service event handlers, as well.
+
+```js
+// my.service.js
+module.exports = {
+    name: "my-service",
+    events: {
+        "user.created": {
+            bulkhead: {
+                enabled: true,
+                concurrency: 1
+            },
+            async handler(ctx) {
+                // Do something.
+            }
+        }
+    }
+}
+```
+_Use `async/await` or return `Promise` in event handlers._
+
+
+## NodeID conflict handling
+Having remote nodes with same `nodeID` in the same `namespace` can cause communication problems. In v0.14 ServiceBroker checks the nodeIDs of remote nodes. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
+
+## Sharding built-in strategy
+There is a new built-in shard invocation strategy. It uses a key value from context params or meta to route the request a specific node. It means the same key value will be route to the same node.
+
+**Example with shard key as `name` param in context**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+            shardKey: "name"
+        }
+    }
+});
+```
+
+**Example with shard key as `user.id` meta value in context**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+            shardKey: "#user.id"
+        }
+    }
+});
+```
+
+**All available options of Shard strategy**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+            shardKey: "#user.id",
+            vnodes: 10,
+            ringSize: 1000,
+            cacheSize: 1000
+        }
+    }
+});
+```
+
+## Different strategy for actions/events
+The global invocation strategy can be overwritten in the action/event definitions.
+
+**Using 'Shard' strategy for 'hello' service instead of global 'RoundRobin'**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        strategy: "RoundRobin"
+    }
+});
+
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        hello: {
+            params: {
+                name: "string"
+            },
+            strategy: "Shard",
+            strategyOptions: {
+                shardKey: "name"
+            }            
+            handler(ctx) {
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+};
+```
+
+## Extending internal services
+Now the internal services can be extended. You can define mixin schema for every internal service under `internalServices` broker option.
+
+```js
+// moleculer.config.js
+module.exports = {
+    nodeID: "node-1",
+    logger: true,
+    internalServices: {
+        $node: {
+            actions: {
+                // Call as `$node.hello`
+                hello(ctx) {
+                    return `Hello Moleculer!`;
+                }
+            }
+        }
+    }
+};
+```
+
+## Action hook inside action definition
+Sometimes it's better to define action hooks inside action definition instead of service `hooks` property.
+
+```js
+broker.createService({
+    name: "greeter",
+    hooks: {
+        before: {
+            "*"(ctx) {
+                broker.logger.info(chalk.cyan("Before all hook"));
+            },
+            hello(ctx) {
+                broker.logger.info(chalk.magenta("  Before hook"));
+            }
+        },
+        after: {
+            "*"(ctx, res) {
+                broker.logger.info(chalk.cyan("After all hook"));
+                return res;
+            },
+            hello(ctx, res) {
+                broker.logger.info(chalk.magenta("  After hook"));
+                return res;
+            }
+        },
+    },
+
+    actions: {
+        hello: {
+            hooks: {
+                before(ctx) {
+                    broker.logger.info(chalk.yellow.bold("    Before action hook"));
+                },
+                after(ctx, res) {
+                    broker.logger.info(chalk.yellow.bold("    After action hook"));
+                    return res;
+                }
+            },
+
+            handler(ctx) {
+                broker.logger.info(chalk.green.bold("      Action handler"));
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+});    
+```
+
+**Output**
+```
+INFO  - Before all hook
+INFO  -   Before hook
+INFO  -     Before action hook
+INFO  -       Action handler
+INFO  -     After action hook
+INFO  -   After hook
+INFO  - After all hook
+```
+
+## Metadata in broker options
+There is a new `metadata` property in broker options to store custom values. You can use the `metadata` property in your custom middlewares or strategies.
+```js
+const broker2 = new ServiceBroker({
+    nodeID: "broker-2",
+    transporter: "NATS",
+    metadata: {
+        region: "eu-west1"
+    }
+});
+```
+_This information is available in response of `$node.list` action._
+
+
+## Enhanced hot-reload feature
+In v0.14 the built-in hot-reload feature was entirely rewritten. Now, it can detect dependency-graph between service files and other loaded (with `require`) files. This means that the hot-reload mechanism now watches the service files and their dependencies. Every time a file change is detected the hot-reload mechanism will track the affected services and will restart them.
+
+## New middleware hooks
+There are some new middleware hooks.
+
+### `registerLocalService`
+It's called before registering a local service instance.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    registerLocalService(next) {
+        return (svc) => {
+            return next(svc);
+        };
+    }
+}
+```
+
+### `serviceCreating`
+It's called before a local service instance creating. At this point the service mixins are resolved, so the service schema is merged completely.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    serviceCreating(service, schema) {
+        // Modify schema
+        schema.myProp = "John";
+    }
+}
+```
+
+### `transitPublish`
+It's called before communication packet publishing.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    transitPublish(next) {
+        return (packet) => {
+            return next(packet);
+        };
+    },
+}
+```
+
+### `transitMessageHandler`
+It's called before transit receives & parses an incoming message
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    transitMessageHandler(next) {
+        return (cmd, packet) => {
+            return next(cmd, packet);
+        };
+    }
+}
+```
+
+### `transporterSend`
+It's called before transporter send a communication packet (after serialization). Use it to encrypt or compress the packet buffer.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    transporterSend(next) {
+        return (topic, data, meta) => {
+            // Do something with data
+            return next(topic, data, meta);
+        };
+    }
+}
+```
+
+### `transporterReceive`
+It's called after transporter received a communication packet (before serialization). Use it to decrypt or decompress the packet buffer.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    transporterReceive(next) {
+        return (cmd, data, s) => {
+            // Do something with data
+            return next(cmd, data, s);
+        };
+    }
+}
+```
+
+### `newLogEntry`
+It's called when a new logger entry created by the default console logger. It's not called when using external custom logger like (Pino, Winston, Bunyan...etc).
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    newLogEntry(type, args, bindings) {
+        // e.g. collect & send log entries to a central server.
+    },
+}
+```
+
+_Please note: it's not called during broker is starting because logger is created early before middleware initialization._
+
+## New built-in middlewares
+
+### Encryption
+AES encryption middleware protects all inter-services communications that use the transporter module.
+This middleware uses built-in Node [`crypto`](https://nodejs.org/api/crypto.html) library.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Transmit.Encryption("secret-password", "aes-256-cbc", initVector) // "aes-256-cbc" is the default
+    ]
+});
+```
+
+### Compression
+Compression middleware reduces the size of messages that go through the transporter module.
+This middleware uses built-in Node [`zlib`](https://nodejs.org/api/zlib.html) library.
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Transmit.Compression("deflate") // or "deflateRaw" or "gzip"
+    ]
+});
+```
+
+### Transit Logger
+Transit logger middleware allows to easily track the messages that are exchanged between services.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Debugging.TransitLogger({
+            logPacketData: false,
+            folder: null,
+            colors: {
+                send: "magenta",
+                receive: "blue"
+            },
+            packetFilter: ["HEARTBEAT"]
+        })
+    ]
+});
+```
+
+### Action Logger
+Action Logger middleware tracks "how" service actions were executed.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Debugging.ActionLogger({
+            logParams: true,
+            logResponse: true,
+            folder: null,
+            colors: {
+                send: "magenta",
+                receive: "blue"
+            },
+            whitelist: ["**"]
+        })
+    ]
+});
+```
+
+### Throttle
+Throttling is a straightforward reduction of the trigger rate. It will cause the event listener to ignore some portion of the events while still firing the listeners at a constant (but reduced) rate. Same functionality as lodash's `_.throttle`.
+
+```js
+//my.service.js
+module.exports = {
+    name: "my",
+
+    events: {
+        "config.changed": {
+            throttle: 3000,
+            // It won't be invoked again in 3 seconds.
+            handler(ctx) { /* ... */}
+        }
+    }
+};
+```
+
+### Debounce
+Unlike throttling, debouncing is a technique of keeping the trigger rate at exactly 0 until a period of calm, and then triggering the listener exactly once. Same functionality as lodash's `_.debounce`.
+
+```js
+//my.service.js
+module.exports = {
+    name: "my",
+
+    events: {
+        "config.changed": {
+            debounce: 5000,
+            // Handler will be invoked when events are not received in 5 seconds.
+            handler(ctx) { /* ... */}
+        }
+    }
+};
+```
+
+## Load middlewares by names
+To load built-in middlewares, use its names in `middleware` broker option.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Extend with custom middlewares
+Middlewares.MyCustom = {
+    created(broker) {
+        broker.logger.info("My custom middleware is created!");
+    }
+};
+
+
+const broker1 = new ServiceBroker({
+    logger: true,
+    middlewares: [
+        // Load by middleware name
+        "MyCustom"
+    ]
+});    
+```
+
+## Global error handler
+There is a new global error handler in ServiceBroker. It can be defined in broker options as `errorHandler(err, info)`.
+It catches unhandled errors in action & event handlers.
+
+**Catch, handle & log the error**
+```js
+const broker = new ServiceBroker({
+    errorHandler(err, info) {
+
+        this.logger.warn("Error handled:", err);
+    }
+});
+```
+
+**Catch & throw further the error**
+```js
+const broker = new ServiceBroker({
+    errorHandler(err, info) {
+        this.logger.warn("Error handled:", err);
+        throw err; // Throw further
+    }
+});
+```
+>The `info` object contains the broker and the service instances, the current context and the action or the event definition.
+
+## Timeout setting in action definitions
+Timeout can be set in action definition, as well. It overwrites the global broker `requestTimeout` option, but not the `timeout` in calling options.
+
+```js
+// moleculer.config.js
+module.exports = {
+    nodeID: "node-1",
+    requestTimeout: 3000
+};
+
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        normal: {
+            handler(ctx) {
+                return "Normal";
+            }
+        },
+
+        slow: {
+            timeout: 5000, // 5 secs
+            handler(ctx) {
+                return "Slow";
+            }
+        }
+    },
+```
+
+```js
+// It uses the global 3000 timeout
+await broker.call("greeter.normal");
+
+// It uses the 5000 timeout from action definition
+await broker.call("greeter.slow");
+
+// It uses 1000 timeout from calling option
+await broker.call("greeter.slow", null, { timeout: 1000 });
+```
+
+## `Buffer` handling improved in serializers
+In earlier version, if request, response or event data was a `Buffer`, the schema-based serializers convert it to JSON string which was not very efficient. In this version all schema-based serializers (ProtoBuf, Avro, Thrift) can detect the type of data & convert it based on the best option and send always as binary data.
+
+## Runner support asynchronous configurations
+The Moleculer Runner supports asynchronous configuration files. In this case you need to return a `Function` in the `moleculer.config.js` file which returns a `Promise` or use `async/await`.
+
+**Example to loada remote configuration from the internet**
+
+```js
+// moleculer.config.js
+const fetch = require("node-fetch");
+
+module.exports = async function() {
+    const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
+    return await res.json();
+};
+```
+
+## Better service event handler testing
+Service class has a new `emitLocalEventHandler` method in order to call a service event handler directly. It can be useful in Unit Tests because you don't need to emit an event with `broker.emit`.
+
+**Example**
+
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    events: {
+        async "user.created"(ctx) {
+            this.myMethod(ctx.params);
+        }
+    }
+};
+```
+
+```js
+// posts.service.spec.js
+describe("Test events", () => {
+    const broker = new ServiceBroker({ logger: false });
+    const svc = broker.createService(PostService);
+
+    beforeAll(() => broker.start());
+    afterAll(() => broker.stop());
+
+    describe("Test 'user.created' event", () => {
+        beforeAll(() => svc.myMethod = jest.fn());
+        afterAll(() => svc.myMethod.mockRestore());
+
+        it("should call the event handler", async () => {
+            await svc.emitLocalEventHandler("branch.closed", { a: 5 });
+
+            expect(svc.myMethod).toBeCalledTimes(1);
+            expect(svc.myMethod).toBeCalledWith({ a: 5 });
+        });
+    });
+});
+```
+
+## Stream `objectMode` support
+Thanks for [@artur-krueger](https://github.com/artur-krueger), the request & response streams support `objectMode`, as well. You can also send Javascript objects via streams.
+
+**Example**
+
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    actions: {
+        list(ctx) {
+            const pass = new Stream.Readable({
+                objectMode: true,
+                read() {}
+            });
+
+            pass.push({ id: 1, title: "First post" });
+            pass.push({ id: 2, title: "Second post" });
+            pass.push({ id: 3, title: "Third post" });
+            
+            return pass;
+        }
+    }
+};
+```
+
+# Other notable changes
+- Kafka transporter upgrade to support kafka-node@5.
+- rename `ctx.metrics` to `ctx.tracing`.
+- `broker.hotReloadService` method has been removed.
+- new `hasEventListener` & `getEventListeners` broker method.
+- new `uidGenerator` broker options to overwrite the default UUID generator code.
+- new `ctx.locals` property to store local variables in hooks or actions.
+- Context tracking watches local event handlers, as well.
+- new `ctx.mcall` method to make multiple calls.
+- new `withEvents & grouping` parameters for `$node.services` action.
+- `$node` internal service parameters has default value & conversion.
+- the Promise chaining improved in event emitting methods.
+- the heartbeat logic can be disabled by `heartbeatInterval: 0` broker option.
+- in Service instances the original schema (before applying mixins) is available via `this.originalSchema`.
+
+--------------------------------------------------
+<a name="0.13.13"></a>
+# [0.13.13](https://github.com/moleculerjs/moleculer/compare/v0.13.12...v0.13.13) (2020-02-11)
+
+## AMQP 1.0 transporter
+Thanks for [@vladir95](https://github.com/vladir95), AMQP 1.0 transporter is available.
+
+>Please note, it is an **experimental** transporter. **Do not use it in production yet!**
+
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "amqp10://activemq-server:5672"
+};
+```
+>To use this transporter install the `rhea-promise` module with `npm install rhea-promise --save` command.
+
+#### Transporter options
+Options can be passed to `rhea.connection.open()` method, the topics, the queues, and the messages themselves.
+
+**Connect to 'amqp10://guest:guest@localhost:5672'**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "AMQP10"
+};
+```
+
+**Connect to a remote server**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: "amqp10://activemq-server:5672"
+};
+```
+
+**Connect to a remote server with options & credentials**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: {
+        url: "amqp10://user:pass@activemq-server:5672",
+        eventTimeToLive: 5000,
+        heartbeatTimeToLive: 5000,
+        connectionOptions: { // rhea connection options https://github.com/amqp/rhea#connectoptions, example:
+            ca: "", // (if using tls)
+            servername: "", // (if using tls)
+            key: "", // (if using tls with client auth)
+            cert: "" // (if using tls with client auth)
+        },
+        queueOptions: {}, // rhea queue options https://github.com/amqp/rhea#open_receiveraddressoptions
+        topicOptions: {}, // rhea queue options https://github.com/amqp/rhea#open_receiveraddressoptions
+        messageOptions: {}, // rhea message specific options https://github.com/amqp/rhea#message
+        topicPrefix: "topic://", // RabbitMq uses '/topic/' instead, 'topic://' is more common
+        prefetch: 1
+    }
+};
+```
+
+## Redis Cluster feature in Redis transporter
+Thanks for [AAfraitane](https://github.com/AAfraitane), use can connect to a Redis Cluster with the Redis transporter.
+
+**Connect to Redis cluster**
+```js
+// moleculer.config.js
+module.exports = {
+    transporter: {
+        type: "Redis",
+        options: {
+            cluster: {
+                nodes: [
+                    { host: "localhost", port: 6379 },
+                    { host: "localhost", port: 6378 }
+                ]
+            }
+        }
+    }
+};
+```
+
+
+--------------------------------------------------
+<a name="0.13.12"></a>
+# [0.13.12](https://github.com/moleculerjs/moleculer/compare/v0.13.11...v0.13.12) (2019-12-17)
+
+# Changes
+- fix expire time updating issue in MemoryCacher. [#630](https://github.com/moleculerjs/moleculer/issues/630)
+- fix action hook calling issue in mixins. [#631](https://github.com/moleculerjs/moleculer/issues/631)
+- fix NATS transporter "Invalid Subject" issue. [#620](https://github.com/moleculerjs/moleculer/issues/620)
+- update dependencies.
+
+--------------------------------------------------
+<a name="0.13.11"></a>
+# [0.13.11](https://github.com/moleculerjs/moleculer/compare/v0.13.10...v0.13.11) (2019-09-30)
+
+# Changes
+- fix retry issue in case of remote calls & disabled preferLocal options. [#598](https://github.com/moleculerjs/moleculer/issues/598)
+- update dependencies.
+
+--------------------------------------------------
+<a name="0.13.10"></a>
+# [0.13.10](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.13.10) (2019-08-26)
+
+# New
+
+## Customizable serializer for Redis cacher by [@shawnmcknight](https://github.com/shawnmcknight) [#589](https://github.com/moleculerjs/moleculer/pull/589)
+The default serializer is the JSON Serializer but you can change it in Redis cacher options. 
+
+_You can use any built-in Moleculer serializer or use a custom one._
+
+**Example to set the built-in MessagePack serializer:**
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-123",
+    cacher: {
+        type: "Redis",
+        options: {
+            ttl: 30,
+
+            // Using MessagePack serializer to store data.
+            serializer: "MsgPack",
+
+            redis: {
+                host: "my-redis"
+            }
+        }
+    }
+});
+```
+
+## Cluster mode of Redis cacher by [Gadi-Manor](https://github.com/Gadi-Manor) [#539](https://github.com/moleculerjs/moleculer/pull/539)
+Redis cacher supports cluster mode.
+
+**Example**
+```js
+const broker = new ServiceBroker({
+    cacher: {
+        type: "Redis",
+        options: {
+            ttl: 30, 
+
+            cluster: {
+                nodes: [
+                    { port: 6380, host: "127.0.0.1" },
+                    { port: 6381, host: "127.0.0.1" },
+                    { port: 6382, host: "127.0.0.1" }
+                ],
+                options: { /* More information: https://github.com/luin/ioredis#cluster */ }
+            }	
+        }
+    }
+});
+```
+
+# Changes
+- update dependencies.
+- update Typescript definitions by [@shawnmcknight](https://github.com/shawnmcknight).
+- fix Protocol Buffer definitions by [@fugufish](https://github.com/fugufish).
+
+--------------------------------------------------
+<a name="0.13.9"></a>
+# [0.13.9](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.13.9) (2019-04-18)
+
+# New
+
+## Cache locking feature by [@tiaod](https://github.com/tiaod) [#490](https://github.com/moleculerjs/moleculer/pull/490)
+
+**Example to enable cacher locking:**
+```js
+cacher: {
+  ttl: 60,
+  lock: true, // Set to true to enable cache locks. Default is disabled.
+}
+
+//  Or
+cacher: {
+  ttl: 60,
+  lock: {
+    ttl: 15, //the maximum amount of time you want the resource locked in seconds
+    staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+  }
+}
+
+// Disable the lock
+cacher: {
+  ttl: 60,
+  lock: {
+    enable: false, // Set to false to disable.
+    ttl: 15, //the maximum amount of time you want the resource locked in seconds
+    staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+  }
+}
+```
+
+**Example for Redis cacher with `redlock` library:**
+
+```js
+const broker = new ServiceBroker({
+  cacher: {
+    type: "Redis",
+    options: {
+      // Prefix for keys
+      prefix: "MOL",
+      // set Time-to-live to 30sec.
+      ttl: 30,
+      // Turns Redis client monitoring on.
+      monitor: false,
+      // Redis settings
+      redis: {
+        host: "redis-server",
+        port: 6379,
+        password: "1234",
+        db: 0
+      },
+      lock: {
+        ttl: 15, //the maximum amount of time you want the resource locked in seconds
+        staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+      },
+      // Redlock settings
+      redlock: {
+        // Redis clients. Support node-redis or ioredis. By default will use the local client.
+        clients: [client1, client2, client3],
+        // the expected clock drift; for more details
+        // see http://redis.io/topics/distlock
+        driftFactor: 0.01, // time in ms
+
+        // the max number of times Redlock will attempt
+        // to lock a resource before erroring
+        retryCount: 10,
+
+        // the time in ms between attempts
+        retryDelay: 200, // time in ms
+
+        // the max time in ms randomly added to retries
+        // to improve performance under high contention
+        // see https://www.awsarchitectureblog.com/2015/03/backoff.html
+        retryJitter: 200 // time in ms
+      }
+    }
+  }
+});
+```
+
+# Changes
+- fix event wildcard handling in case of NATS transporter and disabled balancer [#517](https://github.com/moleculerjs/moleculer/pull/517)
+- update typescript d.ts file. [#501](https://github.com/moleculerjs/moleculer/pull/501) [#521](https://github.com/moleculerjs/moleculer/pull/521)
+- fix context calling options cloning.
+- service modification support for ES6 classes [#514](https://github.com/moleculerjs/moleculer/pull/514)
+- fix `null`, `0` & `false` return value issue in case of ProtoBuf serializer [#511](https://github.com/moleculerjs/moleculer/pull/511)
+- `destroyService(name: string | ServiceSearchObj);`
+- `getLocalService(name: string | ServiceSearchObj): Service;`
+
+
+--------------------------------------------------
+<a name="0.13.8"></a>
+# [0.13.8](https://github.com/moleculerjs/moleculer/compare/v0.13.7...v0.13.8) (2019-03-21)
+
+# Changes
+- fix missing field in ProtoBuf & Thrift serializers [#496](https://github.com/moleculerjs/moleculer/pull/496)
+
+--------------------------------------------------
+<a name="0.13.7"></a>
+# [0.13.7](https://github.com/moleculerjs/moleculer/compare/v0.13.6...v0.13.7) (2019-02-21)
+
+# Changes
+- fix ioredis dependency in typescript definition file [#476](https://github.com/moleculerjs/moleculer/pull/476)
+
+--------------------------------------------------
+<a name="0.13.6"></a>
+# [0.13.6](https://github.com/moleculerjs/moleculer/compare/v0.13.5...v0.13.6) (2019-02-15)
+
+# New
+
+## Secure service settings
+To protect your tokens & API keys, define a `$secureSettings: []` property in service settings and set the protected property keys.
+The protected settings won't be published to other nodes and it won't appear in Service Registry. They are only available under `this.settings` inside the service functions.
+
+**Example**
+```js
+// mail.service.js
+module.exports = {
+    name: "mailer",
+    settings: {
+        $secureSettings: ["transport.auth.user", "transport.auth.pass"],
+
+        from: "sender@moleculer.services",
+        transport: {
+            service: 'gmail',
+            auth: {
+                user: 'gmail.user@gmail.com',
+                pass: 'yourpass'
+            }
+        }
+    }        
+    // ...
+};
+```
+
+# Changes
+- fix `cacher.clean` issue [#435](https://github.com/moleculerjs/moleculer/pull/435)
+- add `disableVersionCheck` option for broker transit options. It can disable protocol version checking logic in Transit. Default: `false`
+- improve Typescript definition file. [#442](https://github.com/moleculerjs/moleculer/pull/442) [#454](https://github.com/moleculerjs/moleculer/pull/454)
+- waitForServices accept versioned service names (e.g.: `v2.posts`).
+- update dependencies (plus using semver ranges in dependencies)
+
+--------------------------------------------------
+<a name="0.13.5"></a>
+# [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
+
+# New
+
+## Conditional caching
+It's a common issue that you enable caching for an action but sometimes you don't want to get data from cache. To solve it you may set `ctx.meta.$cache = false` before calling and the cacher won't send cached responses.
+
+**Example**
+```js
+// Turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
+```
+
+Other solution is that you use a custom function which enables or disables caching for every request. The function gets the `ctx` Context instance so it has access any params or meta data.
+
+**Example**
+```js
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        hello: {
+            cache: {
+                enabled: ctx => ctx.params.noCache !== true,
+                keys: ["name"]
+            },
+            handler(ctx) {
+                this.logger.debug(chalk.yellow("Execute handler"));
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+};
+
+// Use custom `enabled` function to turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
+```
+
+## LRU memory cacher
+An LRU memory cacher has been added to the core modules. It uses the familiar [lru-cache](https://github.com/isaacs/node-lru-cache) library.
+
+**Example**
+```js
+let broker = new ServiceBroker({ cacher: "MemoryLRU" });
+```
+
+```js
+let broker = new ServiceBroker({
+    logLevel: "debug",
+    cacher: {
+        type: "MemoryLRU",
+        options: {
+            // Maximum items
+            max: 100,
+            // Time-to-Live
+            ttl: 3
+        }
+    }
+});
+```
+
+
+# Changes
+- throw the error further in `loadService` method so that Runner prints the correct error stack.
+- new `packetLogFilter` transit option to filter packets in debug logs (e.g. HEARTBEAT packets) by [@faeron](https://github.com/faeron)
+- the Redis cacher `clean` & `del` methods handle array parameter by [@dkuida](https://github.com/dkuida)
+- the Memory cacher `clean` & `del` methods handle array parameter by [@icebob](https://github.com/icebob)
+- fix to handle `version: 0` as a valid version number by [@ngraef](https://github.com/ngraef)
+
+--------------------------------------------------
+<a name="0.13.4"></a>
+# [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-04)
+
+# Changes
+- catch errors in `getCpuUsage()` method.
+- support multiple urls in AMQP transporter by [@urossmolnik](https://github.com/urossmolnik)
+- fix AMQP connection recovery by [@urossmolnik](https://github.com/urossmolnik)
+- add `transit.disableReconnect` option to disable reconnecting logic at broker starting by [@Gadi-Manor](https://github.com/Gadi-Manor)
+- catch `os.userInfo` errors in health action by [@katsanva](https://github.com/katsanva)
+- allow specifying 0 as `retries` [#404](https://github.com/moleculerjs/moleculer/issues/404) by [@urossmolnik](https://github.com/urossmolnik)
+- fix `GraceFulTimeoutError` bug [#400](https://github.com/moleculerjs/moleculer/issues/400)
+- fix event return handling to avoid localEvent error handling issue in middleware [#403](https://github.com/moleculerjs/moleculer/issues/403)
+- update [fastest-validator](https://github.com/icebob/fastest-validator) to the 0.6.12 version
+- update all dependencies
+
+--------------------------------------------------
+<a name="0.13.3"></a>
+# [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-27)
+
+# Changes
+- update dependencies
+- fix MQTTS connection string protocol from `mqtt+ssl://` to `mqtts://` by [@AndreMaz](https://github.com/AndreMaz)
+- Moleculer Runner supports typescript configuration file `moleculer.config.ts`
+- fix to call service start after hot-reloading.
+- fix Bluebird warning in service loading [#381](https://github.com/moleculerjs/moleculer/issues/381) by [@faeron](https://github.com/faeron)
+- fix `waitForServices` definition in `index.d.ts` [#358](https://github.com/moleculerjs/moleculer/issues/358)
+- fix `cpuUsage` issue [#379](https://github.com/moleculerjs/moleculer/issues/379) by [@faeron](https://github.com/faeron)
+
+
 --------------------------------------------------
 <a name="0.13.2"></a>
 # [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-08-16)

@@ -7,12 +7,19 @@ type GreeterWelcomeParams = {
 	name: string
 };
 
-class GreeterService extends Service {
+export default class GreeterService extends Service {
 	constructor(broker) {
 		super(broker);
 
 		this.parseServiceSchema({
 			name: "greeter",
+			hooks: {
+				before: {
+					welcome(ctx: Context<GreeterWelcomeParams>) {
+						ctx.params.name = ctx.params.name.toUpperCase();
+					}
+				}
+			},
 			actions: {
 				hello: this.hello,
 				welcome: this.welcome
@@ -38,5 +45,3 @@ class GreeterService extends Service {
 		return `Welcome, ${ctx.params.name}!`;
 	}
 };
-
-module.exports = GreeterService;

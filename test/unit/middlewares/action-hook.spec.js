@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const ServiceBroker = require("../../../src/service-broker");
 const { MoleculerError } = require("../../../src/errors");
 const Context = require("../../../src/context");
@@ -23,12 +22,28 @@ describe("Test ActionHookMiddleware", () => {
 			return Object.assign(res, { b: 200 });
 		}
 	};
+
 	const action = {
 		name: "posts.find",
 		rawName: "find",
 		handler,
-		service
+		service,
+		hooks: {
+			before(ctx) {
+				FLOW.push("before-action-hook");
+				ctx.params.third = 3;
+			},
+			after(ctx, res) {
+				FLOW.push("after-action-hook");
+				return Object.assign(res, { c: 300 });
+			},
+			error(ctx, err) {
+				FLOW.push("error-action-hook");
+				throw err;
+			}
+		}
 	};
+
 	const endpoint = {
 		action,
 		node: {
@@ -36,17 +51,14 @@ describe("Test ActionHookMiddleware", () => {
 		}
 	};
 
-	const mw = Middleware();
+	const mw = Middleware(broker);
 
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);
 	});
 
 	it("should not wrap handler if no hooks", () => {
-		broker.options.bulkhead.enabled = false;
-
-		const newHandler = mw.localAction.call(broker, handler, action);
-
+		const newHandler = mw.localAction.call(broker, handler, {});
 		expect(newHandler).toBe(handler);
 	});
 
@@ -89,13 +101,16 @@ describe("Test ActionHookMiddleware", () => {
 			expect(res).toEqual({
 				a: 100,
 				b: 200,
+				c: 300,
 				x: 999
 			});
 
 			expect(FLOW).toEqual([
 				"before-all-hook",
 				"before-hook",
+				"before-action-hook",
 				"handler-1-2",
+				"after-action-hook",
 				"after-hook",
 				"after-all-hook",
 			]);
@@ -124,7 +139,7 @@ describe("Test ActionHookMiddleware", () => {
 		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
-		const handler = jest.fn(ctx => {
+		const handler = jest.fn(() => {
 			FLOW.push("handler");
 			return broker.Promise.reject(error);
 		});
@@ -137,7 +152,9 @@ describe("Test ActionHookMiddleware", () => {
 			expect(err).toBe(error);
 
 			expect(FLOW).toEqual([
+				"before-action-hook",
 				"handler",
+				"error-action-hook",
 				"error-hook",
 				"error-all-hook",
 			]);
@@ -218,7 +235,9 @@ describe("Test ActionHookMiddleware", () => {
 				"before-all-hook-2",
 				"before-hook-1",
 				"before-hook-2",
+				"before-action-hook",
 				"handler-1-2-3",
+				"after-action-hook",
 				"after-hook-1",
 				"after-hook-2",
 				"after-all-hook-1",
@@ -262,7 +281,7 @@ describe("Test ActionHookMiddleware", () => {
 		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
-		const handler = jest.fn(ctx => {
+		const handler = jest.fn(() => {
 			FLOW.push("handler");
 			return broker.Promise.reject(error);
 		});
@@ -279,7 +298,9 @@ describe("Test ActionHookMiddleware", () => {
 			expect(err.y).toBe(888);
 
 			expect(FLOW).toEqual([
+				"before-action-hook",
 				"handler",
+				"error-action-hook",
 				"error-hook-1",
 				"error-hook-2",
 				"error-all-hook-1",
@@ -319,13 +340,16 @@ describe("Test ActionHookMiddleware", () => {
 		return newHandler.call(broker, ctx).catch(protectReject).then(res => {
 			expect(res).toEqual({
 				a: 100,
-				b: 200
+				b: 200,
+				c: 300
 			});
 
 			expect(FLOW).toEqual([
 				"before-hook-1",
 				"method-before-hook-find",
+				"before-action-hook",
 				"handler-1-2",
+				"after-action-hook",
 				"method-after-hook-find",
 			]);
 			expect(handler).toHaveBeenCalledTimes(1);

@@ -6,7 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
+const { isObject, isString } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Strategies = {
@@ -14,7 +14,8 @@ const Strategies = {
 	RoundRobin: require("./round-robin"),
 	Random: require("./random"),
 	CpuUsage: require("./cpu-usage"),
-	Latency: require("./latency")
+	Latency: require("./latency"),
+	Shard: require("./shard")
 };
 
 function getByName(name) {
@@ -35,19 +36,19 @@ function getByName(name) {
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (Strategies.Base.isPrototypeOf(opt)) {
+	if (Object.prototype.isPrototypeOf.call(Strategies.Base, opt)) {
 		return opt;
-	} else if (_.isString(opt)) {
-		let SerializerClass = getByName(opt);
-		if (SerializerClass)
-			return SerializerClass;
+	} else if (isString(opt)) {
+		let StrategyClass = getByName(opt);
+		if (StrategyClass)
+			return StrategyClass;
 		else
 			throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
 
-	} else if (_.isObject(opt)) {
-		let SerializerClass = getByName(opt.type || "RoundRobin");
-		if (SerializerClass)
-			return SerializerClass;
+	} else if (isObject(opt)) {
+		let StrategyClass = getByName(opt.type || "RoundRobin");
+		if (StrategyClass)
+			return StrategyClass;
 		else
 			throw new BrokerOptionsError(`Invalid strategy type '${opt.type}'.`, { type: opt.type });
 	}
@@ -55,5 +56,10 @@ function resolve(opt) {
 	return Strategies.RoundRobin;
 }
 
-module.exports = Object.assign({ resolve }, Strategies);
+
+function register(name, value) {
+	Strategies[name] = value;
+}
+
+module.exports = Object.assign(Strategies, { resolve, register });
 

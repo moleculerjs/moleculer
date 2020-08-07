@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 
-const Promise 							= require("bluebird");
 const _ 								= require("lodash");
 const fs 								= require("fs");
 //const { ServiceBroker } 				= require("../../../");
@@ -31,7 +30,7 @@ const AESService = {
 const filename = __dirname + "/assets/banner.png";
 const filename2 = __dirname + "/assets/received.png";
 
-module.exports = function(transporter, serializer, meta)  {
+module.exports = function(transporter, serializer)  {
 
 	describe("Test streaming", () => {
 
@@ -56,6 +55,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should encode & decode the data and send as streams", () => {
 			return master.waitForServices("aes")
+				.delay(500)
 				.then(() => Promise.all(_.times(1, () => {
 					const s1 = fs.createReadStream(filename);
 					return master.call("aes.encrypt", s1)

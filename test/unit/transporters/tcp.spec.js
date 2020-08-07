@@ -1,14 +1,7 @@
 jest.mock("fs");
 const fs = require("fs");
 
-const ServiceBroker = require("../../../src/service-broker");
-const Transit = require("../../../src/transit");
-const P = require("../../../src/packets");
-const E = require("../../../src/errors");
-const net = require("net");
-const { protectReject } = require("../utils");
-
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 jest.mock("../../../src/transporters/tcp/tcp-reader");
 
 let TcpReader = require("../../../src/transporters/tcp/tcp-reader");
@@ -42,6 +35,12 @@ UdpServer.mockImplementation(() => {
 		bind: jest.fn()
 	};
 });
+
+const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
+const P = require("../../../src/packets");
+const E = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 const TcpTransporter = require("../../../src/transporters/tcp");
 
@@ -111,12 +110,12 @@ describe("Test TcpTransporter init", () => {
 	const transporter = new TcpTransporter({});
 
 	it("check init", () => {
-		expect(broker.registry.nodes.disableHeartbeatChecks).toBe(false);
+		broker.registry.discoverer.disableHeartbeat = jest.fn();
 		transporter.init(broker.transit, jest.fn(), jest.fn());
 
-		expect(broker.registry.nodes.disableHeartbeatChecks).toBe(true);
 		expect(transporter.registry).toBe(broker.registry);
 		expect(transporter.nodes).toBe(broker.registry.nodes);
+		expect(broker.registry.discoverer.disableHeartbeat).toHaveBeenCalledTimes(1);
 	});
 
 });
@@ -496,19 +495,43 @@ describe("Test TcpTransporter startUdpServer", () => {
 	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
+	const promUpdateLocalInfo = Promise.resolve();
+	const fakeNode = {
+		updateLocalInfo: jest.fn(() => promUpdateLocalInfo)
+	};
 
 	beforeEach(() => {
 		transporter = new TcpTransporter();
 		transporter.init(transit);
+		transporter.getLocalNodeInfo = jest.fn(() => fakeNode);
+		transporter.sendGossipRequest = jest.fn();
 	});
 
 	it("check startTimers", () => {
 		expect(transporter.gossipTimer).toBeNull();
 		transporter.startTimers();
 		expect(transporter.gossipTimer).toBeDefined();
+		transporter.stopTimers(); // clean up handle
 	});
 
-	it("check startTimers", () => {
+	it("check timer callback", async () => {
+		jest.useFakeTimers();
+		transporter.startTimers();
+
+		jest.advanceTimersByTime(2500);
+
+		await promUpdateLocalInfo;
+
+		expect(transporter.getLocalNodeInfo).toBeCalledTimes(1);
+		expect(fakeNode.updateLocalInfo).toBeCalledTimes(1);
+		expect(fakeNode.updateLocalInfo).toBeCalledWith(broker.getCpuUsage);
+
+		expect(transporter.sendGossipRequest).toBeCalledTimes(1);
+
+		transporter.stopTimers(); // clean up handle
+	});
+
+	it("check stopTimers", () => {
 		transporter.startTimers();
 		expect(transporter.gossipTimer).toBeDefined();
 		transporter.stopTimers();
@@ -537,7 +560,7 @@ describe("Test TcpTransporter loadUrls", () => {
 		}).catch(protectReject).then(transporter => {
 			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
 		});
 	});
 
@@ -547,7 +570,7 @@ describe("Test TcpTransporter loadUrls", () => {
 		}).catch(protectReject).then(transporter => {
 			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
 		});
 	});
 
@@ -557,7 +580,7 @@ describe("Test TcpTransporter loadUrls", () => {
 		}).catch(protectReject).then(transporter => {
 			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
 		});
 	});
 
@@ -576,7 +599,7 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
 			expect(transporter.opts.port).toBe(1234);
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -593,7 +616,7 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
 				expect(transporter.opts.port).toBe(5123);
-				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 	});
 
@@ -617,7 +640,7 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -641,7 +664,7 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
-			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -665,7 +688,7 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
-				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 		});
 
@@ -698,7 +721,7 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
-				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 		});
 	});
@@ -1079,7 +1102,7 @@ describe("Test Gossip methods", () => {
 				target: "node-2",
 				payload: {
 					"online": {
-						"node-2": [{"info": "node-2"}, 200, 22]
+						"node-2": [{ "info": "node-2" }, 200, 22]
 					},
 					"offline": {
 						"node-5": 50
@@ -1144,8 +1167,8 @@ describe("Test Gossip methods", () => {
 				target: "node-10",
 				payload: {
 					online: {
-						"node-1": [{"info": "node-1"}, 100, 11],
-						"node-7": [{"info": "node-7"}, 0, 0],
+						"node-1": [{ "info": "node-1" }, 100, 11],
+						"node-7": [{ "info": "node-7" }, 0, 0],
 						"node-8": [800, 88]
 					},
 					offline: {
@@ -1211,8 +1234,8 @@ describe("Test Gossip methods", () => {
 
 			// Update 'node-6' & 'node-7'
 			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledTimes(2);
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-6", "seq": 66});
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-7", "seq": 77});
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-6", "seq": 66 });
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-7", "seq": 77 });
 
 			// Update 'node-8' seq
 			expect(nodes[6].seq).toBe(88);

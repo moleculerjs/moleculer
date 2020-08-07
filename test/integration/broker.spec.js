@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../src/service-broker");
+const Service = require("../../src/service");
 const MemoryCacher = require("../../src/cachers/memory");
 const Context = require("../../src/context");
 const { protectReject } = require("../unit/utils");
@@ -36,6 +37,72 @@ describe("Test load services", () => {
 			expect(broker.getLocalService("users")).toBeDefined();
 			expect(broker.getLocalService("test")).toBeDefined();
 		}).then(() => broker.stop());
+	});
+
+	it("should create service from ES6 instance without schema mods", () => {
+		const handler = jest.fn();
+
+		class ES6Service extends Service {
+			constructor(broker, schemaMods) {
+				super(broker);
+
+				this.name = "es6-without-schema-mods";
+				this.version = 2;
+				this.actions = {
+					send: handler
+				};
+
+				if (schemaMods && schemaMods.version) {
+					this.version = schemaMods.version;
+				}
+
+				this.parseServiceSchema(Object.assign({}, this));
+			}
+		}
+
+		broker.createService(ES6Service);
+
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("es6-without-schema-mods", 2)).toBeDefined();
+			expect(broker.registry.actions.isAvailable("v2.es6-without-schema-mods.send")).toBe(true);
+		}).then(() => {
+			return broker.call("v2.es6-without-schema-mods.send").then(() => {
+				expect(handler).toHaveBeenCalledTimes(1);
+			});
+		}).catch(protectReject).then(() => broker.stop());
+	});
+
+	it("should create service from ES6 instance with schema mods", () => {
+		const handler = jest.fn();
+
+		class ES6Service extends Service {
+			constructor(broker, schemaMods) {
+				super(broker);
+
+				this.name = "es6-with-schema-mods";
+				this.version = 2;
+				this.actions = {
+					send: handler
+				};
+
+				if (schemaMods && schemaMods.version) {
+					this.version = schemaMods.version;
+				}
+
+				this.parseServiceSchema(Object.assign({}, this));
+			}
+		}
+
+		broker.createService(ES6Service, { version: 3 });
+
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("es6-with-schema-mods", 3)).toBeDefined();
+			expect(broker.registry.actions.isAvailable("v3.es6-with-schema-mods.send")).toBe(true);
+		}).then(() => {
+			return broker.call("v3.es6-with-schema-mods.send").then(() => {
+				expect(handler).toHaveBeenCalledTimes(1);
+			});
+		}).catch(protectReject).then(() => broker.stop());
 	});
 });
 
@@ -76,12 +143,12 @@ describe("Test local call", () => {
 	it("should set params to context", () => {
 		let params = { a: 1 };
 		return broker.call("posts.find", params).then(ctx => {
-			expect(ctx.params).toEqual({ a: 1});
+			expect(ctx.params).toEqual({ a: 1 });
 		});
 	});
 
 	it("should create a sub context of parent context", () => {
-		let parentCtx = new Context();
+		let parentCtx = new Context(broker);
 		parentCtx.params = {
 			a: 5,
 			b: 2
@@ -98,7 +165,7 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		parentCtx.metrics = true;
+		parentCtx.tracing = true;
 		parentCtx.requestID = "12345";
 
 		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
@@ -106,7 +173,7 @@ describe("Test local call", () => {
 			expect(ctx.params).toBe(params);
 			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"], status: true, verified: true });
 			expect(ctx.level).toBe(2);
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 			expect(ctx.parentID).toBe(parentCtx.id);
 			expect(ctx.requestID).toBe("12345");
 		});
@@ -127,13 +194,13 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		ctx.metrics = true;
+		ctx.tracing = true;
 		ctx.requestID = "12345";
 
 		return ctx.call("posts.export", {}, { meta }).then(newCtx => {
 			expect(newCtx.id).not.toBe(ctx.id);
 			expect(newCtx.level).toBe(2);
-			expect(newCtx.metrics).toBe(true);
+			expect(newCtx.tracing).toBe(true);
 			expect(newCtx.parentID).toBe(ctx.id);
 			expect(newCtx.requestID).toBe("12345");
 
@@ -264,4 +331,45 @@ describe("Test cachers", () => {
 	});
 
 });
+/*
+describe("Test async current Context store", () => {
 
+	let broker = new ServiceBroker({
+		logger: false
+	});
+
+	broker.createService({
+		name: "user",
+		actions: {
+			save() {
+				return this.Promise.resolve()
+					.then(() => this.saveUser());
+			}
+		},
+
+		methods: {
+			saveUser() {
+				const ctx = this.broker.getCurrentContext();
+				return Object.assign(ctx.params, { id: 5 });
+			}
+		}
+	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
+	it("should find context in method", () => {
+		const params = { name: "John", age: 33 };
+
+		return broker.call("user.save", params).catch(protectReject).then(res => {
+			expect(res).toEqual({
+				id: 5,
+				name: "John",
+				age: 33
+			});
+		});
+	});
+
+});
+
+*/

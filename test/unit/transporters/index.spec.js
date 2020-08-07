@@ -1,4 +1,4 @@
-const { MoleculerError } = require("../../../src/errors");
+const { BrokerOptionsError } = require("../../../src/errors");
 const Transporters = require("../../../src/transporters");
 
 describe("Test Transporter resolver", () => {
@@ -24,7 +24,7 @@ describe("Test Transporter resolver", () => {
 			let options = { url: "nats://localhost:4222" };
 			let trans = Transporters.resolve({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"maxReconnectAttempts": -1, "preserveBuffers": true, "url": "nats://localhost:4222"});
+			expect(trans.opts).toEqual({ "maxReconnectAttempts": -1, "preserveBuffers": true, "url": "nats://localhost:4222" });
 		});
 	});
 
@@ -36,7 +36,7 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve MQTTTransporter from SSL connection string", () => {
-			let trans = Transporters.resolve("mqtt+ssl://localhost");
+			let trans = Transporters.resolve("mqtts://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
@@ -103,12 +103,12 @@ describe("Test Transporter resolver", () => {
 				prefetch: 1,
 				heartbeatTimeToLive: null,
 				eventTimeToLive: null,
-				url: "amqp://localhost",
+				url: ["amqp://localhost"],
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},
 				consumeOptions: {},
-				autoDeleteQueues: -1
+				autoDeleteQueues: 120000
 			});
 		});
 	});
@@ -126,9 +126,7 @@ describe("Test Transporter resolver", () => {
 			expect(trans.opts).toEqual({
 				"host": "localhost:2181",
 				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
+					"kafkaHost": "localhost:2181",
 				},
 				"consumer": {},
 				"customPartitioner": undefined,
@@ -152,9 +150,7 @@ describe("Test Transporter resolver", () => {
 			expect(trans.opts).toEqual({
 				"host": "localhost:2181",
 				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
+					"kafkaHost": "localhost:2181",
 				},
 				"consumer": {},
 				"customPartitioner": undefined,
@@ -235,13 +231,33 @@ describe("Test Transporter resolver", () => {
 		it("should throw error if type if not correct", () => {
 			expect(() => {
 				Transporters.resolve("xyz");
-			}).toThrowError(MoleculerError);
+			}).toThrowError(BrokerOptionsError);
 
 			expect(() => {
 				Transporters.resolve({ type: "xyz" });
-			}).toThrowError(MoleculerError);
+			}).toThrowError(BrokerOptionsError);
 		});
 
 	});
 
+});
+
+describe("Test Transporters register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Transporters.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Transporters.register("MyCustom", MyCustom);
+		expect(Transporters.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const transporter = Transporters.resolve("MyCustom");
+		expect(transporter).toBeInstanceOf(MyCustom);
+	});
 });

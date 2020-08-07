@@ -7,20 +7,18 @@ const { isPromise } = require("../../../src/utils");
 
 
 describe("Test FakeTransporter", () => {
-
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
-	};
+	const broker = new ServiceBroker({ logger: false });
+	const transit = new Transit(broker);
 
 	it("check constructor", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
 		expect(transporter).toBeDefined();
 		expect(transporter.bus).toBeDefined();
 	});
 
 	it("check connect", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
+		transporter.init(transit);
 		let p = transporter.connect();
 		expect(isPromise(p)).toBe(true);
 		expect(transporter.connected).toBe(true);
@@ -28,16 +26,18 @@ describe("Test FakeTransporter", () => {
 	});
 
 	it("check disconnect", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
+		transporter.init(transit);
 		transporter.disconnect();
 		expect(transporter.connected).toBe(false);
 	});
 
 	it("check subscribe", () => {
-		let opts = {};
-		let msgHandler = jest.fn();
-		let transporter = new FakeTransporter(opts);
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
+		const opts = {};
+		const msgHandler = jest.fn();
+		const transporter = new FakeTransporter(opts);
+		broker.namespace = "TEST";
+		transporter.init(transit, msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
@@ -56,8 +56,8 @@ describe("Test FakeTransporter", () => {
 	});
 
 	it("check publish", () => {
-		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1"})));
+		const transporter = new FakeTransporter();
+		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1" })));
 		transporter.bus.emit = jest.fn();
 		transporter.serialize = jest.fn(() => "serialized data");
 

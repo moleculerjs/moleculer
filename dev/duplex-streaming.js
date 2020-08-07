@@ -2,20 +2,19 @@
 
 const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
-const Promise = require("bluebird");
 const path = require("path");
+const kleur = require("kleur");
 const crypto = require("crypto");
 
-const password = "moleculer";
+const transporter = "TCP";
+const serializer = "ProtoBuf";
 
 // Create broker #1
 const broker1 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "client-" + process.pid,
-	transporter: "TCP",
-	serializer: "Thrift",
-	logger: console,
-	logLevel: "info"
+	transporter,
+	serializer
 });
 
 
@@ -23,58 +22,79 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "encrypter-" + process.pid,
-	transporter: "TCP",
-	serializer: "Thrift",
-	logger: console,
-	logLevel: "info"
+	transporter,
+	serializer
 });
+
+const pass = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
 
 broker2.createService({
 	name: "aes",
 	actions: {
 		encrypt(ctx) {
-			const encrypt = crypto.createCipher("aes-256-ctr", password);
+			const encrypt = crypto.createCipheriv("aes-256-ctr", pass, iv);
 			return ctx.params.pipe(encrypt);
 		},
 
 		decrypt(ctx) {
-			const decrypt = crypto.createDecipher("aes-256-ctr", password);
+			const decrypt = crypto.createDecipheriv("aes-256-ctr", pass, iv);
 			return ctx.params.pipe(decrypt);
 		}
 	}
 });
 
+let origHash;
+
+const fileName = "d://1.pdf";
+const fileName2 = "d://2.pdf";
+
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(2000)
 	.then(() => {
-		//broker1.repl();
-
-		const fileName = "d://1.pdf";
-		const fileName2 = "d://2.pdf";
+		broker1.repl();
 
 		return getSHA(fileName).then(hash1 => {
+			origHash = hash1;
 			broker1.logger.info("Original SHA:", hash1);
 
-			const startTime = Date.now();
-
-			const stream = fs.createReadStream(fileName);
-
-			broker1.call("aes.encrypt", stream)
-				.then(stream => broker1.call("aes.decrypt", stream))
-				.then(stream => {
-					const s = fs.createWriteStream(fileName2);
-					stream.pipe(s);
-					s.on("close", () => {
-						broker1.logger.info("Time:", Date.now() - startTime + "ms");
-						getSHA(fileName2).then(hash => broker1.logger.info("Received SHA:", hash));
-
-						broker2.stop();
-						broker1.stop();
-					});
-				});
+			callAES();
 		});
 
 	});
+
+let count = 0;
+
+function callAES() {
+	const startTime = Date.now();
+
+	const stream = fs.createReadStream(fileName);
+
+	broker1.call("aes.encrypt", stream)
+		.then(stream => broker1.call("aes.decrypt", stream))
+		.then(stream => {
+			const s = fs.createWriteStream(fileName2);
+			stream.pipe(s);
+			s.on("close", () => {
+				const duration = Date.now() - startTime;
+				getSHA(fileName2).then(hash => {
+					if (hash != origHash) {
+						broker1.logger.error(count, kleur.red().bold("Hash mismatch!"), "Time:", duration, "ms. Received SHA:", hash);
+					} else {
+						broker1.logger.info(count, kleur.green().bold("Hash OK!"), "Time:", duration, "ms. Received SHA:", hash);
+					}
+
+					if (++count < 10)
+						setTimeout(() => callAES(), 100);
+					else {
+						broker1.stop();
+						broker2.stop();
+					}
+				});
+			});
+		})
+		.catch(err => broker1.logger.error(err));
+}
 
 function getSHA(fileName) {
 	return new Promise((resolve, reject) => {

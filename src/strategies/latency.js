@@ -1,11 +1,10 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 "use strict";
 
-const Promise = require("bluebird");
 const _ = require("lodash");
 
 const { random } = require("lodash");
@@ -37,10 +36,10 @@ const BaseStrategy = require("./base");
  */
 class LatencyStrategy extends BaseStrategy {
 
-	constructor(registry, broker) {
-		super(registry, broker);
+	constructor(registry, broker, opts) {
+		super(registry, broker, opts);
 
-		this.opts = _.defaultsDeep(registry.opts.strategyOptions, {
+		this.opts = _.defaultsDeep(opts, {
 			sampleCount: 5,
 			lowLatency: 10,
 			collectCount: 5,
@@ -102,13 +101,13 @@ class LatencyStrategy extends BaseStrategy {
 			Although, if that particular node on the host is overloaded,
 			the measurement may be skewed.
 		*/
-		let hosts = this.hostMap.values();
+		const hosts = Array.from(this.hostMap.values());
 
-		return Promise.map(hosts, host => {
+		return this.broker.Promise.all(hosts.map(host => { // TODO: missing concurency: 5, here was bluebird Promise.map
 			// Select a nodeID randomly
 			const nodeID = host.nodeList[random(0, host.nodeList.length - 1)];
 			return this.broker.transit.sendPing(nodeID);
-		}, { concurrency: 5 }).then(() => {
+		})).then(() => {
 			const timer = setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
 			timer.unref();
 		});
