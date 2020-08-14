@@ -751,6 +751,7 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 		disableReconnect?: boolean;
 		disableVersionCheck?: boolean;
+		maxChunkSize?: number;
 	}
 
 	interface BrokerTrackingOptions {
