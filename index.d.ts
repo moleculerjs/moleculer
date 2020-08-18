@@ -774,8 +774,6 @@ declare namespace Moleculer {
 
 		logger?: LoggerConfig | Array<LoggerConfig> | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
-		logFormatter?: Function | string;
-		logObjectPrinter?: Function;
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
