@@ -60,7 +60,6 @@ const SagaMiddleware = function() {
 
 // --- BROKER ---
 const broker = new ServiceBroker({
-	logFormatter: "short",
 	middlewares: [
 		SagaMiddleware()
 	]

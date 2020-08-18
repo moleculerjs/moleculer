@@ -97,7 +97,6 @@ const broker = new ServiceBroker({
 		"**": "debug",
 	},
 	//logLevel: "info",
-	//logFormatter: "short",
 	transporter: "NATS",
 	cacher: "Memory"
 });

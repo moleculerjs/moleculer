@@ -7,7 +7,6 @@ let broker1 = new ServiceBroker({
 	nodeID: "node-1",
 	transporter: "NATS",
 	logger: console,
-	logFormatter: "simple",
 	registry: {
 		//preferLocal: false
 	}
@@ -50,7 +49,6 @@ let broker2 = new ServiceBroker({
 	nodeID: "node-2",
 	transporter: "NATS",
 	logger: console,
-	logFormatter: "simple",
 	registry: {
 		//preferLocal: false
 	}

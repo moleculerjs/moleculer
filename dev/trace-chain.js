@@ -14,7 +14,6 @@ const THROW_ERR = false;
 const broker = new ServiceBroker({
 	nodeID: "node-1",
 	logLevel: "info",
-	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 
 	tracing: {
 		actions: true,

@@ -4,7 +4,6 @@ const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
 
 const broker = new ServiceBroker({
-	logFormatter: "short",
 	requestTimeout: 5 * 1000,
 });
 
