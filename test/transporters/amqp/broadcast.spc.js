@@ -8,11 +8,11 @@ extendExpect(expect);
 
 let FLOW = [];
 
-function createNode(name, disableBalancer = false) {
+function createNode(name, serviceName = "broadcast-handler", disableBalancer = false) {
 	const broker = new ServiceBroker({
-		logger: false,
 		namespace: "test-broadcast",
 		nodeID: "event-" + name,
+		logger: false,
 		//logger: console,
 		//logLevel: "error",
 		transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",
@@ -20,12 +20,12 @@ function createNode(name, disableBalancer = false) {
 	});
 
 	broker.createService({
-		name: name,
+		name: serviceName,
 		events: {
 			"hello.world"(payload) {
 				this.logger.error("RECEIVED EVENT!");
 				if (payload.testing === true)
-					FLOW.push(this.name);
+					FLOW.push(`${this.broker.nodeID}-${this.name}`);
 			}
 		}
 	});
@@ -47,16 +47,18 @@ describe("Test AMQPTransporter", () => {
 		const pub = createNode("pub");
 		const sub1 = createNode("sub1");
 		const sub2 = createNode("sub2");
-		const sub3 = createNode("sub3");
+		const sub3 = createNode("sub3", "other-handler");
+		const sub4 = createNode("sub4");
 
 		beforeEach(() => {
 			FLOW = [];
-			Promise.delay(1000).then(() => sub3.start());
+			Promise.delay(1000).then(() => sub4.start());
 
 			return Promise.all([
 				pub.start(),
 				sub1.start(),
-				sub2.start()
+				sub2.start(),
+				sub3.start()
 			]).delay(500);
 		});
 
@@ -64,18 +66,20 @@ describe("Test AMQPTransporter", () => {
 			pub.stop(),
 			sub1.stop(),
 			sub2.stop(),
-			sub3.stop()
+			sub3.stop(),
+			sub4.stop()
 		]));
 
 		it("Should send an event to all subscribed nodes.", () => {
 			pub.broadcast("hello.world", { testing: true });
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
-				expect(FLOW).toHaveLength(3);
+				expect(FLOW).toHaveLength(4);
 				expect(FLOW).toEqual(expect.arrayContaining([
-					"pub",
-					"sub1",
-					"sub2"
+					"event-pub-broadcast-handler",
+					"event-sub1-broadcast-handler",
+					"event-sub2-broadcast-handler",
+					"event-sub3-other-handler"
 				]));
 			});
 		}, 10000);
@@ -84,19 +88,21 @@ describe("Test AMQPTransporter", () => {
 
 	describe("Test AMQPTransporter event broadcast with DISABLED built-in balancer", () => {
 
-		const pub = createNode("pub", true);
-		const sub1 = createNode("sub1", true);
-		const sub2 = createNode("sub2", true);
-		const sub3 = createNode("sub3", true);
+		const pub = createNode("pub", undefined, true);
+		const sub1 = createNode("sub1", undefined, true);
+		const sub2 = createNode("sub2", undefined, true);
+		const sub3 = createNode("sub3", "other-handler", true);
+		const sub4 = createNode("sub4", undefined, true);
 
 		beforeEach(() => {
 			FLOW = [];
-			Promise.delay(1000).catch(protectReject).then(() => sub3.start());
+			Promise.delay(1000).catch(protectReject).then(() => sub4.start());
 
 			return Promise.all([
 				pub.start(),
 				sub1.start(),
-				sub2.start()
+				sub2.start(),
+				sub3.start()
 			]).delay(500);
 		});
 
@@ -104,18 +110,20 @@ describe("Test AMQPTransporter", () => {
 			pub.stop(),
 			sub1.stop(),
 			sub2.stop(),
-			sub3.stop()
+			sub3.stop(),
+			sub4.stop()
 		]));
 
 		it("Should send an event to all subscribed nodes.", () => {
 			pub.broadcast("hello.world", { testing: true });
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
-				expect(FLOW).toHaveLength(3);
+				expect(FLOW).toHaveLength(4);
 				expect(FLOW).toEqual(expect.arrayContaining([
-					"pub",
-					"sub1",
-					"sub2"
+					"event-pub-broadcast-handler",
+					"event-sub1-broadcast-handler",
+					"event-sub2-broadcast-handler",
+					"event-sub3-other-handler"
 				]));
 			});
 		}, 10000);
@@ -152,9 +160,9 @@ describe("Test AMQPTransporter", () => {
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
 				expect(FLOW).toEqual([
-					"pub",
-					"pub",
-					"pub"
+					"event-pub-broadcast-handler",
+					"event-pub-broadcast-handler",
+					"event-pub-broadcast-handler"
 				]);
 			});
 		}, 10000);

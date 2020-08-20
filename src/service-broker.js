@@ -1376,9 +1376,14 @@ class ServiceBroker {
 				if (groups.length == 0)
 					return; // Return here because balancer disabled, so we can't call the local services.
 
-				const newCtx = ctx.copy();
-				newCtx.eventGroups = groups;
-				return this.transit.sendEvent(newCtx); // Return here because balancer disabled, so we can't call the local services.
+				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+
+				// Return here because balancer disabled, so we can't call the local services.
+				return this.Promise.all(endpoints.map(ep => {
+					const newCtx = ctx.copy(ep);
+					newCtx.eventGroups = groups;
+					return this.transit.sendEvent(newCtx);
+				}));
 			}
 		}
 
