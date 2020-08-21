@@ -1,12 +1,13 @@
 "use strict";
 
-let ServiceBroker = require("../src/service-broker");
+const ServiceBroker = require("../src/service-broker");
 
 // Create broker #1
-let broker1 = new ServiceBroker({
+const broker1 = new ServiceBroker({
 	nodeID: "node-1",
 	transporter: "NATS",
 	logger: console,
+	disableBalancer: true,
 	registry: {
 		//preferLocal: false
 	}
@@ -45,10 +46,11 @@ broker1.createService({
 });
 
 // Create broker #2
-let broker2 = new ServiceBroker({
+const broker2 = new ServiceBroker({
 	nodeID: "node-2",
 	transporter: "NATS",
 	logger: console,
+	disableBalancer: true,
 	registry: {
 		//preferLocal: false
 	}
@@ -92,11 +94,11 @@ broker1.Promise.all([
 ]).delay(1000).then(() => {
 	setInterval(() => {
 
-		//broker1.broadcast("user.created", "data");
+		broker1.logger.info("-------------------------");
+		broker1.broadcast("user.created", "data");
 		//broker1.broadcast("user.created", "data", ["payment"]);
 		//broker1.broadcast("user.created", "data", ["mail", "payment"]);
-		broker1.logger.info("-------------------------");
-		broker1.emit("user.created", "data");
+		//broker1.emit("user.created", "data");
 		//broker1.emit("user.created", "data", ["mail"]);
 	}, 2000);
 });

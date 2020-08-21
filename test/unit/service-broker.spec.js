@@ -3036,7 +3036,8 @@ describe("Test broker broadcast", () => {
 		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
 		expect(broker.getEventGroups).toHaveBeenCalledWith("$user.event");
 
-		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
+
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
@@ -3050,7 +3051,7 @@ describe("Test broker broadcast", () => {
 			level: 1,
 			meta: {},
 			needAck: null,
-			nodeID: "server-1",
+			nodeID: "node-2",
 			options: {},
 			params: { name: "John" },
 			parentID: null,
@@ -3058,9 +3059,32 @@ describe("Test broker broadcast", () => {
 			span: null,
 			tracing: null
 		});
-		expect(ctx.endpoint).toBeNull();
+		expect(ctx.endpoint).toEqual({ id: "node-2" });
 
-		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+		ctx = broker.transit.sendEvent.mock.calls[1][0];
+		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
+		expect(ctx.toJSON()).toEqual({
+			id: "1",
+			ackID: null,
+			cachedResult: false,
+			caller: null,
+			eventGroups: ["payments"],
+			eventName: "$user.event",
+			eventType: "broadcast",
+			level: 1,
+			meta: {},
+			needAck: null,
+			nodeID: "node-3",
+			options: {},
+			params: { name: "John" },
+			parentID: null,
+			requestID: "1",
+			span: null,
+			tracing: null
+		});
+		expect(ctx.endpoint).toEqual({ id: "node-3" });
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(0);
 	});
