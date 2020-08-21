@@ -10,7 +10,6 @@ const disableBalancer = false;
 // Create broker #1
 const broker1 = new ServiceBroker({
 	nodeID: "broker1",
-	logFormatter: "short",
 	transporter,
 	serializer,
 	disableBalancer,
@@ -64,7 +63,6 @@ broker1.createService({
 // Create broker #2
 const broker2 = new ServiceBroker({
 	nodeID: "broker2",
-	logFormatter: "short",
 	transporter,
 	serializer,
 	disableBalancer,

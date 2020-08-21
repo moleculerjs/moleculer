@@ -6,7 +6,6 @@ const broker = new ServiceBroker({
 	namespace: "projectA",
 	nodeID: "node-1",
 	transporter: "NATS",
-	logFormatter: "short"
 });
 
 // Example greeter service in namespace "projectA"
@@ -31,7 +30,6 @@ broker.createService({
 		brokerOptions: {
 			nodeID: "ns-connector",
 			transporter: "NATS",
-			logFormatter: "short"
 		}
 	},
 	actions: {

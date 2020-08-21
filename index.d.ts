@@ -76,7 +76,7 @@ declare namespace Moleculer {
 
 	interface TracerOptions {
 		enabled?: boolean;
-		exporter?: TracerExporterOptions | Array<TracerExporterOptions> | null;
+		exporter?: string | TracerExporterOptions | Array<TracerExporterOptions|string> | null;
 		sampling?: {
 			rate?: number | null;
 			tracesPerSecond?: number | null;
@@ -84,10 +84,10 @@ declare namespace Moleculer {
 		}
 
 		actions?: boolean;
+		events?: boolean;
 
 		errorFields?: Array<string>;
 		stackTrace?: boolean;
-		events?: boolean;
 
 		defaultTags?: GenericObject | Function | null;
 
@@ -222,7 +222,7 @@ declare namespace Moleculer {
 		enabled?: boolean;
 		collectProcessMetrics?: boolean;
 		collectInterval?: number;
-		reporter?: MetricsReporterOptions | Array<MetricsReporterOptions> | null;
+		reporter?: string | MetricsReporterOptions | Array<MetricsReporterOptions|string> | null;
 		defaultBuckets?: Array<number>;
 		defaultQuantiles?: Array<number>;
 		defaultMaxAgeSeconds?: number;
@@ -774,8 +774,6 @@ declare namespace Moleculer {
 
 		logger?: LoggerConfig | Array<LoggerConfig> | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
-		logFormatter?: Function | string;
-		logObjectPrinter?: Function;
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;

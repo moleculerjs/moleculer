@@ -26,7 +26,6 @@ const broker = new ServiceBroker({
 	nodeID: "node-1",
 	logger: console,
 	logLevel: "info",
-	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	//transporter: "redis://localhost:6379",
 	cacher: true, //"redis://localhost:6379",
 

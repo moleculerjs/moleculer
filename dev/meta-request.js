@@ -7,7 +7,6 @@ let broker1 = new ServiceBroker({
 	nodeID: "node-1",
 	transporter: "NATS",
 	logger: console,
-	logFormatter: "simple"
 });
 
 broker1.createService({

@@ -7,7 +7,6 @@ const broker1 = new ServiceBroker({
 	nodeID: "node-1",
 	transporter: "NATS",
 	logger: console,
-	logFormatter: "simple",
 	disableBalancer: true,
 	registry: {
 		//preferLocal: false
@@ -51,7 +50,6 @@ const broker2 = new ServiceBroker({
 	nodeID: "node-2",
 	transporter: "NATS",
 	logger: console,
-	logFormatter: "simple",
 	disableBalancer: true,
 	registry: {
 		//preferLocal: false
