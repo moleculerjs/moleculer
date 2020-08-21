@@ -10,7 +10,6 @@ let broker = new ServiceBroker({
 	//transporter: "amqp://192.168.51.29:5672",
 	//serializer: "ProtoBuf",
 	logger: console,
-	logFormatter: "simple",
 	circuitBreaker: {
 		enabled: true,
 		threshold: 0.3,

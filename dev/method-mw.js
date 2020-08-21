@@ -19,7 +19,6 @@ const MW = {
 
 const broker = new ServiceBroker({
 	nodeID: "mw",
-	logFormatter: "short",
 	middlewares: [MW]
 });
 

@@ -10,7 +10,6 @@ let broker = new ServiceBroker({
 	//disableBalancer: true,
 	//serializer: "ProtoBuf",
 	logger: console,
-	logFormatter: "simple"
 });
 
 let c = 1;

@@ -80,7 +80,6 @@ const broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short",
 	middlewares: [
 		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
 		//Middlewares.Transmit.Compression(),
