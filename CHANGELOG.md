@@ -1,5 +1,14 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.9...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.10...master)
+
+--------------------------------------------------
+<a name="0.14.10"></a>
+# [0.14.10](https://github.com/moleculerjs/moleculer/compare/v0.14.9...v0.14.10) (2020-08-23)
+
+## Changes
+- update dependencies
+- fix issues in index.d.ts
+- fix broadcast event sending issue when `disableBalancer: true` [#799](https://github.com/moleculerjs/moleculer/pull/799) (thanks for [ngraef](https://github.com/ngraef))
 
 --------------------------------------------------
 <a name="0.14.9"></a>
