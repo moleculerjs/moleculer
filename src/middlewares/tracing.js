@@ -37,7 +37,8 @@ module.exports = function TracingMiddleware(broker) {
 					options: {
 						timeout: ctx.options.timeout,
 						retries: ctx.options.retries
-					}
+					},
+					requestID: ctx.requestID,
 				};
 				const globalActionTags = tracer.opts.tags.action;
 				let actionTags;
@@ -153,7 +154,8 @@ module.exports = function TracingMiddleware(broker) {
 					callerNodeID: ctx.nodeID,
 					callingLevel: ctx.level,
 					remoteCall: ctx.nodeID !== broker.nodeID,
-					nodeID: broker.nodeID
+					nodeID: broker.nodeID,
+					requestID: ctx.requestID,
 				};
 
 				const globalEventTags = tracer.opts.tags.event;
