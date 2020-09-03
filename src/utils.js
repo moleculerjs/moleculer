@@ -59,7 +59,7 @@ function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
 			}
 			seen.add(value);
 		}
-		return value;
+		return typeof value === "bigint" ? value.toString() : value;
 	};
 }
 
