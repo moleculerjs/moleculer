@@ -362,6 +362,22 @@ describe("Test utils.safetyObject", () => {
 		expect(res).toEqual(obj);
 	});
 
+	it("should return a same object with BigInt", () => {
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			},
+			g: 123n
+		};
+		const res = utils.safetyObject(obj);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+	});
+
 	it("should skip converting into JSON large objects", () => {
 		const bigData = Array.from({ length: 2048 }).map((_, index) => index);
 
