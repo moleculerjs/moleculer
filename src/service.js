@@ -584,8 +584,13 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaSettings(src, target) {
-		if ((target && target.$secureSettings) || (src && src.$secureSettings))
-			target.$secureSettings = _.uniq([].concat(src.$secureSettings || [], target.$secureSettings || []));
+		if ((target && target.$secureSettings) || (src && src.$secureSettings)) {
+			const srcSS = src && src.$secureSettings ? src.$secureSettings : [];
+			const targetSS = target && target.$secureSettings ? target.$secureSettings : [];
+			if (!target) target = {};
+
+			target.$secureSettings = _.uniq([].concat(srcSS, targetSS));
+		}
 
 		return _.defaultsDeep(src, target);
 	}

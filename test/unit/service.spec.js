@@ -1451,6 +1451,52 @@ describe("Test Service class", () => {
 				}
 			});
 		});
+
+		it("should merge values with $secureSettings (no target settings)", () => {
+			const src = {
+				$secureSettings: ["a", "b"],
+				a: 5,
+				b: "John",
+				c: {
+					d: true,
+					e: 45.8
+				}
+			};
+
+			const res = Service.mergeSchemaSettings(src, null);
+			expect(res).toEqual({
+				$secureSettings: ["a", "b"],
+				a: 5,
+				b: "John",
+				c: {
+					d: true,
+					e: 45.8
+				}
+			});
+		});
+
+		it("should merge values with $secureSettings (no src settings)", () => {
+			const src = {
+				$secureSettings: ["a", "b"],
+				a: 5,
+				b: "John",
+				c: {
+					d: true,
+					e: 45.8
+				}
+			};
+
+			const res = Service.mergeSchemaSettings(null, src);
+			expect(res).toEqual({
+				$secureSettings: ["a", "b"],
+				a: 5,
+				b: "John",
+				c: {
+					d: true,
+					e: 45.8,
+				}
+			});
+		});
 	});
 
 	describe("Test static mergeSchemaMetadata", () => {
