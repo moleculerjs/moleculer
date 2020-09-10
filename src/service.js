@@ -555,7 +555,7 @@ class Service {
 				// Merge & concat by groups
 				res[key] = Service.mergeSchemaEvents(mods[key], res[key] || {});
 
-			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+			} else if (["merged", "created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = Service.mergeSchemaLifecycleHandlers(mods[key], res[key]);
 
