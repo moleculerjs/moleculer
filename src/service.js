@@ -78,6 +78,12 @@ class Service {
 			schema = Service.applyMixins(schema);
 		}
 
+		if (isFunction(schema.merged)) {
+			schema.merged.call(this, schema);
+		} else if (Array.isArray(schema.merged)) {
+			schema.merged.forEach(fn => fn.call(this, schema));
+		}
+
 		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		if (!schema.name) {

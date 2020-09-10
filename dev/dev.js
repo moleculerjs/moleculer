@@ -15,13 +15,30 @@ broker.createService({
 	name: "greeter",
 	actions: {
 		welcome: {
-			params: {
+			/*params: {
 				name: "string"
-			},
+			},*/
 			handler(ctx) {
 				return `Hello ${ctx.params.name}`;
 			}
 		}
+	},
+
+	merged(schema) {
+		this.broker.logger.info("Service merged. I can modify the schema before service registration.");
+		schema.actions.welcome.params = { name: "string" };
+	},
+
+	created() {
+		this.logger.info("Service created.");
+	},
+
+	started() {
+		this.logger.info("Service started.");
+	},
+
+	stopped() {
+		this.logger.info("Service stopped.");
 	}
 });
 
