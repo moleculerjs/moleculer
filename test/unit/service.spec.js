@@ -339,6 +339,37 @@ describe("Test Service class", () => {
 			expect(schema.events["user.created"]).toBeCalledWith(fakeCtx);
 		});
 
+		it("should call service single 'merged' hook", () => {
+			const merged = jest.fn();
+			const schema = {
+				name: "posts",
+				merged
+			};
+			svc.parseServiceSchema(schema);
+
+			expect(merged).toBeCalledTimes(1);
+			expect(merged).toBeCalledWith(schema);
+		});
+
+		it("should call service multi 'merged' hook", () => {
+			let FLOW = [];
+			const merged1 = jest.fn(() => FLOW.push("C1"));
+			const merged2 = jest.fn(() => FLOW.push("C2"));
+			const schema = {
+				name: "posts",
+				merged: [merged1, merged2]
+			};
+			svc.parseServiceSchema(schema);
+
+			expect(merged1).toBeCalledTimes(1);
+			expect(merged1).toBeCalledWith(schema);
+
+			expect(merged2).toBeCalledTimes(1);
+			expect(merged2).toBeCalledWith(schema);
+
+			expect(FLOW.join("-")).toBe("C1-C2");
+		});
+
 	});
 
 	describe("Test _getPublicSettings", () => {
