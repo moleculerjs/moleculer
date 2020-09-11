@@ -78,6 +78,12 @@ class Service {
 			schema = Service.applyMixins(schema);
 		}
 
+		if (isFunction(schema.merged)) {
+			schema.merged.call(this, schema);
+		} else if (Array.isArray(schema.merged)) {
+			schema.merged.forEach(fn => fn.call(this, schema));
+		}
+
 		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		if (!schema.name) {
@@ -549,7 +555,7 @@ class Service {
 				// Merge & concat by groups
 				res[key] = Service.mergeSchemaEvents(mods[key], res[key] || {});
 
-			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+			} else if (["merged", "created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = Service.mergeSchemaLifecycleHandlers(mods[key], res[key]);
 

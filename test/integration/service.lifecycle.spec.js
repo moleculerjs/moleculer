@@ -3,6 +3,7 @@ const { protectReject } = require("../unit/utils");
 
 describe("Test Service handlers", () => {
 
+	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
 	let stoppedHandler = jest.fn();
@@ -13,6 +14,7 @@ describe("Test Service handlers", () => {
 	broker.createService({
 		name: "posts",
 
+		merged: mergedHandler,
 		created: createdHandler,
 		started: startedHandler,
 		stopped: stoppedHandler,
@@ -20,6 +22,10 @@ describe("Test Service handlers", () => {
 		events: {
 			"user.*": eventHandler
 		}
+	});
+
+	it("should call merged handler", () => {
+		expect(mergedHandler).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call created handler", () => {
@@ -47,6 +53,7 @@ describe("Test Service handlers", () => {
 
 describe("Test Service handlers after broker.start", () => {
 
+	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
 	let stoppedHandler = jest.fn();
@@ -60,6 +67,7 @@ describe("Test Service handlers after broker.start", () => {
 		broker.createService({
 			name: "posts",
 
+			merged: mergedHandler,
 			created: createdHandler,
 			started: startedHandler,
 			stopped: stoppedHandler,
@@ -70,8 +78,9 @@ describe("Test Service handlers after broker.start", () => {
 		});
 	});
 
-	it("should call created & started handler", () => {
+	it("should call merged, created & started handler", () => {
 		return broker.Promise.delay(100).then(() => {
+			expect(mergedHandler).toHaveBeenCalledTimes(1);
 			expect(createdHandler).toHaveBeenCalledTimes(1);
 			expect(startedHandler).toHaveBeenCalledTimes(1);
 		});

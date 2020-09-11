@@ -5,6 +5,7 @@ const { protectReject } = require("../unit/utils");
 
 describe("Test Service mixins", () => {
 
+	let flowMerged = [];
 	let flowCreated = [];
 	let flowStarted = [];
 	let flowStopped = [];
@@ -82,6 +83,7 @@ describe("Test Service mixins", () => {
 			}
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixinL2")),
 		created: jest.fn(() => flowCreated.push("mixinL2")),
 		started: jest.fn(() => flowStarted.push("mixinL2")),
 		stopped: jest.fn(() => flowStopped.push("mixinL2"))
@@ -147,6 +149,7 @@ describe("Test Service mixins", () => {
 			}
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixin1L1")),
 		created: jest.fn(() => flowCreated.push("mixin1L1")),
 		stopped: jest.fn(() => flowStopped.push("mixin1L1"))
 	};
@@ -210,6 +213,7 @@ describe("Test Service mixins", () => {
 			"hydrogen": jest.fn()
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixin2L1")),
 		created: jest.fn(() => flowCreated.push("mixin2L1")),
 		started: jest.fn(() => flowStarted.push("mixin2L1"))
 	};
@@ -319,6 +323,7 @@ describe("Test Service mixins", () => {
 			"nitrogen": jest.fn()
 		},
 
+		merged: jest.fn(() => flowMerged.push("main")),
 		created: jest.fn(() => flowCreated.push("main")),
 		started: jest.fn(() => flowStarted.push("main")),
 		stopped: jest.fn(() => flowStopped.push("main"))
@@ -330,6 +335,14 @@ describe("Test Service mixins", () => {
 	svc.waitForServices = jest.fn(() => Promise.resolve());
 
 	// console.log(svc.schema);
+
+	it("should call every merged handler", () => {
+		expect(mainSchema.merged).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.merged).toHaveBeenCalledTimes(1);
+		expect(mixin2L1.merged).toHaveBeenCalledTimes(1);
+		expect(mixinL2.merged).toHaveBeenCalledTimes(2);
+		expect(flowMerged.join("-")).toBe("mixinL2-mixin2L1-mixinL2-mixin1L1-main");
+	});
 
 	it("should call every created handler", () => {
 		expect(mainSchema.created).toHaveBeenCalledTimes(1);

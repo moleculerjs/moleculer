@@ -1,6 +1,37 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.10...master)
 
+## New `merged` service lifecycle hook
+Service has a new `merged` lifecycle hook which is called after the service schemas (including mixins) has been merged but before service is registered. It means you can manipulate the merged service schema before it's processed.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    settings: {},
+
+    actions: {
+        find: {
+            params: {
+                limit: "number"
+            }
+            handler(ctx) {
+                // ...
+            }
+        }
+    },
+
+    merged(schema) {
+        // Modify the service settings
+        schema.settings.myProp = "myValue";
+        // Modify the param validation schema in an action schema
+        schema.actions.find.params.offset = "number";
+    }
+};
+```
+
 --------------------------------------------------
 <a name="0.14.10"></a>
 # [0.14.10](https://github.com/moleculerjs/moleculer/compare/v0.14.9...v0.14.10) (2020-08-23)
