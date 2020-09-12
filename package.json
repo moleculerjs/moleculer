@@ -117,7 +117,7 @@
     "kleur": "^4.1.1",
     "lodash": "^4.17.20",
     "lru-cache": "^6.0.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   },
   "engines": {
     "node": ">= 10.x.x"
