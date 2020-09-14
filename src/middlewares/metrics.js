@@ -84,7 +84,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_TOTAL, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_PACKET, description: "Number of sent packets", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of sent bytes", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_PACKET, description: "Number of received packets", rate: true });
-				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of received packets", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of received bytes", rate: true });
 			}
 		},
 
