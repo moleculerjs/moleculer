@@ -77,7 +77,7 @@ module.exports = function RetryMiddleware(broker) {
 
 		created() {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], description: "Number of retries", rate: true });
 			}
 		},
 
