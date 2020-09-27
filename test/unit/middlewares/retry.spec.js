@@ -59,7 +59,7 @@ describe("Test RetryMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.retry.attempts.total", labelNames: ["service", "action"], rate: true });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.retry.attempts.total", labelNames: ["service", "action"], "description": "Number of retries", rate: true });
 	});
 
 	it("should retry", () => {

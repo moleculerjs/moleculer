@@ -41,7 +41,7 @@ describe("Test TimeoutMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.timeout.total", labelNames: ["service", "action"], rate: true });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.timeout.total", labelNames: ["service", "action"], "description": "Number of timed out requests", rate: true });
 	});
 
 	it("should not be timeout if requestTimeout is 0", () => {
