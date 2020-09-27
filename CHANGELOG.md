@@ -1,5 +1,9 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.10...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.11...master)
+
+--------------------------------------------------
+<a name="0.14.11"></a>
+# [0.14.11](https://github.com/moleculerjs/moleculer/compare/v0.14.10...v0.14.11) (2020-09-27)
 
 ## New `merged` service lifecycle hook
 Service has a new `merged` lifecycle hook which is called after the service schemas (including mixins) has been merged but before service is registered. It means you can manipulate the merged service schema before it's processed.
@@ -31,6 +35,10 @@ module.exports = {
     }
 };
 ```
+
+## Other changes
+- add `requestID` tag to all action and event spans [#802](https://github.com/moleculerjs/moleculer/pull/802)
+- fix bug in second level of mixins with $secureSettings [#811](https://github.com/moleculerjs/moleculer/pull/811)
 
 --------------------------------------------------
 <a name="0.14.10"></a>
