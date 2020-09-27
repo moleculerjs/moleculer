@@ -527,6 +527,8 @@ declare namespace Moleculer {
 		needAck: boolean | null;
 		ackID: string | null;
 
+		locals: any | null;
+
 		level: number;
 
 		params: P;
