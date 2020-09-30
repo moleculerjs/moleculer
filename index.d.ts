@@ -625,16 +625,26 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
+	type ServiceHookBeforeHandler = (ctx: Context<any, any>) => Promise<void> | void
+	type ServiceHookAfterHandler = (ctx: Context<any, any>, res: any) => Promise<any> | any
+	type ServiceHookErrorHandler = (ctx: Context<any, any>, err: Error) => Promise<void> | void
+
+	interface ServiceHooksBefore {
+		[key: string]: string | ServiceHookBeforeHandler | Array<string | ServiceHookBeforeHandler>
+	}
+
+	interface ServiceHooksAfter {
+		[key: string]: string | ServiceHookAfterHandler | Array<string | ServiceHookAfterHandler>
+	}
+
+	interface ServiceHooksError {
+		[key: string]: string | ServiceHookErrorHandler | Array<string | ServiceHookErrorHandler>
+	}
+
 	interface ServiceHooks {
-		before?: {
-			[key: string]: ((ctx: Context<any, any>) => Promise<void> | void) | string | string[]
-		},
-		after?: {
-			[key: string]: ((ctx: Context<any, any>, res: any) => Promise<any> | any) | string | string[]
-		},
-		error?: {
-			[key: string]: ((ctx: Context<any, any>, err: Error) => Promise<void> | void) | string | string[]
-		},
+		before?: ServiceHooksBefore,
+		after?: ServiceHooksAfter,
+		error?: ServiceHooksError,
 	}
 
 	interface ServiceDependency {
