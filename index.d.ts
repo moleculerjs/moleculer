@@ -436,10 +436,14 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
+	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
+	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
+	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+
 	interface ActionHooks {
-		before?: (ctx: Context<any, any>) => Promise<void> | void;
-		after?: (ctx: Context<any, any>, res: any) => Promise<any> | any;
-		error?: (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+		before?: ActionHookBefore;
+		after?: ActionHookAfter;
+		error?: ActionHookError;
 	}
 
 	interface ActionSchema {
@@ -625,20 +629,16 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
-	type ServiceHookBeforeHandler = (ctx: Context<any, any>) => Promise<void> | void
-	type ServiceHookAfterHandler = (ctx: Context<any, any>, res: any) => Promise<any> | any
-	type ServiceHookErrorHandler = (ctx: Context<any, any>, err: Error) => Promise<void> | void
-
 	interface ServiceHooksBefore {
-		[key: string]: string | ServiceHookBeforeHandler | Array<string | ServiceHookBeforeHandler>
+		[key: string]: string | ActionHookBefore | Array<string | ActionHookBefore>
 	}
 
 	interface ServiceHooksAfter {
-		[key: string]: string | ServiceHookAfterHandler | Array<string | ServiceHookAfterHandler>
+		[key: string]: string | ActionHookAfter | Array<string | ActionHookAfter>
 	}
 
 	interface ServiceHooksError {
-		[key: string]: string | ServiceHookErrorHandler | Array<string | ServiceHookErrorHandler>
+		[key: string]: string | ActionHookError | Array<string | ActionHookError>
 	}
 
 	interface ServiceHooks {
