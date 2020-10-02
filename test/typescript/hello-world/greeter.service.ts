@@ -17,7 +17,7 @@ export default class GreeterService extends Service {
 			hooks: {
 				before: {
 					welcome(ctx: Context<GreeterWelcomeParams>): void {
-						// console.log("Service hook \"before\".");
+						// console.log(`Service hook "before".`);
 						ctx.params.name = ctx.params.name.toUpperCase();
 					}
 				},
@@ -25,11 +25,11 @@ export default class GreeterService extends Service {
 					hello: "anotherHookAfter",
 					welcome: [
 						function (ctx: Context<GreeterWelcomeParams>, res: any): any {
-							// console.log("Service sync hook \"after\".");
+							// console.log(`Service sync hook "after".`);
 							return res;
 						},
 						async (ctx: Context<GreeterWelcomeParams>, res: any): Promise<any> => {
-							// console.log("Service async hook \"after\".");
+							// console.log(`Service async hook "after".`);
 							return await Promise.resolve(res);
 						},
 						"anotherHookAfter"
@@ -37,7 +37,7 @@ export default class GreeterService extends Service {
 				} as ServiceHooksAfter,
 				error: {
 					welcome(ctx: Context<GreeterWelcomeParams>, err: Error): void {
-						// console.log("Service hook \"error\".");
+						// console.log(`Service hook "error".`);
 						throw err;
 					}
 				}
@@ -48,11 +48,11 @@ export default class GreeterService extends Service {
 					hooks: {
 						after: [
 							function (ctx: Context<GreeterWelcomeParams>, res: any): any {
-								// console.log("Action sync hook \"after\".");
+								// console.log(`Action sync hook "after".`);
 								return res;
 							},
 							async (ctx: Context<GreeterWelcomeParams>, res: any): Promise<any> => {
-								// console.log("Action async hook \"after\".");
+								// console.log(`Action async hook "after".`);
 								return await Promise.resolve(res);
 							},
 							"anotherHookAfter"
@@ -83,7 +83,7 @@ export default class GreeterService extends Service {
 	}
 
 	async anotherHookAfter(ctx: Context<GreeterWelcomeParams>, res: any): Promise<any> {
-		// console.log("Another async hook \"after\".");
+		// console.log(`Another async hook "after".`);
 		return await Promise.resolve(res);
 	}
 };

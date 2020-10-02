@@ -630,15 +630,15 @@ declare namespace Moleculer {
 	}
 
 	interface ServiceHooksBefore {
-		[key: string]: string | ActionHookBefore | Array<string | ActionHookBefore>
+		[key: string]: string | ActionHookBefore | Array<string | ActionHookBefore>;
 	}
 
 	interface ServiceHooksAfter {
-		[key: string]: string | ActionHookAfter | Array<string | ActionHookAfter>
+		[key: string]: string | ActionHookAfter | Array<string | ActionHookAfter>;
 	}
 
 	interface ServiceHooksError {
-		[key: string]: string | ActionHookError | Array<string | ActionHookError>
+		[key: string]: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
 	interface ServiceHooks {
