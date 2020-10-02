@@ -2,7 +2,7 @@
 
 import { Service } from "../../../";
 import { Context } from "../../../";
-import { ServiceHooks, ServiceHooksAfter, ServiceSchema } from "../../../";
+import { ActionHooks, ServiceHooks, ServiceHooksAfter, ServiceSchema } from "../../../";
 
 type GreeterWelcomeParams = {
 	name: string
@@ -43,7 +43,22 @@ export default class GreeterService extends Service {
 				}
 			} as ServiceHooks,
 			actions: {
-				hello: this.hello,
+				hello: {
+					handler: this.hello,
+					hooks: {
+						after: [
+							function (ctx: Context<GreeterWelcomeParams>, res: any): any {
+								// console.log("Action sync hook \"after\".");
+								return res;
+							},
+							async (ctx: Context<GreeterWelcomeParams>, res: any): Promise<any> => {
+								// console.log("Action async hook \"after\".");
+								return await Promise.resolve(res);
+							},
+							"anotherHookAfter"
+						]
+					} as ActionHooks
+				},
 				welcome: this.welcome
 			}
 		} as ServiceSchema);
@@ -68,7 +83,7 @@ export default class GreeterService extends Service {
 	}
 
 	async anotherHookAfter(ctx: Context<GreeterWelcomeParams>, res: any): Promise<any> {
-		// console.log("Service another async hook \"after\".");
+		// console.log("Another async hook \"after\".");
 		return await Promise.resolve(res);
 	}
 };

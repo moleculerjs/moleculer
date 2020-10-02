@@ -441,9 +441,9 @@ declare namespace Moleculer {
 	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 
 	interface ActionHooks {
-		before?: ActionHookBefore;
-		after?: ActionHookAfter;
-		error?: ActionHookError;
+		before?: string | ActionHookBefore | Array<string | ActionHookBefore>;
+		after?: string | ActionHookAfter | Array<string | ActionHookAfter>;
+		error?: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
 	interface ActionSchema {
