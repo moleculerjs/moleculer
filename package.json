@@ -120,6 +120,70 @@
     "node-fetch": "^2.6.1",
     "recursive-watch": "^1.1.4"
   },
+  "peerDependencies": {
+    "amqplib": "^0.6.0",
+    "avsc": "^5.4.22",
+    "bunyan": "^1.8.14",
+    "etcd3": "^1.0.2",
+    "ioredis": "^4.17.3",
+    "jaeger-client": "^3.18.1",
+    "kafka-node": "^5.0.0",
+    "mqtt": "^4.2.1",
+    "msgpack5": "^4.2.1",
+    "nats": "^1.4.12",
+    "node-nats-streaming": "^0.0.51",
+    "notepack.io": "^2.3.0",
+    "pino": "^6.6.1",
+    "protobufjs": "^6.10.1",
+    "redlock": "^4.1.0"
+  },
+  "peerDependenciesMeta": {
+    "amqplib": {
+      "optional": true
+    },
+    "avsc": {
+      "optional": true
+    },
+    "bunyan": {
+      "optional": true
+    },
+    "etcd3": {
+      "optional": true
+    },
+    "ioredis": {
+      "optional": true
+    },
+    "jaeger-client": {
+      "optional": true
+    },
+    "kafka-node": {
+      "optional": true
+    },
+    "mqtt": {
+      "optional": true
+    },
+    "msgpack5": {
+      "optional": true
+    },
+    "nats": {
+      "optional": true
+    },
+    "node-nats-streaming": {
+      "optional": true
+    },
+    "notepack.io": {
+      "optional": true
+    },
+    "pino": {
+      "optional": true
+    },
+    "protobufjs": {
+      "optional": true
+    },
+    "redlock": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">= 10.x.x"
   },
