@@ -514,7 +514,13 @@ declare namespace Moleculer {
 		ActionsMapping extends ActionsMappingBase = never,
 		ActionsEntry extends keyof ActionsMapping = never,
 		EventsMapping extends EventsMappingBase = never,
-	> = {
+	> = [DefaultIfNever<never, [ActionsMapping, ActionsEntry]>] extends [never]
+	? {
+		[key: string]: 
+			| ActionHandler<never, ActionsMapping, EventsMapping>
+			| ActionSchema<never, ActionsMapping, EventsMapping>
+			| boolean;
+	} : {
 		[P in keyof ActionsMapping[ActionsEntry]]?:
 			| ActionHandler<ActionsMapping[ActionsEntry][P], ActionsMapping, EventsMapping>
 			| ActionSchema<ActionsMapping[ActionsEntry][P], ActionsMapping, EventsMapping>
