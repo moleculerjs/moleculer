@@ -28,11 +28,11 @@ declare namespace Moleculer {
 	}
 
 	interface LoggerBindings {
-		nodeID: string;
-		ns: string;
-		mod: string;
-		svc: string;
-		ver: string | void;
+  		nodeID: string;
+  		ns: string;
+  		mod: string;
+  		svc: string;
+  		ver: string | void;
 	}
 
 	class LoggerInstance {
@@ -437,10 +437,14 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
+	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
+	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
+	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+
 	interface ActionHooks {
-		before?: (ctx: Context<any, any>) => Promise<void> | void;
-		after?: (ctx: Context<any, any>, res: any) => Promise<any> | any;
-		error?: (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+		before?: string | ActionHookBefore | Array<string | ActionHookBefore>;
+		after?: string | ActionHookAfter | Array<string | ActionHookAfter>;
+		error?: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
 	interface ActionSchema {
@@ -527,6 +531,8 @@ declare namespace Moleculer {
 
 		needAck: boolean | null;
 		ackID: string | null;
+
+		locals: GenericObject;
 
 		level: number;
 
@@ -624,16 +630,22 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
+	interface ServiceHooksBefore {
+		[key: string]: string | ActionHookBefore | Array<string | ActionHookBefore>;
+	}
+
+	interface ServiceHooksAfter {
+		[key: string]: string | ActionHookAfter | Array<string | ActionHookAfter>;
+	}
+
+	interface ServiceHooksError {
+		[key: string]: string | ActionHookError | Array<string | ActionHookError>;
+	}
+
 	interface ServiceHooks {
-		before?: {
-			[key: string]: ((ctx: Context<any, any>) => Promise<void> | void) | string | string[]
-		},
-		after?: {
-			[key: string]: ((ctx: Context<any, any>, res: any) => Promise<any> | any) | string | string[]
-		},
-		error?: {
-			[key: string]: ((ctx: Context<any, any>, err: Error) => Promise<void> | void) | string | string[]
-		},
+		before?: ServiceHooksBefore,
+		after?: ServiceHooksAfter,
+		error?: ServiceHooksError,
 	}
 
 	interface ServiceDependency {
@@ -1102,7 +1114,7 @@ declare namespace Moleculer {
 
 		interface Packet {
 			type: PACKET_UNKNOWN | PACKET_EVENT | PACKET_DISCONNECT | PACKET_DISCOVER |
-				PACKET_INFO | PACKET_HEARTBEAT | PACKET_REQUEST | PACKET_PING | PACKET_PONG | PACKET_RESPONSE | PACKET_GOSSIP_REQ | PACKET_GOSSIP_RES | PACKET_GOSSIP_HELLO;
+			PACKET_INFO | PACKET_HEARTBEAT | PACKET_REQUEST | PACKET_PING | PACKET_PONG | PACKET_RESPONSE | PACKET_GOSSIP_REQ | PACKET_GOSSIP_RES | PACKET_GOSSIP_HELLO;
 			target?: string;
 			payload: PacketPayload
 		}
