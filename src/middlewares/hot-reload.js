@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const path = require("path");
 const _ = require("lodash");
 
-const { clearRequireCache, makeDirs, isFunction } = require("../utils");
+const { clearRequireCache, makeDirs, isFunction, isString } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -21,6 +21,7 @@ module.exports = function HotReloadMiddleware(broker) {
 	let projectFiles = new Map();
 	let prevProjectFiles = new Map();
 	let hotReloadModules = [];
+	let extraFiles = null;
 
 	function hotReloadService(service) {
 		const relPath = path.relative(process.cwd(), service.__filename);
@@ -49,10 +50,24 @@ module.exports = function HotReloadMiddleware(broker) {
 		projectFiles = new Map();
 
 		// Read the main module
-		const mainModule = process.mainModule;
+		const mainModule = process.mainModule || require.main;
 
 		// Process the whole module tree
 		processModule(mainModule, null, 0, null);
+
+		if (extraFiles != null) {
+			Object.entries(extraFiles).forEach(([fName, restartType]) => {
+				const watchItem = getWatchItem(fName);
+				if (restartType == "broker")
+					watchItem.brokerRestart = true;
+				else if (restartType == "allServices")
+					watchItem.allServices = true;
+				else if (isString(restartType))
+					watchItem.services.push(restartType);
+				else if (Array.isArray(restartType))
+					watchItem.services.push(...restartType);
+			});
+		}
 
 		const needToReload = new Set();
 
@@ -317,9 +332,25 @@ module.exports = function HotReloadMiddleware(broker) {
 		started(broker) {
 			if (broker.options.hotReload == null) {
 				return;
-			} else if (typeof broker.options.hotReload === 'object') {
+			} else if (typeof broker.options.hotReload === "object") {
 				if (Array.isArray(broker.options.hotReload.modules)) {
 					hotReloadModules = broker.options.hotReload.modules.map(moduleName => `/node_modules/${moduleName}/`);
+				}
+				if (broker.options.hotReload.extraFiles) {
+					/**
+					 * **Example:**
+					 * ```js
+					 * hotReload: {
+					 * 	extraFiles: {
+					 * 		"./configuration.json": "broker", // reload the broker
+					 * 		"./common.js": "allServices", // reload all services
+					 * 		"./database": "v1.posts", // reload a service
+					 * 		"./database": ["v1.posts", "users"], // reload multiple services
+					 * 	}
+					 * }
+					 * ```
+					 */
+					extraFiles = broker.options.hotReload.extraFiles;
 				}
 			} else if (broker.options.hotReload !== true) {
 				return;

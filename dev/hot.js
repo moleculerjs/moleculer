@@ -7,7 +7,12 @@ let broker = new ServiceBroker({
 	nodeID: "hot",
 	//transporter: "TCP",
 	logLevel: "debug",
-	hotReload: true
+	hotReload: {
+		enabled: true,
+		extraFiles: {
+			"./README.md": "allServices"
+		}
+	}
 });
 
 broker.start().then(() => {
@@ -40,7 +45,6 @@ broker.start().then(() => {
 
 */
 	broker.loadService("./examples/hot.service");
-	broker.loadService("./dev/empty.service");
 	//broker.loadService("./examples/math.service.js");
 	//broker.loadService("./examples/user.service.js");
 

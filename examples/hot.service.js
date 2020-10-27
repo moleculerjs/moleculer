@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-	name: "test",
+	name: "hot",
 	metadata: {
 		scalable: true,
 		priority: 5
