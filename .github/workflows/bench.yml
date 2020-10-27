@@ -7,15 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 12.x
+    - name: Use Node.js 14.x
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 14.x
     - run: npm ci
     - name: Worker info
       run: |
         cat /proc/cpuinfo
-        cat /proc/meminfo      
+        cat /proc/meminfo
     - run: npm run bench common
       env:
         CI: true

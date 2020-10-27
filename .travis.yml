@@ -3,6 +3,7 @@ sudo: false
 dist: xenial
 
 node_js:
+    - "15"
     - "14"
     - "12"
     - "10"
