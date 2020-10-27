@@ -344,6 +344,7 @@ declare namespace Moleculer {
 		labelNames?: Array<string>;
 		unit?: string;
 		aggregator?: string;
+		[key: string]: unknown;
 	}
 
 	interface MetricListOptions {
@@ -1223,7 +1224,8 @@ declare namespace Moleculer {
 		MsgPack: Serializer,
 		ProtoBuf: Serializer,
 		Thrift: Serializer,
-		Notepack: Serializer
+		Notepack: Serializer,
+		resolve: (type: string | GenericObject | Serializer) => Serializer,
 	};
 
 	class BaseValidator {
@@ -1281,8 +1283,8 @@ declare namespace Moleculer {
 		heartbeatReceived(nodeID:string, payload:GenericObject): void;
 		processRemoteNodeInfo(nodeID:string, payload:GenericObject): BrokerNode;
 		sendHeartbeat(): Promise<void>;
-		discoverNode(nodeID: string): Promise<void>;
-		discoverAllNodes(): Promise<void>;
+		discoverNode(nodeID: string): Promise<BrokerNode | void>;
+		discoverAllNodes(): Promise<BrokerNode[] | void>;
 		localNodeReady(): Promise<void>;
 		sendLocalNodeInfo(nodeID: string): Promise<void>;
 		localNodeDisconnected(): Promise<void>;
@@ -1418,7 +1420,7 @@ declare namespace Moleculer {
 		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
 		discoverNodes(): Promise<void>;
 		discoverNode(nodeID: string): Promise<void>;
-		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
+		sendNodeInfo(info: BrokerNode, nodeID?: string): Promise<void | Array<void>>;
 		sendPing(nodeID: string, id?: string): Promise<void>;
 		sendPong(payload: GenericObject): Promise<void>;
 		processPong(payload: GenericObject): void;
