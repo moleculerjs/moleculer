@@ -88,8 +88,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
-| `services` | `object` | ✔ | Services list. (*) |
-| `config` | `object` | ✔ | Client configuration. (*) |
+| `services` | `object` | ✔ | Services list. (\*) |
+| `config` | `object` | ✔ | Client configuration. (\*) |
 | `instanceID` | `string` | ✔ | Instance ID |
 | `ipList` | `[string]` | ✔ | IP address list of node |
 | `hostname` | `string` | ✔ | Hostname of node |
@@ -97,9 +97,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 |   `client.type` | `string` | ✔ | Type of client implementation(`nodejs`, `java`, `go`) |
 |   `client.version` | `string` | ✔ | Client (Moleculer) version |
 |   `client.langVersion` | `string` | ✔ | NodeJS/Java/Go version |
-| `metadata` | `object` | ✔ | Node-specific metadata. (*) |
+| `metadata` | `object` | ✔ | Node-specific metadata. (\*) |
 
-> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 ### `HEARTBEAT`
 
@@ -131,9 +131,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
-| `params` | `object` |   | `ctx.params` object. (**) |
-| `paramsType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
-| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `params` | `object` |   | `ctx.params` object. (\*\*) |
+| `paramsType` | `enum` | ✔ | Data type of `ctx.params`. (\*\*\*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (\*) |
 | `timeout` | `double` | ✔ | Request timeout (distributed) in milliseconds. |
 | `level` | `int32` | ✔ | Level of request. |
 | `tracing` | `boolean` | ✔ | Need to send tracing events. |
@@ -143,9 +143,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `stream` | `boolean` | ✔ | Stream request. |
 | `seq` | `int32` |   | Stream sequence number. |
 
-> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
-> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
-> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
+> (\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (\*\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (\*\*) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `RESPONSE`
 
@@ -161,16 +161,16 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
-| `data` | `object` |  | Response data if success. (**) |
-| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
-| `error` | `object` |  | Error object if not success. (*) |
-| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `data` | `object` |  | Response data if success. (\*\*) |
+| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (\*\*\*) |
+| `error` | `object` |  | Error object if not success. (\*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (\*) |
 | `stream` | `boolean` | ✔ | Stream request. |
 | `seq` | `int32` |   | Stream sequence number. |
 
-> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
-> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
-> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
+> (\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (\*\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (\*\*) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `EVENT`
 
@@ -187,9 +187,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
-| `data` | `object` |   | Event payload. (**) |
-| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
-| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `data` | `object` |   | Event payload. (\*\*) |
+| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (\*\*\*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (\*) |
 | `level` | `int32` | ✔ | Level of event. |
 | `tracing` | `boolean` | ✔ | Need to send tracing events. |
 | `parentID` | `string` |  | Parent context ID. |
@@ -200,9 +200,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `groups` | `Array<string>` |   | Groups for balanced events. |
 | `broadcast` | `boolean` | ✔ | Broadcast event |
 
-> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
-> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
-> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
+> (\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (\*\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (\*\*) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `EVENTACK`
 ___Not implemented yet.___
@@ -220,9 +220,9 @@ ___Not implemented yet.___
 | `id` | `string` | ✔ | Event Context ID. |
 | `success` | `boolean` | ✔ | Is it successful? |
 | `group` | `string` |  | Group of event handler. |
-| `error` | `object` |  | Error object if not success. (*) |
+| `error` | `object` |  | Error object if not success. (\*) |
 
-> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (\*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 
 ### `PING`
@@ -239,9 +239,9 @@ ___Not implemented yet.___
 | `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Message ID. |
-| `time` | `int64` | ✔ | Time of sent. (*) |
+| `time` | `int64` | ✔ | Time of sent. (\*) |
 
-> (*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
+> (\*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
 
 ### `PONG`
 
@@ -256,10 +256,10 @@ ___Not implemented yet.___
 | `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Message ID. |
-| `time` | `int64` | ✔ | Timestamp of sent. (*) |
-| `arrived` | `int64` | ✔ | Timestamp of arrived. (*) |
+| `time` | `int64` | ✔ | Timestamp of sent. (\*) |
+| `arrived` | `int64` | ✔ | Timestamp of arrived. (\*) |
 
-> (*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
+> (\*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
 
 ### `DISCONNECT`
 
