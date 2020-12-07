@@ -42,7 +42,7 @@ function resolve(opt) {
 		if (CacherClass)
 			return new CacherClass();
 
-		if (opt.startsWith("redis://"))
+		if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
 			CacherClass = Cachers.Redis;
 
 		if (CacherClass)
