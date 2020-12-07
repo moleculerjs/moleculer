@@ -27,6 +27,12 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 
 **Documentation**: [https://moleculer.services/docs](https://moleculer.services/docs)
 
+# Top sponsors
+
+<div align="center">
+<a href="https://www.server-eye.de/" target="_blank"><img alt="Server-Eye" src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="400px" height="auto" /></a>
+</div>
+
 # What's included
 
 - Promise-based solution (async/await compatible)
