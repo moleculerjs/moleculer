@@ -44,7 +44,16 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context<any, any>) => Promise<T> | T) & ThisType<Service>;
+	type ActionHandler<
+		F extends ActionsMappingFunction = never,
+		ActionsMapping extends ActionsMappingBase = never,
+		EventsMapping extends EventsMappingBase = never
+	> = [F] extends [never]
+		? ((ctx: Context<any, any, ActionsMapping, EventsMapping>) => Promise<any> | any) &
+			ThisType<Service>
+		: ((ctx: Context<Parameters<F>[0], any, ActionsMapping, EventsMapping>) => Promise<ReturnType<F>> | ReturnType<F>) &
+			ThisType<Service>;
+
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
@@ -447,13 +456,17 @@ declare namespace Moleculer {
 		error?: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
-	interface ActionSchema {
+	type ActionSchema<
+		F extends ActionsMappingFunction = never,
+		ActionsMapping extends ActionsMappingBase = never,
+		EventsMapping extends EventsMappingBase = never
+	> = {
 		name?: string;
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler?: ActionHandler;
+		handler?: ActionHandler<F, ActionsMapping, EventsMapping>;
 		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
@@ -461,8 +474,16 @@ declare namespace Moleculer {
 		fallback?: string | FallbackHandler;
 		hooks?: ActionHooks;
 
-		[key: string]: any;
-	}
+		// See https://github.com/moleculerjs/moleculer/issues/467#issuecomment-705583471
+		[key: string]:
+			| string
+			| boolean
+			| any[]
+			| number
+			| Record<any, any>
+			| null
+			| undefined;
+	};
 
 	interface EventSchema {
 		name?: string;
@@ -477,7 +498,35 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
-	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler | boolean; };
+	// Resolves to the first member of a tuple
+	type First<T extends unknown[]> = T extends [infer U, ...(infer _)] ? U : never;
+
+	// Resolves to Default if any of the types in Tests are never.
+	// Otherwise, resolves to "ok"
+	type DefaultIfNever<Default, Tests extends unknown[]> = Tests extends []
+		? "ok"
+		: First<Tests> extends never
+		? Default
+		: Tests extends [any, ...(infer Rest)]
+		? DefaultIfNever<Default, Rest>
+		: Default;
+
+	type ServiceActionsSchema<
+		ActionsMapping extends ActionsMappingBase = never,
+		ActionsEntry extends keyof ActionsMapping = never,
+		EventsMapping extends EventsMappingBase = never,
+	> = [DefaultIfNever<never, [ActionsMapping, ActionsEntry]>] extends [never]
+	? {
+		[key: string]: 
+			| ActionHandler<never, ActionsMapping, EventsMapping>
+			| ActionSchema<never, ActionsMapping, EventsMapping>
+			| boolean;
+	} : {
+		[P in keyof ActionsMapping[ActionsEntry]]?:
+			| ActionHandler<ActionsMapping[ActionsEntry][P], ActionsMapping, EventsMapping>
+			| ActionSchema<ActionsMapping[ActionsEntry][P], ActionsMapping, EventsMapping>
+			| boolean;
+	};
 
 	class BrokerNode {
 		id: string;
@@ -507,17 +556,82 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = unknown, M extends object = {}> {
-		constructor(broker: ServiceBroker, endpoint: Endpoint);
+	// Removes a level inside the object of objects by concatenating the keys.
+	// Requires TypeScript >= 4.1
+	type ConcatenateProps<A extends ActionsMappingBase, K extends keyof A & string> = {
+		[P in keyof A[K] & string as `${K}.${P}`]: A[K][P];
+	};
+
+	// Converts a type union into a type intersection
+	type UnionToIntersect<T> = (T extends any ? ((x: T) => 0) : never) extends ((x: infer R) => 0) ? R : never;
+
+	// Return the intersection of each value of properties of T.
+	type IntersectItems<T extends ActionsMappingBase> = UnionToIntersect<T[keyof T]>;
+
+	// Make sure the functions always return promises.
+	type CallerReturnType<T extends ActionsMappingChildren> = {
+		[P in keyof T & string]: (...args: Parameters<T[P]>) => Promise<ReturnType<T[P]>>
+	};
+
+	// CallableActions is the interface where every action is displayed using its fullname.
+	type CallableActions<A extends ActionsMappingBase> = IntersectItems<{
+		[Svc in keyof A & string]: CallerReturnType<ConcatenateProps<A, Svc>>;
+	}>
+
+	// Helpers to filter based on the type of the values in an interface.
+	type KeysOfType<T, Filter, K extends keyof T = keyof T> = K extends (T[K] extends Filter ? K : never) ? K : never;
+	type MembersOfType<T, Filter> = Pick<T, KeysOfType<T, Filter>>;
+	type MembersNotOfType<T, Filter> = Omit<T, KeysOfType<T, Filter>>;
+
+	// Helpers to include or omit the payload depending on the number of parameters the function expects.
+	type CallWithoutPayload<A extends Record<string, () => any>> = <K extends keyof A = keyof A>(actionName: K) => ReturnType<A[K]>;
+	type CallWithPayload<A extends Record<string, (arg: any) => any>> = <K extends keyof A = keyof A>(actionName: K, params: Parameters<A[K]>[0], opts?: CallingOptions) => ReturnType<A[K]>;
+
+	// Units all overloards for the function
+	type Call<
+		A extends ActionsMappingBase,
+		CActions extends CallableActions<A> = CallableActions<A>,
+	> =
+		CallWithoutPayload<MembersOfType<CActions, () => any>> &
+		CallWithPayload<MembersOfType<CActions, (arg: any) => any>>;
+
+	// Not strictly typed call function
+	type LegacyCall = (
+		(<T>(actionName: string) => Promise<T>) &
+		(<T, P>(actionName: string, params: P, opts?: CallingOptions) => Promise<T>)
+	);
+
+	type EmitWithoutPayload<A extends Record<string, void>> = (eventName: keyof A) => Promise<void>;
+	type EmitWithPayload<A extends Record<string, unknown>> = <K extends keyof A = keyof A>(eventName: K, data: A[K]) => Promise<void>;
+	
+	type Emit<Events extends EventsMappingBase> = EmitWithoutPayload<MembersOfType<Events, void>> & EmitWithPayload<MembersNotOfType<Events, void>>;
+
+	// Not strictly typed call function
+	type LegacyEmit = (
+		(<D>(eventName: string, data: D, opts: GenericObject) => Promise<void>) &
+		(<D>(eventName: string, data: D, groups: Array<string>) => Promise<void>) &
+		(<D>(eventName: string, data: D, groups: string) => Promise<void>) &
+		(<D>(eventName: string, data: D) => Promise<void>) &
+		((eventName: string) => Promise<void>)
+	);
+
+
+	class Context<
+		P = unknown,
+		M extends object = {},
+		ActionsMapping extends ActionsMappingBase = never,
+		EventsMapping extends EventsMappingBase = never,
+	> {
+		constructor(broker: ServiceBroker<ActionsMapping, EventsMapping>, endpoint: Endpoint);
 		id: string;
-		broker: ServiceBroker;
+		broker: ServiceBroker<ActionsMapping, EventsMapping>;
 		endpoint: Endpoint | null;
 		action: ActionSchema | null;
 		event: EventSchema | null;
 		service: Service | null;
 		nodeID: string | null;
 
-		eventName: string | null;
+		eventName: ([EventsMapping] extends [never] ? string : keyof EventsMapping) | null;
 		eventType: string | null;
 		eventGroups: Array<string> | null;
 
@@ -545,22 +659,15 @@ declare namespace Moleculer {
 
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
-		call<T>(actionName: string): Promise<T>;
-		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: CallingOptions): Promise<Array<T> | T>;
+		call: [ActionsMapping] extends [never] ? LegacyCall : Call<ActionsMapping>;
+		emit: [EventsMapping] extends [never] ? LegacyEmit : Emit<EventsMapping>;
+		broadcast: [EventsMapping] extends [never] ? LegacyEmit : Emit<EventsMapping>;
 
-		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
-		emit<D>(eventName: string, data: D, groups: string): Promise<void>;
-		emit<D>(eventName: string, data: D): Promise<void>;
-		emit(eventName: string): Promise<void>;
-
-		broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-		broadcast<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
-		broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
-		broadcast<D>(eventName: string, data: D): Promise<void>;
-		broadcast(eventName: string): Promise<void>;
+		mcall<T>(
+			def: Array<MCallDefinition> | { [name: string]: MCallDefinition },
+			opts?: CallingOptions,
+		): Promise<Array<T> | T>;
 
 		copy(endpoint: Endpoint): this;
 		copy(): this;
@@ -585,21 +692,61 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventLegacyHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
+	type ServiceEventLegacyHandler<
+		EventsMapping extends EventsMappingBase = never,
+		EventName extends keyof EventsMapping = never,
+		ActionsMapping extends ActionsMappingBase = never
+	> = [DefaultIfNever<never, [EventName, EventsMapping]>] extends [never]
+		? ((
+			payload: any,
+			sender: string,
+			eventName: string,
+			ctx: Context,
+		) => void) & ThisType<Service>
+		: ((
+			payload: EventsMapping[EventName],
+			sender: string,
+			eventName: EventName,
+			ctx: Context<EventsMapping[EventName], any, ActionsMapping, EventsMapping>,
+		) => void) & ThisType<Service>;
 
-	type ServiceEventHandler = ((ctx: Context) => void) & ThisType<Service>;
+	type ServiceEventHandler<
+		EventsMapping extends EventsMappingBase = never,
+		EventName extends keyof EventsMapping = never,
+		ActionsMapping extends ActionsMappingBase = never
+	> = [DefaultIfNever<never, [EventName, EventsMapping]>] extends [never]
+		? ((ctx: Context) => void) & ThisType<Service>
+		: ((ctx: Context<EventsMapping[EventName], any, ActionsMapping, EventsMapping>) => void) & ThisType<Service>;
 
-	interface ServiceEvent {
+	type ServiceEvent<
+		EventsMapping extends EventsMappingBase = never,
+		EventName extends keyof EventsMapping = never,
+		ActionsMapping extends ActionsMappingBase = never
+	> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;
-		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
+		handler?:
+			| ServiceEventHandler<EventsMapping, EventName, ActionsMapping> 
+			| ServiceEventLegacyHandler<EventsMapping, EventName, ActionsMapping>;
 	}
 
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent };
+	type ServiceEvents<
+		EventsMapping extends EventsMappingBase = never,
+		ActionsMapping extends ActionsMappingBase = never
+	> = [EventsMapping] extends [never]
+		? {
+			[key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent;
+		}
+		: {
+			[P in keyof EventsMapping]?:
+				| ServiceEventHandler<EventsMapping, P, ActionsMapping>
+				| ServiceEventLegacyHandler<EventsMapping, P, ActionsMapping>
+				| ServiceEvent<EventsMapping, P, ActionsMapping>
+		};
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
@@ -653,18 +800,30 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	interface ServiceSchema<S = ServiceSettingSchema> {
+	// Types used to represent the mapping and its components
+	type ActionsMappingFunction = ((params: any) => unknown) | (() => unknown);
+	type ActionsMappingChildren = Record<string, ActionsMappingFunction>;
+	type ActionsMappingBase = Record<string, ActionsMappingChildren>;
+
+	type EventsMappingBase = Record<string, any>;
+
+	interface ServiceSchema<
+		S = ServiceSettingSchema,
+		ActionsMapping extends ActionsMappingBase = never,
+		ActionsEntry extends keyof ActionsMapping = never,
+		EventsMapping = never,
+	> {
 		name: string;
 		version?: string | number;
-		settings?: S;
+		settings?: [S] extends [never] ? ServiceSettingSchema : S;
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
 		metadata?: GenericObject;
-		actions?: ServiceActionsSchema;
+		actions?: ServiceActionsSchema<ActionsMapping, ActionsEntry, EventsMapping>;
 		mixins?: Array<Partial<ServiceSchema>>;
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
-		events?: ServiceEvents;
+		events?: ServiceEvents<EventsMapping, ActionsMapping>;
 		created?: (() => void) | Array<() => void>;
 		started?: (() => Promise<void>) | Array<() => Promise<void>>;
 		stopped?: (() => Promise<void>) | Array<() => Promise<void>>;
@@ -678,10 +837,15 @@ declare namespace Moleculer {
 		[name: string]: ServiceAction;
 	}
 
-	class Service<S = ServiceSettingSchema> implements ServiceSchema {
-		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
+	class Service<
+		S = ServiceSettingSchema,
+		ActionsMapping extends ActionsMappingBase = never,
+		ActionsEntry extends keyof ActionsMapping = never,
+		EventsMapping extends EventsMappingBase = never,
+	> implements ServiceSchema {
+		constructor(broker: ServiceBroker<ActionsMapping, EventsMapping>, schema?: ServiceSchema<S, ActionsMapping, ActionsEntry, EventsMapping>);
 
-		protected parseServiceSchema(schema: ServiceSchema<S>): void;
+		protected parseServiceSchema(schema: ServiceSchema<S, ActionsMapping, ActionsEntry, EventsMapping>): void;
 
 		name: string;
 		fullName: string;
@@ -689,9 +853,9 @@ declare namespace Moleculer {
 		settings: S;
 		metadata: GenericObject;
 		dependencies: string | ServiceDependency | Array<string | ServiceDependency>;
-		schema: ServiceSchema<S>;
-		originalSchema: ServiceSchema<S>;
-		broker: ServiceBroker;
+		schema: ServiceSchema<S, ActionsMapping, ActionsEntry, EventsMapping>;
+		originalSchema: ServiceSchema<S, ActionsMapping, ActionsEntry, EventsMapping>;
+		broker: ServiceBroker<ActionsMapping, EventsMapping>;
 		logger: LoggerInstance;
 		actions: ServiceActions;
 		Promise: PromiseConstructorLike;
@@ -959,8 +1123,10 @@ declare namespace Moleculer {
 		removeIfExist(command:string): void;
 	}
 
-
-	class ServiceBroker {
+	class ServiceBroker<
+		ActionsMapping extends ActionsMappingBase = never,
+		EventsMapping extends EventsMappingBase = never
+	> {
 		constructor(options?: BrokerOptions);
 
 		options: BrokerOptions;
@@ -1023,28 +1189,15 @@ declare namespace Moleculer {
 
 		findNextActionEndpoint(actionName: string, opts?: GenericObject, ctx?: Context): ActionEndpoint | Errors.MoleculerRetryableError;
 
-		call<T>(actionName: string): Promise<T>;
-		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
+		call: [ActionsMapping] extends [never] ? LegacyCall : Call<ActionsMapping>;
+		emit: [EventsMapping] extends [never] ? LegacyEmit : Emit<EventsMapping>;
+		broadcast: [EventsMapping] extends [never] ? LegacyEmit : Emit<EventsMapping>;
+		broadcastLocal: [EventsMapping] extends [never] ? LegacyEmit : Emit<EventsMapping>;
 
-		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: CallingOptions): Promise<Array<T> | T>;
-
-		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
-		emit<D>(eventName: string, data: D, groups: string): Promise<void>;
-		emit<D>(eventName: string, data: D): Promise<void>;
-		emit(eventName: string): Promise<void>;
-
-		broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-		broadcast<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
-		broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
-		broadcast<D>(eventName: string, data: D): Promise<void>;
-		broadcast(eventName: string): Promise<void>;
-
-		broadcastLocal<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-		broadcastLocal<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
-		broadcastLocal<D>(eventName: string, data: D, groups: string): Promise<void>;
-		broadcastLocal<D>(eventName: string, data: D): Promise<void>;
-		broadcastLocal(eventName: string): Promise<void>;
+		mcall<T>(
+			def: Array<MCallDefinition> | { [name: string]: MCallDefinition },
+			opts?: CallingOptions,
+		): Promise<Array<T> | T>;
 
 		ping(): Promise<PongResponses>;
 		ping(nodeID: string | Array<string>, timeout?: number): Promise<PongResponse>;
