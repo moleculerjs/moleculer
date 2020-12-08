@@ -191,6 +191,10 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 describe("Test NodeCatalog.disconnected", () => {
 	const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	const catalog = new NodeCatalog(broker.registry, broker);
+	catalog.logger = {
+		info: jest.fn(),
+		warn: jest.fn(),
+	};
 	broker.registry.unregisterServicesByNode = jest.fn();
 	broker.broadcastLocal = jest.fn();
 	broker.transit.removePendingRequestByNodeID = jest.fn();
@@ -205,6 +209,11 @@ describe("Test NodeCatalog.disconnected", () => {
 	catalog.processNodeInfo(payload);
 	const node = catalog.get("node-11");
 	node.disconnected = jest.fn();
+
+	beforeEach(() => {
+		catalog.logger.info.mockClear();
+		catalog.logger.warn.mockClear();
+	});
 
 	it("should call disconnected & unregister services", () => {
 		broker.broadcastLocal.mockClear();
@@ -229,6 +238,10 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledTimes(1);
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);
+
+		expect(catalog.logger.info).toHaveBeenCalledTimes(1);
+		expect(catalog.logger.info).toHaveBeenCalledWith("Node 'node-11' disconnected.");
+		expect(catalog.logger.warn).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call disconnected & unregister services (unexpected)", () => {
@@ -253,6 +266,10 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledTimes(1);
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);
+
+		expect(catalog.logger.info).toHaveBeenCalledTimes(0);
+		expect(catalog.logger.warn).toHaveBeenCalledTimes(1);
+		expect(catalog.logger.warn).toHaveBeenCalledWith("Node 'node-11' disconnected unexpectedly.");
 	});
 });
 
