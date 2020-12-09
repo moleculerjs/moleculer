@@ -194,7 +194,10 @@ class NodeCatalog {
 
 			this.registry.updateMetrics();
 
-			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? " unexpectedly" : ""}.`);
+			if (isUnexpected)
+				this.logger.warn(`Node '${node.id}' disconnected unexpectedly.`);
+			else
+				this.logger.info(`Node '${node.id}' disconnected.`);
 
 			if (this.broker.transit)
 				this.broker.transit.removePendingRequestByNodeID(nodeID);
