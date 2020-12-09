@@ -78,6 +78,8 @@ class EventTraceExporter extends BaseTraceExporter {
 	 */
 	spanStarted(span) {
 		if (this.opts.sendStartSpan) {
+			if (span.tags.eventName == this.opts.eventName) return;
+
 			this.queue.push(span);
 			if (!this.timer)
 				this.flush();
@@ -92,6 +94,8 @@ class EventTraceExporter extends BaseTraceExporter {
 	 */
 	spanFinished(span) {
 		if (this.opts.sendFinishSpan) {
+			if (span.tags.eventName == this.opts.eventName) return;
+
 			this.queue.push(span);
 			if (!this.timer)
 				this.flush();

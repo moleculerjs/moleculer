@@ -1,49 +1,37 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
-	validator: {
-		type: "Fastest",
-		options: {
-			messages: {
-				required: "Missing field!"
-			}
-		}
-	}
+	tracing: {
+		enabled: true,
+		sampling: {
+			rate: 1.0,
+		},
+		events: true,
+		exporter: {
+			type: "Event",
+		},
+	},
 });
 
 broker.createService({
 	name: "greeter",
 	actions: {
 		welcome: {
-			/*params: {
-				name: "string"
-			},*/
 			handler(ctx) {
 				return `Hello ${ctx.params.name}`;
-			}
-		}
+			},
+		},
 	},
-
-	merged(schema) {
-		this.broker.logger.info("Service merged. I can modify the schema before service registration.");
-		schema.actions.welcome.params = { name: "string" };
+	events: {
+		"$tracing.spans"(ctx) {
+			this.logger.info("Span event received", ctx.params);
+		},
 	},
-
-	created() {
-		this.logger.info("Service created.");
-	},
-
-	started() {
-		this.logger.info("Service started.");
-	},
-
-	stopped() {
-		this.logger.info("Service stopped.");
-	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => broker.call("greeter.welcome", { name: "Icebob" }))
-	.then(res => broker.logger.info("Result:", res))
-	.catch(err => broker.logger.error(err));
+	.then((res) => broker.logger.info("Result:", res))
+	.catch((err) => broker.logger.error(err));

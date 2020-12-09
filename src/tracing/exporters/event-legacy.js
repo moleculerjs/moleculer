@@ -41,6 +41,8 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	spanStarted(span) {
+		if (span.tags.eventName == "metrics.trace.span.start" || span.tags.eventName == "metrics.trace.span.finish") return;
+
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.start", payload);
 	}
@@ -52,6 +54,8 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @memberof EventLegacyTraceExporter
 	 */
 	spanFinished(span) {
+		if (span.tags.eventName == "metrics.trace.span.start" || span.tags.eventName == "metrics.trace.span.finish") return;
+
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.finish", payload);
 	}
