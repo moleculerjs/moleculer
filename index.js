@@ -16,6 +16,7 @@ const {
 module.exports = {
 	ServiceBroker: require("./src/service-broker"),
 	Loggers: require("./src/loggers"),
+	BaseLogger: require('./src/loggers').Base,
 	Service: require("./src/service"),
 	Context: require("./src/context"),
 
