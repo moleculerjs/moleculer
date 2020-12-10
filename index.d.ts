@@ -785,7 +785,7 @@ declare namespace Moleculer {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: BaseLogger | LoggerConfig | Array<LoggerConfig> | boolean;
+		logger?: Loggers.Base | LoggerConfig | Array<LoggerConfig> | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
 
 		transporter?: Transporter | string | GenericObject;
@@ -959,12 +959,16 @@ declare namespace Moleculer {
 		removeIfExist(command:string): void;
 	}
 
-	class BaseLogger {
-		constructor(opts?: GenericObject);
-		init(loggerFactory: LoggerFactory): void
-		stop(): void;
-		getLogLevel(mod: string)
-		getLogHandler(bindings: GenericObject) 
+
+
+	namespace Loggers {
+		class Base {
+			constructor(opts?: GenericObject);
+			init(loggerFactory: LoggerFactory): void
+			stop(): void;
+			getLogLevel(mod: string): string
+			getLogHandler(bindings: GenericObject): GenericObject
+		}
 	}
 
 	class ServiceBroker {
