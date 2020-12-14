@@ -277,7 +277,7 @@ describe("Test LoggerFactory", () => {
 
 		it("should call log handlers middlewares", () => {
 			broker.middlewares.add({ newLogEntry: jest.fn() });
-			broker.middlewares.callSyncHandlers = jest.fn();
+			jest.spyOn(broker.middlewares, "callSyncHandlers");
 
 			const handler1 = jest.fn();
 			const handler2 = jest.fn();
@@ -301,6 +301,21 @@ describe("Test LoggerFactory", () => {
 
 			expect(handler2).toHaveBeenCalledTimes(1);
 			expect(handler2).toHaveBeenCalledWith("info", ["message", { a: 5 }]);
+		});
+
+		it("should call log handlers middlewares without appenders", () => {
+			const newLogEntry = jest.fn();
+			broker.middlewares.add({ newLogEntry });
+
+			loggerFactory.appenders = [];
+
+			const bindings = { mod: "posts", nodeID: "node-1" };
+			const logger = loggerFactory.getLogger(bindings);
+
+			logger.info("message", { a: 5 });
+
+			expect(newLogEntry).toHaveBeenCalledTimes(1);
+			expect(newLogEntry).toHaveBeenCalledWith("info", ["message", { a: 5 }], bindings);
 		});
 	});
 
