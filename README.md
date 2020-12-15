@@ -30,6 +30,11 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 # Top sponsors
 
 <div align="center">
+<a href="https://hugoapp.com/" target="_blank"><img alt="Server-Eye" src="https://avatars0.githubusercontent.com/u/75847060?s=400&u=75219c659d29199b8f77717e196ea3a785cd20a5&v=4" width="200px" height="auto" /></a>
+</div>
+
+
+<div align="center">
 <a href="https://www.server-eye.de/" target="_blank"><img alt="Server-Eye" src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="400px" height="auto" /></a>
 </div>
 
