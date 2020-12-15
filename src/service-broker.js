@@ -959,26 +959,31 @@ class ServiceBroker {
 		})));
 
 		if (serviceNames.length == 0)
-			return this.Promise.resolve();
+			return this.Promise.resolve({ services: [], statuses: [] });
 
 		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
 
 		const startTime = Date.now();
 		return new this.Promise((resolve, reject) => {
 			const check = () => {
-				const count = serviceNames.filter(fullName => {
-					return this.registry.hasService(fullName);
+				const serviceStatuses = serviceNames.map(serviceName => {
+					return {
+						name: serviceName,
+						available: this.registry.hasService(serviceName),
+					}
 				});
 
-				if (count.length == serviceNames.length) {
+				const availableServiceCount = serviceStatuses.filter(s => s.available).length;
+
+				if (availableServiceCount == serviceNames.length) {
 					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
-					return resolve();
+					return resolve({ services: serviceNames, statuses: serviceStatuses });
 				}
 
-				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
+				logger.debug(`${availableServiceCount} of ${serviceNames.length} services are available. Waiting further...`);
 
 				if (timeout && Date.now() - startTime > timeout)
-					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
+					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames, statuses: serviceStatuses }));
 
 				setTimeout(check, interval || this.options.dependencyInterval || 1000);
 			};
