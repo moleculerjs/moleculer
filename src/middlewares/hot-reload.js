@@ -96,6 +96,13 @@ module.exports = function HotReloadMiddleware(broker) {
 		// Watching project files
 		broker.logger.debug("");
 		broker.logger.debug(kleur.yellow().bold("Watching the following project files:"));
+
+		projectFiles.forEach((watchItem, fName) => {
+			// Delete if file doesn't exist anymore
+			if (!fs.existsSync(fName))
+				projectFiles.delete(fName);
+		});
+
 		projectFiles.forEach((watchItem, fName) => {
 			const relPath = path.relative(process.cwd(), fName);
 			if (watchItem.brokerRestart)
