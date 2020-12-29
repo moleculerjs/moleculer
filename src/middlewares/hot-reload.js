@@ -74,15 +74,20 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Debounced Service reloader function
 		const reloadServices = _.debounce(() => {
-			needToReload.forEach(svc => {
-				if (svc.__filename && !fs.existsSync(svc.__filename))
-					needToReload.delete(svc);
+			const needToReloadDedup = _.uniqWith([...needToReload], (a, b) => {
+				const ac = typeof a == "string" ? a : a.__filename;
+				const bc = typeof b == "string" ? b : b.__filename;
+				return ac == bc;
 			});
-			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReload.size} service(s)`));
 
-			needToReload.forEach(svc => {
+			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReloadDedup.length} service(s)`));
+
+			needToReloadDedup.forEach(svc => {
 				if (typeof svc == "string")
-					return broker.loadService(svc);
+					if (fs.existsSync(svc))
+						return broker.loadService(svc);
+					else
+						return;
 
 				return hotReloadService(svc);
 			});
@@ -312,6 +317,7 @@ module.exports = function HotReloadMiddleware(broker) {
 								const fileExists = fs.existsSync(filename);
 								if (!isLoaded && fileExists) {
 									// This is a new file. We should wait for the file fully copied.
+									broker.logger.debug("Loading new file: ", path.basename(filename));
 									needToLoad.add(filename);
 									loadServices();
 								}
