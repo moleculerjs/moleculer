@@ -1,11 +1,7 @@
 "use strict";
 
 module.exports = {
-	name: "hot",
-	metadata: {
-		scalable: true,
-		priority: 5
-	},
+	name: "b",
 
 	actions: {
 		hello() {

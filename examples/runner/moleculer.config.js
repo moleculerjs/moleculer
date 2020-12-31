@@ -18,4 +18,5 @@ module.exports = {
 	logger: true,
 	logLevel: "debug",
 	//transporter: "TCP"
+	hotReload: true
 };
