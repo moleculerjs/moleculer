@@ -44,9 +44,7 @@ broker.start().then(() => {
 	}, 20000);
 
 */
-	broker.loadService("./examples/hot.service");
-	//broker.loadService("./examples/math.service.js");
-	//broker.loadService("./examples/user.service.js");
+	broker.loadServices("./dev/hots");
 
 	broker.repl();
 });
