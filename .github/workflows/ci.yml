@@ -7,8 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        #node-version: [10.x, 12.x, 14.x, 15.x]
-        node-version: [14.x]
+        node-version: [10.x, 12.x, 14.x, 15.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,17 +38,17 @@ jobs:
     - name: Execute unit tests
       run: npm run test
 
-    # - name: Execute transporter tests
-    #   run: npm run test:trans
+    - name: Execute transporter tests
+      run: npm run test:trans
 
-    # - name: Execute AMQP tests
-    #   run: npm run test:amqp
+    - name: Execute AMQP tests
+      run: npm run test:amqp
 
-    # - name: Execute NATS tests
-    #   run: npm run test:nats
+    - name: Execute NATS tests
+      run: npm run test:nats
 
-    # - name: Execute Typescript tests
-    #   run: npm run test:ts
+    - name: Execute Typescript tests
+      run: npm run test:ts
 
     - name: Upload code coverage
       run: npm run coverall
