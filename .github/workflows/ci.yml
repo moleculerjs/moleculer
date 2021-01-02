@@ -30,11 +30,11 @@ jobs:
 
     - name: Check containers
       run: docker-compose ps
-      working-directory: ./ci-test
+      working-directory: ./test
 
     - name: Check logs
       run: docker-compose logs
-      working-directory: ./ci-test
+      working-directory: ./test
 
     - name: Execute unit tests
       run: npm run test
@@ -56,4 +56,4 @@ jobs:
 
     - name: Stop containers
       run: npm run dc:down
-      working-directory: ./ci-test
+      working-directory: ./test
