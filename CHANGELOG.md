@@ -1,5 +1,18 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.11...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.12...master)
+
+--------------------------------------------------
+<a name="0.14.12"></a>
+# [0.14.12](https://github.com/moleculerjs/moleculer/compare/v0.14.11...v0.14.12) (2021-01-03)
+
+## Other changes
+- update dependencies
+- improved type definitions. [#816](https://github.com/moleculerjs/moleculer/pull/816) [#817](https://github.com/moleculerjs/moleculer/pull/817) [#834](https://github.com/moleculerjs/moleculer/pull/834) [#840](https://github.com/moleculerjs/moleculer/pull/840)
+- support `rediss://` cacher URI. [#837](https://github.com/moleculerjs/moleculer/pull/837)
+- fix Event Trace exporter generated events loop. [#836](https://github.com/moleculerjs/moleculer/pull/836)
+- change log level of node disconnected message. [#838](https://github.com/moleculerjs/moleculer/pull/838)
+- improve the `broker.waitForServices` response. [#843](https://github.com/moleculerjs/moleculer/pull/843)
+- fix recursive hot-reload issue on Linux OS. [#848](https://github.com/moleculerjs/moleculer/pull/848)
 
 --------------------------------------------------
 <a name="0.14.11"></a>
