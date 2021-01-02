@@ -25,8 +25,8 @@ jobs:
       run: docker-compose up -d
       working-directory: ./test
 
-    - name: Sleeping 30 secs
-      run: sleep 30
+    - name: Sleeping 10 secs
+      run: sleep 10
 
     - name: Check containers
       run: docker-compose ps
@@ -39,20 +39,22 @@ jobs:
     - name: Execute unit tests
       run: npm run test
 
-    - name: Execute transporter tests
-      run: npm run test:trans
+    # - name: Execute transporter tests
+    #   run: npm run test:trans
 
-    - name: Execute AMQP tests
-      run: npm run test:amqp
+    # - name: Execute AMQP tests
+    #   run: npm run test:amqp
 
-    - name: Execute NATS tests
-      run: npm run test:nats
+    # - name: Execute NATS tests
+    #   run: npm run test:nats
 
-    - name: Execute Typescript tests
-      run: npm run test:ts
+    # - name: Execute Typescript tests
+    #   run: npm run test:ts
 
     - name: Upload code coverage
       run: npm run coverall
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
     - name: Stop containers
       run: npm run dc:down
