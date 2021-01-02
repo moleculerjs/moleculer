@@ -3,7 +3,7 @@ name: CI test
 on: [push, pull_request]
 
 jobs:
-  common:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -57,5 +57,5 @@ jobs:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
     - name: Stop containers
-      run: npm run dc:down
+      run: docker-compose down -v
       working-directory: ./test
