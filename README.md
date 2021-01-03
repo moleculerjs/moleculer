@@ -28,14 +28,11 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 
 # Top sponsors
 
-<div align="center">
-<a href="https://hugoapp.com/" target="_blank"><img alt="Server-Eye" src="https://avatars0.githubusercontent.com/u/75847060?s=400&u=75219c659d29199b8f77717e196ea3a785cd20a5&v=4" width="200px" height="auto" /></a>
-</div>
+<table style="text-align:center;"><tr><td>
+<a href="https://hugoapp.com/" target="_blank"><img src="https://avatars0.githubusercontent.com/u/75847060?s=400&u=75219c659d29199b8f77717e196ea3a785cd20a5&v=4" width="200" valign="middle" /></a></td><td>
+<a href="https://www.server-eye.de/" target="_blank"><img src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
+</tr></table>
 
-
-<div align="center">
-<a href="https://www.server-eye.de/" target="_blank"><img alt="Server-Eye" src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="400px" height="auto" /></a>
-</div>
 
 # What's included
 
@@ -56,14 +53,14 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 - pluggable parameter validator
 - multiple services on a node/server
 - master-less architecture, all nodes are equal
-- parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
+- built-in parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - built-in metrics feature with reporters (Console, CSV, Datadog, Event, Prometheus, StatsD)
-- built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin)
+- built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin, NewRelic)
 - official [API gateway](https://github.com/moleculerjs/moleculer-web), [Database access](https://github.com/moleculerjs/moleculer-db) and many other modules...
 
 # Installation
 ```
-$ npm i moleculer --save
+$ npm i moleculer
 ```
 or
 ```
