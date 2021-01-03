@@ -66,7 +66,7 @@ describe("Test NATS transporter", () => {
 			for(let i = 0; i < 6; i++)
 				pub.emit("hello.world2", { testing: true });
 
-			return Promise.delay(2000).catch(protectReject).then(() => {
+			return Promise.delay(4000).catch(protectReject).then(() => {
 				expect(FLOW).toHaveLength(12);
 				expect(FLOW).toEqual(expect.arrayContaining([
 					"event-pub-emit-handler",
@@ -108,7 +108,7 @@ describe("Test NATS transporter", () => {
 			for(let i = 0; i < 10; i++)
 				pub.emit("hello.world2", { testing: true });
 
-			return Promise.delay(2000).catch(protectReject).then(() => {
+			return Promise.delay(4000).catch(protectReject).then(() => {
 				expect(FLOW).toHaveLength(20);
 				expect(FLOW).toEqual(expect.arrayContaining([
 					"event-pub-emit-handler",
