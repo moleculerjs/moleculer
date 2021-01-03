@@ -127,7 +127,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			// Should allow consumers to pull messages as they can handle them.
 			// This means that a single slow node won't slow down everything, or cause requests to be
 			// processed out of order
-			const callShortDelay = (_, i) => client.call("test.hello", { i: i + 1, delay: 20 });
+			const callShortDelay = (_, i) => client.call("test.hello", { i: i + 1, delay: 50 });
 
 			return Promise.all([
 				client.call("test.hello", { i: 0, delay: 3000 }),
@@ -158,7 +158,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			// All broker's should consume from the same queue so that messages aren't abandoned in
 			// node-specific queues, or tried out of order.
 			const crashRequest = () => {
-				return client.call("test.hello", { delay: 20, crash: true })
+				return client.call("test.hello", { delay: 50, crash: true })
 					.catch(err => ({ message: err.message, type: "error" }));
 			};
 
