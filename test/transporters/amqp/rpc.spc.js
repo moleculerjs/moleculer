@@ -61,7 +61,7 @@ const createWorker = (number, disableBalancer, logs, options = {}) => {
 const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) => {
 
 	// Simple function that we use everywhere
-	const callShortDelay = () => client.call("test.hello", { delay: 20 });
+	const callShortDelay = () => client.call("test.hello", { delay: 50 });
 
 	it("Only one node should receive any given request", () => {
 		// Ensure that messages are not broadcast to individual queues.
