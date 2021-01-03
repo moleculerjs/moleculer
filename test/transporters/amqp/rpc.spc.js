@@ -134,7 +134,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 				...Array(8).fill().map(callShortDelay),
 			]).catch(protectReject).then(res => {
 				const slowWorker = logs.find(a => a.params.delay === 3000).worker;
-				const otherWorker = logs.find(a => a.params.delay === 20).worker;
+				const otherWorker = logs.find(a => a.params.delay === 50).worker;
 
 				expect(res).toHaveLength(9);
 
