@@ -17,7 +17,7 @@ services:
       - "1883:1883"
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3.5.7
     ports:
       - "5672:5672"
 
