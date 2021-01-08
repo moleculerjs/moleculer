@@ -5,6 +5,8 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/05ef990fe1ccb3e56067/maintainability)](https://codeclimate.com/github/moleculerjs/moleculer/maintainability)
 [![David](https://img.shields.io/david/moleculerjs/moleculer.svg)](https://david-dm.org/moleculerjs/moleculer)
 [![Known Vulnerabilities](https://snyk.io/test/github/moleculerjs/moleculer/badge.svg)](https://snyk.io/test/github/moleculerjs/moleculer)
+[![Meercode CI Score](https://meercode.io/badge/moleculerjs/moleculer?type=ci-score)](https://meercode.io/moleculerjs/moleculer)
+[![Meercode CI Count](https://meercode.io/badge/moleculerjs/moleculer?type=ci-count)](https://meercode.io/moleculerjs/moleculer)
 [![Discord chat](https://img.shields.io/discord/585148559155003392)](https://discord.gg/TSEcDRP)
 
 [![Downloads](https://img.shields.io/npm/dm/moleculer.svg)](https://www.npmjs.com/package/moleculer)
