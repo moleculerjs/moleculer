@@ -45,7 +45,7 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 					const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
 					return next(cmd, res, s);
 				} catch(e) {
-				
+					this.logger.error(e);
 				}
 			};
 		}
