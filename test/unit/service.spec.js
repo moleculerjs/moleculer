@@ -1925,6 +1925,7 @@ describe("Test Service class", () => {
 			expect(Service.getVersionedFullName("posts")).toBe("posts");
 			expect(Service.getVersionedFullName("posts", 5)).toBe("v5.posts");
 			expect(Service.getVersionedFullName("posts", "testing")).toBe("testing.posts");
+			expect(Service.getVersionedFullName("posts", '5')).toBe("v5.posts");
 		});
 	});
 
