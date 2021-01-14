@@ -479,6 +479,15 @@ declare namespace Moleculer {
 
 	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler | boolean; };
 
+	type ContextMeta<M = unknown> = { [P in keyof M]: M[P] } & {
+		$statusCode?: number;
+		$statusMessage?: string;
+		$responseType?: string;
+		$responseHeaders?: { [key: string]: string | string[] };
+		$location?: string;
+		$multipart?: unknown;
+	};
+
 	class BrokerNode {
 		id: string;
 		instanceID: string | null;
@@ -507,7 +516,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = unknown, M extends object = {}> {
+	class Context<P = unknown, M = {}> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
@@ -537,7 +546,7 @@ declare namespace Moleculer {
 		level: number;
 
 		params: P;
-		meta: M;
+		meta: ContextMeta<M>;
 
 		requestID: string | null;
 
