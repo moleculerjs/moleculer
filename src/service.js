@@ -772,7 +772,7 @@ class Service {
 	 */
 	static getVersionedFullName(name, version) {
 		if (version != null) {
-			if (typeof(version) === 'number' || !isNaN(parseInt(version))) {
+			if (typeof(version) === 'number' || !isNaN(Number(version))) {
 				return `v${version}.${name}`;
 			}
 			return `${version}.${name}`;
