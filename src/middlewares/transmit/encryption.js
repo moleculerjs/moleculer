@@ -40,9 +40,13 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 
 		transporterReceive(next) {
 			return (cmd, data, s) => {
-				const decrypter = iv ? crypto.createDecipheriv(algorithm, password, iv) : crypto.createDecipher(algorithm, password);
-				const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
-				return next(cmd, res, s);
+				try {
+					const decrypter = iv ? crypto.createDecipheriv(algorithm, password, iv) : crypto.createDecipher(algorithm, password);
+					const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
+					return next(cmd, res, s);
+				} catch(e) {
+					this.logger.error(e);
+				}
 			};
 		}
 	};
