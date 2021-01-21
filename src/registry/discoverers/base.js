@@ -150,7 +150,7 @@ class BaseDiscoverer {
 	 * Check all registered remote nodes are available.
 	 */
 	checkRemoteNodes() {
-		if (this.disableHeartbeatChecks) return;
+		if (this.opts.disableHeartbeatChecks) return;
 
 		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {

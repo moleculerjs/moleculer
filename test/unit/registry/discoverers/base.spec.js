@@ -362,7 +362,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		discoverer.disableHeartbeatChecks = true;
+		discoverer.opts.disableHeartbeatChecks = true;
 		node.local = false;
 
 		discoverer.checkRemoteNodes();
