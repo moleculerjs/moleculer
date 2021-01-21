@@ -457,7 +457,7 @@ describe("Test BaseDiscoverer 'checkOfflineNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.delete.mockClear();
 
-		discoverer.disableOfflineNodeRemoving = true;
+		discoverer.opts.disableOfflineNodeRemoving = true;
 		node.local = false;
 
 		discoverer.checkOfflineNodes();
