@@ -150,7 +150,7 @@ class BaseDiscoverer {
 	 * Check all registered remote nodes are available.
 	 */
 	checkRemoteNodes() {
-		if (this.disableHeartbeatChecks) return;
+		if (this.opts.disableHeartbeatChecks) return;
 
 		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
@@ -172,7 +172,7 @@ class BaseDiscoverer {
 	 * Check offline nodes. Remove which is older than 10 minutes.
 	 */
 	checkOfflineNodes() {
-		if (this.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
+		if (this.opts.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
 
 		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
