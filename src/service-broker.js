@@ -10,6 +10,7 @@ const EventEmitter2 		= require("eventemitter2").EventEmitter2;
 const _ 					= require("lodash");
 const glob 					= require("glob");
 const path 					= require("path");
+const { format } 	  = require("util");
 
 const Transit 				= require("./transit");
 const Registry 				= require("./registry");
@@ -973,14 +974,22 @@ class ServiceBroker {
 					}
 				});
 
-				const availableServiceCount = serviceStatuses.filter(s => s.available).length;
+				const availableServices = serviceStatuses.filter(s => s.available);
 
-				if (availableServiceCount == serviceNames.length) {
+				if (availableServices.length == serviceNames.length) {
 					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
 					return resolve({ services: serviceNames, statuses: serviceStatuses });
 				}
 
-				logger.debug(`${availableServiceCount} of ${serviceNames.length} services are available. Waiting further...`);
+				const unavailableServices = serviceStatuses.filter(s => !s.available);
+				logger.debug(format(
+					`%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...`,
+					availableServices.length,
+					availableServices.map(s => s.name).join(', '),
+					serviceNames.length,
+					unavailableServices.length,
+					unavailableServices.map(s => s.name).join(', ')
+				));
 
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames, statuses: serviceStatuses }));
