@@ -22,6 +22,7 @@ module.exports = function HotReloadMiddleware(broker) {
 	let projectFiles = new Map();
 	let prevProjectFiles = new Map();
 	let hotReloadModules = [];
+	let hotReloadFiles = [];
 	let extraFiles = null;
 
 	function hotReloadService(service) {
@@ -55,6 +56,9 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Process the whole module tree
 		processModule(mainModule, null, 0, null);
+
+		// clear processed files list
+		hotReloadFiles = [];
 
 		if (extraFiles != null) {
 			Object.entries(extraFiles).forEach(([fName, restartType]) => {
@@ -230,6 +234,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (parents && parents.indexOf(fName) !== -1)
 			return;
 
+		// enure any circular dependency is not re-processed
+		if (hotReloadFiles.indexOf(fName) !== -1) {
+			return;
+		} else {
+			hotReloadFiles.push(fName);
+		}
 		// console.log(fName);
 
 		// Cache files to avoid cyclic dependencies in node_modules
