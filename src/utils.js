@@ -80,6 +80,10 @@ const utils = {
 		return o !== null && typeof o === "object" && !(o instanceof String);
 	},
 
+	isDate(o) {
+		return o instanceof Date || new Date(o) instanceof Date;
+	},
+
 	isPlainObject(o) {
 		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
