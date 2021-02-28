@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -9,7 +9,7 @@
 const _ 			= require("lodash");
 const crypto		= require("crypto");
 const { METRIC }	= require("../metrics");
-const { isObject, isFunction }	= require("../utils");
+const { isObject, isFunction, isDate }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -220,7 +220,10 @@ class Cacher {
 
 	_generateKeyFromObject(obj) {
 		if (Array.isArray(obj)) {
-			return obj.map(o => this._generateKeyFromObject(o)).join("|");
+			return "[" + obj.map(o => this._generateKeyFromObject(o)).join("|") + "]";
+		}
+		else if (isDate(obj)) {
+			return obj.valueOf();
 		}
 		else if (isObject(obj)) {
 			return Object.keys(obj).map(key => [key, this._generateKeyFromObject(obj[key])].join("|")).join("|");
