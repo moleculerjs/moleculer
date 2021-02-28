@@ -112,7 +112,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(114);
+		expect(s.length).toBe(115);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -140,7 +140,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(131);
+		expect(s.length).toBe(132);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -164,7 +164,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(95);
+		expect(s.length).toBe(96);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -187,7 +187,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(95);
+		expect(s.length).toBe(96);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);

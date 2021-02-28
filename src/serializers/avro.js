@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -36,7 +36,7 @@ function createSchemas() {
 			{ name: "stream", type: [ "null", "boolean"], default: null },
 			{ name: "seq", type: [ "null", "int"], default: null },
 			{ name: "caller", type: [ "null", "string"], default: null },
-			{ name: "needAck", type: "boolean" },
+			{ name: "needAck", type: [ "null", "boolean"], default: null },
 		]
 	});
 
