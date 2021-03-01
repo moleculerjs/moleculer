@@ -90,6 +90,23 @@ describe("Test utils.isFunction", () => {
 	});
 });
 
+
+describe("Test utils.isDate", () => {
+
+	it("should return true for date types", () => {
+		expect(utils.isDate(new Date())).toBe(true);
+
+		expect(utils.isDate(1614529868608)).toBe(false);
+		expect(utils.isDate("Sun Feb 28 2021 17:36:03 GMT+0100 (GMT+01:00)")).toBe(false);
+		expect(utils.isDate({})).toBe(false);
+		expect(utils.isDate([])).toBe(false);
+		expect(utils.isDate(null)).toBe(false);
+		expect(utils.isDate(1)).toBe(false);
+		expect(utils.isDate("string")).toBe(false);
+		expect(utils.isDate(NaN)).toBe(false);
+	});
+});
+
 describe("Test utils.flatten", () => {
 
 	it("should flat the array", () => {

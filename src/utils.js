@@ -84,6 +84,10 @@ const utils = {
 		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
 
+	isDate(d) {
+		return d instanceof Date && !Number.isNaN(d.getTime());
+	},
+
 	flatten(arr) {
 		return Array.prototype.reduce.call(arr, (a, b) => a.concat(b), []);
 	},
