@@ -442,8 +442,14 @@ declare namespace Moleculer {
 		error?: (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 	}
 
+	interface RestSchema{
+		path: string,
+		method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH'
+	}
+
 	interface ActionSchema {
 		name?: string;
+		rest?: RestSchema,
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
