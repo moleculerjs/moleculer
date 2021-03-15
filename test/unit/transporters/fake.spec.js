@@ -1,26 +1,24 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const FakeTransporter = require("../../../src/transporters/fake");
-const { PacketInfo } = require("../../../src/packets");
+const P = require("../../../src/packets");
 
 const { isPromise } = require("../../../src/utils");
 
 
 describe("Test FakeTransporter", () => {
-
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
-	};
+	const broker = new ServiceBroker({ logger: false });
+	const transit = new Transit(broker);
 
 	it("check constructor", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
 		expect(transporter).toBeDefined();
 		expect(transporter.bus).toBeDefined();
 	});
 
 	it("check connect", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
+		transporter.init(transit);
 		let p = transporter.connect();
 		expect(isPromise(p)).toBe(true);
 		expect(transporter.connected).toBe(true);
@@ -28,19 +26,22 @@ describe("Test FakeTransporter", () => {
 	});
 
 	it("check disconnect", () => {
-		let transporter = new FakeTransporter();
+		const transporter = new FakeTransporter();
+		transporter.init(transit);
 		transporter.disconnect();
 		expect(transporter.connected).toBe(false);
 	});
 
 	it("check subscribe", () => {
-		let opts = {};
-		let msgHandler = jest.fn();
-		let transporter = new FakeTransporter(opts);
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		const opts = {};
+		const msgHandler = jest.fn();
+		const transporter = new FakeTransporter(opts);
+		broker.namespace = "TEST";
+		transporter.init(transit, msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
+		transporter.incomingMessage = jest.fn();
 
 		transporter.subscribe("REQ", "node");
 
@@ -48,22 +49,27 @@ describe("Test FakeTransporter", () => {
 		expect(transporter.bus.on).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
-		//subCb.call({ event: "event.test.name" }, "incoming data");
-		subCb("incoming data");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		//expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
-		expect(msgHandler).toHaveBeenCalledWith("REQ", "incoming data");
+		subCb("{ sender: \"node1\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
+
 	});
 
 	it("check publish", () => {
-		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker()));
+		const transporter = new FakeTransporter();
+		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1" })));
 		transporter.bus.emit = jest.fn();
+		transporter.serialize = jest.fn(() => "serialized data");
 
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		transporter.publish(packet);
 
 		expect(transporter.bus.emit).toHaveBeenCalledTimes(1);
-		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "{\"ver\":\"2\",\"sender\":\"node1\",\"services\":{}}");
+		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "serialized data");
+
+		expect(transporter.serialize).toHaveBeenCalledTimes(1);
+		expect(transporter.serialize).toHaveBeenCalledWith(packet);
+
 	});
 
 });

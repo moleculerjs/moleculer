@@ -1,0 +1,62 @@
+name: CI test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Start transporter/cacher dependencies
+      run: docker-compose up -d
+      working-directory: ./test
+
+    - name: Sleeping 10 secs
+      run: sleep 10
+
+    - name: Check containers
+      run: docker-compose ps
+      working-directory: ./test
+
+    - name: Check logs
+      run: docker-compose logs
+      working-directory: ./test
+
+    - name: Execute unit tests
+      run: npm run test
+
+    - name: Execute transporter tests
+      run: npm run test:trans
+
+    - name: Execute AMQP tests
+      run: npm run test:amqp
+
+    - name: Execute NATS tests
+      run: npm run test:nats
+
+    - name: Execute Typescript tests
+      run: npm run test:ts
+
+    - name: Upload code coverage
+      run: npm run coverall
+      if:  github.ref == 'refs/heads/master'
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+
+    - name: Stop containers
+      run: docker-compose down -v
+      working-directory: ./test

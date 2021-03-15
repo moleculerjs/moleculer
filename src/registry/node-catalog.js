@@ -1,12 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const _ 			= require("lodash");
+const os 			= require("os");
 const Node 			= require("./node");
 const { getIpList } = require("../utils");
 
@@ -32,53 +33,7 @@ class NodeCatalog {
 
 		this.nodes = new Map();
 
-		this.heartbeatTimer = null;
-		this.checkNodesTimer = null;
-
-
 		this.createLocalNode();
-
-		this.broker.localBus.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
-		this.broker.localBus.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
-	}
-
-	/**
-	 * Start heartbeat timers
-	 *
-	 * @memberof NodeCatalog
-	 */
-	startHeartbeatTimers() {
-		this.heartbeatTimer = setInterval(() => {
-			this.localNode.updateLocalInfo();
-			/* istanbul ignore next */
-			if (this.broker.transit)
-				this.broker.transit.sendHeartbeat(this.localNode);
-
-		}, this.broker.options.heartbeatInterval * 1000);
-		this.heartbeatTimer.unref();
-
-		this.checkNodesTimer = setInterval(() => {
-			/* istanbul ignore next */
-			this.checkRemoteNodes();
-		}, this.broker.options.heartbeatTimeout * 1000);
-		this.checkNodesTimer.unref();
-	}
-
-	/**
-	 * Stop heartbeat timers
-	 *
-	 * @memberof NodeCatalog
-	 */
-	stopHeartbeatTimers() {
-		if (this.heartbeatTimer) {
-			clearInterval(this.heartbeatTimer);
-			this.heartbeatTimer = null;
-		}
-
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-			this.checkNodesTimer = null;
-		}
 	}
 
 	/**
@@ -91,11 +46,15 @@ class NodeCatalog {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
 		node.ipList = getIpList();
+		node.instanceID = this.broker.instanceID;
+		node.hostname = os.hostname();
 		node.client = {
 			type: "nodejs",
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.metadata = this.broker.metadata;
+		node.seq = 1;
 
 		this.add(node.id, node);
 
@@ -137,6 +96,37 @@ class NodeCatalog {
 	}
 
 	/**
+	 * Delete a node by nodeID
+	 *
+	 * @param {String} id
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
+	delete(id) {
+		return this.nodes.delete(id);
+	}
+
+	/**
+	 * Get count of all registered nodes
+	 */
+	count() {
+		return this.nodes.size;
+	}
+
+	/**
+	 * Get count of online nodes
+	 */
+	onlineCount() {
+		let count = 0;
+		this.nodes.forEach(node => {
+			if (node.available)
+				count++;
+		});
+
+		return count;
+	}
+
+	/**
 	 * Process incoming INFO packet payload
 	 *
 	 * @param {any} payload
@@ -156,46 +146,34 @@ class NodeCatalog {
 			this.add(nodeID, node);
 		} else if (!node.available) {
 			isReconnected = true;
-			node.lastHeartbeatTime = Date.now();
+			node.lastHeartbeatTime = Math.round(process.uptime());
 			node.available = true;
+			node.offlineSince = null;
 		}
 
 		// Update instance
-		node.update(payload);
+		const needRegister = node.update(payload, isReconnected);
 
-		if (node.services) {
-			this.registry.registerServices(node, payload.services);
+		// Refresh services if 'seq' is greater or it is a reconnected node
+		if (needRegister && node.services) {
+			this.registry.registerServices(node, node.services);
 		}
 
 		// Local notifications
 		if (isNew) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected.`);
+			this.registry.updateMetrics();
 		} else if (isReconnected) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected.`);
+			this.registry.updateMetrics();
 		} else {
 			this.broker.broadcastLocal("$node.updated", { node });
 			this.logger.debug(`Node '${nodeID}' updated.`);
 		}
 
-	}
-
-	/**
-	 * Check all registered remote nodes are available.
-	 *
-	 * @memberOf Transit
-	 */
-	checkRemoteNodes() {
-		const now = Date.now();
-		this.nodes.forEach(node => {
-			if (node.local || !node.available) return;
-
-			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
-				this.disconnected(node.id, true);
-			}
-		});
+		return node;
 	}
 
 	/**
@@ -214,53 +192,46 @@ class NodeCatalog {
 
 			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
 
-			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? " unexpectedly" : ""}.`);
+			this.registry.updateMetrics();
+
+			if (isUnexpected)
+				this.logger.warn(`Node '${node.id}' disconnected unexpectedly.`);
+			else
+				this.logger.info(`Node '${node.id}' disconnected.`);
 
 			if (this.broker.transit)
 				this.broker.transit.removePendingRequestByNodeID(nodeID);
-
-			this.broker.servicesChanged(false);
 		}
 	}
 
-	/**
-	 * Heartbeat
-	 *
-	 * @param {any} payload
-	 * @memberof NodeCatalog
-	 */
-	heartbeat(payload) {
-		const node = this.get(payload.sender);
-		if (node) {
-			if (!node.available) {
-				// Unknow node. Request an INFO from node
-				this.broker.transit.discoverNode(payload.sender);
-			} else
-				node.heartbeat(payload);
-
-		} else {
-			// Unknow node. Request an INFO from node
-			this.broker.transit.discoverNode(payload.sender);
-		}
-	}
 
 	/**
 	 * Get a node list
 	 *
-	 * @param {boolean} withServices
+	 * @param {Object} {onlyAvailable = false, withServices = false}
 	 * @returns
 	 * @memberof NodeCatalog
 	 */
-	list(withServices = false) {
+	list({ onlyAvailable = false, withServices = false }) {
 		let res = [];
 		this.nodes.forEach(node => {
+			if (onlyAvailable && !node.available)
+				return;
+
 			if (withServices)
-				res.push(node);
+				res.push(_.omit(node, ["rawInfo"]));
 			else
-				res.push(_.omit(node, ["services"]));
+				res.push(_.omit(node, ["services", "rawInfo"]));
 		});
 
 		return res;
+	}
+
+	/**
+	 * Get a copy from node list.
+	 */
+	toArray() {
+		return Array.from(this.nodes.values());
 	}
 }
 

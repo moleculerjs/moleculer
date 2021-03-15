@@ -6,7 +6,7 @@
 	Start Broker
 
 		Windows:
-			node bin\moleculer-runner.js -c examples\runner\moleculer.config.js -r examples\user.service.js
+			node bin\moleculer-runner.js -c examples\runner\moleculer.config.js -r examples/user.service.js
 
 		Linux:
 			node ./bin/moleculer-runner -c examples/runner/moleculer.config.js -r examples/user.service.js
@@ -14,6 +14,9 @@
 */
 
 module.exports = {
+	namespace: "bbb",
 	logger: true,
-	cacher: "redis://192.168.51.29:6379"
+	logLevel: "debug",
+	//transporter: "TCP"
+	hotReload: true
 };

@@ -1,14 +1,17 @@
 "use strict";
 
+let Context = require("../../../src/context");
 let Strategy = require("../../../src/strategies").RoundRobin;
+let CpuStrategy = require("../../../src/strategies").CpuUsage;
 let EventCatalog = require("../../../src/registry/event-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let EventEndpoint = require("../../../src/registry/endpoint-event");
 let ServiceBroker = require("../../../src/service-broker");
+const { protectReject } = require("../utils");
 
 describe("Test EventCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	it("test without CB", () => {
@@ -26,7 +29,7 @@ describe("Test EventCatalog constructor", () => {
 });
 
 describe("Test EventCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 	let list;
 	let service = { name: "test" };
@@ -129,6 +132,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": undefined,
 						"nodeID": "server-1",
 						"state": true
 					}
@@ -146,6 +150,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": true,
 						"nodeID": broker.registry.nodes.localNode.id,
 						"state": true
 					}
@@ -168,12 +173,28 @@ describe("Test EventCatalog methods", () => {
 			"hasLocal": true,
 			"name": "echo.reply"
 		}]);
+
+		catalog.get("hello", "test").hasAvailable = jest.fn(() => false);
+		res = catalog.list({ onlyAvailable: true });
+		expect(res).toEqual([
+			{
+				"event": {
+					"name": "echo.reply",
+					"cache": true
+				},
+				"available": true,
+				"count": 1,
+				"group": "echo",
+				"hasLocal": true,
+				"name": "echo.reply"
+			}
+		]);
 	});
 
 });
 
 describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let event1 = { name: "user.created" };
@@ -242,6 +263,15 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 
 	});
 
+	it("should return all endpoint with groups", () => {
+		let res = catalog.getAllEndpoints("user.created", ["mail"]);
+
+		expect(res.length).toBe(2);
+		expect(res[0].id).toEqual("node-2");
+		expect(res[1].id).toEqual("node-3");
+
+	});
+
 	it("should return all endpoint with matches", () => {
 		let res = catalog.getAllEndpoints("user.removed");
 
@@ -259,7 +289,7 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 });
 
 describe("Test getGroups", () => {
-	let broker = new ServiceBroker({ nodeID: "node-2" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-2" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let usersEvent = { name: "user.created", handler: jest.fn() };
@@ -281,33 +311,221 @@ describe("Test getGroups", () => {
 });
 
 describe("Test EventCatalog.emitLocalServices", () => {
-	let broker = new ServiceBroker({ nodeID: "node-2" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
-	let usersEvent = { name: "user.created", handler: jest.fn() };
-	let paymentEvent = { name: "user.created", handler: jest.fn() };
-	let mailEvent = { name: "user.*", handler: jest.fn() };
+	catalog.callEventHandler = jest.fn();
+
+	let usersEvent = { name: "user.created", desc: "usersEvent", handler: jest.fn() };
+	let paymentEvent = { name: "user.created", desc: "paymentEvent", handler: jest.fn() };
+	let mailEvent = { name: "user.*", desc: "mailEvent", handler: jest.fn() };
+	let otherEvent = { name: "user.created", group: "payment", desc: "otherEvent", handler: jest.fn() };
 
 	catalog.add({ id: "node-1" }, { name: "users" }, usersEvent);
 	catalog.add({ id: "node-1" }, { name: "payment" }, paymentEvent);
-	catalog.add({ id: "node-2" }, { name: "users" }, usersEvent);
-	catalog.add({ id: "node-2" }, { name: "payment" }, paymentEvent);
-	catalog.add({ id: "node-2" }, { name: "mail" }, mailEvent);
-	catalog.add({ id: "node-3" }, { name: "mail" }, mailEvent);
+	catalog.add({ id: "node-1" }, { name: "other" }, otherEvent);
+	catalog.add({ id: "node-1" }, { name: "mail" }, mailEvent);
 
-	it("should call local handlers", () => {
+	it("should broadcast local handlers without groups", () => {
 		expect(catalog.events.length).toBe(3);
 
-		let payload = { a: 5 };
-		catalog.emitLocalServices("user.created", payload, null, "node-99");
+		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
+		ctx.eventName = "user.created";
+		ctx.eventGroups = null;
+		ctx.eventType = "broadcast";
+		jest.spyOn(ctx, "copy");
 
-		expect(usersEvent.handler).toHaveBeenCalledTimes(1);
-		expect(usersEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
-		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
-		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		catalog.emitLocalServices(ctx);
 
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(4);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
+
+		let copied = catalog.callEventHandler.mock.calls[0][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "usersEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[1][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[2][0];
+		expect(copied.event).toEqual({ name: "user.created", group: "payment", desc: "otherEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[3][0];
+		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		expect(ctx.copy).toHaveBeenCalledTimes(4);
+	});
+
+	it("should broadcast local handlers with groups", () => {
+		catalog.callEventHandler.mockClear();
+
+		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
+		ctx.eventName = "user.created";
+		ctx.eventGroups = ["mail", "payment"];
+		ctx.eventType = "broadcast";
+		jest.spyOn(ctx, "copy");
+
+		catalog.emitLocalServices(ctx);
+
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
+
+		let copied = catalog.callEventHandler.mock.calls[0][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(["mail", "payment"]);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[1][0];
+		expect(copied.event).toEqual({ name: "user.created", group: "payment", desc: "otherEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(["mail", "payment"]);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[2][0];
+		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(["mail", "payment"]);
+		expect(copied.nodeID).toEqual("node-99");
+
+		expect(ctx.copy).toHaveBeenCalledTimes(3);
+	});
+
+	it("should balance local handlers without groups", () => {
+		catalog.callEventHandler.mockClear();
+
+		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
+		ctx.eventName = "user.created";
+		ctx.eventGroups = null;
+		ctx.eventType = "emit";
+		jest.spyOn(ctx, "copy");
+
+		catalog.emitLocalServices(ctx);
+
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
+
+		let copied = catalog.callEventHandler.mock.calls[0][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "usersEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[1][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[2][0];
+		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(null);
+		expect(copied.nodeID).toEqual("node-99");
+
+		expect(ctx.copy).toHaveBeenCalledTimes(3);
+	});
+
+	it("should balance local handlers with groups", () => {
+		catalog.callEventHandler.mockClear();
+
+		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
+		ctx.eventName = "user.created";
+		ctx.eventGroups = ["mail", "payment"];
+		ctx.eventType = "emit";
+		jest.spyOn(ctx, "copy");
+
+		catalog.emitLocalServices(ctx);
+
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(2);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
+
+		let copied = catalog.callEventHandler.mock.calls[0][0];
+		expect(copied.event).toEqual({ name: "user.created", desc: "otherEvent", group: "payment", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(["mail", "payment"]);
+		expect(copied.nodeID).toEqual("node-99");
+
+		copied = catalog.callEventHandler.mock.calls[1][0];
+		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.eventGroups).toEqual(["mail", "payment"]);
+		expect(copied.nodeID).toEqual("node-99");
+
+		expect(ctx.copy).toHaveBeenCalledTimes(2);
 	});
 });
 
+describe("Test EventCatalog.callEventHandler", () => {
+	const errorHandler = jest.fn();
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", errorHandler });
+	let catalog = new EventCatalog(broker.registry, broker, Strategy);
+
+	const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
+	ctx.eventName = "user.created";
+	ctx.eventGroups = ["mail", "payment"];
+	ctx.eventType = "emit";
+
+	it("should add catch handler to result", () => {
+		let resolver;
+		ctx.endpoint.event.handler = jest.fn(() => new Promise(res => resolver = res));
+
+		const p = catalog.callEventHandler(ctx);
+
+		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
+		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
+
+		expect(errorHandler).toHaveBeenCalledTimes(0);
+
+		resolver();
+
+		return p;
+	});
+
+	it("should catch error", () => {
+		let rejecter;
+		ctx.endpoint.event.handler = jest.fn(() => new Promise((res, rej) => rejecter = rej));
+		broker.logger.error = jest.fn();
+
+		const p = catalog.callEventHandler(ctx);
+
+		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
+		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
+
+		const err = new Error("Something went wrong");
+		rejecter(err);
+
+		return p.then(protectReject).catch(e => {
+			expect(e).toBe(err);
+		});
+	});
+});
+
+describe("Test EventCatalog add method", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let catalog = new EventCatalog(broker.registry, broker, Strategy);
+	let list;
+	let service = { name: "test" };
+
+	it("should create an EndpointList and add to 'events'", () => {
+		let node = { id: "server-1" };
+		let event = { name: "hello" };
+
+		list = catalog.add(node, service, event);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(Strategy);
+		expect(list.strategy.opts).toEqual({});
+	});
+
+	it("should create an EndpointList with custom strategy", () => {
+		let node = { id: "server-1" };
+		let event = { name: "welcome", strategy: "CpuUsage", strategyOptions: { sampleCount: 6 } };
+
+		list = catalog.add(node, service, event);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(CpuStrategy);
+		expect(list.strategy.opts).toEqual({ sampleCount: 6, lowCpuUsage: 10 });
+	});
+
+});

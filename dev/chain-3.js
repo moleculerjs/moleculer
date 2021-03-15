@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
@@ -13,7 +11,6 @@ let broker = new ServiceBroker({
 	//transporter: "amqp://192.168.51.29:5672",
 	//serializer: "ProtoBuf",
 	logger: console,
-	logFormatter: "simple"
 });
 
 broker.createService({

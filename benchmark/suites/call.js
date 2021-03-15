@@ -1,16 +1,13 @@
 "use strict";
 
-//let _ = require("lodash");
-let Promise	= require("bluebird");
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
-
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
 
 function createBroker(opts) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	const broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 
 	broker.loadService(__dirname + "/../user.service");
 
@@ -18,9 +15,9 @@ function createBroker(opts) {
 	return broker;
 }
 
-let bench1 = benchmark.createSuite("Call methods");
+const bench1 = benchmark.createSuite("Call methods");
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 
 	bench1.ref("broker.call (normal)", done => {
 		broker.call("users.empty").then(done);
@@ -33,22 +30,30 @@ let bench1 = benchmark.createSuite("Call methods");
 })();
 
 // ----------------------------------------------------------------
-let bench2 = benchmark.createSuite("Call with middlewares");
+const bench2 = benchmark.createSuite("Call with middlewares");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench2.ref("Call without middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker({ internalMiddlewares: false });
+	bench2.ref("Call without internal middlewares", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
 
-	let mw1 = handler => {
-		return ctx => handler(ctx).then(res => res);
+(function() {
+	const mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
-	broker.use(mw1);
+
+	const broker = createBroker({
+		middlewares: [mw1]
+	});
 
 	bench2.add("Call with 1 middleware", done => {
 		return broker.call("users.empty").then(done);
@@ -56,12 +61,13 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let broker = createBroker();
-
-	let mw1 = handler => {
-		return ctx => handler(ctx).then(res => res);
+	const mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
-	broker.use(mw1, mw1, mw1, mw1, mw1);
+
+	const broker = createBroker({
+		middlewares: [mw1, mw1, mw1, mw1, mw1]
+	});
 
 	bench2.add("Call with 5 middlewares", done => {
 		return broker.call("users.empty").then(done);
@@ -69,50 +75,50 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with cachers");
+const bench3 = benchmark.createSuite("Call with cachers");
 
-let MemoryCacher = require("../../src/cachers").Memory;
+const MemoryCacher = require("../../src/cachers").Memory;
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench3.ref("No cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
+	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
+	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher (keys filter)", done => {
 		return broker.call("users.get2", { id: 5 }).then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench4 = benchmark.createSuite("Call with param validator");
+const bench4 = benchmark.createSuite("Call with param validator");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.ref("No validator", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.add("With validator passes", done => {
 		return broker.call("users.validate", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.add("With validator fail", done => {
 		return broker.call("users.validate", { id: "a5" })
 			.catch(done);
@@ -120,37 +126,42 @@ let bench4 = benchmark.createSuite("Call with param validator");
 })();
 
 // ----------------------------------------------------------------
-let bench5 = benchmark.createSuite("Call with statistics & metrics");
+const bench5 = benchmark.createSuite("Call with metrics");
 
 (function() {
-	let broker = createBroker();
-	bench5.ref("No statistics", done => {
+	const broker = createBroker();
+	bench5.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true });
+	const broker = createBroker({ metrics: true });
 	bench5.add("With metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
+// ----------------------------------------------------------------
+const bench6 = benchmark.createSuite("Call with tracing");
+
 (function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
+	const broker = createBroker();
+	bench6.ref("No tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench5.add("With metrics & statistics", done => {
+	const broker = createBroker({ tracing: true });
+	bench6.add("With tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-benchmark.run([bench1, bench2, bench3, bench4, bench5]);
+setTimeout(() => {
+	benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]);
+}, 1000);
 
 /*
 
@@ -161,58 +172,54 @@ benchmark.run([bench1, bench2, bench3, bench4, bench5]);
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Call methods
-√ broker.call (normal)*             1,239,453 rps
-√ broker.call (with params)*        1,181,153 rps
+√ broker.call (normal)*             1,660,419 rps
+√ broker.call (with params)*        1,706,815 rps
 
-   broker.call (normal)* (#)            0%      (1,239,453 rps)   (avg: 806ns)
-   broker.call (with params)*        -4.7%      (1,181,153 rps)   (avg: 846ns)
+   broker.call (normal)* (#)            0%      (1,660,419 rps)   (avg: 602ns)
+   broker.call (with params)*       +2.79%      (1,706,815 rps)   (avg: 585ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ Call without middlewares*        1,200,847 rps
-√ Call with 1 middleware*          1,195,808 rps
-√ Call with 5 middlewares*         1,195,328 rps
+√ Call without middlewares*        1,604,740 rps
+√ Call with 1 middleware*          1,195,061 rps
+√ Call with 5 middlewares*           655,822 rps
 
-   Call without middlewares* (#)       0%      (1,200,847 rps)   (avg: 832ns)
-   Call with 1 middleware*         -0.42%      (1,195,808 rps)   (avg: 836ns)
-   Call with 5 middlewares*        -0.46%      (1,195,328 rps)   (avg: 836ns)
+   Call without middlewares* (#)       0%      (1,604,740 rps)   (avg: 623ns)
+   Call with 1 middleware*        -25.53%      (1,195,061 rps)   (avg: 836ns)
+   Call with 5 middlewares*       -59.13%        (655,822 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 Suite: Call with cachers
-√ No cacher*                            1,054,783 rps
-√ Built-in cacher*                        226,415 rps
-√ Built-in cacher (keys filter)*          794,494 rps
+√ No cacher*                            1,180,739 rps
+√ Built-in cacher*                        611,911 rps
+√ Built-in cacher (keys filter)*          893,071 rps
 
-   No cacher* (#)                           0%      (1,054,783 rps)   (avg: 948ns)
-   Built-in cacher*                    -78.53%        (226,415 rps)   (avg: 4μs)
-   Built-in cacher (keys filter)*      -24.68%        (794,494 rps)   (avg: 1μs)
+   No cacher* (#)                           0%      (1,180,739 rps)   (avg: 846ns)
+   Built-in cacher*                    -48.18%        (611,911 rps)   (avg: 1μs)
+   Built-in cacher (keys filter)*      -24.36%        (893,071 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 Suite: Call with param validator
-√ No validator*                   975,769 rps
-√ With validator passes*          858,968 rps
-√ With validator fail*             56,250 rps
+√ No validator*                 1,192,808 rps
+√ With validator passes*        1,138,172 rps
+√ With validator fail*              4,829 rps
 
-   No validator* (#)                0%        (975,769 rps)   (avg: 1μs)
-   With validator passes*      -11.97%        (858,968 rps)   (avg: 1μs)
-   With validator fail*        -94.24%         (56,250 rps)   (avg: 17μs)
+   No validator* (#)                0%      (1,192,808 rps)   (avg: 838ns)
+   With validator passes*       -4.58%      (1,138,172 rps)   (avg: 878ns)
+   With validator fail*         -99.6%          (4,829 rps)   (avg: 207μs)
 -----------------------------------------------------------------------
 
-Suite: Call with statistics & metrics
-√ No statistics*                    1,170,614 rps
-√ With metrics*                       337,038 rps
-√ With statistics*                  1,190,222 rps
-√ With metrics & statistics*          306,707 rps
+Suite: Call with metrics
+√ No metrics*          1,601,825 rps
+√ With metrics*          493,759 rps
 
-   No statistics* (#)                   0%      (1,170,614 rps)   (avg: 854ns)
-   With metrics*                   -71.21%        (337,038 rps)   (avg: 2μs)
-   With statistics*                 +1.68%      (1,190,222 rps)   (avg: 840ns)
-   With metrics & statistics*       -73.8%        (306,707 rps)   (avg: 3μs)
+   No metrics* (#)         0%      (1,601,825 rps)   (avg: 624ns)
+   With metrics*      -69.18%        (493,759 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
 */

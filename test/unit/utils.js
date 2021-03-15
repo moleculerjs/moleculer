@@ -28,7 +28,7 @@ module.exports = {
 
 				return {
 					actual: received,
-					message,
+					message: () => message,
 					pass
 				};
 			},

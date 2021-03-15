@@ -1,19 +1,108 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise 	= require("bluebird");
+const kleur		= require("kleur");
 const os 	 	= require("os");
-const _			= require("lodash");
+const path 	 	= require("path");
+const fs 	 	= require("fs");
+const ExtendableError = require("es6-error");
 
 const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
 
-let utils = {
+const RegexCache = new Map();
+
+const deprecateList = [];
+
+const byteMultipliers = {
+	b:  1,
+	kb: 1 << 10,
+	mb: 1 << 20,
+	gb: 1 << 30,
+	tb: Math.pow(1024, 4),
+	pb: Math.pow(1024, 5),
+};
+// eslint-disable-next-line security/detect-unsafe-regex
+const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
+
+class TimeoutError extends ExtendableError {}
+
+/**
+ * Circular replacing of unsafe properties in object
+ *
+ * @param {Object=} options List of options to change circularReplacer behaviour
+ * @param {number=} options.maxSafeObjectSize Maximum size of objects for safe object converting
+ * @return {function(...[*]=)}
+ */
+function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
+	const seen = new WeakSet();
+	return function(key, value) {
+		if (typeof value === "object" && value !== null) {
+			const objectType = value.constructor && value.constructor.name || typeof value;
+
+			if (options.maxSafeObjectSize && "length" in value && value.length > options.maxSafeObjectSize) {
+				return `[${objectType} ${value.length}]`;
+			}
+
+			if (options.maxSafeObjectSize && "size" in value && value.size > options.maxSafeObjectSize) {
+				return `[${objectType} ${value.size}]`;
+			}
+
+			if (seen.has(value)) {
+				//delete this[key];
+				return;
+			}
+			seen.add(value);
+		}
+		return value;
+	};
+}
+
+const units = ["h", "m", "s", "ms", "μs", "ns"];
+const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
+
+const utils = {
+
+	isFunction(fn) {
+		return typeof fn === "function";
+	},
+
+	isString(s) {
+		return typeof s === "string" || s instanceof String;
+	},
+
+	isObject(o) {
+		return o !== null && typeof o === "object" && !(o instanceof String);
+	},
+
+	isPlainObject(o) {
+		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
+	},
+
+	isDate(d) {
+		return d instanceof Date && !Number.isNaN(d.getTime());
+	},
+
+	flatten(arr) {
+		return Array.prototype.reduce.call(arr, (a, b) => a.concat(b), []);
+	},
+
+	humanize(milli) {
+		if (milli == null) return "?";
+
+		for (let i = 0; i < divisors.length; i++) {
+			const val = milli / divisors[i];
+			if (val >= 1.0)
+				return "" + Math.floor(val) + units[i];
+		}
+
+		return "now";
+	},
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
@@ -27,13 +116,22 @@ let utils = {
 			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
 	},
 
+	removeFromArray(arr, item) {
+		if (!arr || arr.length == 0) return arr;
+		const idx = arr.indexOf(item);
+		if (idx !== -1)
+			arr.splice(idx, 1);
+
+		return arr;
+	},
+
 	/**
 	 * Get default NodeID (computerName)
 	 *
 	 * @returns
 	 */
 	getNodeID() {
-		return os.hostname().toLowerCase();// + "-" + process.pid;
+		return os.hostname().toLowerCase() + "-" + process.pid;
 	},
 
 	/**
@@ -43,28 +141,23 @@ let utils = {
 	 */
 	getIpList() {
 		const list = [];
+		const ilist = [];
 		const interfaces = os.networkInterfaces();
 		for (let iface in interfaces) {
 			for (let i in interfaces[iface]) {
 				const f = interfaces[iface][i];
-				if (f.family === "IPv4" && !f.internal) {
-					list.push(f.address);
-					break;
+				if (f.family === "IPv4") {
+					if (f.internal) {
+						ilist.push(f.address);
+						break;
+					} else {
+						list.push(f.address);
+						break;
+					}
 				}
 			}
 		}
-		return list;
-	},
-
-	/**
-	 * Delay for Promises
-	 *
-	 * @param {any} ms
-	 * @returns
-	 */
-	delay(ms) {
-		/* istanbul ignore next */
-		return () => new Promise((resolve) => setTimeout(resolve, ms));
+		return list.length > 0 ? list : ilist;
 	},
 
 	/**
@@ -77,47 +170,87 @@ let utils = {
 		return (p != null && typeof p.then === "function");
 	},
 
-
 	/**
-	 * Merge two Service schema
+	 * Polyfill a Promise library with missing Bluebird features.
 	 *
-	 * @param {Object} schema
-	 * @param {Object} mods
-	 * @returns
+	 * NOT USED & NOT TESTED YET !!!
+	 *
+	 * @param {PromiseClass} P
 	 */
-	mergeSchemas(schema, mods) {
-		function updateProp(propName, target, source) {
-			if (source[propName] !== undefined)
-				target[propName] = source[propName];
+	polyfillPromise(P) {
+		if (!utils.isFunction(P.method)) {
+			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
+			P.method = function(fn) {
+				return function() {
+					try {
+						const val = fn.apply(this, arguments);
+						return P.resolve(val);
+					} catch (err) {
+						return P.reject(err);
+					}
+				};
+			};
 		}
 
-		const res = _.cloneDeep(schema);
+		if (!utils.isFunction(P.delay)) {
+			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/timers.js#L15
+			P.delay = function(ms) {
+				return new P(resolve => setTimeout(resolve, +ms));
+			};
+			P.prototype.delay = function(ms) {
+				return this.then(res => P.delay(ms).then(() => res));
+				//return this.then(res => new P(resolve => setTimeout(() => resolve(res), +ms)));
+			};
+		}
 
-		Object.keys(mods).forEach(key => {
-			if (["settings", "metadata"].indexOf(key) !== -1) {
-				res[key] = _.defaultsDeep(mods[key], res[key]);
-			} else if (["actions", "methods"].indexOf(key) !== -1) {
-				res[key] = _.assign(res[key], mods[key]);
-			} else if (["events"].indexOf(key) !== -1) {
-				if (res[key] == null)
-					res[key] = {};
+		if (!utils.isFunction(P.prototype.timeout)) {
+			P.TimeoutError = TimeoutError;
 
-				Object.keys(mods[key]).forEach(k => {
-					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
+			P.prototype.timeout = function(ms, message) {
+				let timer;
+				const timeout = new P((resolve, reject) => {
+					timer = setTimeout(() => reject(new P.TimeoutError(message)), +ms);
 				});
-			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
-				// Concat lifecycle event handlers
-				res[key] = _.compact(_.flatten([res[key], mods[key]]));
-			} else if (["mixins"].indexOf(key) !== -1) {
-				// Concat mixins
-				res[key] = _.compact(_.flatten([mods[key], res[key]]));
-			} else
-				updateProp(key, res, mods);
-		});
 
-		return res;
+				return P.race([
+					timeout,
+					this
+				])
+					.then(value => {
+						clearTimeout(timer);
+						return value;
+					})
+					.catch(err => {
+						clearTimeout(timer);
+						throw err;
+					});
+			};
+		}
+
+		if (!utils.isFunction(P.mapSeries)) {
+
+			P.mapSeries = function(arr, fn) {
+				const promFn = Promise.method(fn);
+				const res = [];
+
+				return arr.reduce((p, item, i) => {
+					return p.then(r => {
+						res[i] = r;
+						return promFn(item, i);
+					});
+				}, P.resolve()).then(r => {
+					res[arr.length] = r;
+					return res.slice(1);
+				});
+			};
+		}
 	},
 
+	/**
+	 * Clear `require` cache. Used for service hot reloading
+	 *
+	 * @param {String} filename
+	 */
 	clearRequireCache(filename) {
 		/* istanbul ignore next */
 		Object.keys(require.cache).forEach(function(key) {
@@ -125,8 +258,181 @@ let utils = {
 				delete require.cache[key];
 			}
 		});
-	}
+	},
 
+	/**
+	 * String matcher to handle dot-separated event/action names.
+	 *
+	 * @param {String} text
+	 * @param {String} pattern
+	 * @returns {Boolean}
+	 */
+	match(text, pattern) {
+		// Simple patterns
+		if (pattern.indexOf("?") == -1) {
+
+			// Exact match (eg. "prefix.event")
+			const firstStarPosition = pattern.indexOf("*");
+			if (firstStarPosition == -1) {
+				return pattern === text;
+			}
+
+			// Eg. "prefix**"
+			const len = pattern.length;
+			if (len > 2 && pattern.endsWith("**") && firstStarPosition > len - 3) {
+				pattern = pattern.substring(0, len - 2);
+				return text.startsWith(pattern);
+			}
+
+			// Eg. "prefix*"
+			if (len > 1 && pattern.endsWith("*") && firstStarPosition > len - 2) {
+				pattern = pattern.substring(0, len - 1);
+				if (text.startsWith(pattern)) {
+					return text.indexOf(".", len) == -1;
+				}
+				return false;
+			}
+
+			// Accept simple text, without point character (*)
+			if (len == 1 && firstStarPosition == 0) {
+				return text.indexOf(".") == -1;
+			}
+
+			// Accept all inputs (**)
+			if (len == 2 && firstStarPosition == 0 && pattern.lastIndexOf("*") == 1) {
+				return true;
+			}
+		}
+
+		// Regex (eg. "prefix.ab?cd.*.foo")
+		const origPattern = pattern;
+		let regex = RegexCache.get(origPattern);
+		if (regex == null) {
+			if (pattern.startsWith("$")) {
+				pattern = "\\" + pattern;
+			}
+			pattern = pattern.replace(/\?/g, ".");
+			pattern = pattern.replace(/\*\*/g, "§§§");
+			pattern = pattern.replace(/\*/g, "[^\\.]*");
+			pattern = pattern.replace(/§§§/g, ".*");
+
+			pattern = "^" + pattern + "$";
+
+			// eslint-disable-next-line security/detect-non-literal-regexp
+			regex = new RegExp(pattern, "");
+			RegexCache.set(origPattern, regex);
+		}
+		return regex.test(text);
+	},
+
+	/**
+	 * Deprecate a method or property
+	 *
+	 * @param {Object|Function|String} prop
+	 * @param {String} msg
+	 */
+	deprecate(prop, msg) {
+		if (arguments.length == 1)
+			msg = prop;
+
+		if (deprecateList.indexOf(prop) === -1) {
+			// eslint-disable-next-line no-console
+			console.warn(kleur.yellow().bold(`DeprecationWarning: ${msg}`));
+			deprecateList.push(prop);
+		}
+	},
+
+	/**
+	 * Remove circular references & Functions from the JS object
+	 *
+	 * @param {Object|Array} obj
+	 * @param {Object=} options List of options to change circularReplacer behaviour
+	 * @param {number=} options.maxSafeObjectSize List of options to change circularReplacer behaviour
+	 * @returns {Object|Array}
+	 */
+	safetyObject(obj, options) {
+		return JSON.parse(JSON.stringify(obj, circularReplacer(options)));
+	},
+
+	/**
+	 * Sets a variable on an object based on its dot path.
+	 *
+	 * @param {Object} obj
+	 * @param {String} path
+	 * @param {*} value
+	 * @returns {Object}
+	 */
+	dotSet(obj, path, value) {
+		const parts = path.split(".");
+		const part = parts.shift();
+		if (parts.length > 0) {
+			if (!Object.prototype.hasOwnProperty.call(obj, part)) {
+				obj[part] = {};
+			} else if (obj[part] == null) {
+				obj[part] = {};
+			} else {
+				if (typeof obj[part] !== "object") {
+					throw new Error("Value already set and it's not an object");
+				}
+			}
+			obj[part] = utils.dotSet(obj[part], parts.join("."), value);
+			return obj;
+		}
+		obj[path] = value;
+		return obj;
+	},
+
+	/**
+	 * Make directories recursively
+	 * @param {String} p - directory path
+	 */
+	makeDirs(p) {
+		p.split(path.sep)
+			.reduce((prevPath, folder) => {
+				const currentPath = path.join(prevPath, folder, path.sep);
+				if (!fs.existsSync(currentPath)) {
+					fs.mkdirSync(currentPath);
+				}
+				return currentPath;
+			}, "");
+	},
+
+	/**
+	 * Parse a byte string to number of bytes. E.g "1kb" -> 1024
+	 * Credits: https://github.com/visionmedia/bytes.js
+	 *
+	 * @param {String} v
+	 * @returns {Number}
+	 */
+	parseByteString(v) {
+		if (typeof v === "number" && !isNaN(v)) {
+			return v;
+		}
+
+		if (typeof v !== "string") {
+			return null;
+		}
+
+		// Test if the string passed is valid
+		let results = parseByteStringRe.exec(v);
+		let floatValue;
+		let unit = "b";
+
+		if (!results) {
+			// Nothing could be extracted from the given string
+			floatValue = parseInt(v, 10);
+			if (Number.isNaN(floatValue))
+				return null;
+
+			unit = "b";
+		} else {
+			// Retrieve the value and the unit
+			floatValue = parseFloat(results[1]);
+			unit = results[4].toLowerCase();
+		}
+
+		return Math.floor(byteMultipliers[unit] * floatValue);
+	}
 };
 
 module.exports = utils;

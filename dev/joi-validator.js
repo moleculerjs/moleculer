@@ -1,11 +1,9 @@
-/* eslint-disable no-console */
-
 "use strict";
 
-let ServiceBroker = require("../src/service-broker");
-let BaseValidator = require("../src/validator");
-let { ValidationError } = require("../src/errors");
-let Joi = require("joi");
+const ServiceBroker = require("../src/service-broker");
+const BaseValidator = require("../src/validator");
+const { ValidationError } = require("../src/errors");
+const Joi = require("joi");
 
 // --- JOI VALIDATOR CLASS ---
 class JoiValidator extends BaseValidator {
@@ -29,7 +27,7 @@ class JoiValidator extends BaseValidator {
 
 let broker = new ServiceBroker({
 	logger: true,
-	validation: true,
+	transporter: "TCP",
 	validator: new JoiValidator
 });
 

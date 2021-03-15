@@ -1,12 +1,10 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
-
-const { getCpuInfo } 	= require("../health");
 
 /**
  * Node class
@@ -23,41 +21,71 @@ class Node {
 	 */
 	constructor(id) {
 		this.id = id;
+		this.instanceID = null;
 		this.available = true;
 		this.local = false;
-		this.lastHeartbeatTime = Date.now();
-		this.cpu = null;
+		this.lastHeartbeatTime = Math.round(process.uptime());
 		this.config = {};
-		this.port = null;
+		this.client = {};
+		this.metadata = null;
 
 		this.ipList = null;
-		this.client = null;
+		this.port = null;
+		this.hostname = null;
+		this.udpAddress = null;
 
+		this.rawInfo = null;
 		this.services = [];
+
+		this.cpu = null;
+		this.cpuSeq = null;
+
+		this.seq = 0;
+		this.offlineSince = null;
 	}
 
 	/**
 	 * Update properties
 	 *
-	 * @param {any} payload
+	 * @param {object} payload
+	 * @param {boolean} isReconnected
 	 * @memberof Node
 	 */
-	update(payload) {
+	update(payload, isReconnected) {
 		// Update properties
+		this.metadata = payload.metadata;
 		this.ipList = payload.ipList;
-		this.client = payload.client;
+		this.hostname = payload.hostname;
+		this.port = payload.port;
+		this.client = payload.client || {};
+		this.config = payload.config || {};
+		this.instanceID = payload.instanceID;
 
 		// Process services & events
 		this.services = payload.services;
+		this.rawInfo = payload;
+
+		const newSeq = payload.seq || 1;
+		if (newSeq > this.seq || isReconnected) {
+			this.seq = newSeq;
+			return true;
+		}
 	}
 
 	/**
-	 * Update local properties
+	 * Update local properties.
 	 *
 	 * @memberof Node
+	 * @param {Function} cpuUsage
 	 */
-	updateLocalInfo() {
-		this.cpu = getCpuInfo().utilization;
+	updateLocalInfo(cpuUsage) {
+		return cpuUsage().then(res => {
+			const newVal = Math.round(res.avg);
+			if (this.cpu != newVal) {
+				this.cpu = newVal;
+				this.cpuSeq++;
+			}
+		}).catch(() => { /* silent */ });
 	}
 
 	/**
@@ -67,9 +95,17 @@ class Node {
 	 * @memberof Node
 	 */
 	heartbeat(payload) {
-		this.cpu = payload.cpu;
-		this.lastHeartbeatTime = Date.now();
-		this.available = true;
+		if (!this.available) {
+			this.available = true;
+			this.offlineSince = null;
+		}
+
+		if (payload.cpu != null) {
+			this.cpu = payload.cpu;
+			this.cpuSeq = payload.cpuSeq || 1;
+		}
+
+		this.lastHeartbeatTime = Math.round(process.uptime());
 	}
 
 	/**
@@ -78,6 +114,11 @@ class Node {
 	 * @memberof Node
 	 */
 	disconnected() {
+		if (this.available) {
+			this.offlineSince = Math.round(process.uptime());
+			this.seq++;
+		}
+
 		this.available = false;
 	}
 }

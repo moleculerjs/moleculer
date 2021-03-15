@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
@@ -49,8 +47,8 @@ let service2 = {
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
 				this.logger.info("Started from service-2B");
-				//resolve();
-				reject(new Error("Cannot start service-2!"));
+				resolve();
+				//reject(new Error("Cannot start service-2!"));
 			}, 500);
 		});
 	},

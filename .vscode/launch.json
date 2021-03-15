@@ -8,74 +8,87 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\client.js",
+			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				""
-			]
+				"${fileBasenameNoExtension}"
+				//"client",
+				//"client2"
+			],
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo: caching",
-			"program": "${workspaceRoot}\\examples\\caching\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\caching"
+			"name": "Launch demo: client-server",
+			"program": "${workspaceRoot}/examples/client-server/client.js",
+			"cwd": "${workspaceRoot}/examples/client-server",
+			"env": {
+				"LOGLEVEL": "debug"
+			}
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: simple",
-			"program": "${workspaceRoot}\\examples\\simple\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\simple"
+			"program": "${workspaceRoot}/examples/simple/index.js",
+			"cwd": "${workspaceRoot}/examples/simple"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: transporter",
-			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\transporter"
+			"program": "${workspaceRoot}/examples/transporter/index.js",
+			"cwd": "${workspaceRoot}/examples/transporter"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: loadtest",
-			"program": "${workspaceRoot}\\examples\\loadtest\\server.js",
-			"cwd": "${workspaceRoot}\\examples\\loadtest",
-			"args": [
-				"server-vscode"
-			]
+			"program": "${workspaceRoot}/examples/loadtest/client.js",
+			"cwd": "${workspaceRoot}/examples/loadtest",
+			"env": {
+				"TRANSPORTER": "TCP"
+			},
+			"args": ["client-debug"]
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo: multi",
-			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
-			"cwd": "${workspaceRoot}\\examples\\multi-server",
-			"args": [
-				"client"
-			]
+			"name": "Launch demo: multi-nodes",
+			"program": "${workspaceRoot}/examples/multi-nodes/index.js",
+			"cwd": "${workspaceRoot}"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch benchmark",
-			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["emitter"],
-			"cwd": "${workspaceRoot}\\benchmark"
+			"program": "${workspaceRoot}/benchmark/index.js",
+			"args": ["common"],
+			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch perf",
-			"program": "${workspaceRoot}\\benchmark\\perf-runner.js",
-			"cwd": "${workspaceRoot}\\benchmark"
+			"program": "${workspaceRoot}/benchmark/perf-runner.js"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Jest",
-			"program": "${workspaceRoot}\\node_modules\\jest-cli\\bin\\jest.js",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand"],
+			"console": "internalConsole",
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": ["--nolazy"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Jest single",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand", "${fileBasenameNoExtension}"],
+			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"
@@ -84,15 +97,42 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Jest AMQP integration",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
+			"cwd": "${workspaceRoot}",
+			"console": "internalConsole",
+			"runtimeArgs": ["--nolazy"],
+			"env": {
+				"AMQP_URI": "amqp://192.168.51.29:5672"
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Moleculer-runner",
-			"program": "${workspaceRoot}\\bin\\moleculer-runner.js",
-			"cwd": "${workspaceRoot}"
+			"program": "${workspaceRoot}/bin/moleculer-runner.js",
+			"cwd": "${workspaceRoot}/examples/runner",
+			"env": {
+				"NAMESPACE": "test",
+				"MOL_NAMESPACE": "long",
+				"MOL_LOG_LEVEL": "debug",
+				"MOL_REGISTRY__STRATEGY": "random",
+				"MOL_CACHER__OPTIONS__PREFIX": "MOL"
+			},
+			"args": [
+				"--hot",
+				"--repl",
+				"-c",
+				"moleculer.config.async.js",
+				"svc/"
+			]
 		},
 		{
 			"type": "node",
 			"request": "attach",
-			"name": "Attach to Process",
-			"port": 5858
-		}
+			"name": "Attach by Process ID",
+			"processId": "${command:PickProcess}"
+		},
 	]
 }

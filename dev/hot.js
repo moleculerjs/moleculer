@@ -1,16 +1,18 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "hot-" + process.pid,
-	transporter: "NATS",
-	logger: console,
-	//logLevel: "debug",
-	hotReload: true
+	nodeID: "hot",
+	//transporter: "TCP",
+	logLevel: "debug",
+	hotReload: {
+		enabled: true,
+		extraFiles: {
+			"./README.md": "allServices"
+		}
+	}
 });
 
 broker.start().then(() => {
@@ -30,21 +32,19 @@ broker.start().then(() => {
 			}
 		});
 
-	}, 5000);
+	}, 10000);
 
 	setTimeout(() => {
 		console.log("Destroy math service...");
 
 		// Destroy a created service after 10s
-		svc = broker.getService("math");
+		svc = broker.getLocalService("math");
 		broker.destroyService(svc);
 
-	}, 10000);
-	*/
+	}, 20000);
 
-	broker.loadService("./examples/hot.service.js");
-	//broker.loadService("./examples/math.service.js");
-	//broker.loadService("./examples/user.service.js");
+*/
+	broker.loadServices("./dev/hots");
 
 	broker.repl();
 });

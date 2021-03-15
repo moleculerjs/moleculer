@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -49,7 +49,7 @@ class MoleculerRetryableError extends MoleculerError {
 	 * @param {String?} type
 	 * @param {any} data
 	 *
-	 * @memberOf MoleculerRetryableError
+	 * @memberof MoleculerRetryableError
 	 */
 	constructor(message, code, type, data) {
 		super(message);
@@ -57,6 +57,20 @@ class MoleculerRetryableError extends MoleculerError {
 		this.type = type;
 		this.data = data;
 		this.retryable = true;
+	}
+}
+
+/**
+ * Moleculer Error class for Broker disconnections which is retryable.
+ *
+ * @class MoleculerServerError
+ * @extends {MoleculerRetryableError}
+ */
+class BrokerDisconnectedError extends MoleculerRetryableError {
+	constructor() {
+		super("The broker's transporter has disconnected. Please try again when a connection is reestablished.", 502, "BAD_GATEWAY");
+		// Stack trace is hidden because it creates a lot of logs and, in this case, won't help users find the issue
+		this.stack = "";
 	}
 }
 
@@ -84,7 +98,7 @@ class MoleculerClientError extends MoleculerError {
 	 * @param {String?} type
 	 * @param {any} data
 	 *
-	 * @memberOf MoleculerClientError
+	 * @memberof MoleculerClientError
 	 */
 	constructor(message, code, type, data) {
 		super(message, code || 400, type, data);
@@ -96,61 +110,54 @@ class MoleculerClientError extends MoleculerError {
  * 'Service not found' Error message
  *
  * @class ServiceNotFoundError
- * @extends {Error}
+ * @extends {MoleculerRetryableError}
  */
-class ServiceNotFoundError extends MoleculerError {
+class ServiceNotFoundError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
-	 * @memberOf ServiceNotFoundError
+	 * @memberof ServiceNotFoundError
 	 */
-	constructor(action, nodeID) {
+	constructor(data = {}) {
 		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not found on '${nodeID}' node.`;
-		else
-			msg = `Service '${action}' is not found.`;
+		if (data.nodeID && data.action)
+			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
+		else if (data.action)
+			msg = `Service '${data.action}' is not found.`;
 
-		super(msg, 404, null, {
-			action,
-			nodeID
-		});
+		if (data.service && data.version)
+			msg = `Service '${data.version}.${data.service}' not found.`;
+		else if (data.service)
+			msg = `Service '${data.service}' not found.`;
 
-		this.retryable = false;
+		super(msg, 404, "SERVICE_NOT_FOUND", data);
 	}
 }
 
 /**
  * 'Service not available' Error message
  *
- * @class ServiceNotAvailable
- * @extends {Error}
+ * @class ServiceNotAvailableError
+ * @extends {MoleculerRetryableError}
  */
-class ServiceNotAvailable extends MoleculerError {
+class ServiceNotAvailableError extends MoleculerRetryableError {
 	/**
-	 * Creates an instance of ServiceNotAvailable.
+	 * Creates an instance of ServiceNotAvailableError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
-	 * @memberOf ServiceNotAvailable
+	 * @memberof ServiceNotAvailableError
 	 */
-	constructor(action, nodeID) {
+	constructor(data) {
 		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not available on '${nodeID}' node.`;
+		if (data.nodeID)
+			msg = `Service '${data.action}' is not available on '${data.nodeID}' node.`;
 		else
-			msg = `Service '${action}' is not available.`;
+			msg = `Service '${data.action}' is not available.`;
 
-		super(msg, 404, null, {
-			action,
-			nodeID
-		});
-
-		this.retryable = false;
+		super(msg, 404, "SERVICE_NOT_AVAILABLE", data);
 	}
 }
 
@@ -164,16 +171,12 @@ class RequestTimeoutError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
-	 * @memberOf RequestTimeoutError
+	 * @memberof RequestTimeoutError
 	 */
-	constructor(action, nodeID) {
-		super(`Request is timed out when call '${action}' action on '${nodeID}' node.`, 504, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Request is timed out when call '${data.action}' action on '${data.nodeID}' node.`, 504, "REQUEST_TIMEOUT", data);
 	}
 }
 
@@ -181,22 +184,18 @@ class RequestTimeoutError extends MoleculerRetryableError {
  * 'Request skipped for timeout' Error message
  *
  * @class RequestSkippedError
- * @extends {Error}
+ * @extends {MoleculerError}
  */
 class RequestSkippedError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestSkippedError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
-	 * @memberOf RequestSkippedError
+	 * @memberof RequestSkippedError
 	 */
-	constructor(action, nodeID) {
-		super(`Calling '${action}' is skipped because timeout reached on '${nodeID}' node.`, 514, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Calling '${data.action}' is skipped because timeout reached on '${data.nodeID}' node.`, 514, "REQUEST_SKIPPED", data);
 		this.retryable = false;
 	}
 }
@@ -204,23 +203,38 @@ class RequestSkippedError extends MoleculerError {
 /**
  * 'Request rejected' Error message. Retryable.
  *
- * @class RequestRejected
+ * @class RequestRejectedError
  * @extends {MoleculerRetryableError}
  */
-class RequestRejected extends MoleculerRetryableError {
+class RequestRejectedError extends MoleculerRetryableError {
 	/**
-	 * Creates an instance of RequestRejected.
+	 * Creates an instance of RequestRejectedError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
-	 * @memberOf RequestRejected
+	 * @memberof RequestRejectedError
 	 */
-	constructor(action, nodeID) {
-		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 503, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Request is rejected when call '${data.action}' action on '${data.nodeID}' node.`, 503, "REQUEST_REJECTED", data);
+	}
+}
+
+/**
+ * 'Queue is full' error message. Retryable.
+ *
+ * @class QueueIsFullError
+ * @extends {MoleculerRetryableError}
+ */
+class QueueIsFullError extends MoleculerRetryableError {
+	/**
+	 * Creates an instance of QueueIsFullError.
+	 *
+	 * @param {Object} data
+	 *
+	 * @memberof QueueIsFullError
+	 */
+	constructor(data) {
+		super(`Queue is full. Request '${data.action}' action on '${data.nodeID}' node is rejected.`, 429, "QUEUE_FULL", data);
 	}
 }
 
@@ -238,10 +252,10 @@ class ValidationError extends MoleculerClientError {
 	 * @param {String} type
 	 * @param {any} data
 	 *
-	 * @memberOf ValidationError
+	 * @memberof ValidationError
 	 */
 	constructor(message, type, data) {
-		super(message, 422, type, data);
+		super(message, 422, type || "VALIDATION_ERROR", data);
 	}
 }
 
@@ -255,13 +269,12 @@ class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
 	 *
-	 * @param {String} nodeID
-	 * @param {Number} level
+	 * @param {Object} data
 	 *
-	 * @memberOf MaxCallLevelError
+	 * @memberof MaxCallLevelError
 	 */
-	constructor(nodeID, level) {
-		super(`Request level is reached the limit (${level}) on '${nodeID}' node.`, 500, null, { level });
+	constructor(data) {
+		super(`Request level is reached the limit (${data.level}) on '${data.nodeID}' node.`, 500, "MAX_CALL_LEVEL", data);
 		this.retryable = false;
 	}
 }
@@ -277,10 +290,55 @@ class ServiceSchemaError extends MoleculerError {
 	 * Creates an instance of ServiceSchemaError.
 	 *
 	 * @param {String} msg
+	 * @param {Object} data
 	 * @memberof ServiceSchemaError
 	 */
-	constructor(msg) {
-		super(msg, 500, null);
+	constructor(msg, data) {
+		super(msg, 500, "SERVICE_SCHEMA_ERROR", data);
+	}
+}
+
+/**
+ * Custom Moleculer Error class for broker option errors
+ *
+ * @class BrokerOptionsError
+ * @extends {Error}
+ */
+class BrokerOptionsError extends MoleculerError {
+	/**
+	 * Creates an instance of BrokerOptionsError.
+	 *
+	 * @param {String} msg
+	 * @param {Object} data
+	 * @memberof BrokerOptionsError
+	 */
+	constructor(msg, data) {
+		super(msg, 500, "BROKER_OPTIONS_ERROR", data);
+	}
+}
+
+/**
+ * Custom Moleculer Error class for Graceful stopping
+ *
+ * @class GracefulStopTimeoutError
+ * @extends {Error}
+ */
+class GracefulStopTimeoutError extends MoleculerError {
+	/**
+	 * Creates an instance of GracefulStopTimeoutError.
+	 *
+	 * @param {Object?} data
+	 * @memberof GracefulStopTimeoutError
+	 */
+	constructor(data) {
+		if (data && data.service)  {
+			super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", data && data.service ? {
+				name: data.service.name,
+				version: data.service.version
+			} : null);
+		} else {
+			super("Unable to stop ServiceBroker gracefully.", 500, "GRACEFUL_STOP_TIMEOUT");
+		}
 	}
 }
 
@@ -294,31 +352,65 @@ class ProtocolVersionMismatchError extends MoleculerError {
 	/**
 	 * Creates an instance of ProtocolVersionMismatchError.
 	 *
-	 * @param {String} action
+	 * @param {Object} data
 	 *
-	 * @memberOf ProtocolVersionMismatchError
+	 * @memberof ProtocolVersionMismatchError
 	 */
-	constructor(nodeID, actual, received) {
-		super("Protocol version mismatch.", 500, null, { nodeID, actual, received });
+	constructor(data) {
+		super("Protocol version mismatch.", 500, "PROTOCOL_VERSION_MISMATCH", data);
 	}
 }
 
 /**
  * Invalid packet format error
  *
- * @class InvalidPacketData
+ * @class InvalidPacketDataError
  * @extends {Error}
  */
-class InvalidPacketData extends MoleculerError {
+class InvalidPacketDataError extends MoleculerError {
 	/**
-	 * Creates an instance of InvalidPacketData.
+	 * Creates an instance of InvalidPacketDataError.
 	 *
-	 * @param {String} action
+	 * @param {Object} data
 	 *
-	 * @memberOf InvalidPacketData
+	 * @memberof InvalidPacketDataError
 	 */
-	constructor(packet) {
-		super("Invalid packet data.", 500, null, { packet });
+	constructor(data) {
+		super("Invalid packet data.", 500, "INVALID_PACKET_DATA", data);
+	}
+}
+
+/**
+ * Recreate an error from a transferred payload `err`
+ *
+ * @param {Error} err
+ * @returns {MoleculerError}
+ */
+function recreateError(err) {
+	const Class = module.exports[err.name];
+	if (Class) {
+		switch(err.name) {
+			case "MoleculerError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerRetryableError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerServerError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerClientError": return new Class(err.message, err.code, err.type, err.data);
+
+			case "ValidationError": return new Class(err.message, err.type, err.data);
+
+			case "ServiceNotFoundError": return new Class(err.data);
+			case "ServiceNotAvailableError": return new Class(err.data);
+			case "RequestTimeoutError": return new Class(err.data);
+			case "RequestSkippedError": return new Class(err.data);
+			case "RequestRejectedError": return new Class(err.data);
+			case "QueueIsFullError": return new Class(err.data);
+			case "MaxCallLevelError": return new Class(err.data);
+			case "GracefulStopTimeoutError": return new Class(err.data);
+			case "ProtocolVersionMismatchError": return new Class(err.data);
+			case "InvalidPacketDataError": return new Class(err.data);
+
+			case "ServiceSchemaError":
+			case "BrokerOptionsError": return new Class(err.message, err.data);
+		}
 	}
 }
 
@@ -330,16 +422,23 @@ module.exports = {
 	MoleculerClientError,
 
 	ServiceNotFoundError,
-	ServiceNotAvailable,
+	ServiceNotAvailableError,
 
 	ValidationError,
 	RequestTimeoutError,
 	RequestSkippedError,
-	RequestRejected,
+	RequestRejectedError,
+	QueueIsFullError,
 	MaxCallLevelError,
 
 	ServiceSchemaError,
+	BrokerOptionsError,
+	GracefulStopTimeoutError,
 
 	ProtocolVersionMismatchError,
-	InvalidPacketData
+	InvalidPacketDataError,
+
+	BrokerDisconnectedError,
+
+	recreateError
 };

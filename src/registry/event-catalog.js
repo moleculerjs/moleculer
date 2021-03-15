@@ -1,13 +1,14 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const _ 			= require("lodash");
-const nanomatch  	= require("nanomatch");
+const utils			= require("../utils");
+const Strategies 	= require("../strategies");
 const EndpointList 	= require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
@@ -51,8 +52,10 @@ class EventCatalog {
 		const groupName = event.group || service.name;
 		let list = this.get(eventName, groupName);
 		if (!list) {
+			const strategyFactory = event.strategy ? (Strategies.resolve(event.strategy) || this.StrategyFactory) : this.StrategyFactory;
+			const strategyOptions = event.strategyOptions ? event.strategyOptions : this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, strategyFactory, strategyOptions);
 			this.events.push(list);
 		}
 
@@ -85,7 +88,7 @@ class EventCatalog {
 		const res = [];
 
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (!utils.match(eventName, list.name)) return;
 			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
 				// Use built-in balancer, get the next endpoint
 				const ep = list.next();
@@ -105,48 +108,84 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
-		return _.uniq(this.events.filter(list => nanomatch.isMatch(eventName, list.name)).map(item => item.group));
+		return _.uniq(this.events.filter(list => utils.match(eventName, list.name)).map(item => item.group));
 	}
 
 	/**
 	 * Get all endpoints for event
 	 *
 	 * @param {String} eventName
+	 * @param {Array<String>?} groupNames
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getAllEndpoints(eventName) {
+	getAllEndpoints(eventName, groupNames) {
 		const res = [];
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
-			list.endpoints.forEach(ep => {
-				if (ep.isAvailable)
-					res.push(ep);
-			});
+			if (!utils.match(eventName, list.name)) return;
+			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
+				list.endpoints.forEach(ep => {
+					if (ep.isAvailable)
+						res.push(ep);
+				});
+			}
 		});
 
 		return _.uniqBy(res, "id");
 	}
 
 	/**
-	 * Emit local services
+	 * Call local service handlers
 	 *
 	 * @param {String} eventName
 	 * @param {any} payload
 	 * @param {Array<String>?} groupNames
 	 * @param {String} nodeID
+	 * @param {boolean} broadcast
+	 * @returns {Promise<any>}
+	 *
 	 * @memberof EventCatalog
 	 */
-	emitLocalServices(eventName, payload, groupNames, nodeID) {
+	emitLocalServices(ctx) {
+		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
+		const sender = ctx.nodeID;
+
+		const promises = [];
+
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
-			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
-				list.endpoints.forEach(ep => {
-					if (ep.local && ep.event.handler)
-						ep.event.handler(payload, nodeID, eventName);
-				});
+			if (!utils.match(ctx.eventName, list.name)) return;
+			if (ctx.eventGroups == null || ctx.eventGroups.length == 0 || ctx.eventGroups.indexOf(list.group) !== -1) {
+				if (isBroadcast) {
+					list.endpoints.forEach(ep => {
+						if (ep.local && ep.event.handler) {
+							const newCtx = ctx.copy(ep);
+							newCtx.nodeID = sender;
+							promises.push(this.callEventHandler(newCtx));
+						}
+					});
+				} else {
+					const ep = list.nextLocal();
+					if (ep && ep.event.handler) {
+						const newCtx = ctx.copy(ep);
+						newCtx.nodeID = sender;
+						promises.push(this.callEventHandler(newCtx));
+					}
+				}
 			}
 		});
+
+		return this.broker.Promise.all(promises);
+	}
+
+	/**
+	 * Call local event handler and handles unhandled promise rejections.
+	 *
+	 * @param {Context} ctx
+	 *
+	 * @memberof EventCatalog
+	 */
+	callEventHandler(ctx) {
+		return ctx.endpoint.event.handler(ctx);
 	}
 
 	/**
@@ -178,25 +217,30 @@ class EventCatalog {
 	/**
 	 * Get a filtered list of events
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
 	 *
 	 * @memberof EventCatalog
 	 */
-	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
 		let res = [];
 
 		this.events.forEach(list => {
+			/* istanbul ignore next */
 			if (skipInternal && /^\$/.test(list.name))
 				return;
 
 			if (onlyLocal && !list.hasLocal())
 				return;
 
+			if (onlyAvailable && !list.hasAvailable())
+				return;
+
 			let item = {
 				name: list.name,
 				group: list.group,
 				count: list.count(),
+				//service: list.service,
 				hasLocal: list.hasLocal(),
 				available: list.hasAvailable()
 			};
@@ -204,7 +248,7 @@ class EventCatalog {
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
 				if (ep)
-					item.event = _.omit(ep.event, ["handler", "service"]);
+					item.event = _.omit(ep.event, ["handler", "remoteHandler", "service"]);
 			}
 
 			if (withEndpoints) {
@@ -212,7 +256,8 @@ class EventCatalog {
 					item.endpoints = list.endpoints.map(ep => {
 						return {
 							nodeID: ep.node.id,
-							state: ep.state
+							state: ep.state,
+							available: ep.node.available,
 						};
 					});
 				}

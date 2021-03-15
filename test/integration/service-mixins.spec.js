@@ -1,10 +1,15 @@
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
+const { MoleculerError } = require("../../src/errors");
+const _ = require("lodash");
+const { protectReject } = require("../unit/utils");
 
 describe("Test Service mixins", () => {
 
+	let flowMerged = [];
 	let flowCreated = [];
 	let flowStarted = [];
 	let flowStopped = [];
+	let flowHooks = [];
 
 	let mixinL2 = {
 		name: "mixinL2",
@@ -20,6 +25,23 @@ describe("Test Service mixins", () => {
 			tag: "other"
 		},
 
+		hooks: {
+			before: {
+				"*"() {
+					flowHooks.push("mixinL2-before-all");
+				},
+				beta() {
+					flowHooks.push("mixinL2-before-beta");
+				}
+			},
+			after: {
+				beta() {
+					flowHooks.push("mixinsL2-after-beta");
+					return "Change result";
+				}
+			}
+		},
+
 		actions: {
 			alpha: {
 				handler() {
@@ -28,6 +50,22 @@ describe("Test Service mixins", () => {
 			},
 
 			beta: {
+				handler() {
+					return "From mixinL2";
+				}
+			},
+
+			charlie(ctx) {
+				return {
+					msg: "From mixinL2",
+					action: _.omit(ctx.action, ["handler", "service", "metrics"])
+				};
+			},
+
+			echo: {
+				params: {
+					id: "string"
+				},
 				handler() {
 					return "From mixinL2";
 				}
@@ -40,9 +78,12 @@ describe("Test Service mixins", () => {
 		},
 
 		events: {
-			"oxygen": jest.fn()
+			"oxygen": {
+				handler: jest.fn()
+			}
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixinL2")),
 		created: jest.fn(() => flowCreated.push("mixinL2")),
 		started: jest.fn(() => flowStarted.push("mixinL2")),
 		stopped: jest.fn(() => flowStopped.push("mixinL2"))
@@ -61,12 +102,35 @@ describe("Test Service mixins", () => {
 			priority: 3
 		},
 
+		hooks: {
+			after: {
+				beta(ctx, res) {
+					flowHooks.push("mixin1L1-after-beta");
+					return res;
+				},
+				"*"(ctx, res) {
+					flowHooks.push("mixin1L1-after-all");
+					return res;
+				}
+			}
+		},
+
 		actions: {
 			beta() {
 				return "From mixin1L1";
 			},
 
 			gamma() {
+				return "From mixin1L1";
+			},
+
+			echo(ctx) {
+				return {
+					msg: "From mixin1L1",
+					action: _.omit(ctx.action, ["handler", "service", "metrics"])
+				};
+			},
+			foxtrot() {
 				return "From mixin1L1";
 			}
 		},
@@ -78,9 +142,14 @@ describe("Test Service mixins", () => {
 
 		events: {
 			"oxygen": jest.fn(),
-			"hydrogen": jest.fn()
+			"hydrogen": jest.fn(),
+			"nitrogen": {
+				group: "pnictogen",
+				handler: jest.fn()
+			}
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixin1L1")),
 		created: jest.fn(() => flowCreated.push("mixin1L1")),
 		stopped: jest.fn(() => flowStopped.push("mixin1L1"))
 	};
@@ -93,6 +162,23 @@ describe("Test Service mixins", () => {
 			e: "Susan"
 		},
 
+		dependencies: "math",
+
+		hooks: {
+			error: {
+				"*": [
+					function(ctx, err) {
+						flowHooks.push("mixin2L1-error-all-1");
+						throw err;
+					},
+					function(ctx, err) {
+						flowHooks.push("mixin2L1-error-all-2");
+						throw err;
+					}
+				]
+			}
+		},
+
 		actions: {
 			gamma() {
 				return "From mixin2L1";
@@ -100,6 +186,19 @@ describe("Test Service mixins", () => {
 
 			delta() {
 				return "From mixin2L1";
+			},
+			charlie: {
+				cache: {
+					keys: ["name"]
+				}
+			},
+			victor: {
+				hooks: {
+					after(ctx, res) {
+						flowHooks.push("mixin2L1-action-before-victor");
+						return res;
+					}
+				}
 			}
 		},
 
@@ -114,6 +213,7 @@ describe("Test Service mixins", () => {
 			"hydrogen": jest.fn()
 		},
 
+		merged: jest.fn(() => flowMerged.push("mixin2L1")),
 		created: jest.fn(() => flowCreated.push("mixin2L1")),
 		started: jest.fn(() => flowStarted.push("mixin2L1"))
 	};
@@ -126,6 +226,11 @@ describe("Test Service mixins", () => {
 			mixin2L1
 		],
 
+		dependencies: [
+			"posts",
+			{ name: "users", version: 2 }
+		],
+
 		settings: {
 			a: 999,
 			f: "Bill"
@@ -135,10 +240,74 @@ describe("Test Service mixins", () => {
 			minMemory: "2g"
 		},
 
+		hooks: {
+			before: {
+				"*"() {
+					flowHooks.push("main-before-all");
+				},
+				beta() {
+					flowHooks.push("main-before-beta");
+				}
+			},
+			after: {
+				beta(ctx, res) {
+					flowHooks.push("main-after-beta");
+					return res;
+				}
+			},
+			error: {
+				"*"(ctx, err) {
+					flowHooks.push("main-error-all");
+					throw err;
+				},
+				zulu(ctx, err) {
+					flowHooks.push("main-error-zulu");
+					throw err;
+				}
+			}
+		},
+
 		actions: {
+			beta: {
+				hooks: {
+					before() {
+						flowHooks.push("main-action-before-beta");
+					},
+					after(ctx, res) {
+						flowHooks.push("main-action-after-beta");
+						return res;
+					}
+				}
+			},
 			tango() {
 				return "From main";
-			}
+			},
+			charlie: {
+				params: {
+					name: "string"
+				}
+			},
+			zulu() {
+				throw new MoleculerError("Zulu error");
+			},
+
+			sierra: {
+				hooks: {
+					before() {
+						flowHooks.push("main-action-before-sierra");
+					}
+				},
+				handler() {
+					return "Sierra in main";
+				}
+			},
+
+			victor() {
+				flowHooks.push("handler");
+				return "Victory!";
+			},
+
+			foxtrot: false
 		},
 
 		methods: {
@@ -146,20 +315,34 @@ describe("Test Service mixins", () => {
 		},
 
 		events: {
-			"oxygen": jest.fn(),
+			"oxygen": {
+				context: true,
+				handler: jest.fn()
+			},
 			"carbon": jest.fn(),
+			"nitrogen": jest.fn()
 		},
 
+		merged: jest.fn(() => flowMerged.push("main")),
 		created: jest.fn(() => flowCreated.push("main")),
 		started: jest.fn(() => flowStarted.push("main")),
 		stopped: jest.fn(() => flowStopped.push("main"))
 	};
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let svc = broker.createService(mainSchema);
+	svc.waitForServices = jest.fn(() => Promise.resolve());
 
 	// console.log(svc.schema);
+
+	it("should call every merged handler", () => {
+		expect(mainSchema.merged).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.merged).toHaveBeenCalledTimes(1);
+		expect(mixin2L1.merged).toHaveBeenCalledTimes(1);
+		expect(mixinL2.merged).toHaveBeenCalledTimes(2);
+		expect(flowMerged.join("-")).toBe("mixinL2-mixin2L1-mixinL2-mixin1L1-main");
+	});
 
 	it("should call every created handler", () => {
 		expect(mainSchema.created).toHaveBeenCalledTimes(1);
@@ -189,6 +372,16 @@ describe("Test Service mixins", () => {
 		});
 	});
 
+	it("should merge dependencies", () => {
+		expect(svc.schema.dependencies).toEqual([
+			"posts",
+			{ name: "users", version: 2 },
+			"math"
+		]);
+		expect(svc.waitForServices).toHaveBeenCalledTimes(1);
+		expect(svc.waitForServices).toHaveBeenCalledWith(["posts", { name: "users", version: 2 }, "math"], 0, 1000);
+	});
+
 	it("should merge metadata", () => {
 		expect(svc.metadata).toEqual({
 			priority: 3,
@@ -199,32 +392,170 @@ describe("Test Service mixins", () => {
 	});
 
 	it("should call 'beta' action", () => {
-		return broker.call("main.beta").then(res => {
-			expect(res).toBe("From mixin1L1");
+		flowHooks = [];
+		return broker.call("main.beta").catch(protectReject).then(res => {
+			expect(res).toBe("Change result");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixinL2-before-beta",
+				"mixinL2-before-beta",
+				"main-before-beta",
+				"main-action-before-beta",
+				"main-action-after-beta",
+				"main-after-beta",
+				"mixin1L1-after-beta",
+				"mixinsL2-after-beta",
+				"mixinsL2-after-beta",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'delta' action", () => {
-		return broker.call("main.delta").then(res => {
+		flowHooks = [];
+		return broker.call("main.delta").catch(protectReject).then(res => {
 			expect(res).toBe("From mixin2L1");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'gamma' action", () => {
-		return broker.call("main.gamma").then(res => {
+		flowHooks = [];
+		return broker.call("main.gamma").catch(protectReject).then(res => {
 			expect(res).toBe("From mixin1L1");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'alpha' action", () => {
-		return broker.call("main.alpha").then(res => {
+		flowHooks = [];
+		return broker.call("main.alpha").catch(protectReject).then(res => {
 			expect(res).toBe("From mixinL2");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'tango' action", () => {
-		return broker.call("main.tango").then(res => {
+		flowHooks = [];
+		return broker.call("main.tango").catch(protectReject).then(res => {
 			expect(res).toBe("From main");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'charlie' action", () => {
+		flowHooks = [];
+		return broker.call("main.charlie", { name: "John" }).catch(protectReject).then(res => {
+			expect(res.msg).toBe("From mixinL2");
+			expect(res.action).toEqual({
+				cache: {
+					keys: ["name"]
+				},
+				name: "main.charlie",
+				rawName: "charlie",
+				params: {
+					"name": "string"
+				}
+			});
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'echo' action", () => {
+		flowHooks = [];
+		return broker.call("main.echo", { id: "1" }).catch(protectReject).then(res => {
+			expect(res.msg).toBe("From mixin1L1");
+			expect(res.action).toEqual({
+				name: "main.echo",
+				rawName: "echo",
+				params: {
+					"id": "string"
+				}
+			});
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'zulu' action", () => {
+		flowHooks = [];
+		return broker.call("main.zulu").then(protectReject).catch(err => {
+			expect(err.message).toBe("Zulu error");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"main-error-zulu",
+				"main-error-all",
+				"mixin2L1-error-all-1",
+				"mixin2L1-error-all-2",
+			]);
+		});
+	});
+
+	it("should call 'sierra' action", () => {
+		flowHooks = [];
+		return broker.call("main.sierra").catch(protectReject).then(res => {
+			expect(res).toBe("Sierra in main");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"main-action-before-sierra",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'victor' action", () => {
+		flowHooks = [];
+		return broker.call("main.victor").catch(protectReject).then(res => {
+			expect(res).toBe("Victory!");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"handler",
+				"mixin2L1-action-before-victor",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should not call 'foxtrot' action", () => {
+		return broker.call("main.foxtrot").catch(err => {
+			expect(err.name).toBe("ServiceNotFoundError");
 		});
 	});
 
@@ -257,17 +588,17 @@ describe("Test Service mixins", () => {
 		let payload = { a: 5 };
 		broker.broadcastLocal("oxygen", payload);
 
-		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mainSchema.events.oxygen.handler).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.oxygen.handler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
-		expect(mixinL2.events.oxygen).toHaveBeenCalledTimes(2);
-		expect(mixinL2.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledTimes(2);
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'carbon' event handlers", () => {
@@ -275,7 +606,7 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon");
+		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'hydrogen' event handlers", () => {
@@ -283,10 +614,46 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
+		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen", expect.any(broker.ContextFactory));
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
+		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen", expect.any(broker.ContextFactory));
+	});
+
+	it("should call 'nitrogen' event handlers without group", () => {
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload);
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
+
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
+	});
+
+	it("should call 'nitrogen' event handlers with group", () => {
+		mixin1L1.events.nitrogen.handler.mockClear();
+		mainSchema.events.nitrogen.mockClear();
+
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload, "pnictogen");
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
+
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
+	});
+
+	it("should call 'nitrogen' event handlers with wrong group", () => {
+		mixin1L1.events.nitrogen.handler.mockClear();
+		mainSchema.events.nitrogen.mockClear();
+
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload, "other");
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(0);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(0);
 	});
 
 	it("calling broker.stop", () => {

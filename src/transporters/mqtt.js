@@ -1,13 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
-const Transporter 	= require("./base");
+const Transporter = require("./base");
+const { isObject } = require("lodash");
 
 /**
  * Transporter for MQTT
@@ -22,13 +22,24 @@ class MqttTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { mqtt: opts };
-
 		super(opts);
+
+		this.qos = 0;
+		this.topicSeparator = ".";
+
+		if (isObject(this.opts)) {
+			if (this.opts.qos !== undefined) {
+				this.qos = this.opts.qos;
+				delete this.opts.qos;
+			}
+			if (this.opts.topicSeparator !== undefined) {
+				this.topicSeparator = this.opts.topicSeparator;
+				delete this.opts.topicSeparator;
+			}
+		}
 
 		this.client = null;
 	}
@@ -36,10 +47,10 @@ class MqttTransporter extends Transporter {
 	/**
 	 * Connect to the server
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let mqtt;
 			try {
 				mqtt = require("mqtt");
@@ -48,7 +59,7 @@ class MqttTransporter extends Transporter {
 				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
 			}
 
-			const client = mqtt.connect(this.opts.mqtt);
+			const client = mqtt.connect(this.opts);
 			this._client = client; // For tests
 
 			client.on("connect", () => {
@@ -61,7 +72,7 @@ class MqttTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("error", (e) => {
 				this.logger.error("MQTT error.", e.message);
-				this.logger.dbug(e);
+				this.logger.debug(e);
 
 				if (!client.connected)
 					reject(e);
@@ -72,9 +83,10 @@ class MqttTransporter extends Transporter {
 				this.logger.warn("MQTT client is reconnecting...");
 			});
 
-			client.on("message", (topic, msg) => {
-				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, msg);
+			client.on("message", (rawTopic, buf) => {
+				const topic = rawTopic.substring(this.prefix.length + this.topicSeparator.length);
+				const cmd = topic.split(this.topicSeparator)[0];
+				this.receive(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -88,13 +100,27 @@ class MqttTransporter extends Transporter {
 	/**
 	 * Disconnect from the server
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.end();
-			this.client = null;
+			return new this.broker.Promise(resolve => {
+				this.client.end(false, resolve);
+				this.client = null;
+			});
 		}
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 *
+	 * @param {any} cmd
+	 * @param {any} nodeID
+	 *
+	 * @memberof MqttTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + this.topicSeparator + cmd + (nodeID ? this.topicSeparator + nodeID : "");
 	}
 
 	/**
@@ -103,28 +129,41 @@ class MqttTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		this.client.subscribe(this.getTopicName(cmd, nodeID));
-		return Promise.resolve();
+		return new this.broker.Promise((resolve, reject) => {
+			const topic = this.getTopicName(cmd, nodeID);
+			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
+				if (err)
+					return reject(err);
+
+				this.logger.debug("MQTT server granted", granted);
+
+				resolve();
+			});
+		});
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberOf MqttTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data) {
+		/* istanbul ignore next*/
 		if (!this.client) return;
-		const data = packet.serialize();
 
-		return new Promise((resolve, reject) => {
-			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
+		return new this.broker.Promise((resolve, reject) => {
+			this.client.publish(topic, data, { qos: this.qos }, err => {
+				/* istanbul ignore next*/
 				if (err)
 					return reject(err);
+
 				resolve();
 			});
 		});

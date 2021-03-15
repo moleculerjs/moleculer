@@ -1,52 +1,60 @@
 "use strict";
 
-//let _ = require("lodash");
-let Promise	= require("bluebird");
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
+const ServiceBroker = require("../../src/service-broker");
 
-let ServiceBroker = require("../../src/service-broker");
-
-function createBroker(opts) {
+function createBroker(opts = {}) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	let broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 	broker.loadService(__dirname + "/../user.service");
+	broker.loadService(__dirname + "/../math.service");
 	broker.start();
 
 	return broker;
 }
 
-let bench1 = benchmark.createSuite("Local call");
+const bench1 = benchmark.createSuite("Local call");
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench1.ref("broker.call (normal)", done => {
 		return broker.call("users.empty").then(done);
 	});
 
 	bench1.add("broker.call (with params)", done => {
-		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 }).then(done);
+		return broker.call("math.add", { a: 4, b: 2 }).then(done);
 	});
 
 })();
 
 // ----------------------------------------------------------------
-let bench2 = benchmark.createSuite("Call with middlewares");
+const bench2 = benchmark.createSuite("Call with middlewares");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench2.ref("No middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker({
+		internalMiddlewares: false
+	});
+	bench2.ref("No internal middlewares", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
 
-	let mw1 = handler => {
-		return ctx => Promise.resolve().then(() => handler(ctx).then(res => res));
+(function() {
+	const mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
-	broker.use(mw1, mw1, mw1, mw1, mw1);
+
+	const broker = createBroker({
+		middlewares: Array(5).fill(mw1)
+	});
 
 	bench2.add("5 middlewares", done => {
 		return broker.call("users.empty").then(done);
@@ -54,56 +62,62 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with statistics & metrics");
+const bench3 = benchmark.createSuite("Call with metrics");
 
 (function() {
-	let broker = createBroker();
-	bench3.ref("No statistics", done => {
+	const broker = createBroker();
+	bench3.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true });
+	const broker = createBroker({ metrics: true });
 	bench3.add("With metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
+// ----------------------------------------------------------------
+const bench4 = benchmark.createSuite("Call with tracing");
+
 (function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
+	const broker = createBroker();
+	bench4.ref("No tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench3.add("With metrics & statistics", done => {
+	const broker = createBroker({ tracing: true });
+	bench4.add("With tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
+const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 
 (function() {
 
-	let Transporter = require("../../src/transporters/fake");
-	let Serializer = require("../../src/serializers/json");
+	const Transporter = require("../../src/transporters/fake");
+	const Serializer = require("../../src/serializers/json");
 
-	let b1 = new ServiceBroker({
+	const b1 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
 		nodeID: "node-1"
 	});
 
-	let b2 = new ServiceBroker({
+	const b2 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
-		nodeID: "node-2"
+		nodeID: "node-2",
+		trackContext: true
 	});
 
 	b2.createService({
@@ -118,13 +132,32 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	b1.start().then(() => b2.start());
 
 	let c = 0;
-	bench4.add("Remote call echo.reply", done => {
+	bench5.ref("Remote call echo.reply", done => {
+		return b1.call("echo.reply", { a: c++ }).then(done);
+	});
+
+	bench5.add("Remote call echo.reply with tracking", done => {
 		return b1.call("echo.reply", { a: c++ }).then(done);
 	});
 })();
+// ----------------------------------------------------------------
 
-module.exports = benchmark.run([bench1, bench2, bench3, bench4]);
+let bench6 = benchmark.createSuite("Context tracking");
+(function() {
+	let broker = createBroker( { trackContext: true });
+	bench6.ref("broker.call (without tracking)", done => {
+		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: false }).then(done);
+	});
 
+	bench6.add("broker.call (with tracking)", done => {
+		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: true }).then(done);
+	});
+
+})();
+
+module.exports = Promise.resolve()
+	.then(() => new Promise(resolve => setTimeout(resolve, 1000)))
+	.then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]));
 
 /*
 
@@ -135,42 +168,48 @@ module.exports = benchmark.run([bench1, bench2, bench3, bench4]);
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Local call
-√ broker.call (normal)*             1,329,946 rps
-√ broker.call (with params)*        1,242,043 rps
+√ broker.call (normal)*             1,705,852 rps
+√ broker.call (with params)*        1,736,929 rps
 
-   broker.call (normal)* (#)            0%      (1,329,946 rps)   (avg: 751ns)
-   broker.call (with params)*       -6.61%      (1,242,043 rps)   (avg: 805ns)
+   broker.call (normal)* (#)            0%      (1,705,852 rps)   (avg: 586ns)
+   broker.call (with params)*       +1.82%      (1,736,929 rps)   (avg: 575ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ No middlewares*        1,212,999 rps
-√ 5 middlewares*         1,234,193 rps
+√ No middlewares*        1,675,912 rps
+√ 5 middlewares*           710,133 rps
 
-   No middlewares* (#)       0%      (1,212,999 rps)   (avg: 824ns)
-   5 middlewares*        +1.75%      (1,234,193 rps)   (avg: 810ns)
+   No middlewares* (#)       0%      (1,675,912 rps)   (avg: 596ns)
+   5 middlewares*       -57.63%        (710,133 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
-Suite: Call with statistics & metrics
-√ No statistics*                    1,234,234 rps
-√ With metrics*                       384,631 rps
-√ With statistics*                    549,852 rps
-√ With metrics & statistics*          272,172 rps
+Suite: Call with metrics
+√ No metrics*          1,615,240 rps
+√ With metrics*          504,892 rps
 
-   No statistics* (#)                   0%      (1,234,234 rps)   (avg: 810ns)
-   With metrics*                   -68.84%        (384,631 rps)   (avg: 2μs)
-   With statistics*                -55.45%        (549,852 rps)   (avg: 1μs)
-   With metrics & statistics*      -77.95%        (272,172 rps)   (avg: 3μs)
+   No metrics* (#)         0%      (1,615,240 rps)   (avg: 619ns)
+   With metrics*      -68.74%        (504,892 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 Suite: Remote call with FakeTransporter
-√ Remote call echo.reply*           44,055 rps
+√ Remote call echo.reply*                         42,118 rps
+√ Remote call echo.reply with tracking*           44,081 rps
 
-   Remote call echo.reply*           0%         (44,055 rps)   (avg: 22μs)
+   Remote call echo.reply* (#)                     0%         (42,118 rps)   (avg: 23μs)
+   Remote call echo.reply with tracking*       +4.66%         (44,081 rps)   (avg: 22μs)
+-----------------------------------------------------------------------
+
+Suite: Context tracking
+√ broker.call (without tracking)*        1,680,786 rps
+√ broker.call (with tracking)*           1,673,843 rps
+
+   broker.call (without tracking)* (#)       0%      (1,680,786 rps)   (avg: 594ns)
+   broker.call (with tracking)*          -0.41%      (1,673,843 rps)   (avg: 597ns)
 -----------------------------------------------------------------------
 
 */

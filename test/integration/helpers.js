@@ -4,15 +4,15 @@ const _ = require("lodash");
 const ServiceBroker = require("../../src/service-broker");
 
 const H = {
-	createNode(nodeID, services) {
-		let node = new ServiceBroker({ nodeID, transporter: "Fake" });
+	createNode(opts, services) {
+		let node = new ServiceBroker(_.defaultsDeep(opts, { logger: false, transporter: "Fake" }));
 		if (services)
 			H.addServices(node, services);
 		return node;
 	},
 
 	addServices(broker, services) {
-		services.forEach(service =>broker.createService(_.cloneDeep(service)));
+		services.forEach(service => broker.createService(_.cloneDeep(service)));
 	},
 
 	removeServices(broker, serviceNames) {
@@ -23,8 +23,8 @@ const H = {
 		});
 	},
 
-	hasService(broker, name, nodeID, version) {
-		return broker.registry.services.has(name, version, nodeID);
+	hasService(broker, fullName, nodeID) {
+		return broker.registry.services.has(fullName, nodeID);
 	},
 
 	hasAction(broker, name) {
@@ -43,6 +43,8 @@ const H = {
 		const list = broker.registry.actions.get(actionName);
 		if (list)
 			return list.endpoints.map(ep => ep.id);
+
+		/* istanbul ignore next */
 		return [];
 	},
 

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
@@ -7,12 +5,11 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "sender-" + process.pid,
-	//transporter: "NATS",
-	transporter: "amqp://192.168.0.181:5672",
-	disableBalancer: true,
+	transporter: "NATS",
+	//transporter: "amqp://192.168.0.181:5672",
+	//disableBalancer: true,
 	//serializer: "ProtoBuf",
 	logger: console,
-	logFormatter: "simple"
 });
 
 let c = 1;
@@ -28,7 +25,7 @@ broker.createService({
 		}, 2000);
 
 		setInterval(() => {
-			this.broker.sendPing();
+			this.broker.ping();
 		}, 5000);
 	},
 

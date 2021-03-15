@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+		"lib": [ "es2015" ],
+        "sourceMap": false,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+		"strict": true,
+		"strictFunctionTypes": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "outDir": "./out",
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "*"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "typings/main",
+        "typings/main.d.ts"
+    ]
+}

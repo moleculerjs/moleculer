@@ -1,13 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const os = require("os");
-const _ = require("lodash");
 const { getIpList } = require("./utils");
 const MOLECULER_VERSION = require("../package.json").version;
 
@@ -20,12 +19,13 @@ const getClientInfo = () => {
 };
 
 const getCpuInfo = () => {
+	const cpus = os.cpus();
 	const load = os.loadavg();
 	const cpu = {
 		load1: load[0],
 		load5: load[1],
 		load15: load[2],
-		cores: os.cpus().length,
+		cores: Array.isArray(cpus) ? os.cpus().length : null,
 	};
 	cpu.utilization = Math.min(Math.floor(load[0] * 100 / cpu.cores), 100);
 
@@ -42,6 +42,14 @@ const getMemoryInfo = () => {
 	return mem;
 };
 
+const getUserInfo = () => {
+	try {
+		return os.userInfo();
+	} catch (e) {
+		return {};
+	}
+};
+
 const getOsInfo = () => {
 	return {
 		uptime: os.uptime(),
@@ -50,7 +58,7 @@ const getOsInfo = () => {
 		hostname: os.hostname(),
 		arch: os.arch(),
 		platform: os.platform(),
-		user: os.userInfo()
+		user: getUserInfo()
 	};
 };
 
@@ -69,17 +77,6 @@ const getNetworkInterfacesInfo = () => {
 	};
 };
 
-const getTransitStatus = (broker) => {
-	if (broker.transit) {
-		return {
-			stat: _.clone(broker.transit.stat)
-		};
-	}
-
-	/* istanbul ignore next */
-	return null;
-};
-
 const getDateTimeInfo = () => {
 	return {
 		now: Date.now(),
@@ -88,7 +85,7 @@ const getDateTimeInfo = () => {
 	};
 };
 
-const getHealthStatus = (broker) => {
+const getHealthStatus = (/*broker*/) => {
 	return {
 		cpu: getCpuInfo(),
 		mem: getMemoryInfo(),
@@ -96,11 +93,7 @@ const getHealthStatus = (broker) => {
 		process: getProcessInfo(),
 		client: getClientInfo(),
 		net: getNetworkInterfacesInfo(),
-		transit: getTransitStatus(broker),
 		time: getDateTimeInfo()
-
-		// TODO: event loop & GC info
-		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 	};
 };
 
@@ -112,6 +105,5 @@ module.exports = {
 	getProcessInfo,
 	getClientInfo,
 	getNetworkInterfacesInfo,
-	getTransitStatus,
 	getDateTimeInfo
 };

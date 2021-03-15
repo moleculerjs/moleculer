@@ -1,27 +1,30 @@
-/* eslint-disable no-console */
-
 "use strict";
 
-let ServiceBroker = require("../src/service-broker");
+const ServiceBroker = require("../src/service-broker");
+const E = require("../src/errors");
 
-let broker = new ServiceBroker({
-	logger: console,
-	validation: false,
-	metrics: true
+const broker = new ServiceBroker({
+	requestTimeout: 5 * 1000,
 });
 
-broker.loadService(__dirname + "/../examples/metrics.service");
-broker.loadService(__dirname + "/../examples/user.service");
-broker.loadService(__dirname + "/../examples/post.service");
-
-broker.start();
-
-//broker.call("users.empty").then(res => console.log(res));
-let p = broker.call("posts.slowGet", { id: 5 }, { timeout: 3000 });
-p.then(res => {
-	const ctx = p.ctx;
-	console.log(`Success! Action: ${ctx.action.name}, Duration: ${ctx.duration}`);
-	//console.log("Result:", res);
-}).catch(err => {
-	console.warn("Something happened!", err.message);
+broker.createService({
+	name: "test",
+	actions: {
+		slow: {
+			timeout: 2000,
+			async handler(ctx) {
+				await this.Promise.delay(3000);
+				return "OK";
+			}
+		},
+	}
 });
+
+
+broker.start()
+	.then(() => broker.repl())
+	.then(() => broker.Promise.delay(1000))
+	.then(() => broker.logger.info("Calling action..."))
+	.then(() => broker.call("test.slow", null, { timeout: 4000 }))
+	.then(res => broker.logger.info(res))
+	.catch(err => broker.logger.error(err.message));

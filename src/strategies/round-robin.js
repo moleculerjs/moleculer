@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,8 +15,8 @@ const BaseStrategy = require("./base");
  */
 class RoundRobinStrategy extends BaseStrategy {
 
-	constructor(registry, broker) {
-		super(registry, broker);
+	constructor(registry, broker, opts) {
+		super(registry, broker, opts);
 
 		this.counter = 0;
 	}

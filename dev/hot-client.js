@@ -1,13 +1,11 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "client-" + process.pid,
-	transporter: "NATS",
+	nodeID: "hot-client",
+	transporter: "TCP",
 	logger: console
 });
 
@@ -15,6 +13,7 @@ let broker = new ServiceBroker({
 
 let c = 0;
 broker.start().then(() => {
+	broker.repl();
 
 	setInterval(() => {
 		broker.call("test.hello")
@@ -24,5 +23,6 @@ broker.start().then(() => {
 
 		broker.emit("test.event", ++c);
 	}, 1000);
+
 
 });

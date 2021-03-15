@@ -1,0 +1,17 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "Worker services for Docker example",
+  "main": "index.js",
+  "scripts": {
+    "dev": "moleculer-runner --repl --hot service.js",
+    "start": "node --inspect=0.0.0.0:9229 node_modules/moleculer/bin/moleculer-runner service.js",
+    "docker": "docker build -t moleculer-worker ."
+  },
+  "keywords": [],
+  "author": "Icebob",
+  "license": "MIT",
+  "dependencies": {
+    "moleculer": "github:moleculerjs/moleculer#next"
+  }
+}

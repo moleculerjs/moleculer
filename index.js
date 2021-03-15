@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -9,28 +9,43 @@
 const {
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
 	CIRCUIT_OPEN
 } = require("./src/constants");
 
 module.exports = {
-	Context: require("./src/context"),
-	Service: require("./src/service"),
 	ServiceBroker: require("./src/service-broker"),
-	Logger: require("./src/logger"),
+	Loggers: require("./src/loggers"),
+	Service: require("./src/service"),
+	Context: require("./src/context"),
+
+	Cachers: require("./src/cachers"),
 
 	Transporters: require("./src/transporters"),
-	Cachers: require("./src/cachers"),
 	Serializers: require("./src/serializers"),
+	Strategies: require("./src/strategies"),
+	Validators: require("./src/validators"),
+	Validator: require("./src/validators/fastest"), // deprecated
+	TracerExporters: require("./src/tracing/exporters"),
+	MetricTypes: require("./src/metrics/types"),
+	MetricReporters: require("./src/metrics/reporters"),
+	METRIC: require("./src/metrics/constants"),
 
-	Validator: require("./src/validator"),
+	Registry: require("./src/registry"),
+	Discoverers: require("./src/registry/discoverers"),
+
+	Middlewares: require("./src/middlewares"),
 
 	Errors: require("./src/errors"),
 
-	Strategies: require("./src/strategies"),
+	Runner: require("./src/runner"),
+	Utils: require("./src/utils"),
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
 	CIRCUIT_OPEN,
 
-	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION
+	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION,
+	PROTOCOL_VERSION: require("./src/service-broker").PROTOCOL_VERSION
 };

@@ -1,29 +1,27 @@
 "use strict";
 
-//let _ = require("lodash");
-let ServiceBroker = require("../../src/service-broker");
-let Promise = require("bluebird");
+const ServiceBroker = require("../../src/service-broker");
 
-let { getDataFile } = require("../utils");
+const { getDataFile } = require("../utils");
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Transporters benchmark").printHeader();
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Transporters benchmark").printHeader();
 
-let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
+const dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
 function createBrokers(transporter) {
-	let b1 = new ServiceBroker({
+	const b1 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-1"
 	});
 
-	let b2 = new ServiceBroker({
+	const b2 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-2"
 	});
@@ -45,22 +43,24 @@ function createBrokers(transporter) {
 
 function runTest(dataName) {
 
-	let bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
-	let data = getDataFile(dataName + ".json");
-	let payload = JSON.parse(data);
+	const bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
+	const data = getDataFile(dataName + ".json");
+	const payload = JSON.parse(data);
 
 	Promise.all([
 		createBrokers("Fake"),
 		createBrokers("NATS"),
 		createBrokers("Redis"),
 		createBrokers("MQTT"),
-		createBrokers("amqp://192.168.51.29:5672")
+		//createBrokers("amqp://192.168.51.29:5672")
+		createBrokers("TCP"),
 	]).delay(1000).then(([
 		[fake1, fake2],
 		[nats1, nats2],
 		[redis1, redis2],
 		[mqtt1, mqtt2],
-		[amqp1, amqp2],
+		[tcp1, tcp2],
+		//[amqp1, amqp2],
 	]) => {
 		bench.ref("Fake", done => {
 			return fake1.call("echo.reply", payload).then(done);
@@ -78,8 +78,12 @@ function runTest(dataName) {
 			return mqtt1.call("echo.reply", payload).then(done);
 		});
 
-		bench.add("AMQP", done => {
+		/*bench.add("AMQP", done => {
 			return amqp1.call("echo.reply", payload).then(done);
+		});*/
+
+		bench.add("TCP", done => {
+			return tcp1.call("echo.reply", payload).then(done);
 		});
 
 		bench.run().then(() => {
@@ -96,8 +100,11 @@ function runTest(dataName) {
 				mqtt1.stop(),
 				mqtt2.stop(),
 
-				amqp1.stop(),
-				amqp2.stop()
+				// amqp1.stop(),
+				// amqp2.stop()
+
+				tcp1.stop(),
+				tcp2.stop(),
 			]).then(() => {
 				if (dataFiles.length > 0)
 					runTest(dataFiles.shift());
@@ -116,20 +123,23 @@ runTest(dataFiles.shift());
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Transport with 10bytes
-√ Fake*            74,742 rps
-√ NATS*             8,651 rps
-√ Redis*            7,897 rps
-√ MQTT*             7,992 rps
+√ Fake*            40,182 rps
+√ NATS*             8,182 rps
+√ Redis*            6,922 rps
+√ MQTT*             6,985 rps
+√ TCP*             10,639 rps
 
-   Fake* (#)        0%         (74,742 rps)   (avg: 13μs)
-   NATS*       -88.43%          (8,651 rps)   (avg: 115μs)
-   Redis*      -89.43%          (7,897 rps)   (avg: 126μs)
-   MQTT*       -89.31%          (7,992 rps)   (avg: 125μs)
+   Fake* (#)        0%         (40,182 rps)   (avg: 24μs)
+   NATS*       -79.64%          (8,182 rps)   (avg: 122μs)
+   Redis*      -82.77%          (6,922 rps)   (avg: 144μs)
+   MQTT*       -82.62%          (6,985 rps)   (avg: 143μs)
+   TCP*        -73.52%         (10,639 rps)   (avg: 93μs)
 -----------------------------------------------------------------------
+
 
 */

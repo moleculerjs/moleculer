@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -23,23 +23,24 @@ class EndpointList {
 	 * @param {String} name
 	 * @param {String} group
 	 * @param {EndPointClass} EndPointFactory
-	 * @param {Strategy} strategy
+	 * @param {StrategyClass} StrategyFactory
+	 * @param {Object?} strategyOptions
 	 * @memberof EndpointList
 	 */
-	constructor(registry, broker, name, group, EndPointFactory, strategy) {
+	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory, strategyOptions) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
-		this.strategy = strategy;
+		this.strategy = new StrategyFactory(registry, broker, strategyOptions);
 		this.name = name;
 		this.group = group;
 		this.internal = name.startsWith("$");
 
 		this.EndPointFactory = EndPointFactory;
 
-
 		this.endpoints = [];
-		this.localEndpoint = null;
+
+		this.localEndpoints = [];
 	}
 
 	/**
@@ -52,30 +53,46 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	add(node, service, data) {
-		const found = this.endpoints.find(ep => ep.node == node);
+		const found = this.endpoints.find(ep => ep.node == node && ep.service.name == service.name);
 		if (found) {
 			found.update(data);
 			return found;
 		}
 
 		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, data);
-		if (ep.local)
-			this.localEndpoint = ep;
-
 		this.endpoints.push(ep);
+
+		this.setLocalEndpoints();
+
 		return ep;
+	}
+
+	/**
+	 * Get first endpoint
+	 *
+	 * @returns {Endpoint}
+	 * @memberof EndpointList
+	 */
+	getFirst() {
+		if (this.endpoints.length > 0)
+			return this.endpoints[0];
+
+		return null;
 	}
 
 	/**
 	 * Select next endpoint with balancer strategy
 	 *
-	 * @returns
+	 * @param {Array<Endpoint>} list
+	 * @param {Context} ctx
+	 * @returns {Endpoint}
 	 * @memberof EndpointList
 	 */
-	select() {
-		const ret = this.strategy.select(this.endpoints);
+	select(list, ctx) {
+		const ret = this.strategy.select(list, ctx);
 		if (!ret) {
-			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
+			/* istanbul ignore next */
+			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy) });
 		}
 		return ret;
 	}
@@ -83,18 +100,19 @@ class EndpointList {
 	/**
 	 * Get next endpoint
 	 *
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof EndpointList
 	 */
-	next() {
+	next(ctx) {
 		// No items
 		if (this.endpoints.length === 0) {
 			return null;
 		}
 
-		// If internal, return the local always
-		if (this.internal) {
-			return this.localEndpoint;
+		// If internal (service), return the local always
+		if (this.internal && this.hasLocal()) {
+			return this.nextLocal();
 		}
 
 		// Only 1 item
@@ -108,21 +126,47 @@ class EndpointList {
 		}
 
 		// Search local item
-		if (this.registry.opts.preferLocal === true && this.localEndpoint && this.localEndpoint.isAvailable) {
-			return this.localEndpoint;
-		}
-
-		const max = this.endpoints.length;
-		let i = 0;
-		while (i < max) {
-			const ep = this.select();
-			if (ep.isAvailable)
+		if (this.registry.opts.preferLocal === true && this.hasLocal()) {
+			const ep = this.nextLocal(ctx);
+			if (ep && ep.isAvailable)
 				return ep;
-
-			i++;
 		}
 
-		return null;
+		const epList = this.endpoints.filter(ep => ep.isAvailable);
+		if (epList.length == 0)
+			return null;
+
+		return this.select(epList, ctx);
+	}
+
+	/**
+	 * Get next local endpoint
+	 *
+	 * @param {Context} ctx
+	 * @returns
+	 * @memberof EndpointList
+	 */
+	nextLocal(ctx) {
+		// No items
+		if (this.localEndpoints.length === 0) {
+			return null;
+		}
+
+		// Only 1 item
+		if (this.localEndpoints.length === 1) {
+			// No need to select a node, return the only one
+			const item = this.localEndpoints[0];
+			if (item.isAvailable)
+				return item;
+
+			return null;
+		}
+
+		const epList = this.localEndpoints.filter(ep => ep.isAvailable);
+		if (epList.length == 0)
+			return null;
+
+		return this.select(epList, ctx);
 	}
 
 	/**
@@ -142,7 +186,16 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	hasLocal() {
-		return this.localEndpoint != null;
+		return this.localEndpoints.length > 0;
+	}
+
+	/**
+	 * Set local endpoint
+	 *
+	 * @memberof EndpointList
+	 */
+	setLocalEndpoints() {
+		this.localEndpoints = this.endpoints.filter(ep => ep.local);
 	}
 
 	/**
@@ -188,9 +241,14 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByService(service) {
-		_.remove(this.endpoints, ep => ep.service == service);
+		_.remove(this.endpoints, ep => {
+			if (ep.service == service) {
+				ep.destroy();
+				return true;
+			}
+		});
 
-		this.setLocalEndpoint();
+		this.setLocalEndpoints();
 	}
 
 	/**
@@ -200,22 +258,14 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByNodeID(nodeID) {
-		_.remove(this.endpoints, ep => ep.id == nodeID);
-
-		this.setLocalEndpoint();
-	}
-
-	/**
-	 * Set local endpoint
-	 *
-	 * @memberof EndpointList
-	 */
-	setLocalEndpoint() {
-		this.localEndpoint = null;
-		this.endpoints.forEach(ep => {
-			if (ep.node.id == this.broker.nodeID)
-				this.localEndpoint = ep;
+		_.remove(this.endpoints, ep => {
+			if (ep.id == nodeID) {
+				ep.destroy();
+				return true;
+			}
 		});
+
+		this.setLocalEndpoints();
 	}
 }
 

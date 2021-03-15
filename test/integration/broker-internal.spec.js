@@ -1,12 +1,15 @@
 const ServiceBroker = require("../../src/service-broker");
-const Promise = require("bluebird");
+const { hostname } = require("os");
 
 describe("Test internal services", () => {
 
 	const broker = new ServiceBroker({
 		nodeID: "node-master",
-		statistics: true,
-		internalServices: true
+		logger: false,
+		transporter: null,
+		internalServices: true,
+		metrics: true,
+		metadata: { a: 5 },
 	});
 
 	broker.createService({
@@ -18,18 +21,18 @@ describe("Test internal services", () => {
 			scaling: true
 		},
 		actions: {
-			hello() {},
+			hello() { },
 			welcome: {
 				cache: true,
 				params: {
 					name: { type: "string" }
 				},
-				handler() {}
+				handler() { }
 			}
 		},
 		events: {
-			"say.hi"() {},
-			"say.hello"() {}
+			"say.hi"() { },
+			"say.hello"() { }
 		}
 	});
 
@@ -37,20 +40,19 @@ describe("Test internal services", () => {
 		name: "echo",
 		version: "alpha",
 		actions: {
-			reply() {}
+			reply() { }
 		}
 	});
 
 	beforeAll(() => Promise.all([broker.start()]));
 	afterAll(() => Promise.all([broker.stop()]));
 
-	it("should register $node.stats internal action", () => {
+	it("should register $node internal actions", () => {
 		expect(broker.registry.actions.isAvailable("$node.list")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.services")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.actions")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.events")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.health")).toBe(true);
-		expect(broker.registry.actions.isAvailable("$node.stats")).toBe(true);
 	});
 
 	it("should return node list", () => {
@@ -66,11 +68,18 @@ describe("Test internal services", () => {
 				},
 				"config": {},
 				"cpu": null,
+				"cpuSeq": null,
 				"id": "node-master",
+				"instanceID": localNode.instanceID,
 				"ipList": localNode.ipList,
+				"hostname": hostname(),
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
+				"offlineSince": null,
+				"port": null,
+				"seq": localNode.seq,
 				"local": true,
-				"port": null
+				"metadata": { a: 5 },
+				"udpAddress": null
 			}]);
 		});
 	});
@@ -78,14 +87,15 @@ describe("Test internal services", () => {
 	it("should return service list", () => {
 		return broker.call("$node.services").then(res => {
 			expect(res).toEqual([{
-				"actions": {},
 				"name": "$node",
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": undefined
+				"version": undefined,
+				"fullName": "$node",
+				"local": true,
+				"available": true
 			}, {
-				"actions": {},
 				"name": "greeter",
 				"nodes": ["node-master"],
 				"settings": {
@@ -94,14 +104,19 @@ describe("Test internal services", () => {
 				"metadata": {
 					"scaling": true
 				},
-				"version": undefined
+				"version": undefined,
+				"fullName": "greeter",
+				"local": true,
+				"available": true
 			}, {
-				"actions": {},
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": "alpha"
+				"version": "alpha",
+				"fullName": "alpha.echo",
+				"local": true,
+				"available": true
 			}]);
 		});
 	});
@@ -111,12 +126,13 @@ describe("Test internal services", () => {
 			expect(res).toEqual([{
 				"actions": {
 					"greeter.hello": {
-						"cache": false,
-						"name": "greeter.hello"
+						"name": "greeter.hello",
+						"rawName": "hello",
 					},
 					"greeter.welcome": {
 						"cache": true,
 						"name": "greeter.welcome",
+						"rawName": "welcome",
 						"params": {
 							"name": {
 								"type": "string"
@@ -132,19 +148,25 @@ describe("Test internal services", () => {
 				"metadata": {
 					"scaling": true
 				},
-				"version": undefined
+				"version": undefined,
+				"fullName": "greeter",
+				"local": true,
+				"available": true
 			}, {
 				"actions": {
 					"alpha.echo.reply": {
-						"cache": false,
-						"name": "alpha.echo.reply"
+						"name": "alpha.echo.reply",
+						"rawName": "reply",
 					}
 				},
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": "alpha"
+				"version": "alpha",
+				"fullName": "alpha.echo",
+				"local": true,
+				"available": true
 			}]);
 		});
 	});
@@ -153,8 +175,24 @@ describe("Test internal services", () => {
 		return broker.call("$node.actions").then(res => {
 			expect(res).toEqual([{
 				"action": {
+					"tracing": false,
 					"cache": false,
-					"name": "$node.list"
+					"name": "$node.list",
+					"rawName": "list",
+					"params": {
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"withServices": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						}
+					}
 				},
 				"available": true,
 				"count": 1,
@@ -162,20 +200,46 @@ describe("Test internal services", () => {
 				"name": "$node.list"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
 					"name": "$node.services",
+					"rawName": "services",
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"withActions": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"withEvents": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"grouping": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": true
 						}
 					}
 				},
@@ -185,20 +249,34 @@ describe("Test internal services", () => {
 				"name": "$node.services"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
 					"name": "$node.actions",
+					"rawName": "actions",
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"withEndpoints": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						}
 					}
 				},
@@ -208,20 +286,34 @@ describe("Test internal services", () => {
 				"name": "$node.actions"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
 					"name": "$node.events",
+					"rawName": "events",
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						},
 						"withEndpoints": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true,
+							"default": false
 						}
 					}
 				},
@@ -231,8 +323,10 @@ describe("Test internal services", () => {
 				"name": "$node.events"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
-					"name": "$node.health"
+					"name": "$node.health",
+					"rawName": "health",
 				},
 				"available": true,
 				"count": 1,
@@ -240,17 +334,36 @@ describe("Test internal services", () => {
 				"name": "$node.health"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
-					"name": "$node.stats"
+					"name": "$node.options",
+					"rawName": "options",
+					"params": {}
 				},
 				"available": true,
 				"count": 1,
 				"hasLocal": true,
-				"name": "$node.stats"
+				"name": "$node.options"
 			}, {
 				"action": {
+					"tracing": false,
 					"cache": false,
-					"name": "greeter.hello"
+					"name": "$node.metrics",
+					"rawName": "metrics",
+					"params": {
+						types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+						includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+						excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
+					}
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.metrics"
+			}, {
+				"action": {
+					"name": "greeter.hello",
+					"rawName": "hello",
 				},
 				"available": true,
 				"count": 1,
@@ -260,6 +373,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"rawName": "welcome",
 					"params": {
 						"name": {
 							"type": "string"
@@ -272,8 +386,8 @@ describe("Test internal services", () => {
 				"name": "greeter.welcome"
 			}, {
 				"action": {
-					"cache": false,
-					"name": "alpha.echo.reply"
+					"name": "alpha.echo.reply",
+					"rawName": "reply",
 				},
 				"available": true,
 				"count": 1,
@@ -287,12 +401,13 @@ describe("Test internal services", () => {
 		return broker.call("$node.actions", { skipInternal: true, withEndpoints: true }).then(res => {
 			expect(res).toEqual([{
 				"action": {
-					"cache": false,
-					"name": "greeter.hello"
+					"name": "greeter.hello",
+					"rawName": "hello",
 				},
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -302,6 +417,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"rawName": "welcome",
 					"params": {
 						"name": {
 							"type": "string"
@@ -311,6 +427,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -318,12 +435,13 @@ describe("Test internal services", () => {
 				"name": "greeter.welcome"
 			}, {
 				"action": {
-					"cache": false,
-					"name": "alpha.echo.reply"
+					"name": "alpha.echo.reply",
+					"rawName": "reply",
 				},
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -363,6 +481,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -376,6 +495,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -414,8 +534,6 @@ describe("Test internal services", () => {
 			expect(res.os.user).toBeDefined();
 			expect(res.net).toBeDefined();
 			expect(res.net.ip).toBeDefined();
-			expect(res.transit).toBeDefined();
-			//expect(res.transit.stat).toBeDefined();
 			expect(res.client).toBeDefined();
 			expect(res.process).toBeDefined();
 			expect(res.process.pid).toBeDefined();
@@ -426,6 +544,75 @@ describe("Test internal services", () => {
 			expect(res.time.now).toBeDefined();
 			expect(res.time.iso).toBeDefined();
 			expect(res.time.utc).toBeDefined();
+		});
+	});
+
+	it("should return metrics", () => {
+		return broker.call("$node.metrics", {
+			includes: ["moleculer.broker.**"]
+		}).then(res => {
+			expect(res).toEqual([
+				{
+					"description": "Moleculer namespace",
+					"labelNames": [],
+					"name": "moleculer.broker.namespace",
+					"type": "info",
+					"unit": undefined,
+					"values": [
+						{
+							"key": "",
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": ""
+						}
+					]
+				},
+				{
+					"description": "ServiceBroker started",
+					"labelNames": [],
+					"name": "moleculer.broker.started",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"key": "",
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 1
+						}
+					]
+				},
+				{
+					"description": "Number of local services",
+					"labelNames": [],
+					"name": "moleculer.broker.local.services.total",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"key": "",
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 3
+						}
+					]
+				},
+				{
+					"description": "Number of local middlewares",
+					"labelNames": [],
+					"name": "moleculer.broker.middlewares.total",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"key": "",
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 13
+						}
+					]
+				}
+			]);
 		});
 	});
 

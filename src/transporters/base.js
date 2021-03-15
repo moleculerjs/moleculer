@@ -1,17 +1,15 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
-const _				= require("lodash");
-const {
-	PACKET_REQUEST,
-	PACKET_EVENT,
-} = require("../packets");
+const _	= require("lodash");
+const P = require("../packets");
+const { flatten } = require("../utils");
+const { BrokerDisconnectedError } = require("../errors");
 
 /**
  * Base Transporter class
@@ -25,10 +23,10 @@ class BaseTransporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = opts;
 		this.connected = false;
 		this.hasBuiltInBalancer = false;
 	}
@@ -40,7 +38,7 @@ class BaseTransporter {
 	 * @param {Function} messageHandler
 	 * @param {Function} afterConnect
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	init(transit, messageHandler, afterConnect) {
 		if (transit) {
@@ -61,7 +59,7 @@ class BaseTransporter {
 	/**
 	 * Connect to the transporter server
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	connect() {
 		/* istanbul ignore next */
@@ -82,17 +80,56 @@ class BaseTransporter {
 			return this.afterConnect(wasReconnect);
 		}
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
 	 * Disconnect from the transporter server
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	disconnect() {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Subscribe to all topics
+	 *
+	 * @param {Array<Object>} topics
+	 *
+	 * @memberof BaseTransporter
+	 */
+	makeSubscriptions(topics) {
+		return this.broker.Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+	}
+
+	/**
+	 * Process incoming messages
+	 *
+	 * @param {String} cmd
+	 * @param {Buffer} msg
+	 * @returns
+	 * @memberof BaseTransporter
+	 */
+	incomingMessage(cmd, msg) {
+		if (!msg) return;
+		try {
+			const packet = this.deserialize(cmd, msg);
+			return this.messageHandler(cmd, packet);
+		} catch(err) {
+			this.logger.warn("Invalid incoming packet. Type:", cmd, err);
+			this.logger.debug("Content:", msg.toString ? msg.toString() : msg);
+		}
+	}
+
+	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(cmd, data) {
+		return this.incomingMessage(cmd, data);
 	}
 
 	/**
@@ -101,7 +138,7 @@ class BaseTransporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
@@ -138,7 +175,7 @@ class BaseTransporter {
 	 */
 	unsubscribeFromBalancedCommands() {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -147,11 +184,13 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
-	publish(/*packet*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publish(packet) {
+		const topic = this.getTopicName(packet.type, packet.target);
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet });
 	}
 
 	/**
@@ -161,11 +200,13 @@ class BaseTransporter {
 	 * @param {String} group
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publishBalancedEvent(packet, group) {
+		const topic = `${this.prefix}.${P.PACKET_EVENT}B.${group}.${packet.payload.event}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
 	}
 
 	/**
@@ -174,10 +215,25 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
+	publishBalancedRequest(packet) {
+		const topic = `${this.prefix}.${P.PACKET_REQUEST}B.${packet.payload.action}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
+	}
+
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(/*topic, data, meta*/) {
 		throw new Error("Not implemented!");
 	}
 
@@ -187,7 +243,7 @@ class BaseTransporter {
 	 * @param {any} cmd
 	 * @param {any} nodeID
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	getTopicName(cmd, nodeID) {
 		return this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
@@ -196,14 +252,14 @@ class BaseTransporter {
 	/**
 	 * Initialize queues for REQUEST & EVENT packets.
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
-	_makeServiceSpecificSubscriptions() {
-		if (!this.hasBuiltInBalancer) return Promise.resolve();
+	makeBalancedSubscriptions() {
+		if (!this.hasBuiltInBalancer) return this.broker.Promise.resolve();
 
 		return this.unsubscribeFromBalancedCommands().then(() => {
 			const services = this.broker.getLocalNodeInfo().services;
-			return Promise.all(services.map(service => {
+			return this.broker.Promise.all(services.map(service => {
 				const p = [];
 
 				// Service actions queues
@@ -219,7 +275,7 @@ class BaseTransporter {
 					}));
 				}
 
-				return Promise.all(_.compact(_.flatten(p, true)));
+				return this.broker.Promise.all(_.compact(flatten(p, true)));
 			}));
 		});
 	}
@@ -232,8 +288,21 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	prepublish(packet) {
-		if (packet.type === PACKET_EVENT && packet.target == null && packet.payload.groups) {
-			let groups = packet.payload.groups;
+		// Safely handle disconnected state
+		if (!this.connected) {
+			// For packets that are triggered intentionally by users, throw a retryable error.
+			if ([P.PACKET_REQUEST, P.PACKET_EVENT, P.PACKET_PING].includes(packet.type)) {
+				return this.broker.Promise.reject(new BrokerDisconnectedError());
+			}
+
+			// For internal packets like INFO and HEARTBEATS, skip sending and don't throw
+			else {
+				return this.broker.Promise.resolve();
+			}
+		}
+
+		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
+			const groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
@@ -243,17 +312,48 @@ class BaseTransporter {
 					packet.payload.groups = [group];
 					this.publishBalancedEvent(packet, group);
 				});
-				return Promise.resolve();
+				return this.broker.Promise.resolve();
 			}
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)
 
-		} else if (packet.type === PACKET_REQUEST && packet.target == null) {
+		} else if (packet.type === P.PACKET_REQUEST && packet.target == null) {
 			return this.publishBalancedRequest(packet);
 		}
 
 		// Normal packet publishing...
 		return this.publish(packet);
+	}
+
+	/**
+	 * Serialize the Packet to Buffer
+	 *
+	 * @param {Packet} packet
+	 * @returns {Buffer}
+	 *
+	 * @memberof Transit
+	 */
+	serialize(packet) {
+		packet.payload.ver = this.broker.PROTOCOL_VERSION;
+		packet.payload.sender = this.nodeID;
+		return this.broker.serializer.serialize(packet.payload, packet.type);
+	}
+
+	/**
+	 * Deserialize the incoming Buffer to Packet
+	 *
+	 * @param {String} type
+	 * @param {Buffer} buf
+	 * @returns {Packet}
+	 *
+	 * @memberof Transit
+	 */
+	deserialize(type, buf) {
+		if (buf == null) return null;
+
+		const msg = this.broker.serializer.deserialize(buf, type);
+		return new P.Packet(type, null, msg);
+
 	}
 }
 

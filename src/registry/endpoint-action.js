@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -30,6 +30,8 @@ class ActionEndpoint extends Endpoint {
 
 		this.service = service;
 		this.action = action;
+
+		this.name = `${this.id}:${this.action.name}`;
 	}
 
 	/**

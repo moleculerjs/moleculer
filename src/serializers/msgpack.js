@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,19 +10,19 @@ const BaseSerializer = require("./base");
 
 /**
  * MessagePack serializer for Moleculer
- * 
+ *
  * https://github.com/mcollina/msgpack5
- * 
+ *
  * @class MsgPackSerializer
  */
 class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
-	 * @memberOf Serializer
+	 *
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -37,11 +37,11 @@ class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @returns {Buffer}
-	 * 
-	 * @memberOf Serializer
+	 *
+	 * @memberof Serializer
 	 */
 	serialize(obj) {
 		const res = this.msgpack.encode(obj);
@@ -50,11 +50,11 @@ class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} str
 	 * @returns {Object}
-	 * 
-	 * @memberOf Serializer
+	 *
+	 * @memberof Serializer
 	 */
 	deserialize(buf) {
 		const res = this.msgpack.decode(buf);

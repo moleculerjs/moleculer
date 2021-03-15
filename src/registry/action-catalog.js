@@ -1,15 +1,15 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const _ = require("lodash");
+const Strategies = require("../strategies");
 const EndpointList = require("./endpoint-list");
 const ActionEndpoint = require("./endpoint-action");
-const ActionEndpointCB = require("./endpoint-cb");
 
 /**
  * Catalog class to store service actions
@@ -34,7 +34,7 @@ class ActionCatalog {
 
 		this.actions = new Map();
 
-		this.EndpointFactory = this.registry.opts.circuitBreaker && this.registry.opts.circuitBreaker.enabled ? ActionEndpointCB : ActionEndpoint;
+		this.EndpointFactory = ActionEndpoint;
 	}
 
 	/**
@@ -48,8 +48,10 @@ class ActionCatalog {
 	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
+			const strategyFactory = action.strategy ? (Strategies.resolve(action.strategy) || this.StrategyFactory) : this.StrategyFactory;
+			const strategyOptions = action.strategyOptions ? action.strategyOptions : this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, strategyFactory, strategyOptions);
 			this.actions.set(action.name, list);
 		}
 
@@ -112,19 +114,22 @@ class ActionCatalog {
 	/**
 	 * Get a filtered list of actions
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
 	 *
 	 * @memberof ActionCatalog
 	 */
-	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
-			if (skipInternal && /^\$node/.test(key))
+			if (skipInternal && /^\$/.test(key))
 				return;
 
 			if (onlyLocal && !list.hasLocal())
+				return;
+
+			if (onlyAvailable && !list.hasAvailable())
 				return;
 
 			let item = {
@@ -137,16 +142,17 @@ class ActionCatalog {
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
 				if (ep)
-					item.action = _.omit(ep.action, ["handler", "service"]);
+					item.action = _.omit(ep.action, ["handler", "remoteHandler", "service"]);
 			}
-			if (item.action == null || item.action.protected === true) return;
+			if (item.action && item.action.protected === true) return;
 
 			if (withEndpoints) {
 				if (item.count > 0) {
 					item.endpoints = list.endpoints.map(ep => {
 						return {
 							nodeID: ep.node.id,
-							state: ep.state
+							state: ep.state,
+							available: ep.node.available,
 						};
 					});
 				}

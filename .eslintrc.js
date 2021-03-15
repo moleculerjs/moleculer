@@ -12,7 +12,8 @@ module.exports = {
 		"plugin:security/recommended"
 	],
 	"parserOptions": {
-		"sourceType": "module"
+		"sourceType": "module",
+		"ecmaVersion": "2018"
 	},
 	"plugins": [
 		"node",
@@ -51,6 +52,18 @@ module.exports = {
 		"security/detect-non-literal-require": ["off"],
 		"security/detect-non-literal-fs-filename": ["off"],
 		"no-process-exit": ["off"],
-		"node/no-unpublished-require": 0
+		"node/no-unpublished-require": 0,
+		"space-before-function-paren": [
+			"warn",
+			{
+				"anonymous": "never",
+				"named": "never",
+				"asyncArrow": "always"
+			}
+		],
+		"object-curly-spacing": [
+			"warn",
+			"always"
+		]
 	}
 };
