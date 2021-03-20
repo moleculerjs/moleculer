@@ -425,8 +425,10 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 	}
 
+	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
+
 	interface ActionCacheOptions {
-		enabled?: boolean;
+		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
 		keys?: Array<string>;
 		lock?: {
