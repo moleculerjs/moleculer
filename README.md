@@ -99,7 +99,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 
 1. Create a new project (named `moleculer-demo`)
     ```bash
-    $ npx moleculer init project moleculer-demo
+    $ npx moleculer-cli -c moleculer init project moleculer-demo
     ```
     
 2. Open project folder
