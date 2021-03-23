@@ -399,9 +399,6 @@ describe("Test Datadog tracing exporter class", () => {
 
 			expect(fakeDdSpan.finish).toHaveBeenCalledTimes(1);
 			expect(fakeDdSpan.finish).toHaveBeenCalledWith(1050);
-
-			expect(fakeTracerScope._destroy).toHaveBeenCalledTimes(1);
-			expect(fakeTracerScope._destroy).toHaveBeenCalledWith(span.meta.datadog.asyncId);
 		});
 
 		it("should finish with error", () => {
