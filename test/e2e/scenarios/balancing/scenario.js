@@ -73,4 +73,4 @@ addScenario("broadcast events", async () => {
 	]);
 });
 
-executeScenarios(broker, ["test"]);
+executeScenarios(broker, ["test"], ["node1", "node2", "node3"]);

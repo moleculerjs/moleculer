@@ -10,8 +10,7 @@ jobs:
         node-version: [14.x]
         # transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
         transporter: [NATS, Redis, MQTT, TCP]
-        # serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
-        serializer: [JSON, MsgPack, Notepack]
+        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
       fail-fast: false
 
     steps:
