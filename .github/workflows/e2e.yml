@@ -1,0 +1,49 @@
+name: E2E test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+        # transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
+        transporter: [NATS, Redis, MQTT, TCP]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.transporter }} transporter
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Start transporter/cacher dependencies
+      run: docker-compose up -d
+      working-directory: ./test
+
+    - name: Sleeping 10 secs
+      run: sleep 10
+
+    - name: Check containers
+      run: docker-compose ps
+      working-directory: ./test
+
+    - name: Check logs
+      run: docker-compose logs
+      working-directory: ./test
+
+    - name: Execute E2E tests (basic)
+      run: ./start.sh
+      working-directory: ./test/e2e/scenarios/basic
+      env:
+        TRANSPORTER: ${{ matrix.transporter }}
+
+    - name: Stop containers
+      run: docker-compose down -v
+      working-directory: ./test
