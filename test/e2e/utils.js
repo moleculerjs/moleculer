@@ -44,6 +44,7 @@ function createNode(nodeID, brokerOpts = {}) {
 		nodeID,
 		logLevel: process.env.LOGLEVEL || "warn",
 		transporter: process.env.TRANSPORTER || "TCP",
+		serializer: process.env.SERIALIZER || "JSON",
 		...brokerOpts
 	});
 

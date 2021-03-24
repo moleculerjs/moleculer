@@ -10,12 +10,14 @@ jobs:
         node-version: [14.x]
         # transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
         transporter: [NATS, Redis, MQTT, TCP]
+        # serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
+        serializer: [JSON, MsgPack, Notepack]
       fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.transporter }} transporter
+    - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.transporter }} transporter and ${{ matrix.serializer }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
@@ -43,6 +45,7 @@ jobs:
       working-directory: ./test/e2e/scenarios/basic
       env:
         TRANSPORTER: ${{ matrix.transporter }}
+        SERIALIZER: ${{ matrix.serializer }}
 
     - name: Stop containers
       run: docker-compose down -v
