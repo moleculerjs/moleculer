@@ -87,7 +87,7 @@
     "log4js": "^6.3.0",
     "moleculer-repl": "^0.6.4",
     "mqtt": "^4.2.6",
-    "msgpack5": "^5.0.0",
+    "msgpack5": "^5.3.1",
     "nats": "^1.4.12",
     "node-nats-streaming": "^0.0.51",
     "nodemon": "^2.0.7",
