@@ -1,15 +1,18 @@
-/* eslint-disable no-console */
-const _ = require("lodash");
-const kleur = require("kleur");
-const { assert, createNode } = require("../../utils");
+const { assert, createNode, executeScenarios, addScenario } = require("../../utils");
 
 const broker = createNode("supervisor");
+const RECEIVED_EVENTS = [];
+broker.createService({
+	name: "event-listener",
 
-async function scenario() {
-	await broker.start();
-	await broker.waitForServices("echo", 10 * 1000);
+	events: {
+		"sample.event.received"(ctx) {
+			RECEIVED_EVENTS.push(ctx);
+		}
+	}
+});
 
-	// --- STEP 1 ---
+addScenario("call action", async () => {
 	const params = {
 		a: "Hello",
 		b: 1000,
@@ -61,15 +64,64 @@ async function scenario() {
 			}
 		}
 	});
-}
-
-
-scenario().then(() => {
-	console.log(kleur.green().bold("SCENARIO: OK"));
-	broker.broadcast("$shutdown", { error: false });
-}).catch(err => {
-	console.error(kleur.green().bold("SCENARIO: ERROR"));
-	console.error(err);
-	broker.broadcast("$shutdown", { error: true });
 });
 
+addScenario("emit event", async () => {
+	RECEIVED_EVENTS.length = 0;
+
+	const params = {
+		a: "Hello",
+		b: 1000,
+		c: true,
+		d: {
+			e: 123.45,
+			f: null
+		}
+	};
+
+	const meta = {
+		a: "Hi",
+		b: 2222,
+		c: false,
+		d: {
+			e: 56.78,
+			f: null
+		}
+	};
+
+	broker.emit("sample.event", params, { meta });
+	await broker.Promise.delay(1000);
+
+	assert(RECEIVED_EVENTS.length, 1);
+	assert(RECEIVED_EVENTS[0].params, {
+		params: {
+			a: "Hello",
+			b: 1000,
+			c: true,
+			d: {
+				e: 123.45,
+				f: null
+			}
+		},
+		meta: {
+			a: "Hi",
+			b: 2222,
+			c: false,
+			d: {
+				e: 56.78,
+				f: null
+			}
+		},
+		response: {
+			a: "Hey",
+			b: 3333,
+			c: true,
+			d: {
+				e: 122.34,
+				f: null
+			}
+		}
+	});
+});
+
+executeScenarios(broker, ["echo"]);
