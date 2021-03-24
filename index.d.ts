@@ -443,13 +443,15 @@ declare namespace Moleculer {
 	}
 
 	interface RestSchema{
-		path: string,
-		method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH'
+		path?: string,
+		method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
+		fullPath?: string,
+		basePath?: string,
 	}
 
 	interface ActionSchema {
 		name?: string;
-		rest?: RestSchema | string,
+		rest?: RestSchema | string | string[],
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
