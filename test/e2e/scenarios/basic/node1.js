@@ -26,18 +26,11 @@ broker.createService({
 
 	events: {
 		"sample.event"(ctx) {
-			ctx.emit("sample.event.received", {
+			ctx.broadcast("$scenario.event.emitted", {
+				nodeID: this.broker.nodeID,
+				event: ctx.eventName,
 				params: ctx.params,
-				meta: ctx.meta,
-				response: {
-					a: "Hey",
-					b: 3333,
-					c: true,
-					d: {
-						e: 122.34,
-						f: null
-					}
-				}
+				meta: ctx.meta
 			});
 		}
 	}

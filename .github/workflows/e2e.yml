@@ -47,6 +47,13 @@ jobs:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
 
+    - name: Execute E2E tests (balancing)
+      run: ./start.sh
+      working-directory: ./test/e2e/scenarios/balancing
+      env:
+        TRANSPORTER: ${{ matrix.transporter }}
+        SERIALIZER: ${{ matrix.serializer }}
+
     - name: Stop containers
       run: docker-compose down -v
       working-directory: ./test

@@ -1,16 +1,7 @@
 const { assert, createNode, executeScenarios, addScenario } = require("../../utils");
 
 const broker = createNode("supervisor");
-const RECEIVED_EVENTS = [];
-broker.createService({
-	name: "event-listener",
-
-	events: {
-		"sample.event.received"(ctx) {
-			RECEIVED_EVENTS.push(ctx);
-		}
-	}
-});
+broker.loadService("../../services/scenario.service.js");
 
 addScenario("call action", async () => {
 	const params = {
@@ -67,7 +58,7 @@ addScenario("call action", async () => {
 });
 
 addScenario("emit event", async () => {
-	RECEIVED_EVENTS.length = 0;
+	await broker.call("$scenario.clear");
 
 	const params = {
 		a: "Hello",
@@ -92,8 +83,11 @@ addScenario("emit event", async () => {
 	broker.emit("sample.event", params, { meta });
 	await broker.Promise.delay(1000);
 
-	assert(RECEIVED_EVENTS.length, 1);
-	assert(RECEIVED_EVENTS[0].params, {
+	const events = await broker.call("$scenario.getEmittedEvents");
+	assert(events.length, 1);
+	assert(events[0], {
+		nodeID: "node1",
+		event: "sample.event",
 		params: {
 			a: "Hello",
 			b: 1000,
@@ -109,15 +103,6 @@ addScenario("emit event", async () => {
 			c: false,
 			d: {
 				e: 56.78,
-				f: null
-			}
-		},
-		response: {
-			a: "Hey",
-			b: 3333,
-			c: true,
-			d: {
-				e: 122.34,
 				f: null
 			}
 		}
