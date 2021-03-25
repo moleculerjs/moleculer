@@ -25,22 +25,22 @@ jobs:
       run: npm ci
 
     - name: Start NATS
-      run: docker-compose up nats -d && sleep 10
+      run: docker-compose up -d nats && sleep 10
       if: ${{ matrix.transporter == 'NATS' }}
       working-directory: ./test
 
     - name: Start Redis
-      run: docker-compose up redis -d && sleep 10
+      run: docker-compose up -d redis && sleep 10
       if: ${{ matrix.transporter == 'Redis' }}
       working-directory: ./test
 
     - name: Start MQTT
-      run: docker-compose up mqtt -d && sleep 10
+      run: docker-compose up -d mqtt && sleep 10
       if: ${{ matrix.transporter == 'MQTT' }}
       working-directory: ./test
 
     - name: Start RabbitMQ
-      run: docker-compose up rabbitmq -d && sleep 10
+      run: docker-compose up -d rabbitmq && sleep 10
       if: ${{ matrix.transporter == 'AMQP' }}
       working-directory: ./test
 
