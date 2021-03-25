@@ -61,23 +61,13 @@ jobs:
       run: docker-compose logs
       working-directory: ./test
 
-    - name: Execute E2E tests (basic)
-      run: ./start.sh
-      working-directory: ./test/e2e/scenarios/basic
-      timeout-minutes: 2
+    - name: Execute E2E tests
+      run: npm run test:e2e
+      timeout-minutes: 5
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
-        LOGLEVEL: info
-
-    - name: Execute E2E tests (balancing)
-      run: ./start.sh
-      working-directory: ./test/e2e/scenarios/balancing
-      timeout-minutes: 2
-      env:
-        TRANSPORTER: ${{ matrix.transporter }}
-        SERIALIZER: ${{ matrix.serializer }}
-        LOGLEVEL: info
+        #LOGLEVEL: info
 
     - name: Stop containers
       run: docker-compose down -v
