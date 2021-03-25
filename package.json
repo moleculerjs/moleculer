@@ -22,9 +22,8 @@
     "test": "node --max-old-space-size=4096 ./node_modules/jest-cli/bin/jest.js --coverage --all --forceExit --logHeapUsage",
     "test:unit": "jest --testMatch \"**/unit/**/*.spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
-    "test:amqp": "jest --testMatch \"**/transporters/amqp/**spc.js\" --runInBand",
-    "test:amqp10": "jest --testMatch \"**/transporters/amqp10/**spc.js\" --runInBand",
     "test:project": "jest --testMatch \"**/project/**/*.spec.js\"",
+    "test:e2e": "cd test/e2e && ./start.sh",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"

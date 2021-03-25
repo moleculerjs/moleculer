@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Start basic scenario...";
 echo "Transporter: $TRANSPORTER";

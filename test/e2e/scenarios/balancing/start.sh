@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Transporter: $TRANSPORTER";
 echo "Serializer: $SERIALIZER";
