@@ -85,11 +85,14 @@ function createNode(nodeID, brokerOpts = {}) {
 	if (transporter == "Kafka")
 		transporter = "kafka://localhost:9093";
 
+	const disableBalancer = process.env.DISABLEBALANCER != null ? process.env.DISABLEBALANCER == "true" : false;
+
 	const broker = new ServiceBroker({
 		namespace: process.env.NAMESPACE,
 		nodeID,
 		logLevel: process.env.LOGLEVEL || "warn",
 		transporter,
+		disableBalancer,
 		serializer: process.env.SERIALIZER || "JSON",
 		...brokerOpts
 	});
@@ -135,11 +138,34 @@ function getFileSHA(filename) {
 	});
 }
 
+function logEventEmitting(svc, ctx) {
+	ctx.broadcast("$scenario.event.emitted", {
+		nodeID: svc.broker.nodeID,
+		event: ctx.eventName,
+		service: svc.fullName,
+		params: ctx.params,
+		meta: ctx.meta
+	});
+}
+
+function logActionCalling(svc, ctx) {
+	ctx.broadcast("$scenario.action.called", {
+		nodeID: svc.broker.nodeID,
+		service: svc.fullName,
+		action: ctx.action.name,
+		params: ctx.params,
+		meta: ctx.meta
+	});
+}
+
 module.exports = {
 	assert,
 	createNode,
 	addScenario,
 	executeScenarios,
+	logEventEmitting,
+	logActionCalling,
+
 	getSHA,
 	getFileSHA,
 	getStreamSHA

@@ -43,9 +43,6 @@ jobs:
     - name: Execute AMQP tests
       run: npm run test:amqp
 
-    - name: Execute NATS tests
-      run: npm run test:nats
-
     - name: Execute Typescript tests
       run: npm run test:ts
 

@@ -1,4 +1,4 @@
-const { createNode } = require("../../utils");
+const { createNode, logEventEmitting } = require("../../utils");
 const path = require("path");
 
 const broker = createNode("node1");
@@ -30,12 +30,7 @@ broker.createService({
 
 	events: {
 		"sample.event"(ctx) {
-			ctx.broadcast("$scenario.event.emitted", {
-				nodeID: this.broker.nodeID,
-				event: ctx.eventName,
-				params: ctx.params,
-				meta: ctx.meta
-			});
+			logEventEmitting(this, ctx);
 		}
 	}
 });
