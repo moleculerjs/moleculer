@@ -161,4 +161,4 @@ addScenario("broadcastLocal events", async () => {
 	assert(events.filter(e => _.isEqual(e.params, payload)).length, 3);
 });
 
-executeScenarios(broker, ["test"], ["node1", "node2", "node3"]);
+executeScenarios(broker, ["test", "users", "payment", "mail"], ["node1", "node2", "node3"]);
