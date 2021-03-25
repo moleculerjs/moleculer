@@ -7,6 +7,7 @@ const broker = createNode("supervisor", {
 	}
 });
 const disableBalancer = broker.options.disableBalancer;
+const transporter = broker.options.transporter;
 
 broker.loadService("../../services/scenario.service.js");
 
@@ -158,5 +159,55 @@ addScenario("broadcastLocal events", async () => {
 	]);
 	assert(events.filter(e => _.isEqual(e.params, payload)).length, 3);
 });
+
+if (disableBalancer && ["AMQP"].includes(transporter)) {
+	addScenario("balance action calls based on availability", async () => {
+		// Should allow consumers to pull messages as they can handle them.
+		// This means that a single slow node won't slow down everything, or cause requests to be
+		// processed out of order
+
+		await broker.call("$scenario.clear");
+		// ---- ^ SETUP ^ ---
+
+		await Promise.all([
+			broker.call("test.hello", { i : 0, delay: 2000 }),
+			..._.times(8, i => broker.call("test.hello", { i: i + 1, delay: 50 }))
+		]);
+
+		// ---- ˇ ASSERTS ˇ ---
+		// Wait for scenario events...
+		await broker.Promise.delay(1000);
+
+		const calls = await broker.call("$scenario.getCalledActions");
+
+		assert(calls.length, 9);
+
+		const slowNode = calls.find(c => c.params.i == 0).nodeID;
+
+		assert(calls.filter(c => c.nodeID == slowNode).length, 1);
+		assert(calls.filter(c => c.nodeID != slowNode).length, 8);
+	});
+
+	addScenario("balance action calls with crash", async () => {
+		// The 'node1' will crash during processing the request and doesn't ACK the request.
+		// AMQP will send the request to another node, so all requests should be handled properly.
+
+		await broker.call("$scenario.clear");
+		// ---- ^ SETUP ^ ---
+
+		await Promise.all([
+			..._.times(9, i => broker.call("test.hello", { i: i + 1, delay: 50, crash: true }))
+		]);
+
+		// ---- ˇ ASSERTS ˇ ---
+		// Wait for scenario events...
+		await broker.Promise.delay(1000);
+
+		const calls = await broker.call("$scenario.getCalledActions");
+		assert(calls.length, 9);
+
+		assert(calls.filter(c => c.nodeID != "node1").length, 9);
+	});
+}
 
 executeScenarios(broker, ["test", "users", "payment", "mail"], ["node1", "node2", "node3"]);
