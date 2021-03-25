@@ -1,9 +1,11 @@
 /* eslint-disable no-console */
 const _ = require("lodash");
 const kleur = require("kleur");
+const fs = require("fs");
 const path = require("path");
 const diff = require("jest-diff").default;
 const { ServiceBroker } = require("../../");
+const crypto = require("crypto");
 
 const SCENARIOS = [];
 
@@ -106,9 +108,39 @@ function assert(actual, expected) {
 	}
 }
 
+function getSHA(content) {
+	const hash = crypto.createHash("sha1");
+	hash.update(content);
+	return hash.digest("hex");
+}
+
+function getStreamSHA(s) {
+	return new Promise((resolve, reject) => {
+		const hash = crypto.createHash("sha1");
+		s.on("error", err => reject(err));
+		s.on("data", chunk => hash.update(chunk));
+		s.on("end", () => {
+			resolve(hash.digest("hex"));
+		});
+	});
+}
+
+function getFileSHA(filename) {
+	return new Promise((resolve, reject) => {
+		let hash = crypto.createHash("sha1");
+		let stream = fs.createReadStream(filename);
+		stream.on("error", err => reject(err));
+		stream.on("data", chunk => hash.update(chunk));
+		stream.on("end", () => resolve(hash.digest("hex")));
+	});
+}
+
 module.exports = {
 	assert,
 	createNode,
 	addScenario,
-	executeScenarios
+	executeScenarios,
+	getSHA,
+	getFileSHA,
+	getStreamSHA
 };

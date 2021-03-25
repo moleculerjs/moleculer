@@ -27,6 +27,27 @@ addScenario("balance action calls", async () => {
 	]);
 });
 
+addScenario("direct action calls", async () => {
+	await broker.call("$scenario.clear");
+
+	await Promise.all(_.times(9, async () => {
+		await broker.call("test.work", {
+			id: 1,
+			name: "John"
+		}, {
+			nodeID: "node2"
+		});
+	}));
+
+	// Wait for scenario events...
+	await broker.Promise.delay(1000);
+
+	const calls = await broker.call("$scenario.getCalledActions");
+
+	assert(calls.length, 9);
+	assert(calls.map(c => c.nodeID).filter(id => id == "node2").length, 9);
+});
+
 addScenario("balance emitted events", async () => {
 	await broker.call("$scenario.clear");
 

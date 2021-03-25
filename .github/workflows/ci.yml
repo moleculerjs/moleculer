@@ -40,9 +40,6 @@ jobs:
     - name: Execute unit tests
       run: npm run test
 
-    - name: Execute transporter tests
-      run: npm run test:trans
-
     - name: Execute AMQP tests
       run: npm run test:amqp
 

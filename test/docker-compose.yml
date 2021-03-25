@@ -17,9 +17,10 @@ services:
       - "1883:1883"
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     ports:
       - "5672:5672"
+      - "15672:15672"
 
   stan:
     image: nats-streaming
