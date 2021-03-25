@@ -22,7 +22,7 @@ jobs:
       run: npm ci
 
     - name: Start transporter/cacher dependencies
-      run: docker-compose up -d
+      run: docker-compose up -d nats redis rabbitmq
       working-directory: ./test
 
     - name: Sleeping 10 secs
