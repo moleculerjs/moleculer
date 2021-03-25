@@ -8,8 +8,7 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-        # transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
-        transporter: [NATS, Redis, MQTT, AMQP, STAN, TCP]
+        transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
         serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
       fail-fast: false
 

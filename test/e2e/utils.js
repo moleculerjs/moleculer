@@ -79,11 +79,15 @@ function waitForNodes(broker, nodes, timeout = 10 * 1000) {
 }
 
 function createNode(nodeID, brokerOpts = {}) {
+	let transporter = process.env.TRANSPORTER || "TCP";
+	if (transporter == "Kafka")
+		transporter = "kafka://localhost:9093";
+
 	const broker = new ServiceBroker({
 		namespace: process.env.NAMESPACE,
 		nodeID,
 		logLevel: process.env.LOGLEVEL || "warn",
-		transporter: process.env.TRANSPORTER || "TCP",
+		transporter,
 		serializer: process.env.SERIALIZER || "JSON",
 		...brokerOpts
 	});
