@@ -29,7 +29,6 @@ addScenario("balance action calls", async () => {
 
 	await Promise.all(_.times(9, async () => {
 		await broker.call("test.work", params);
-		await broker.Promise.delay(250);
 	}));
 
 	// ---- ˇ ASSERTS ˇ ---
@@ -90,7 +89,6 @@ addScenario("balance emitted events", async () => {
 	await broker.Promise.delay(1000);
 
 	const events = await broker.call("$scenario.getEmittedEvents");
-
 	assert(events.length, 6 * 3); // 6 emitted event and 3 services
 	if (!disableBalancer) {
 		assert(events.map(e => `${e.nodeID}:${e.service}`).sort(), [
