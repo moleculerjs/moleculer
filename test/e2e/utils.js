@@ -25,6 +25,11 @@ async function executeScenarios(broker, waitForServices, waitForNodeIDs) {
 		await broker.waitForServices(waitForServices, 10 * 1000);
 	}
 
+	if (!process.env.TRANSPORTER || process.env.TRANSPORTER == "TCP") {
+		// Wait for extra time for discovering
+		await broker.Promise.delay(10 * 1000);
+	}
+
 	await ServiceBroker.Promise.mapSeries(SCENARIOS, async scenario => {
 		console.log();
 		console.log(kleur.white().bold(`SCENARIO '${scenario.name}': Start...`));
