@@ -65,6 +65,7 @@ jobs:
     - name: Execute E2E tests (basic)
       run: ./start.sh
       working-directory: ./test/e2e/scenarios/basic
+      timeout-minutes: 2
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
@@ -73,6 +74,7 @@ jobs:
     - name: Execute E2E tests (balancing)
       run: ./start.sh
       working-directory: ./test/e2e/scenarios/balancing
+      timeout-minutes: 2
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
