@@ -123,7 +123,8 @@ addScenario("emit event", async () => {
 				f: [1,2,3],
 				g: null
 			}
-		}
+		},
+		service: "echo"
 	});
 });
 
