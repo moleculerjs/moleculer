@@ -8,8 +8,8 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-        # transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
-        transporter: [NATS, Redis, MQTT, TCP]
+        transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
+        # transporter: [NATS, Redis, MQTT, TCP]
         serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
       fail-fast: false
 
@@ -44,6 +44,16 @@ jobs:
       if: ${{ matrix.transporter == 'AMQP' }}
       working-directory: ./test
 
+    - name: Start NATS Streaming
+      run: docker-compose up -d stan && sleep 10
+      if: ${{ matrix.transporter == 'STAN' }}
+      working-directory: ./test
+
+    - name: Start Kafka
+      run: docker-compose up -d zookeeper kafka && sleep 60
+      if: ${{ matrix.transporter == 'Kafka' }}
+      working-directory: ./test
+
     - name: Check containers
       run: docker-compose ps
       working-directory: ./test
@@ -58,6 +68,7 @@ jobs:
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
+        LOGLEVEL: info
 
     - name: Execute E2E tests (balancing)
       run: ./start.sh
@@ -65,6 +76,7 @@ jobs:
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
+        LOGLEVEL: info
 
     - name: Stop containers
       run: docker-compose down -v

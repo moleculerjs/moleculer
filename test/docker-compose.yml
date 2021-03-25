@@ -21,30 +21,30 @@ services:
     ports:
       - "5672:5672"
 
-  # stan:
-  #   image: nats-streaming
-  #   ports:
-  #     - "4222:4222"
+  stan:
+    image: nats-streaming
+    ports:
+      - "4222:4222"
 
-  # activemq:
-  #   image: rmohr/activemq
-  #   ports:
-  #     - "5672:5672"
+  activemq:
+    image: rmohr/activemq
+    ports:
+      - "5672:5672"
 
-  # zookeeper:
-  #   image: bitnami/zookeeper
-  #   environment:
-  #     - ALLOW_ANONYMOUS_LOGIN=yes
-  #   ports:
-  #     - "2181:2181"
+  zookeeper:
+    image: bitnami/zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
 
-  # kafka:
-  #   image: bitnami/kafka
-  #   environment:
-  #     - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-  #     - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-  #     - ALLOW_PLAINTEXT_LISTENER=yes
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - "9092:9092"
+  kafka:
+    image: bitnami/kafka
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
