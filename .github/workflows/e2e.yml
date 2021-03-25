@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-        transporter: [NATS, Redis, MQTT, AMQP, STAN, Kafka, TCP]
+        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
         serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
       fail-fast: false
 
@@ -41,6 +41,11 @@ jobs:
     - name: Start RabbitMQ
       run: docker-compose up -d rabbitmq && sleep 10
       if: ${{ matrix.transporter == 'AMQP' }}
+      working-directory: ./test
+
+    - name: Start ActiveMQ
+      run: docker-compose up -d activemq && sleep 30
+      if: ${{ matrix.transporter == 'AMQP10' }}
       working-directory: ./test
 
     - name: Start NATS Streaming
