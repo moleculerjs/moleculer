@@ -444,7 +444,7 @@ declare namespace Moleculer {
 
 	interface RestSchema{
 		path?: string,
-		method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
+		method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
 		fullPath?: string,
 		basePath?: string,
 	}
