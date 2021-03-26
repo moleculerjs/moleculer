@@ -449,8 +449,16 @@ declare namespace Moleculer {
 		error?: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
+	interface RestSchema{
+		path?: string,
+		method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
+		fullPath?: string,
+		basePath?: string,
+	}
+
 	interface ActionSchema {
 		name?: string;
+		rest?: RestSchema | string | string[],
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
