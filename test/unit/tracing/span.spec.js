@@ -3,10 +3,13 @@
 const utils = require("../../../src/utils");
 utils.generateToken = () => "12345678-abcdef";
 
-jest.mock("../../../src/tracing/now", () => {
-	return jest.fn().mockImplementation(() => 10203040);
-});
-const now = require("../../../src/tracing/now");
+const dateNow = jest.spyOn(Date, "now").mockReturnValue(10203040);
+const now = jest.fn().mockReturnValue(0);
+jest.mock("perf_hooks", () => ({
+	performance: {
+		now
+	}
+}));
 
 const ServiceBroker = require("../../../src/service-broker");
 const Span = require("../../../src/tracing/span");
@@ -172,18 +175,21 @@ describe("Test Tracing Span", () => {
 		};
 
 		it("should set current time as startTime", () => {
+			dateNow.mockClear();
 			now.mockClear();
 			const span = new Span(fakeTracer, "start-1");
 			span.start();
 
 			expect(span.startTime).toBe(10203040);
 
+			expect(dateNow).toBeCalledTimes(1);
 			expect(now).toBeCalledTimes(1);
 			expect(fakeTracer.spanStarted).toBeCalledTimes(1);
 			expect(fakeTracer.spanStarted).toBeCalledWith(span);
 		});
 
 		it("should set the given time as startTime", () => {
+			dateNow.mockClear();
 			now.mockClear();
 			fakeTracer.spanStarted.mockClear();
 
@@ -192,7 +198,8 @@ describe("Test Tracing Span", () => {
 
 			expect(span.startTime).toBe(55555555);
 
-			expect(now).toBeCalledTimes(0);
+			expect(dateNow).toBeCalledTimes(0);
+			expect(now).toBeCalledTimes(1);
 			expect(fakeTracer.spanStarted).toBeCalledTimes(1);
 			expect(fakeTracer.spanStarted).toBeCalledWith(span);
 		});
@@ -265,6 +272,7 @@ describe("Test Tracing Span", () => {
 		span.start(10203020);
 
 		it("should store log item without time", () => {
+			now.mockReturnValueOnce(20);
 			span.log("first-log", {
 				a: 10,
 				b: "John",
@@ -290,6 +298,7 @@ describe("Test Tracing Span", () => {
 		});
 
 		it("should store log with time", () => {
+			now.mockReturnValueOnce(20);
 			span.log("second-log", {
 				a: 100
 			}, 10203030);
@@ -377,12 +386,13 @@ describe("Test Tracing Span", () => {
 			now.mockClear();
 			const span = new Span(fakeTracer, "start-6");
 			span.start(10203000);
+			now.mockReturnValueOnce(40);
 			span.finish();
 
 			expect(span.finishTime).toBe(10203040);
 			expect(span.duration).toBe(40);
 
-			expect(now).toBeCalledTimes(1);
+			expect(now).toBeCalledTimes(2);
 			expect(fakeTracer.spanFinished).toBeCalledTimes(1);
 			expect(fakeTracer.spanFinished).toBeCalledWith(span);
 		});
@@ -399,7 +409,7 @@ describe("Test Tracing Span", () => {
 			expect(span.finishTime).toBe(10203030);
 			expect(span.duration).toBe(30);
 
-			expect(now).toBeCalledTimes(0);
+			expect(now).toBeCalledTimes(1);
 			expect(fakeTracer.spanFinished).toBeCalledTimes(1);
 			expect(fakeTracer.spanFinished).toBeCalledWith(span);
 		});
