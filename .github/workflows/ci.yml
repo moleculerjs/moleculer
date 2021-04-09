@@ -22,21 +22,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Start transporter/cacher dependencies
-      run: docker-compose up -d nats redis rabbitmq
-      working-directory: ./test
-
-    - name: Sleeping 10 secs
-      run: sleep 10
-
-    - name: Check containers
-      run: docker-compose ps
-      working-directory: ./test
-
-    - name: Check logs
-      run: docker-compose logs
-      working-directory: ./test
-
     - name: Execute unit tests
       run: npm run test
 
@@ -48,7 +33,3 @@ jobs:
       if:  github.ref == 'refs/heads/master'
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-
-    - name: Stop containers
-      run: docker-compose down -v
-      working-directory: ./test
