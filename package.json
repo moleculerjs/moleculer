@@ -6,6 +6,7 @@
   "scripts": {
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
+    "ci:leak": "jest --testMatch \"**/leak-detection/index.spec.js\" --runInBand --watch",
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
@@ -24,6 +25,7 @@
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
     "test:project": "jest --testMatch \"**/project/**/*.spec.js\"",
     "test:e2e": "cd test/e2e && ./start.sh",
+    "test:leak": "jest --testMatch \"**/leak-detection/**/*.spec.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"
@@ -52,6 +54,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
+    "@icebob/node-memwatch": "^2.1.0",
     "@sinonjs/fake-timers": "^6.0.1",
     "@types/bunyan": "^1.8.6",
     "@types/ioredis": "^4.22.3",
