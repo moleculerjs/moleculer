@@ -40,7 +40,28 @@ describe("Test CborSerializer", () => {
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
-
 	});
+
+	it("should deserialize maps to objects by default", () => {
+		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const s = serializer.serialize(input);
+		const res = serializer.deserialize(s);
+
+		expect(res).not.toEqual(input);
+		expect(res).toEqual({ foo: "bar", baz: "qux" });
+	});
+
+	it("should allow maps to be serialized with mapsAsObjects option false", () => {
+		const options = { mapsAsObjects: false };
+		const optsSerializer = new CborSerializer(options);
+		optsSerializer.init();
+
+		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const s = optsSerializer.serialize(input);
+		const res = optsSerializer.deserialize(s);
+
+		expect(res).toEqual(input);
+	});
+
 
 });

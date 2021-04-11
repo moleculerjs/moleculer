@@ -7,6 +7,7 @@
 "use strict";
 
 const BaseSerializer = require("./base");
+const _ = require("lodash");
 
 /**
  * CBOR serializer for Moleculer
@@ -16,6 +17,15 @@ const BaseSerializer = require("./base");
  * @class CborSerializer
  */
 class CborSerializer extends BaseSerializer {
+	/**
+	 * Creates an instance of CborSerializer.
+	 *
+	 * @memberof Serializer
+	 */
+	constructor(opts) {
+		super(opts);
+		this.opts = _.defaultsDeep(opts, { useRecords: false });
+	}
 
 	/**
 	 * Initialize Serializer
@@ -28,7 +38,8 @@ class CborSerializer extends BaseSerializer {
 		super.init(broker);
 
 		try {
-			this.cbor = require("cbor-x");
+			const Cbor = require("cbor-x");
+			this.encoder = new Cbor.Encoder(this.opts);
 		} catch(err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'cbor-x' package is missing! Please install it with 'npm install cbor-x --save' command!", err, true);
@@ -44,7 +55,7 @@ class CborSerializer extends BaseSerializer {
 	 * @memberof Serializer
 	 */
 	serialize(obj) {
-		const res = this.cbor.encode(obj);
+		const res = this.encoder.encode(obj);
 		return res;
 	}
 
@@ -57,7 +68,7 @@ class CborSerializer extends BaseSerializer {
 	 * @memberof Serializer
 	 */
 	deserialize(buf) {
-		const res = this.cbor.decode(buf);
+		const res = this.encoder.decode(buf);
 		return res;
 	}
 }
