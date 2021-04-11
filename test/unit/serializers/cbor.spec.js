@@ -62,6 +62,4 @@ describe("Test CborSerializer", () => {
 
 		expect(res).toEqual(input);
 	});
-
-
 });
