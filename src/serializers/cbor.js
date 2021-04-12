@@ -20,6 +20,11 @@ class CborSerializer extends BaseSerializer {
 	/**
 	 * Creates an instance of CborSerializer.
 	 *
+	 * Available options:
+	 * 	https://github.com/kriszyp/cbor-x#options
+	 *
+	 * @param {Object} opts
+	 *
 	 * @memberof Serializer
 	 */
 	constructor(opts) {
