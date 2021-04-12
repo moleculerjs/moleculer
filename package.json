@@ -23,7 +23,6 @@
     "test": "node --max-old-space-size=4096 ./node_modules/jest-cli/bin/jest.js --coverage --all --forceExit --logHeapUsage",
     "test:unit": "jest --testMatch \"**/unit/**/*.spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
-    "test:project": "jest --testMatch \"**/project/**/*.spec.js\"",
     "test:e2e": "cd test/e2e && ./start.sh",
     "test:leak": "jest --testMatch \"**/leak-detection/**/*.spc.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
