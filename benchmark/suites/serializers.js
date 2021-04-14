@@ -26,6 +26,7 @@ function runTest(dataName) {
 	let protoBufSer = new Serializers.ProtoBuf();
 	let thriftSer = new Serializers.Thrift();
 	let notepackSer = new Serializers.Notepack();
+	let cborSer = new Serializers.CBOR();
 
 	JsonSer.init(broker);
 	AvroSer.init(broker);
@@ -33,6 +34,7 @@ function runTest(dataName) {
 	protoBufSer.init(broker);
 	thriftSer.init(broker);
 	notepackSer.init(broker);
+	cborSer.init(broker);
 
 	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
 
@@ -167,12 +169,28 @@ function runTest(dataName) {
 		return notepackSer.serialize(packet.payload, packet.type);
 	});
 
+	bench1.add("CBOR", () => {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"4",
+			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
+			event: "user.created",
+			data: payload,
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
+		});
+		return cborSer.serialize(packet.payload, packet.type);
+	});
+
 	console.log("JSON length:", JsonSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("Avro length:", AvroSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("MsgPack length:", MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("ProtoBuf length:", protoBufSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("Thrift length:", thriftSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("Notepack length:", notepackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("CBOR length:", cborSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 
 	return bench1.run()
 		.then(() => {
