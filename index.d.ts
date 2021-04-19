@@ -1584,6 +1584,29 @@ declare namespace Moleculer {
 			delimiter(value: string): void;
 		}
 	}
+
+	namespace Utils {
+		function isFunction(func: any): boolean;
+		function isString(str: any): boolean;
+		function isObject(obj: any): boolean;
+		function isPlainObject(obj: any): boolean;
+		function isDate(date: any): boolean;
+		function flatten(arr: any[]): any[];
+		function humanize(millis: number): string;
+		function generateToken(): string;
+		function removeFromArray(arr: any[], item: any): any[];
+		function getNodeID(): string;
+		function getIpList(): any[];
+		function isPromise(promise: any): boolean;
+		// function polyfillPromise(P: Promise): any; // From Utils -> NOT USED & NOT TESTED YET !!!
+		function clearRequireCache(filename: string): void;
+		function match(text: string, pattern: string): boolean;
+		function deprecate(prop: any, msg: string): void;
+		function safetyObject(obj: any, options: any): any;
+		function dotSet(obj: any, path: string, value: any): any;
+		function makeDirs(path: string): void;
+		function parseByteString(value: string): number;
+	}
 }
 
 export = Moleculer;
