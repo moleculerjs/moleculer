@@ -1590,7 +1590,7 @@ declare namespace Moleculer {
 		function isString(str: unknown): str is string;
 		function isObject(obj: unknown): obj is object;
 		function isPlainObject(obj: unknown): obj is object;
-		function isDate(date: unknown): data is Date;
+		function isDate(date: unknown): date is Date;
 		function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
 		function humanize(millis?: number | null): string;
 		function generateToken(): string;
