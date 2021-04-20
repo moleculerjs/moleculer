@@ -173,7 +173,6 @@ const utils = {
 	/**
 	 * Polyfill a Promise library with missing Bluebird features.
 	 *
-	 * NOT USED & NOT TESTED YET !!!
 	 *
 	 * @param {PromiseClass} P
 	 */

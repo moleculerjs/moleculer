@@ -1586,24 +1586,24 @@ declare namespace Moleculer {
 	}
 
 	namespace Utils {
-		function isFunction(func: any): boolean;
-		function isString(str: any): boolean;
-		function isObject(obj: any): boolean;
-		function isPlainObject(obj: any): boolean;
-		function isDate(date: any): boolean;
-		function flatten(arr: any[]): any[];
-		function humanize(millis: number): string;
+		function isFunction(func: unknown): func is function;
+		function isString(str: unknown): str is string;
+		function isObject(obj: unknown): obj is object;
+		function isPlainObject(obj: unknown): obj is object;
+		function isDate(date: unknown): data is Date;
+		function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
+		function humanize(millis?: number | null): string;
 		function generateToken(): string;
-		function removeFromArray(arr: any[], item: any): any[];
+		function removeFromArray<T>(arr: T[], item: T): T[];
 		function getNodeID(): string;
-		function getIpList(): any[];
-		function isPromise(promise: any): boolean;
-		// function polyfillPromise(P: Promise): any; // From Utils -> NOT USED & NOT TESTED YET !!!
+		function getIpList(): string[];
+		function isPromise(promise: unknown): promise is Promise;
+		function polyfillPromise(P: Promise): void;
 		function clearRequireCache(filename: string): void;
 		function match(text: string, pattern: string): boolean;
-		function deprecate(prop: any, msg: string): void;
-		function safetyObject(obj: any, options: any): any;
-		function dotSet(obj: any, path: string, value: any): any;
+		function deprecate(prop: unknown, msg?: string): void;
+		function safetyObject(obj: unknown, options?: { maxSafeObjectSize?: number }): any;
+		function dotSet<T extends object>(obj: T, path: string, value: unknown): T;
 		function makeDirs(path: string): void;
 		function parseByteString(value: string): number;
 	}
