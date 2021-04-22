@@ -1586,7 +1586,7 @@ declare namespace Moleculer {
 	}
 
 	namespace Utils {
-		function isFunction(func: unknown): boolean;
+		function isFunction(func: unknown): func is Function;
 		function isString(str: unknown): str is string;
 		function isObject(obj: unknown): obj is object;
 		function isPlainObject(obj: unknown): obj is object;
@@ -1598,7 +1598,7 @@ declare namespace Moleculer {
 		function getNodeID(): string;
 		function getIpList(): string[];
 		function isPromise<T>(promise: unknown): promise is Promise<T>;
-		function polyfillPromise<T>(P: Promise<T>): void;
+		function polyfillPromise(P: typeof Promise): void;
 		function clearRequireCache(filename: string): void;
 		function match(text: string, pattern: string): boolean;
 		function deprecate(prop: unknown, msg?: string): void;
