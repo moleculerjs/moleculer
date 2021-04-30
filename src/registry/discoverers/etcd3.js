@@ -150,7 +150,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						this.logger.warn("Lost heartbeat lease. Dropping lease and retrying heartbeat.", err)
 						leaseBeat.release();
 						this.leaseBeat = null;
-						this.sendHeartbeat();
+						// if broker is connected, send heartbeat immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendHeartbeat();
+						}
 					});
 
 					return leaseBeat.grant() // Waiting for the lease creation on the server
@@ -160,9 +163,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data)))
 			.then(() => this.lastBeatSeq = seq)
 			.then(() => this.collectOnlineNodes())
-			.catch(err =>
-				this.logger.error("Error occured while collect etcd keys.", err)
-			)
+			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL);
@@ -293,7 +294,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						this.logger.warn("Lost info lease. Dropping lease and retrying info-send", err)
 						leaseInfo.release();
 						this.leaseInfo = null;
-						this.sendLocalNodeInfo(nodeID);
+						// if broker is connected, send local node info immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendLocalNodeInfo(nodeID);
+						}
 					});
 
 					return leaseInfo.grant() // Waiting for the lease creation on the server
