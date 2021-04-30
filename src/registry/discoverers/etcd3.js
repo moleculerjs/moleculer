@@ -144,6 +144,14 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				if (!leaseBeat) {
 					// Create a new for lease
 					leaseBeat = this.client.lease(this.opts.heartbeatTimeout);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseBeat.on('lost', err => {
+						this.logger.warn("Lost heartbeat lease. Renewing lease on next heartbeat", err)
+						leaseBeat.release();
+						this.leaseBeat = null;
+					});
+
 					return leaseBeat.grant() // Waiting for the lease creation on the server
 						.then(() => this.leaseBeat = leaseBeat);
 				}
@@ -151,7 +159,9 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data)))
 			.then(() => this.lastBeatSeq = seq)
 			.then(() => this.collectOnlineNodes())
-			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
+			.catch(err =>
+				this.logger.error("Error occured while collect etcd keys.", err)
+			)
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL);
@@ -179,7 +189,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						.then(result => Object.values(result).map(raw => {
 							try {
 								return this.serializer.deserialize(raw);
-							} catch(err) {
+							} catch (err) {
 								this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
 							}
 						}));
@@ -234,7 +244,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				try {
 					const info = this.serializer.deserialize(res);
 					return this.processRemoteNodeInfo(nodeID, info);
-				} catch(err) {
+				} catch (err) {
 					this.logger.warn("Unable to parse INFO packet", err, res);
 				}
 			});
@@ -276,6 +286,14 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => {
 				if (!leaseInfo) {
 					leaseInfo = this.client.lease(60);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseInfo.on('lost', err => {
+						this.logger.warn("Lost info lease. Renewing lease on next heartbeat", err)
+						leaseInfo.release();
+						this.leaseInfo = null;
+					});
+
 					return leaseInfo.grant() // Waiting for the lease creation on the server
 						.then(() => this.leaseInfo = leaseInfo);
 				}
