@@ -147,9 +147,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 
 					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
 					leaseBeat.on('lost', err => {
-						this.logger.warn("Lost heartbeat lease. Renewing lease on next heartbeat", err)
+						this.logger.warn("Lost heartbeat lease. Dropping lease and retrying heartbeat.", err)
 						leaseBeat.release();
 						this.leaseBeat = null;
+						this.sendHeartbeat();
 					});
 
 					return leaseBeat.grant() // Waiting for the lease creation on the server
@@ -289,9 +290,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 
 					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
 					leaseInfo.on('lost', err => {
-						this.logger.warn("Lost info lease. Renewing lease on next heartbeat", err)
+						this.logger.warn("Lost info lease. Dropping lease and retrying info-send", err)
 						leaseInfo.release();
 						this.leaseInfo = null;
+						this.sendLocalNodeInfo(nodeID);
 					});
 
 					return leaseInfo.grant() // Waiting for the lease creation on the server
