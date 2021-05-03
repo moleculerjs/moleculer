@@ -2344,7 +2344,6 @@ describe("Test broker.mcall", () => {
 
 	if (process.versions.node.split(".")[0] >= 12) {
 		it("should call both action & return an array with settled", () => {
-			this.skip();
 			return broker.mcall([
 				{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 				{ action: "users.find", params: { limit: 2, sort: "username" } },
