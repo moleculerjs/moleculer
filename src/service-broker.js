@@ -1231,18 +1231,18 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	mcall(def, opts) {
+		const { settled, ...options } = opts;
 		if (Array.isArray(def)) {
-			return this.Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
-
+			return utils.promiseAllControl(def.map(item => this.call(item.action, item.params, item.options || options)), settled, this.Promise);
 		} else if (utils.isObject(def)) {
 			let results = {};
 			let promises = Object.keys(def).map(name => {
 				const item = def[name];
-				const options = item.options || opts;
+				const options = item.options || options;
 				return this.call(item.action, item.params, options).then(res => results[name] = res);
 			});
 
-			let p = this.Promise.all(promises);
+			let p = utils.promiseAllControl(promises, settled, this.Promise);
 
 			// Pointer to Context
 			p.ctx = promises.map(promise => promise.ctx);

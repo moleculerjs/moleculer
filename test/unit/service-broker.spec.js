@@ -35,6 +35,7 @@ polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
 
 const utils = require("../../src/utils");
 utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
+utils.promiseAllControl = jest.requireActual("../../src/utils").promiseAllControl;
 
 const { protectReject } = require("./utils");
 const path = require("path");
@@ -2338,6 +2339,21 @@ describe("Test broker.mcall", () => {
 	it("should throw error", () => {
 		return broker.mcall(6).catch(err => {
 			expect(err).toBeInstanceOf(MoleculerServerError);
+		});
+	});
+
+	it("should call both action & return an array with settled", () => {
+		return broker.mcall([
+			{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+			{ action: "users.find", params: { limit: 2, sort: "username" } }
+		], { timeout: 200, settled: true }).then(res => {
+			expect(res).toEqual([
+				{ status: 'fulfilled', value: 'posts.find' },
+				{ status: 'fulfilled', value: 'users.find' }
+			]);
+			expect(broker.call).toHaveBeenCalledTimes(2);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, { timeout: 200 });
 		});
 	});
 });
