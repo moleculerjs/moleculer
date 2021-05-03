@@ -735,7 +735,7 @@ describe("Test utils.polyfillPromise", () => {
 
 	if (process.versions.node.split(".")[0] >= 12) {
 		describe("Test Promise.promiseAllControl", () => {
-			it("should be rejected", () => {
+			it("should be resolve", () => {
 				return utils.promiseAllControl([
 					"First",
 					Promise.resolve("Second"),
@@ -748,6 +748,17 @@ describe("Test utils.polyfillPromise", () => {
 						{ status: "fulfilled", value: "Third" },
 						{ status: "rejected", reason: "Error" }
 					]);
+				});
+			});
+
+			it("should be rejected", () => {
+				return utils.promiseAllControl([
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise((resolve, reject) => reject("Error"))
+				], false).catch(res => {
+					expect(res).toEqual("Error");
 				});
 			});
 		});
