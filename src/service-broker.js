@@ -1230,7 +1230,7 @@ class ServiceBroker {
 	 * @throws MoleculerServerError - If the `def` is not an `Array` and not an `Object`.
 	 * @memberof ServiceBroker
 	 */
-	mcall(def, opts) {
+	mcall(def, opts = {}) {
 		const { settled, ...options } = opts;
 		if (Array.isArray(def)) {
 			return utils.promiseAllControl(def.map(item => this.call(item.action, item.params, item.options || options)), settled, this.Promise);
@@ -1238,8 +1238,8 @@ class ServiceBroker {
 			let results = {};
 			let promises = Object.keys(def).map(name => {
 				const item = def[name];
-				const options = item.options || options;
-				return this.call(item.action, item.params, options).then(res => results[name] = res);
+				const callOptions = item.options || options;
+				return this.call(item.action, item.params, callOptions).then(res => results[name] = res);
 			});
 
 			let p = utils.promiseAllControl(promises, settled, this.Promise);
