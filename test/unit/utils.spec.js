@@ -733,21 +733,23 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	});
 
-	describe("Test Promise.promiseAllControl", () => {
-		it("should be rejected", () => {
-			return utils.promiseAllControl([
-				"First",
-				Promise.resolve("Second"),
-				"Third",
-				new Promise((resolve, reject) => reject("Error"))
-			], true).then(res => {
-				expect(res).toEqual([
-					{ status: "fulfilled", value: "First" },
-					{ status: "fulfilled", value: "Second" },
-					{ status: "fulfilled", value: "Third" },
-					{ status: "rejected", reason: "Error" }
-				]);
+	if (process.versions.node.split(".")[0] >= 12) {
+		describe("Test Promise.promiseAllControl", () => {
+			it("should be rejected", () => {
+				return utils.promiseAllControl([
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise((resolve, reject) => reject("Error"))
+				], true).then(res => {
+					expect(res).toEqual([
+						{ status: "fulfilled", value: "First" },
+						{ status: "fulfilled", value: "Second" },
+						{ status: "fulfilled", value: "Third" },
+						{ status: "rejected", reason: "Error" }
+					]);
+				});
 			});
 		});
-	});
+	}
 });

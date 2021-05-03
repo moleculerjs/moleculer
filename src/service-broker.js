@@ -1202,7 +1202,8 @@ class ServiceBroker {
 	 * Multiple action calls.
 	 *
 	 * @param {Array<Object>|Object} def Calling definitions.
-	 * @returns {Promise<Array<Object>|Object>}
+	 * @param {Object} opts Calling options for each call.
+	 * @returns {Promise<Array<Object>|Object>|PromiseSettledResult}
 	 *
 	 * @example
 	 * Call `mcall` with an array:
@@ -1294,7 +1295,7 @@ class ServiceBroker {
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
-				if (ep.id == this.nodeID) {
+				if (ep.id === this.nodeID) {
 					// Local service, call handler
 					const newCtx = ctx.copy(ep);
 					promises.push(this.registry.events.callEventHandler(newCtx));
@@ -1326,12 +1327,12 @@ class ServiceBroker {
 			// Disabled balancer case
 			let groups = opts.groups;
 
-			if (!groups || groups.length == 0) {
+			if (!groups || groups.length === 0) {
 				// Apply to all groups
 				groups = this.getEventGroups(eventName);
 			}
 
-			if (groups.length == 0)
+			if (groups.length === 0)
 				return this.Promise.resolve();
 
 			ctx.eventGroups = groups;
