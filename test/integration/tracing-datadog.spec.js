@@ -200,7 +200,15 @@ supportedScopes.forEach((scope) => {
 			return broker.start();
 		});
 
-		afterAll(() => broker.stop());
+		afterAll(() => {
+			// Some cleanup to avoid affecting other test suites
+			if (["async_hooks", "async_resource"].includes(scope)) {
+				broker.tracer.exporter[0].ddScope._hook.disable();
+			} else if (scope === "async_local_storage") {
+				broker.tracer.exporter[0].ddScope._storage.disable();
+			}
+			return broker.stop();
+		});
 
 		beforeEach(() => {
 			jest.resetAllMocks();
