@@ -136,7 +136,8 @@ class MoleculerRunner {
 	 *
 	 * Try to load a configuration file in order to:
 	 *
-	 * 		- load file which is defined in CLI option with --config
+	 *		- load file defined in MOLECULER_CONFIG env var
+	 * 		- try to load file which is defined in CLI option with --config
 	 * 		- try to load the `moleculer.config.js` file if exist in the cwd
 	 * 		- try to load the `moleculer.config.json` file if exist in the cwd
 	 */
