@@ -143,7 +143,7 @@ class MoleculerRunner {
 	 */
 	loadConfigFile() {
 		let filePath;
-		// Env vars has priority over the flags
+		// Env vars have priority over the flags
 		if (process.env["MOLECULER_CONFIG"]) {
 			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"]) ? process.env["MOLECULER_CONFIG"] : path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
 		} else if (this.flags.config) {
