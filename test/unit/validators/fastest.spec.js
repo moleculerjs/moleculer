@@ -84,3 +84,53 @@ describe("Test Validator.convertSchemaToMoleculer", () => {
 		expect(v.convertSchemaToMoleculer(obj)).toBe(obj);
 	});
 });
+
+describe("Test Validator with context", () => {
+
+	const broker = new ServiceBroker({ logger: false });
+	broker.createService({
+		name: "test",
+		actions: {
+			withCustomValidation: {
+				params: {
+					c: {
+						type: "string",
+						messages: {
+							isTest: "The 'meta.isTest' field is required."
+						},
+						custom: (value, schema, path, parent, context) => {
+							const { meta: ctx } = context;
+							if (!(ctx && "meta" in ctx && "isTest" in ctx.meta)) {
+								return [
+									{
+										type: "isTest",
+										actual: undefined,
+									}
+								];
+							}
+							return value;
+						}
+					}
+				},
+				handler: jest.fn(() => 123)
+			}
+		}
+	});
+
+	it("should validate with meta", () => {
+		let p = { c: "asd" };
+		return broker.start().then(() => broker.call("test.withCustomValidation", p, { meta: { isTest: true } }))
+			.then(res => {
+				expect(res).toEqual(123);
+			});
+	});
+
+	it("should throw ValidationError without meta", () => {
+		let p = { c: "asd" };
+		return broker.start().then(() => broker.call("test.withCustomValidation", p))
+			.catch(err => {
+				expect(err).toBeInstanceOf(ValidationError);
+				expect(err.data[0].type).toEqual("isTest");
+			});
+	});
+});

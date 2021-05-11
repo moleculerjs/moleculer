@@ -90,7 +90,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ "id": 5, "name": "John" });
+				expect(checkGood).toHaveBeenCalledWith(ctx.params, { meta: ctx });
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -170,7 +170,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ "id": 5, "name": "John" });
+				expect(checkGood).toHaveBeenCalledWith(ctx.params, { meta: ctx });
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -234,7 +234,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ "id": 5, "name": "John" });
+				expect(checkGood).toHaveBeenCalledWith(ctx.params, { meta: ctx });
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -312,7 +312,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ "id": 5, "name": "John" });
+				expect(checkGood).toHaveBeenCalledWith(ctx.params, { meta: ctx });
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});

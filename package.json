@@ -110,7 +110,7 @@
     "args": "^5.0.1",
     "es6-error": "^4.1.1",
     "eventemitter2": "^6.4.4",
-    "fastest-validator": "^1.10.1",
+    "fastest-validator": "^1.11.0",
     "fn-args": "^5.0.0",
     "glob": "^7.1.6",
     "ipaddr.js": "^2.0.0",
