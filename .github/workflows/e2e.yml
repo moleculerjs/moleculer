@@ -9,7 +9,7 @@ jobs:
       matrix:
         node-version: [14.x]
         transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
-        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift]
+        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
       fail-fast: false
 
     steps:
