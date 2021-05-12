@@ -7,7 +7,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	logLevel: "info",
 	cacher: {
-		type: "Memory",
+		type: "Redis",
 		options: {
 			max: 100,
 			ttl: 3

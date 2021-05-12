@@ -403,7 +403,7 @@ class RedisCacher extends BaseCacher {
 
 			stream.on("end", () => {
 				// End deleting keys from node
-				resolve(res.map(key => ({ key })));
+				resolve(res.map(key => ({ key: key.startsWith(this.prefix) ? key.slice(this.prefix.length) : key })));
 			});
 		});
 	}
