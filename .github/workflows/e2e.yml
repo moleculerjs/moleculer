@@ -8,8 +8,10 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
-        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
+        #transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
+        #serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
+        transporter: [TCP]
+        serializer: [CBOR]
       fail-fast: false
 
     steps:
@@ -85,7 +87,7 @@ jobs:
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
-        #LOGLEVEL: info
+        LOGLEVEL: "${{ matrix.serializer == 'CBOR' && 'debug' || 'info' }}"
 
     - name: Stop containers
       run: docker-compose down -v
