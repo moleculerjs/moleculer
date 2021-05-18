@@ -404,7 +404,7 @@ class TcpTransporter extends Transporter {
 				node.udpAddress = socket.remoteAddress;
 
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_HELLO packet");
+			this.logger.warn("Invalid incoming GOSSIP_HELLO packet.", err);
 			this.logger.debug("Content:", msg.toString());
 		}
 	}
@@ -595,7 +595,7 @@ class TcpTransporter extends Transporter {
 			}
 
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_REQ packet");
+			this.logger.warn("Invalid incoming GOSSIP_REQ packet.", err);
 			this.logger.debug("Content:", msg.toString());
 		}
 	}
@@ -672,7 +672,7 @@ class TcpTransporter extends Transporter {
 				});
 			}
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_RES packet");
+			this.logger.warn("Invalid incoming GOSSIP_RES packet.", err);
 			this.logger.debug("Content:", msg.toString());
 		}
 	}
