@@ -146,8 +146,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 					leaseBeat = this.client.lease(this.opts.heartbeatTimeout);
 
 					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
-					leaseBeat.on('lost', err => {
-						this.logger.warn("Lost heartbeat lease. Dropping lease and retrying heartbeat.", err)
+					leaseBeat.on("lost", err => {
+						this.logger.warn("Lost heartbeat lease. Dropping lease and retrying heartbeat.", err);
 						leaseBeat.release();
 						this.leaseBeat = null;
 						// if broker is connected, send heartbeat immediately. Otherwise it is sent on reconnect.
@@ -290,8 +290,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 					leaseInfo = this.client.lease(60);
 
 					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
-					leaseInfo.on('lost', err => {
-						this.logger.warn("Lost info lease. Dropping lease and retrying info-send", err)
+					leaseInfo.on("lost", err => {
+						this.logger.warn("Lost info lease. Dropping lease and retrying info-send", err);
 						leaseInfo.release();
 						this.leaseInfo = null;
 						// if broker is connected, send local node info immediately. Otherwise it is sent on reconnect.
