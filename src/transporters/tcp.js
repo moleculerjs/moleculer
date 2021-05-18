@@ -11,6 +11,7 @@ const _ 			= require("lodash");
 const { isObject, isString }	= require("../utils");
 const fs 			= require("fs");
 const kleur 		= require("kleur");
+const { inspect } 	= require("util");
 
 const Node 			= require("../registry/node");
 const P 			= require("../packets");
@@ -597,7 +598,7 @@ class TcpTransporter extends Transporter {
 		} catch(err) {
 			this.logger.warn("Invalid incoming GOSSIP_REQ packet.", err);
 			this.logger.debug("Content:", msg.toString());
-			this.logger.debug("Response:", response);
+			this.logger.debug("Response:", inspect(response, { depth: 10 }));
 		}
 	}
 
