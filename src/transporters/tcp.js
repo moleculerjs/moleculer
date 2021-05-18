@@ -491,16 +491,16 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	processGossipRequest(msg) {
+		const response = {
+			online: {},
+			offline: {}
+		};
+
 		try {
 			const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
 			const payload = packet.payload;
 
 			if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
-
-			const response = {
-				online: {},
-				offline: {}
-			};
 
 			const list = this.nodes.toArray();
 			list.forEach(node => {
@@ -597,6 +597,7 @@ class TcpTransporter extends Transporter {
 		} catch(err) {
 			this.logger.warn("Invalid incoming GOSSIP_REQ packet.", err);
 			this.logger.debug("Content:", msg.toString());
+			this.logger.debug("Response:", response);
 		}
 	}
 
