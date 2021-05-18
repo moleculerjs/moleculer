@@ -22,10 +22,13 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 		throw new Error("Must be set a password for encryption");
 	}
 
+	let logger;
+
 	return {
 		name: "Encryption",
 
 		created() {
+			logger = this.logger;
 			/* istanbul ignore next */
 			this.logger.info(`The transmission is ENCRYPTED by '${algorithm}'.`);
 		},
@@ -44,8 +47,8 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 					const decrypter = iv ? crypto.createDecipheriv(algorithm, password, iv) : crypto.createDecipher(algorithm, password);
 					const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
 					return next(cmd, res, s);
-				} catch(e) {
-				
+				} catch(err) {
+					logger.error("Received packet decryption error.", err);
 				}
 			};
 		}
