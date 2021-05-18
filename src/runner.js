@@ -136,13 +136,17 @@ class MoleculerRunner {
 	 *
 	 * Try to load a configuration file in order to:
 	 *
-	 * 		- load file which is defined in CLI option with --config
+	 *		- load file defined in MOLECULER_CONFIG env var
+	 * 		- try to load file which is defined in CLI option with --config
 	 * 		- try to load the `moleculer.config.js` file if exist in the cwd
 	 * 		- try to load the `moleculer.config.json` file if exist in the cwd
 	 */
 	loadConfigFile() {
 		let filePath;
-		if (this.flags.config) {
+		// Env vars have priority over the flags
+		if (process.env["MOLECULER_CONFIG"]) {
+			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"]) ? process.env["MOLECULER_CONFIG"] : path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
+		} else if (this.flags.config) {
 			filePath = path.isAbsolute(this.flags.config) ? this.flags.config : path.resolve(process.cwd(), this.flags.config);
 		}
 		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {

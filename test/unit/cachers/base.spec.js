@@ -110,7 +110,7 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("user:a|5");
 
 		res = cacher.getCacheKey("user", { a: [] });
-		expect(res).toBe("user:a|");
+		expect(res).toBe("user:a|[]");
 
 		res = cacher.getCacheKey("user", { a: null });
 		expect(res).toBe("user:a|null");
@@ -122,7 +122,7 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("user:id|5");
 
 		res = cacher.getCacheKey("user", { a: [1,3,5] }, null, ["a"]);
-		expect(res).toBe("user:1|3|5");
+		expect(res).toBe("user:[1|3|5]");
 
 		res = cacher.getCacheKey("user", { a: 5, b: 3, c: 5 }, null, ["a"]);
 		expect(res).toBe("user:5");
@@ -135,6 +135,19 @@ describe("Test BaseCacher", () => {
 
 		res = cacher.getCacheKey("user", { a: 5, c: 5 }, null, ["a", "b", "c"]);
 		expect(res).toBe("user:5|undefined|5");
+
+		res = cacher.getCacheKey("user", { a: "12345" });
+		expect(res).toBe("user:a|12345");
+
+		res = cacher.getCacheKey("user", { a: ["12345"] });
+		expect(res).toBe("user:a|[12345]");
+
+		const d = new Date(1614529868608);
+		res = cacher.getCacheKey("user", { a: d });
+		expect(res).toBe("user:a|1614529868608");
+
+		res = cacher.getCacheKey("user", { a: Symbol("something") });
+		expect(res).toBe("user:a|Symbol(something)");
 
 
 		res = cacher.getCacheKey("user", { a: 5, b: { id: 3 } }, null, ["a", "c", "b"]);

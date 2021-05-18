@@ -340,3 +340,25 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 		});
 	});
 });
+
+describe("Test MemoryCacher getCacheKeys method", ()=>{
+	const cacher = new MemoryLRUCacher({
+		ttl: 30,
+		lock: true
+	});
+	const broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+	it("should return data and ttl", () => {
+		return Promise.all([
+			cacher.set("hello", "test"),
+			cacher.set("hello2", "test"),
+			cacher.set("hello3:test", "test")
+		]).then(() => {
+			return cacher.getCacheKeys();
+		}).then(res => {
+			expect(res).toEqual(expect.arrayContaining([{ "key": "hello3:test" }, { "key": "hello2" }, { "key": "hello" }]));
+		});
+	});
+});

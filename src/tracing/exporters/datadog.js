@@ -154,6 +154,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		// Activate span in Datadog tracer
 		const asyncId = asyncHooks.executionAsyncId();
+		this.ddScope._spans = this.ddScope._spans || {};
 		const oldSpan = this.ddScope._spans[asyncId];
 
 		this.ddScope._spans[asyncId] = ddSpan;
@@ -190,7 +191,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		if (item.oldSpan) {
 			this.ddScope._spans[item.asyncId] = item.oldSpan;
 		} else {
-			this.ddScope._destroy(item.asyncId);
+			delete this.ddScope._spans[item.asyncId];
 		}
 	}
 

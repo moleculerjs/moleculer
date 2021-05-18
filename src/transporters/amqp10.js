@@ -51,25 +51,27 @@ class Amqp10Transporter extends Transporter {
 		super(opts);
 
 		/* istanbul ignore next*/
-		if (!this.opts) this.opts = {};
+		if (!this.opts) this.opts = {
+			url: "amqp10://guest:guest@localhost:5672"
+		};
 
 		// Number of requests a broker will handle concurrently
-		if (typeof opts.prefetch !== "number") opts.prefetch = 1;
+		if (typeof this.opts.prefetch !== "number") this.opts.prefetch = 1;
 
 		// Number of milliseconds before an event expires
-		if (typeof opts.eventTimeToLive !== "number") opts.eventTimeToLive = null;
+		if (typeof this.opts.eventTimeToLive !== "number") this.opts.eventTimeToLive = null;
 
-		if (typeof opts.heartbeatTimeToLive !== "number") opts.heartbeatTimeToLive = null;
+		if (typeof this.opts.heartbeatTimeToLive !== "number") this.opts.heartbeatTimeToLive = null;
 
-		if (typeof opts.connectionOptions !== "object") opts.connectionOptions = {};
+		if (typeof this.opts.connectionOptions !== "object") this.opts.connectionOptions = {};
 
-		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
+		if (typeof this.opts.queueOptions !== "object") this.opts.queueOptions = {};
 
-		if (typeof opts.topicOptions !== "object") opts.topicOptions = {};
+		if (typeof this.opts.topicOptions !== "object") this.opts.topicOptions = {};
 
-		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
+		if (typeof this.opts.messageOptions !== "object") this.opts.messageOptions = {};
 
-		if (typeof opts.topicPrefix !== "string") opts.topicPrefix = "topic://";
+		if (typeof this.opts.topicPrefix !== "string") this.opts.topicPrefix = "topic://";
 
 		this.receivers = [];
 		this.hasBuiltInBalancer = true;

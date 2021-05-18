@@ -1,0 +1,92 @@
+name: E2E test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
+        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.transporter }} transporter and ${{ matrix.serializer }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Cache node modules
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-node-modules
+      with:
+        # npm cache files are stored in `~/.npm` on Linux/macOS
+        path: ~/.npm
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Start NATS
+      run: docker-compose up -d nats && sleep 10
+      if: ${{ matrix.transporter == 'NATS' }}
+      working-directory: ./test
+
+    - name: Start Redis
+      run: docker-compose up -d redis && sleep 10
+      if: ${{ matrix.transporter == 'Redis' }}
+      working-directory: ./test
+
+    - name: Start MQTT
+      run: docker-compose up -d mqtt && sleep 10
+      if: ${{ matrix.transporter == 'MQTT' }}
+      working-directory: ./test
+
+    - name: Start RabbitMQ
+      run: docker-compose up -d rabbitmq && sleep 10
+      if: ${{ matrix.transporter == 'AMQP' }}
+      working-directory: ./test
+
+    - name: Start ActiveMQ
+      run: docker-compose up -d activemq && sleep 30
+      if: ${{ matrix.transporter == 'AMQP10' }}
+      working-directory: ./test
+
+    - name: Start NATS Streaming
+      run: docker-compose up -d stan && sleep 10
+      if: ${{ matrix.transporter == 'STAN' }}
+      working-directory: ./test
+
+    - name: Start Kafka
+      run: docker-compose up -d zookeeper kafka && sleep 60
+      if: ${{ matrix.transporter == 'Kafka' }}
+      working-directory: ./test
+
+    - name: Check containers
+      run: docker-compose ps
+      working-directory: ./test
+
+    - name: Check logs
+      run: docker-compose logs
+      working-directory: ./test
+
+    - name: Execute E2E tests
+      run: npm run test:e2e
+      timeout-minutes: 5
+      env:
+        TRANSPORTER: ${{ matrix.transporter }}
+        SERIALIZER: ${{ matrix.serializer }}
+        #LOGLEVEL: info
+
+    - name: Stop containers
+      run: docker-compose down -v
+      working-directory: ./test

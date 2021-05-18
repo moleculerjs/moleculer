@@ -1,15 +1,14 @@
 ![Moleculer logo](docs/assets/logo.png)
 
-[![Build Status](https://travis-ci.org/moleculerjs/moleculer.svg?branch=master)](https://travis-ci.org/moleculerjs/moleculer)
+![CI test](https://github.com/moleculerjs/moleculer/workflows/CI%20test/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/moleculerjs/moleculer/badge.svg?branch=master)](https://coveralls.io/github/moleculerjs/moleculer?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ec4dab24e4ea4c1eb0d1590f12c81a46)](https://www.codacy.com/app/mereg-norbert/moleculer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=moleculerjs/moleculer&amp;utm_campaign=Badge_Grade)
 [![Maintainability](https://api.codeclimate.com/v1/badges/05ef990fe1ccb3e56067/maintainability)](https://codeclimate.com/github/moleculerjs/moleculer/maintainability)
 [![David](https://img.shields.io/david/moleculerjs/moleculer.svg)](https://david-dm.org/moleculerjs/moleculer)
 [![Known Vulnerabilities](https://snyk.io/test/github/moleculerjs/moleculer/badge.svg)](https://snyk.io/test/github/moleculerjs/moleculer)
 [![Discord chat](https://img.shields.io/discord/585148559155003392)](https://discord.gg/TSEcDRP)
 
 [![Downloads](https://img.shields.io/npm/dm/moleculer.svg)](https://www.npmjs.com/package/moleculer)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer?ref=badge_shield)
 [![Patreon](docs/assets/patreon.svg)][patreon] [![PayPal](docs/assets/paypal_donate.svg)][paypal]
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/moleculerjs/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
@@ -29,14 +28,11 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 
 # Top sponsors
 
-<div align="center">
-<a href="https://hugoapp.com/" target="_blank"><img alt="Server-Eye" src="https://avatars0.githubusercontent.com/u/75847060?s=400&u=75219c659d29199b8f77717e196ea3a785cd20a5&v=4" width="200px" height="auto" /></a>
-</div>
+<table style="text-align:center;"><tr><td>
+<a href="https://hugoapp.com/" target="_blank"><img src="https://avatars0.githubusercontent.com/u/75847060?s=400&u=75219c659d29199b8f77717e196ea3a785cd20a5&v=4" width="200" valign="middle" /></a></td><td>
+<a href="https://www.server-eye.de/" target="_blank"><img src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
+</tr></table>
 
-
-<div align="center">
-<a href="https://www.server-eye.de/" target="_blank"><img alt="Server-Eye" src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="400px" height="auto" /></a>
-</div>
 
 # What's included
 
@@ -57,14 +53,14 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 - pluggable parameter validator
 - multiple services on a node/server
 - master-less architecture, all nodes are equal
-- parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
+- built-in parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - built-in metrics feature with reporters (Console, CSV, Datadog, Event, Prometheus, StatsD)
-- built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin)
+- built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin, NewRelic)
 - official [API gateway](https://github.com/moleculerjs/moleculer-web), [Database access](https://github.com/moleculerjs/moleculer-db) and many other modules...
 
 # Installation
 ```
-$ npm i moleculer --save
+$ npm i moleculer
 ```
 or
 ```
@@ -103,7 +99,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 
 1. Create a new project (named `moleculer-demo`)
     ```bash
-    $ npx moleculer init project moleculer-demo
+    $ npx moleculer-cli -c moleculer init project moleculer-demo
     ```
     
 2. Open project folder
@@ -156,7 +152,7 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
-Copyright (c) 2016-2020 MoleculerJS
+Copyright (c) 2016-2021 MoleculerJS
 
 [![@moleculerjs](https://img.shields.io/badge/github-moleculerjs-green.svg)](https://github.com/moleculerjs) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
 

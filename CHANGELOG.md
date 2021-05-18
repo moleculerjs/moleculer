@@ -1,5 +1,35 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.11...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.13...master)
+
+--------------------------------------------------
+<a name="0.14.13"></a>
+# [0.14.13](https://github.com/moleculerjs/moleculer/compare/v0.14.12...v0.14.13) (2021-04-09)
+
+## Changes _(62 commits from 12 contributors)_
+- update dependencies
+- logging if encryption middleware can't decrypt the data instead of crashing. [#853](https://github.com/moleculerjs/moleculer/pull/853)
+- fix `disableHeartbeatChecks` option handling. [#858](https://github.com/moleculerjs/moleculer/pull/858)
+- force scanning only master redis nodes for deletion. [#865](https://github.com/moleculerjs/moleculer/pull/865)
+- add more info into `waitForServices` debug log messages. [#870](https://github.com/moleculerjs/moleculer/pull/870)
+- fix `EVENT` packet Avro schema. [#856](https://github.com/moleculerjs/moleculer/issues/856)
+- fix array & date conversion in cacher default key generator. [#883](https://github.com/moleculerjs/moleculer/issues/883)
+- fix Datadog tracing exporter. [#890](https://github.com/moleculerjs/moleculer/issues/890)
+- better elapsed time handling in tracing. [#899](https://github.com/moleculerjs/moleculer/issues/899)
+- improve type definitions. [#843](https://github.com/moleculerjs/moleculer/pull/843), [#885](https://github.com/moleculerjs/moleculer/pull/885), [#886](https://github.com/moleculerjs/moleculer/pull/886)
+- add E2E tests for CI (test all built-in transporter & serializers)
+
+--------------------------------------------------
+<a name="0.14.12"></a>
+# [0.14.12](https://github.com/moleculerjs/moleculer/compare/v0.14.11...v0.14.12) (2021-01-03)
+
+## Other changes
+- update dependencies
+- improved type definitions. [#816](https://github.com/moleculerjs/moleculer/pull/816) [#817](https://github.com/moleculerjs/moleculer/pull/817) [#834](https://github.com/moleculerjs/moleculer/pull/834) [#840](https://github.com/moleculerjs/moleculer/pull/840)
+- support `rediss://` cacher URI. [#837](https://github.com/moleculerjs/moleculer/pull/837)
+- fix Event Trace exporter generated events loop. [#836](https://github.com/moleculerjs/moleculer/pull/836)
+- change log level of node disconnected message. [#838](https://github.com/moleculerjs/moleculer/pull/838)
+- improve the `broker.waitForServices` response. [#843](https://github.com/moleculerjs/moleculer/pull/843)
+- fix recursive hot-reload issue on Linux OS. [#848](https://github.com/moleculerjs/moleculer/pull/848)
 
 --------------------------------------------------
 <a name="0.14.11"></a>

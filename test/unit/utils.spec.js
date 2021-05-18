@@ -90,6 +90,23 @@ describe("Test utils.isFunction", () => {
 	});
 });
 
+
+describe("Test utils.isDate", () => {
+
+	it("should return true for date types", () => {
+		expect(utils.isDate(new Date())).toBe(true);
+
+		expect(utils.isDate(1614529868608)).toBe(false);
+		expect(utils.isDate("Sun Feb 28 2021 17:36:03 GMT+0100 (GMT+01:00)")).toBe(false);
+		expect(utils.isDate({})).toBe(false);
+		expect(utils.isDate([])).toBe(false);
+		expect(utils.isDate(null)).toBe(false);
+		expect(utils.isDate(1)).toBe(false);
+		expect(utils.isDate("string")).toBe(false);
+		expect(utils.isDate(NaN)).toBe(false);
+	});
+});
+
 describe("Test utils.flatten", () => {
 
 	it("should flat the array", () => {
@@ -716,4 +733,34 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	});
 
+	if (process.versions.node.split(".")[0] >= 12) {
+		describe("Test Promise.promiseAllControl", () => {
+			it("should be resolve", () => {
+				return utils.promiseAllControl([
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise((resolve, reject) => reject("Error"))
+				], true).then(res => {
+					expect(res).toEqual([
+						{ status: "fulfilled", value: "First" },
+						{ status: "fulfilled", value: "Second" },
+						{ status: "fulfilled", value: "Third" },
+						{ status: "rejected", reason: "Error" }
+					]);
+				});
+			});
+
+			it("should be rejected", () => {
+				return utils.promiseAllControl([
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise((resolve, reject) => reject("Error"))
+				], false).catch(res => {
+					expect(res).toEqual("Error");
+				});
+			});
+		});
+	}
 });

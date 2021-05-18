@@ -9,7 +9,7 @@ module.exports = {
 
 	actions: {
 		hello() {
-			return "Hello Moleculer!!!";
+			return "Hello Moleculer!";
 		}
 	},
 	events: {

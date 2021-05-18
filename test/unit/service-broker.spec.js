@@ -35,6 +35,7 @@ polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
 
 const utils = require("../../src/utils");
 utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
+utils.promiseAllControl = jest.requireActual("../../src/utils").promiseAllControl;
 
 const { protectReject } = require("./utils");
 const path = require("path");
@@ -1613,7 +1614,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['posts'], statuses: [{ name: 'posts', available: true }] });
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1629,7 +1630,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices(["posts"], 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['posts'], statuses: [{ name: 'posts', available: true }] });
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1645,7 +1646,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts" }], 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['posts'], statuses: [{ name: 'posts', available: true }] });
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1661,7 +1662,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices({ name: "posts" }, 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['posts'], statuses: [{ name: 'posts', available: true }] });
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1677,7 +1678,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts", version: 1 }], 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['v1.posts'], statuses: [{ name: 'v1.posts', available: true }] });
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1693,7 +1694,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['v1.posts'], statuses: [{ name: 'v1.posts', available: true }] });
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1709,7 +1710,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['v1.posts'], statuses: [{ name: 'v1.posts', available: true }] });
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1725,7 +1726,7 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(result => {
-			expect(result).toEqual({ services: ['v1.posts'], statuses: [{ name: 'v1.posts', available: true }] });
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1742,10 +1743,10 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices(["v2.posts", "users", { name: "posts", version: 2 }], 10 * 1000, 100).catch(protectReject).then(result => {
 			expect(result).toEqual({
-				services: ['v2.posts', 'users'],
+				services: ["v2.posts", "users"],
 				statuses: [
-					{ name: 'v2.posts', available: true },
-					{ name: 'users', available: true },
+					{ name: "v2.posts", available: true },
+					{ name: "users", available: true },
 				],
 			});
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(12);
@@ -1793,7 +1794,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("posts", 300, 100).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(MoleculerError);
-			expect(err.data).toEqual({ services: ['posts'], statuses: [{ name: 'posts', available: false }] });
+			expect(err.data).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: false }] });
 		});
 
 		clock.tick(450);
@@ -2340,6 +2341,28 @@ describe("Test broker.mcall", () => {
 			expect(err).toBeInstanceOf(MoleculerServerError);
 		});
 	});
+
+	if (process.versions.node.split(".")[0] >= 12) {
+		it("should call both action & return an array with settled", () => {
+			return broker.mcall([
+				{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+				{ action: "users.find", params: { limit: 2, sort: "username" } },
+				{ action: "service.notfound", params: { notfound: 1 } }
+			], { timeout: 200, settled: true }).then(res => {
+				expect(res).toEqual([
+					{ status: "fulfilled", value: "posts.find" },
+					{ status: "fulfilled", value: "users.find" },
+					{ status: "fulfilled", value: "service.notfound" }
+				]);
+				expect(broker.call).toHaveBeenCalledTimes(5);
+				expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
+				expect(broker.call).toHaveBeenCalledWith("users.find", {
+					limit: 2,
+					sort: "username"
+				}, { timeout: 200 });
+			});
+		});
+	}
 });
 
 

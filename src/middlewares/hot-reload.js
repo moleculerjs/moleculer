@@ -9,6 +9,7 @@
 const fs = require("fs");
 const kleur = require("kleur");
 const path = require("path");
+const watch = require("recursive-watch");
 const _ = require("lodash");
 
 const { clearRequireCache, makeDirs, isFunction, isString } = require("../utils");
@@ -73,11 +74,20 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Debounced Service reloader function
 		const reloadServices = _.debounce(() => {
-			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReload.size} service(s)`));
+			const needToReloadDedup = _.uniqWith([...needToReload], (a, b) => {
+				const ac = typeof a == "string" ? a : a.__filename;
+				const bc = typeof b == "string" ? b : b.__filename;
+				return ac == bc;
+			});
 
-			needToReload.forEach(svc => {
+			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReloadDedup.length} service(s)`));
+
+			needToReloadDedup.forEach(svc => {
 				if (typeof svc == "string")
-					return broker.loadService(svc);
+					if (fs.existsSync(svc))
+						return broker.loadService(svc);
+					else
+						return;
 
 				return hotReloadService(svc);
 			});
@@ -91,6 +101,13 @@ module.exports = function HotReloadMiddleware(broker) {
 		// Watching project files
 		broker.logger.debug("");
 		broker.logger.debug(kleur.yellow().bold("Watching the following project files:"));
+
+		projectFiles.forEach((watchItem, fName) => {
+			// Delete if file doesn't exist anymore
+			if (!fs.existsSync(fName))
+				projectFiles.delete(fName);
+		});
+
 		projectFiles.forEach((watchItem, fName) => {
 			const relPath = path.relative(process.cwd(), fName);
 			if (watchItem.brokerRestart)
@@ -293,19 +310,15 @@ module.exports = function HotReloadMiddleware(broker) {
 					broker.logger.debug(`  ${path.relative(process.cwd(), folder)}/`);
 					folderWatchers.push({
 						path: folder,
-						watcher: fs.watch(folder, { recursive: true }, (eventType, filename) => {
+						watcher: watch(folder, (filename) => {
 							if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
-								broker.logger.debug(`There is changes in '${folder}' folder: `, kleur.bgMagenta().white(eventType), filename);
-								const fullPath = path.join(folder, filename);
-								const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
-
-								if (eventType === "rename" && !isLoaded) {
+								broker.logger.debug(`There is changes in '${folder}' folder: `, path.basename(filename));
+								const isLoaded = broker.services.some(svc => svc.__filename == filename);
+								const fileExists = fs.existsSync(filename);
+								if (!isLoaded && fileExists) {
 									// This is a new file. We should wait for the file fully copied.
-									needToLoad.add(fullPath);
-									loadServices();
-								} else if (eventType == "change" && !isLoaded) {
-									// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
-									needToLoad.add(fullPath);
+									broker.logger.debug("Loading new file: ", path.basename(filename));
+									needToLoad.add(filename);
 									loadServices();
 								}
 							}
@@ -319,7 +332,7 @@ module.exports = function HotReloadMiddleware(broker) {
 	function stopProjectFolderWatchers() {
 		broker.logger.debug("");
 		broker.logger.debug("Stop watching folders.");
-		folderWatchers.forEach(item => item.watcher && item.watcher.close());
+		folderWatchers.forEach(item => item.watcher && item.watcher());
 	}
 
 	/**

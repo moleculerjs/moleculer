@@ -258,6 +258,20 @@ class MemoryCacher extends BaseCacher {
 			}
 		});
 	}
+
+	/**
+	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
+	 *
+	 * @returns Promise<Array<Object>>
+	 */
+	getCacheKeys() {
+		return Promise.resolve(Array.from(this.cache.entries()).map(([key, item]) => {
+			return {
+				key,
+				expiresAt: item.expire
+			};
+		}));
+	}
 }
 
 module.exports = MemoryCacher;

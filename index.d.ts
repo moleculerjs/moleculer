@@ -227,7 +227,7 @@ declare namespace Moleculer {
 		defaultQuantiles?: Array<number>;
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
-		defaultAggregator?: number;
+		defaultAggregator?: string;
 	}
 
 	type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
@@ -425,8 +425,10 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 	}
 
+	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
+
 	interface ActionCacheOptions {
-		enabled?: boolean;
+		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
 		keys?: Array<string>;
 		lock?: {
@@ -447,8 +449,16 @@ declare namespace Moleculer {
 		error?: string | ActionHookError | Array<string | ActionHookError>;
 	}
 
+	interface RestSchema{
+		path?: string,
+		method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
+		fullPath?: string,
+		basePath?: string,
+	}
+
 	interface ActionSchema {
 		name?: string;
+		rest?: RestSchema | string | string[],
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
@@ -678,6 +688,11 @@ declare namespace Moleculer {
 		[name: string]: ServiceAction;
 	}
 
+	interface WaitForServicesResult {
+		services: string[];
+		statuses: Array<{ name: string; available: boolean}>;
+	}
+
 	class Service<S = ServiceSettingSchema> implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
@@ -701,7 +716,15 @@ declare namespace Moleculer {
 		_start(): Promise<void>;
 		_stop(): Promise<void>;
 
-		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Promise<void>;
+		/**
+		 * Wait for the specified services to become available/registered with this broker.
+		 *
+		 * @param serviceNames The service, or services, we are waiting for.
+		 * @param timeout The total time this call may take. If this time has passed and the service(s)
+		 * 						    are not available an error will be thrown. (In milliseconds)
+		 * @param interval The time we will wait before once again checking if the service(s) are available (In milliseconds)
+		 */
+		waitForServices(serviceNames: string | Array<string> | Array<ServiceDependency>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<WaitForServicesResult>;
 
 
 		[name: string]: any;
@@ -737,7 +760,7 @@ declare namespace Moleculer {
 		delay?: number;
 		maxDelay?: number;
 		factor?: number;
-		check: CheckRetryable;
+		check?: CheckRetryable;
 	}
 
 	interface BrokerRegistryOptions {
@@ -1222,7 +1245,7 @@ declare namespace Moleculer {
 	type Cacher<T extends Cachers.Base = Cachers.Base> = T;
 
 	class Serializer {
-		constructor();
+		constructor(opts?: any);
 		init(broker: ServiceBroker): void;
 		serialize(obj: GenericObject, type: string): Buffer;
 		deserialize(buf: Buffer, type: string): GenericObject;
@@ -1232,6 +1255,7 @@ declare namespace Moleculer {
 		Base: Serializer,
 		JSON: Serializer,
 		Avro: Serializer,
+		CBOR: Serializer,
 		MsgPack: Serializer,
 		ProtoBuf: Serializer,
 		Thrift: Serializer,
@@ -1559,6 +1583,29 @@ declare namespace Moleculer {
 			prompt(prompt: object | ReadonlyArray<object>): Promise<PromptObject>;
 			delimiter(value: string): void;
 		}
+	}
+
+	namespace Utils {
+		function isFunction(func: unknown): func is Function;
+		function isString(str: unknown): str is string;
+		function isObject(obj: unknown): obj is object;
+		function isPlainObject(obj: unknown): obj is object;
+		function isDate(date: unknown): date is Date;
+		function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
+		function humanize(millis?: number | null): string;
+		function generateToken(): string;
+		function removeFromArray<T>(arr: T[], item: T): T[];
+		function getNodeID(): string;
+		function getIpList(): string[];
+		function isPromise<T>(promise: unknown): promise is Promise<T>;
+		function polyfillPromise(P: typeof Promise): void;
+		function clearRequireCache(filename: string): void;
+		function match(text: string, pattern: string): boolean;
+		function deprecate(prop: unknown, msg?: string): void;
+		function safetyObject(obj: unknown, options?: { maxSafeObjectSize?: number }): any;
+		function dotSet<T extends object>(obj: T, path: string, value: unknown): T;
+		function makeDirs(path: string): void;
+		function parseByteString(value: string): number;
 	}
 }
 
