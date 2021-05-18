@@ -246,6 +246,19 @@ const utils = {
 	},
 
 	/**
+	 * Promise control
+	 * if you'd always like to know the result of each promise
+	 *
+	 * @param {Array} promises
+	 * @param {Boolean} settled set true for result of each promise with reject
+	 * @param {Object} promise
+	 * @return {Promise<{[p: string]: PromiseSettledResult<*>}>|Promise<unknown[]>}
+	 */
+	promiseAllControl(promises, settled = false, promise = Promise) {
+		return settled ? promise.allSettled(promises) : promise.all(promises);
+	},
+
+	/**
 	 * Clear `require` cache. Used for service hot reloading
 	 *
 	 * @param {String} filename

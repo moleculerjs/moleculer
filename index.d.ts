@@ -227,7 +227,7 @@ declare namespace Moleculer {
 		defaultQuantiles?: Array<number>;
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
-		defaultAggregator?: number;
+		defaultAggregator?: string;
 	}
 
 	type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
@@ -760,7 +760,7 @@ declare namespace Moleculer {
 		delay?: number;
 		maxDelay?: number;
 		factor?: number;
-		check: CheckRetryable;
+		check?: CheckRetryable;
 	}
 
 	interface BrokerRegistryOptions {

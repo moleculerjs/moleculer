@@ -236,6 +236,20 @@ class MemoryLRUCacher extends BaseCacher {
 	checkTTL() {
 		this.cache.prune();
 	}
+
+
+	/**
+	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
+	 *
+	 * @returns Promise<Array<Object>>
+	 */
+	getCacheKeys() {
+		return Promise.resolve(this.cache.keys().map(key => {
+			return {
+				key
+			};
+		}));
+	}
 }
 
 module.exports = MemoryLRUCacher;

@@ -583,3 +583,35 @@ describe("Test RedisCacher close", () => {
 		expect(cacher.client.quit).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe("Test MemoryCacher getCacheKeys method", ()=>{
+	const cacher = new RedisCacher();
+	const broker = new ServiceBroker({ logger: false });
+	cacher.init(broker); // for empty logger
+
+	let dataEvent;
+
+	beforeEach(() => {
+		dataEvent = jest.fn().mockImplementation((eventType, callback) => {
+			if (eventType === "data") {
+				callback(["MOL-hello", "MOL-hello2", "hello3:test"]);
+			}
+			if (eventType === "end") {
+				callback();
+			}
+		});
+		cacher.client.scanStream = jest.fn(() => ({
+			on: dataEvent,
+		}));
+	});
+
+	it("should return data and ttl", () => {
+		return cacher.getCacheKeys().then(res => {
+			expect(res).toEqual([
+				{ "key": "hello" },
+				{ "key": "hello2" },
+				{ "key": "hello3:test" },
+			]);
+		});
+	});
+});
