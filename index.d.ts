@@ -227,7 +227,7 @@ declare namespace Moleculer {
 		defaultQuantiles?: Array<number>;
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
-		defaultAggregator?: number;
+		defaultAggregator?: string;
 	}
 
 	type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
@@ -760,7 +760,7 @@ declare namespace Moleculer {
 		delay?: number;
 		maxDelay?: number;
 		factor?: number;
-		check: CheckRetryable;
+		check?: CheckRetryable;
 	}
 
 	interface BrokerRegistryOptions {
@@ -1583,6 +1583,29 @@ declare namespace Moleculer {
 			prompt(prompt: object | ReadonlyArray<object>): Promise<PromptObject>;
 			delimiter(value: string): void;
 		}
+	}
+
+	namespace Utils {
+		function isFunction(func: unknown): func is Function;
+		function isString(str: unknown): str is string;
+		function isObject(obj: unknown): obj is object;
+		function isPlainObject(obj: unknown): obj is object;
+		function isDate(date: unknown): date is Date;
+		function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
+		function humanize(millis?: number | null): string;
+		function generateToken(): string;
+		function removeFromArray<T>(arr: T[], item: T): T[];
+		function getNodeID(): string;
+		function getIpList(): string[];
+		function isPromise<T>(promise: unknown): promise is Promise<T>;
+		function polyfillPromise(P: typeof Promise): void;
+		function clearRequireCache(filename: string): void;
+		function match(text: string, pattern: string): boolean;
+		function deprecate(prop: unknown, msg?: string): void;
+		function safetyObject(obj: unknown, options?: { maxSafeObjectSize?: number }): any;
+		function dotSet<T extends object>(obj: T, path: string, value: unknown): T;
+		function makeDirs(path: string): void;
+		function parseByteString(value: string): number;
 	}
 }
 

@@ -355,6 +355,16 @@ class Cacher {
 		};
 	}
 
+	/**
+	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
+	 *
+	 * @returns Promise<Array<Object>>
+	 */
+	getCacheKeys() {
+		// Not available
+		return Promise.resolve(null);
+	}
+
 }
 
 module.exports = Cacher;

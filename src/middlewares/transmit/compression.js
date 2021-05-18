@@ -78,6 +78,8 @@ module.exports = function CompressionMiddleware(opts) {
 						.then(res => {
 							logger.debug(`Packet '${cmd}' decompressed. Saving: ${Number((1 - (data.length / res.length)) * 100).toFixed(0)}%`, res.length, data.length);
 							return next(cmd, res, s);
+						}).catch(err => {
+							logger.error("Received packet decompression error.", err);
 						});
 				}
 			};

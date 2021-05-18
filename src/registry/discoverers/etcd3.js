@@ -144,6 +144,18 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				if (!leaseBeat) {
 					// Create a new for lease
 					leaseBeat = this.client.lease(this.opts.heartbeatTimeout);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseBeat.on("lost", err => {
+						this.logger.warn("Lost heartbeat lease. Dropping lease and retrying heartbeat. Error:", err.message);
+						leaseBeat.release();
+						this.leaseBeat = null;
+						// if broker is connected, send heartbeat immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendHeartbeat();
+						}
+					});
+
 					return leaseBeat.grant() // Waiting for the lease creation on the server
 						.then(() => this.leaseBeat = leaseBeat);
 				}
@@ -179,7 +191,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						.then(result => Object.values(result).map(raw => {
 							try {
 								return this.serializer.deserialize(raw);
-							} catch(err) {
+							} catch (err) {
 								this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
 							}
 						}));
@@ -234,7 +246,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				try {
 					const info = this.serializer.deserialize(res);
 					return this.processRemoteNodeInfo(nodeID, info);
-				} catch(err) {
+				} catch (err) {
 					this.logger.warn("Unable to parse INFO packet", err, res);
 				}
 			});
@@ -276,6 +288,18 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => {
 				if (!leaseInfo) {
 					leaseInfo = this.client.lease(60);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseInfo.on("lost", err => {
+						this.logger.warn("Lost info lease. Dropping lease and retrying info-send. Error:", err.message);
+						leaseInfo.release();
+						this.leaseInfo = null;
+						// if broker is connected, send local node info immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendLocalNodeInfo(nodeID);
+						}
+					});
+
 					return leaseInfo.grant() // Waiting for the lease creation on the server
 						.then(() => this.leaseInfo = leaseInfo);
 				}

@@ -5,9 +5,9 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	logLevel: "debug",
+	logLevel: "info",
 	cacher: {
-		type: "MemoryLRU",
+		type: "Redis",
 		options: {
 			max: 100,
 			ttl: 3
@@ -37,9 +37,9 @@ broker.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
-	.then(() => broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
+	.then(() => broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false } }))
 
-	.then(() => {
+	.then(async () => {
 		for(let i = 0; i < 1000; i++) {
 			broker.cacher.set(`key-${i}`, i);
 			if (i % 10 == 0) {
@@ -51,15 +51,17 @@ broker.start()
 			}
 		}
 
-		broker.logger.info("Length:", broker.cacher.cache.length);
-		broker.logger.info("keys:", broker.cacher.cache.keys().join(","));
+		const keys = await broker.cacher.getCacheKeys();
+		broker.logger.info("Length:", keys.length);
+		broker.logger.info("keys:", keys);
 	})
 
 	.delay(5 * 1000)
-	.then(() => {
+	.then(async () => {
 		broker.logger.info("=========================================");
-		broker.logger.info("Length:", broker.cacher.cache.length);
-		broker.logger.info("keys:", broker.cacher.cache.keys().join(","));
+		const keys = await broker.cacher.getCacheKeys();
+		broker.logger.info("Length:", keys.length);
+		broker.logger.info("keys:", keys);
 	})
 
 	.catch(err => broker.logger.error(err))
