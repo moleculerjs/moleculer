@@ -6,6 +6,8 @@
 
 "use strict";
 
+const _ = require("lodash");
+
 /**
  * Node class
  *
@@ -61,8 +63,8 @@ class Node {
 		this.config = payload.config || {};
 		this.instanceID = payload.instanceID;
 
-		// Process services & events
-		this.services = payload.services;
+		// Process services & events (should make a clone because it will manipulate the objects (add handlers))
+		this.services = _.cloneDeep(payload.services);
 		this.rawInfo = payload;
 
 		const newSeq = payload.seq || 1;
