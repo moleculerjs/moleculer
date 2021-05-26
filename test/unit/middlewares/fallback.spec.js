@@ -43,7 +43,7 @@ describe("Test FallbackMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["service", "action"], rate: true });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["service", "action"], "description": "Number of fallbacked requests", rate: true });
 	});
 
 	it("should call fallback Function and return", () => {

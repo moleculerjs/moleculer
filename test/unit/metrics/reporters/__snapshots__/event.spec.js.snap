@@ -111,6 +111,7 @@ Array [
         "count": 4,
         "key": "",
         "labels": Object {},
+        "lastValue": 2,
         "max": 8,
         "mean": 4.5,
         "min": 2,
@@ -146,6 +147,7 @@ Array [
         "labels": Object {
           "action": "auth",
         },
+        "lastValue": 7,
         "max": 7,
         "mean": 3.6666666666666665,
         "min": 1,
@@ -442,6 +444,7 @@ Array [
         "count": 4,
         "key": "",
         "labels": Object {},
+        "lastValue": 2,
         "max": 8,
         "mean": 4.5,
         "min": 2,
@@ -477,6 +480,7 @@ Array [
         "labels": Object {
           "action": "auth",
         },
+        "lastValue": 7,
         "max": 7,
         "mean": 3.6666666666666665,
         "min": 1,

@@ -42,7 +42,7 @@ function resolve(opt) {
 		if (CacherClass)
 			return new CacherClass();
 
-		if (opt.startsWith("redis://"))
+		if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
 			CacherClass = Cachers.Redis;
 
 		if (CacherClass)
@@ -61,5 +61,9 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = Object.assign(Cachers, { resolve });
+function register(name, value) {
+	Cachers[name] = value;
+}
+
+module.exports = Object.assign(Cachers, { resolve, register });
 

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -308,9 +308,11 @@ class BaseTransporter {
 			// and AMQP will load-balanced it.
 			if (groups.length > 0) {
 				groups.forEach(group => {
+					// Create a copy of the packet because the `publishBalancedEvent` will modify the payload.
+					const copy = _.cloneDeep(packet);
 					// Change the groups to this group to avoid multi handling in consumers.
-					packet.payload.groups = [group];
-					this.publishBalancedEvent(packet, group);
+					copy.payload.groups = [group];
+					this.publishBalancedEvent(copy, group);
 				});
 				return this.broker.Promise.resolve();
 			}

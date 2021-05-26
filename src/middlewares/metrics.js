@@ -75,7 +75,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_TRANSIT_PUBLISH_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["type"], unit: METRIC.UNIT_PACKET, description: "Number of published packets", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_TRANSIT_RECEIVE_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["type"], unit: METRIC.UNIT_PACKET, description: "Number of received packets", rate: true });
 
-				metrics.register({ name: METRIC.MOLECULER_TRANSIT_REQUESTS_ACTIVE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_REQUEST, description: "Number of active requests." });
+				metrics.register({ name: METRIC.MOLECULER_TRANSIT_REQUESTS_ACTIVE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_REQUEST, description: "Number of active requests" });
 				metrics.register({ name: METRIC.MOLECULER_TRANSIT_STREAMS_SEND_ACTIVE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_STREAM, description: "Number of active sent streams" });
 				//metrics.register({ name: METRIC.MOLECULER_TRANSIT_STREAMS_RECEIVE_ACTIVE, type: METRIC.TYPE_GAUGE, description: "" });
 
@@ -84,7 +84,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_TOTAL, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_PACKET, description: "Number of sent packets", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of sent bytes", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_PACKET, description: "Number of received packets", rate: true });
-				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of received packets", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of received bytes", rate: true });
 			}
 		},
 

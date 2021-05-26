@@ -325,7 +325,9 @@ class RedisCacher extends BaseCacher {
 
 	_clusterScanDel(pattern) {
 		const scanDelPromises = [];
-		const nodes = this.client.nodes();
+		// get only master nodes to scan for deletion,
+		// if we get slave nodes, it would be failed for deletion.
+		const nodes = this.client.nodes("master");
 
 		nodes.forEach(node => {
 			scanDelPromises.push(this._nodeScanDel(node, pattern));
@@ -375,6 +377,35 @@ class RedisCacher extends BaseCacher {
 		} else {
 			return this._nodeScanDel(this.client, pattern);
 		}
+	}
+
+
+	/**
+	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
+	 *
+	 * @returns Promise<Array<Object>>
+	 */
+	getCacheKeys() {
+		return new Promise((resolve, reject) => {
+			const res = [];
+
+			const stream = this.client.scanStream({
+				match: this.prefix + "*",
+				count: 100
+			});
+
+			stream.on("data", (keys = []) => res.push(...keys));
+
+			stream.on("error", (err) => {
+				this.logger.error("Error occured while listing keys from node.", err);
+				reject(err);
+			});
+
+			stream.on("end", () => {
+				// End deleting keys from node
+				resolve(res.map(key => ({ key: key.startsWith(this.prefix) ? key.slice(this.prefix.length) : key })));
+			});
+		});
 	}
 }
 

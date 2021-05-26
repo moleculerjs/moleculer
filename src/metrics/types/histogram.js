@@ -90,6 +90,7 @@ class HistogramMetric extends BaseMetric {
 		item.timestamp = timestamp == null ? Date.now() : timestamp;
 		item.sum += value;
 		item.count++;
+		item.lastValue = value;
 
 		if (item.bucketValues) {
 			const len = this.buckets.length;
@@ -146,6 +147,7 @@ class HistogramMetric extends BaseMetric {
 			labels: item.labels,
 			count: item.count,
 			sum: item.sum,
+			lastValue: item.lastValue,
 			timestamp: item.timestamp,
 		};
 
@@ -171,6 +173,7 @@ class HistogramMetric extends BaseMetric {
 		item.timestamp = timestamp == null ? Date.now() : timestamp;
 		item.sum = 0;
 		item.count = 0;
+		item.lastValue = null;
 
 		if (this.buckets) {
 			item.bucketValues = this.createBucketValues();

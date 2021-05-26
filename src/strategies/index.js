@@ -39,16 +39,16 @@ function resolve(opt) {
 	if (Object.prototype.isPrototypeOf.call(Strategies.Base, opt)) {
 		return opt;
 	} else if (isString(opt)) {
-		let SerializerClass = getByName(opt);
-		if (SerializerClass)
-			return SerializerClass;
+		let StrategyClass = getByName(opt);
+		if (StrategyClass)
+			return StrategyClass;
 		else
 			throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
 
 	} else if (isObject(opt)) {
-		let SerializerClass = getByName(opt.type || "RoundRobin");
-		if (SerializerClass)
-			return SerializerClass;
+		let StrategyClass = getByName(opt.type || "RoundRobin");
+		if (StrategyClass)
+			return StrategyClass;
 		else
 			throw new BrokerOptionsError(`Invalid strategy type '${opt.type}'.`, { type: opt.type });
 	}
@@ -56,5 +56,10 @@ function resolve(opt) {
 	return Strategies.RoundRobin;
 }
 
-module.exports = Object.assign(Strategies, { resolve });
+
+function register(name, value) {
+	Strategies[name] = value;
+}
+
+module.exports = Object.assign(Strategies, { resolve, register });
 

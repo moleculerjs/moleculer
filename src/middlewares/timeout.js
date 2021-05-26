@@ -57,7 +57,7 @@ module.exports = function(broker) {
 
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], description: "Number of timed out requests", rate: true });
 			}
 		},
 

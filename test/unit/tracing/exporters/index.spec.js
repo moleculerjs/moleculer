@@ -83,3 +83,23 @@ describe("Test TracingExporters resolver", () => {
 	});
 
 });
+
+describe("Test TracingExporters register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			TracingExporters.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		TracingExporters.register("MyCustom", MyCustom);
+		expect(TracingExporters.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const exporter = TracingExporters.resolve("MyCustom");
+		expect(exporter).toBeInstanceOf(MyCustom);
+	});
+});

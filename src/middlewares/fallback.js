@@ -60,7 +60,7 @@ module.exports = function FallbackMiddleware(broker) {
 
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], description: "Number of fallbacked requests", rate: true });
 			}
 		},
 

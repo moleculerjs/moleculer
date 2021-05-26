@@ -148,8 +148,8 @@ describe("Test Event tracing exporter class", () => {
 
 			expect(exporter.queue).toEqual([]);
 
-			const span1 = {};
-			const span2 = {};
+			const span1 = { tags: {} };
+			const span2 = { tags: {} };
 
 			exporter.spanFinished(span1);
 			exporter.spanFinished(span2);
@@ -193,7 +193,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should generate & emit event", () => {
-			exporter.spanFinished({});
+			exporter.spanFinished({ tags: {} });
 
 			exporter.flush();
 
@@ -210,7 +210,7 @@ describe("Test Event tracing exporter class", () => {
 
 			exporter.opts.broadcast = true;
 			exporter.opts.groups = ["mail", "payment"];
-			exporter.spanFinished({});
+			exporter.spanFinished({ tags: {} });
 
 			exporter.flush();
 
@@ -277,11 +277,11 @@ describe("Test Event tracing exporter class", () => {
 			exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
-			exporter.spanStarted({ a: 5 });
-			exporter.spanFinished({ b: 10 });
+			exporter.spanStarted({ a: 5, tags: {} });
+			exporter.spanFinished({ b: 10, tags: {} });
 
 			expect(exporter.queue).toEqual([
-				{ b: 10 }
+				{ b: 10, tags: {} }
 			]);
 		});
 
@@ -289,11 +289,11 @@ describe("Test Event tracing exporter class", () => {
 			exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
-			exporter.spanStarted({ a: 5 });
-			exporter.spanFinished({ b: 10 });
+			exporter.spanStarted({ a: 5, tags: {} });
+			exporter.spanFinished({ b: 10, tags: {} });
 
 			expect(exporter.queue).toEqual([
-				{ a: 5 }
+				{ a: 5, tags: {} }
 			]);
 		});
 
@@ -301,8 +301,8 @@ describe("Test Event tracing exporter class", () => {
 			exporter = new EventTraceExporter({ sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
-			exporter.spanStarted({ a: 5 });
-			exporter.spanFinished({ b: 10 });
+			exporter.spanStarted({ a: 5, tags: {} });
+			exporter.spanFinished({ b: 10, tags: {} });
 
 			expect(exporter.queue).toEqual([]);
 		});
@@ -312,15 +312,25 @@ describe("Test Event tracing exporter class", () => {
 			exporter.flush = jest.fn();
 			exporter.init(fakeTracer);
 
-			exporter.spanStarted({ a: 5 });
-			exporter.spanFinished({ b: 10 });
+			exporter.spanStarted({ a: 5, tags: {} });
+			exporter.spanFinished({ b: 10, tags: {} });
 
 			expect(exporter.queue).toEqual([
-				{ a: 5 },
-				{ b: 10 },
+				{ a: 5, tags: {} },
+				{ b: 10, tags: {} },
 			]);
 
 			expect(exporter.flush).toHaveBeenCalledTimes(2);
+		});
+
+		it("should skip tracing events", () => {
+			exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: true });
+			exporter.init(fakeTracer);
+
+			exporter.spanStarted({ tags: { eventName: "$tracing.spans" } });
+			exporter.spanFinished({ tags: { eventName: "$tracing.spans" } });
+
+			expect(exporter.queue).toEqual([]);
 		});
 
 	});

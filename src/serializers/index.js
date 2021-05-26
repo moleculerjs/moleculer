@@ -16,7 +16,8 @@ const Serializers = {
 	MsgPack: require("./msgpack"),
 	ProtoBuf: require("./protobuf"),
 	Thrift: require("./thrift"),
-	Notepack: require("./notepack")
+	Notepack: require("./notepack"),
+	CBOR: require("./cbor"),
 };
 
 function getByName(name) {
@@ -57,4 +58,8 @@ function resolve(opt) {
 	return new Serializers.JSON();
 }
 
-module.exports = Object.assign(Serializers, { resolve });
+function register(name, value) {
+	Serializers[name] = value;
+}
+
+module.exports = Object.assign(Serializers, { resolve, register });

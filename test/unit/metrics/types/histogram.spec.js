@@ -158,6 +158,7 @@ describe("Test Base Metric class", () => {
 					count: 1,
 					labels: {},
 					sum: 100,
+					lastValue: 100,
 					timestamp: now
 				});
 
@@ -173,6 +174,7 @@ describe("Test Base Metric class", () => {
 					count: 2,
 					labels: {},
 					sum: 350,
+					lastValue: 250,
 					timestamp: now
 				});
 
@@ -195,6 +197,7 @@ describe("Test Base Metric class", () => {
 					count: 1,
 					labels: {},
 					sum: 2,
+					lastValue: 2,
 					timestamp: now,
 					bucketValues: {
 						"1": 0,
@@ -219,6 +222,7 @@ describe("Test Base Metric class", () => {
 					count: 2,
 					labels: {},
 					sum: 15,
+					lastValue: 13,
 					timestamp: now,
 					bucketValues: {
 						"1": 0,
@@ -249,6 +253,7 @@ describe("Test Base Metric class", () => {
 					count: 1,
 					labels: {},
 					sum: 5,
+					lastValue: 5,
 					timestamp: now,
 					quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 				});
@@ -265,6 +270,7 @@ describe("Test Base Metric class", () => {
 					count: 2,
 					labels: {},
 					sum: 18,
+					lastValue: 13,
 					timestamp: now,
 					quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 				});
@@ -288,6 +294,7 @@ describe("Test Base Metric class", () => {
 					count: 1,
 					labels: {},
 					sum: 100,
+					lastValue: 100,
 					rate: expect.anything(),
 					timestamp: now
 				});
@@ -313,6 +320,7 @@ describe("Test Base Metric class", () => {
 					count: 2,
 					labels: {},
 					sum: 350,
+					lastValue: 250,
 					rate: expect.anything(),
 					timestamp: now
 				});
@@ -388,6 +396,7 @@ describe("Test Base Metric class", () => {
 			expect(item.resetItem({}, 123456)).toEqual({
 				count: 0,
 				sum: 0,
+				lastValue: null,
 				timestamp: 123456,
 				bucketValues: {
 					"1": 0,
@@ -438,6 +447,7 @@ describe("Test Base Metric class", () => {
 				labels: { a: 5 },
 				count: 0,
 				sum: 0,
+				lastValue: null,
 				timestamp: 23456,
 				bucketValues: {
 					"1": 0,
@@ -462,6 +472,7 @@ describe("Test Base Metric class", () => {
 				labels: {},
 				count: 0,
 				sum: 0,
+				lastValue: null,
 				timestamp: 34567,
 				bucketValues: {
 					"1": 0,
@@ -476,6 +487,7 @@ describe("Test Base Metric class", () => {
 				labels: { a: 5 },
 				count: 0,
 				sum: 0,
+				lastValue: null,
 				timestamp: 34567,
 				bucketValues: {
 					"1": 0,

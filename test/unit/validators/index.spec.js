@@ -31,3 +31,23 @@ describe("Test Validators resolver", () => {
 		expect(() => Validators.resolve({ type: "xyz" })).toThrowError(BrokerOptionsError);
 	});
 });
+
+describe("Test Validators register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			Validators.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		Validators.register("MyCustom", MyCustom);
+		expect(Validators.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const validator = Validators.resolve("MyCustom");
+		expect(validator).toBeInstanceOf(MyCustom);
+	});
+});

@@ -56,7 +56,7 @@ describe("Test Node", () => {
 			expect(node.hostname).toBe("host");
 			expect(node.port).toBe(1234);
 
-			expect(node.services).toBe(payload.services);
+			expect(node.services).toStrictEqual(payload.services);
 			expect(node.rawInfo).toBe(payload);
 			expect(node.instanceID).toBe("123456");
 			expect(node.metadata).toEqual({

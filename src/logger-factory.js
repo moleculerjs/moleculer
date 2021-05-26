@@ -118,13 +118,14 @@ class LoggerFactory {
 		const appenders = this.appenders;
 
 		const logHandlers = _.compact(appenders.map(app => app.getLogHandler(bindings)));
+		const hasNewLogEntryMiddleware = broker.middlewares && broker.middlewares.registeredHooks.newLogEntry;
 
 		Loggers.LEVELS.forEach((type) => {
-			if (logHandlers.length == 0)
+			if (logHandlers.length == 0 && !hasNewLogEntryMiddleware)
 				return logger[type] = noop;
 
 			logger[type] = function(...args) {
-				if (broker.middlewares && broker.middlewares.registeredHooks.newLogEntry)
+				if (hasNewLogEntryMiddleware)
 					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
 				if (logHandlers.length == 0) return;

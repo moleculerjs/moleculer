@@ -17,7 +17,7 @@ module.exports = function TracingMiddleware(broker) {
 		let opts = action.tracing;
 		if (opts === true || opts === false)
 			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { params: true } });
+		opts = _.defaultsDeep({}, opts, { enabled: true });
 
 		if (opts.enabled) {
 			return function tracingLocalActionMiddleware(ctx) {
@@ -37,24 +37,36 @@ module.exports = function TracingMiddleware(broker) {
 					options: {
 						timeout: ctx.options.timeout,
 						retries: ctx.options.retries
-					}
+					},
+					requestID: ctx.requestID,
 				};
-
+				const globalActionTags = tracer.opts.tags.action;
+				let actionTags;
+				// local action tags take precedence
 				if (isFunction(opts.tags)) {
-					const res = opts.tags.call(ctx.service, ctx);
+					actionTags = opts.tags;
+				} else if (!opts.tags && isFunction(globalActionTags)) {
+					actionTags = globalActionTags;
+				} else {
+					// By default all params are captured. This can be overridden globally and locally
+					actionTags = { ...{ params: true }, ...globalActionTags, ...opts.tags };
+				}
+
+				if (isFunction(actionTags)) {
+					const res = actionTags.call(ctx.service, ctx);
 					if (res)
 						Object.assign(tags, res);
 
-				} else if (isPlainObject(opts.tags)) {
-					if (opts.tags.params === true)
+				} else if (isPlainObject(actionTags)) {
+					if (actionTags.params === true)
 						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
-					else if (Array.isArray(opts.tags.params))
-						tags.params = _.pick(ctx.params, opts.tags.params);
+					else if (Array.isArray(actionTags.params))
+						tags.params = _.pick(ctx.params, actionTags.params);
 
-					if (opts.tags.meta === true)
+					if (actionTags.meta === true)
 						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
-					else if (Array.isArray(opts.tags.meta))
-						tags.meta = _.pick(ctx.meta, opts.tags.meta);
+					else if (Array.isArray(actionTags.meta))
+						tags.meta = _.pick(ctx.meta, actionTags.meta);
 				}
 
 				let spanName = `action '${ctx.action.name}'`;
@@ -87,16 +99,16 @@ module.exports = function TracingMiddleware(broker) {
 						fromCache: ctx.cachedResult
 					};
 
-					if (isFunction(opts.tags)) {
-						const r = opts.tags.call(ctx.service, ctx, res);
+					if (isFunction(actionTags)) {
+						const r = actionTags.call(ctx.service, ctx, res);
 						if (r)
 							Object.assign(tags, r);
 
-					} else if (isPlainObject(opts.tags)) {
-						if (opts.tags.response === true)
+					} else if (isPlainObject(actionTags)) {
+						if (actionTags.response === true)
 							tags.response = res != null && isPlainObject(res) ? Object.assign({}, res) : res;
-						else if (Array.isArray(opts.tags.response))
-							tags.response = _.pick(res, opts.tags.response);
+						else if (Array.isArray(actionTags.response))
+							tags.response = _.pick(res, actionTags.response);
 					}
 
 					span.addTags(tags);
@@ -124,7 +136,7 @@ module.exports = function TracingMiddleware(broker) {
 		let opts = event.tracing;
 		if (opts === true || opts === false)
 			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { params: true }  });
+		opts = _.defaultsDeep({}, opts, { enabled: true  });
 
 		if (opts.enabled) {
 			return function tracingLocalEventMiddleware(ctx) {
@@ -142,24 +154,37 @@ module.exports = function TracingMiddleware(broker) {
 					callerNodeID: ctx.nodeID,
 					callingLevel: ctx.level,
 					remoteCall: ctx.nodeID !== broker.nodeID,
-					nodeID: broker.nodeID
+					nodeID: broker.nodeID,
+					requestID: ctx.requestID,
 				};
 
+				const globalEventTags = tracer.opts.tags.event;
+				let eventTags;
+				// local event tags take precedence
 				if (isFunction(opts.tags)) {
-					const res = opts.tags.call(service, ctx);
+					eventTags = opts.tags;
+				} else if (!opts.tags && isFunction(globalEventTags)) {
+					eventTags = globalEventTags;
+				} else {
+					// By default all params are captured. This can be overridden globally and locally
+					eventTags = { ...{ params: true }, ...globalEventTags, ...opts.tags };
+				}
+
+				if (isFunction(eventTags)) {
+					const res = eventTags.call(service, ctx);
 					if (res)
 						Object.assign(tags, res);
 
-				} else if (isPlainObject(opts.tags)) {
-					if (opts.tags.params === true)
+				} else if (isPlainObject(eventTags)) {
+					if (eventTags.params === true)
 						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
-					else if (Array.isArray(opts.tags.params))
-						tags.params = _.pick(ctx.params, opts.tags.params);
+					else if (Array.isArray(eventTags.params))
+						tags.params = _.pick(ctx.params, eventTags.params);
 
-					if (opts.tags.meta === true)
+					if (eventTags.meta === true)
 						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
-					else if (Array.isArray(opts.tags.meta))
-						tags.meta = _.pick(ctx.meta, opts.tags.meta);
+					else if (Array.isArray(eventTags.meta))
+						tags.meta = _.pick(ctx.meta, eventTags.meta);
 				}
 
 				let spanName = `event '${ctx.eventName}' in '${service.fullName}'`;

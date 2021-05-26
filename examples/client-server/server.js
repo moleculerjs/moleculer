@@ -17,7 +17,6 @@ let broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: process.env.LOGLEVEL,
-	logFormatter: "simple"
 });
 
 broker.createService({

@@ -20,9 +20,10 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	//transporter: "kafka://192.168.0.181:9092",
+	//transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
-	transporter: "NATS",
+	transporter: "AMQP10",
+	//transporter: "NATS",
 	//serializer: "Thrift",
 
 	//disableBalancer: true,
@@ -60,7 +61,6 @@ const broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short",
 
 	middlewares: [
 		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),

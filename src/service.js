@@ -78,6 +78,12 @@ class Service {
 			schema = Service.applyMixins(schema);
 		}
 
+		if (isFunction(schema.merged)) {
+			schema.merged.call(this, schema);
+		} else if (Array.isArray(schema.merged)) {
+			schema.merged.forEach(fn => fn.call(this, schema));
+		}
+
 		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		if (!schema.name) {
@@ -549,7 +555,7 @@ class Service {
 				// Merge & concat by groups
 				res[key] = Service.mergeSchemaEvents(mods[key], res[key] || {});
 
-			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+			} else if (["merged", "created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = Service.mergeSchemaLifecycleHandlers(mods[key], res[key]);
 
@@ -584,8 +590,13 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaSettings(src, target) {
-		if ((target && target.$secureSettings) || (src && src.$secureSettings))
-			target.$secureSettings = _.uniq([].concat(src.$secureSettings || [], target.$secureSettings || []));
+		if ((target && target.$secureSettings) || (src && src.$secureSettings)) {
+			const srcSS = src && src.$secureSettings ? src.$secureSettings : [];
+			const targetSS = target && target.$secureSettings ? target.$secureSettings : [];
+			if (!target) target = {};
+
+			target.$secureSettings = _.uniq([].concat(srcSS, targetSS));
+		}
 
 		return _.defaultsDeep(src, target);
 	}

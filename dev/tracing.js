@@ -1,6 +1,6 @@
 "use strict";
 
-/*
+
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	url: "http://192.168.0.181:8126",
@@ -10,7 +10,7 @@ const tracer = require("dd-trace").init({
 
 tracer.use("http");
 tracer.use("ioredis");
-*/
+
 
 const ServiceBroker = require("../src/service-broker");
 "use strict";
@@ -26,7 +26,6 @@ const broker = new ServiceBroker({
 	nodeID: "node-1",
 	logger: console,
 	logLevel: "info",
-	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	//transporter: "redis://localhost:6379",
 	cacher: true, //"redis://localhost:6379",
 
@@ -46,12 +45,12 @@ const broker = new ServiceBroker({
 					logger: console.info
 				}
 			},
-			/*{
+			{
 				type: "Datadog",
 				options: {
 					tracer
 				}
-			},*/
+			},
 			/*{
 				type: "Zipkin",
 				options: {
@@ -64,11 +63,11 @@ const broker = new ServiceBroker({
 					host: "192.168.0.181",
 				}
 			},*/
-			{
+			/*{
 				type: "Event",
 				options: {
 				}
-			}
+			}*/
 			/*{
 				type: "EventLegacy"
 			}*/
@@ -373,8 +372,8 @@ broker.start().then(() => {
 	// Call action
 	//setInterval(() => {
 	broker
-		//.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
-		.call("greeter.welcome", "Moleculer")
+		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
+		//.call("greeter.welcome", "Moleculer")
 		//.then(console.log)
 		.catch(console.error);
 	//}, 5000);

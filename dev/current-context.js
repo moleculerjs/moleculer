@@ -1,7 +1,6 @@
 const { ServiceBroker } = require("../");
 
 const broker = new ServiceBroker({
-	logFormatter: "simple",
 	requestTimeout: 5000,
 	circuitBreaker: {
 		enabled: true

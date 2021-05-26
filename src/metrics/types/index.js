@@ -47,4 +47,8 @@ function resolve(type) {
 	return TypeClass;
 }
 
-module.exports = Object.assign({ resolve }, Types);
+function register(name, value) {
+	Types[name] = value;
+}
+
+module.exports = Object.assign(Types, { resolve, register });

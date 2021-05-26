@@ -4,7 +4,7 @@ let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
-let broker = new ServiceBroker({ logFormatter: "simple" });
+let broker = new ServiceBroker();
 
 const mixin = {
 	hooks: {

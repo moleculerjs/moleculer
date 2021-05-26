@@ -10,7 +10,6 @@ let broker = new ServiceBroker({
 	//disableBalancer: true,
 	//serializer: "MsgPack",
 	logger: console,
-	logFormatter: "simple",
 	//hotReload: true
 });
 

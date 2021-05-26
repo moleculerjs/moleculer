@@ -84,6 +84,10 @@ const utils = {
 		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
 	},
 
+	isDate(d) {
+		return d instanceof Date && !Number.isNaN(d.getTime());
+	},
+
 	flatten(arr) {
 		return Array.prototype.reduce.call(arr, (a, b) => a.concat(b), []);
 	},
@@ -169,7 +173,6 @@ const utils = {
 	/**
 	 * Polyfill a Promise library with missing Bluebird features.
 	 *
-	 * NOT USED & NOT TESTED YET !!!
 	 *
 	 * @param {PromiseClass} P
 	 */
@@ -240,6 +243,19 @@ const utils = {
 				});
 			};
 		}
+	},
+
+	/**
+	 * Promise control
+	 * if you'd always like to know the result of each promise
+	 *
+	 * @param {Array} promises
+	 * @param {Boolean} settled set true for result of each promise with reject
+	 * @param {Object} promise
+	 * @return {Promise<{[p: string]: PromiseSettledResult<*>}>|Promise<unknown[]>}
+	 */
+	promiseAllControl(promises, settled = false, promise = Promise) {
+		return settled ? promise.allSettled(promises) : promise.all(promises);
 	},
 
 	/**

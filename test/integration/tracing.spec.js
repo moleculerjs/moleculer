@@ -21,7 +21,7 @@ const USERS = [
 
 function getSpanFields(store) {
 	return store.map(o => {
-		o = _.omit(o, ["startTime", "duration", "finishTime"]);
+		o = _.omit(o, ["startTime", "startTicks", "duration", "finishTime"]);
 		o.logs = o.logs.map(entry => _.omit(entry, ["elapsed", "time"]));
 		return o;
 	});
@@ -180,7 +180,7 @@ describe("Test Tracing feature with actions", () => {
 		expect(res).toMatchSnapshot();
 
 		//Promise.delay(200);
-		STORE.sort((a,b) => a.startTime - b.startTime);
+		STORE.sort((a,b) => a.startTicks - b.startTicks);
 
 		const spans = getSpanFields(STORE);
 
@@ -202,7 +202,7 @@ describe("Test Tracing feature with actions", () => {
 
 		await Promise.delay(500);
 
-		STORE.sort((a,b) => a.startTime - b.startTime);
+		STORE.sort((a,b) => a.startTicks - b.startTicks);
 
 		const spans = getSpanFields(STORE);
 

@@ -76,20 +76,25 @@ declare namespace Moleculer {
 
 	interface TracerOptions {
 		enabled?: boolean;
-		exporter?: TracerExporterOptions | Array<TracerExporterOptions> | null;
+		exporter?: string | TracerExporterOptions | Array<TracerExporterOptions|string> | null;
 		sampling?: {
 			rate?: number | null;
-			tracerPerSecond?: number | null;
+			tracesPerSecond?: number | null;
 			minPriority?: number | null;
 		}
 
 		actions?: boolean;
+		events?: boolean;
 
 		errorFields?: Array<string>;
 		stackTrace?: boolean;
-		events?: boolean;
 
 		defaultTags?: GenericObject | Function | null;
+
+		tags?: {
+			action?: TracingActionTags;
+			event?: TracingEventTags;
+		}
 	}
 
 	class Tracer {
@@ -104,7 +109,7 @@ declare namespace Moleculer {
 		isEnabled(): boolean;
 		shouldSample(span: Span): boolean;
 
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 
 		//getCurrentSpan(): Span | null;
 		getCurrentTraceID(): string | null;
@@ -153,17 +158,34 @@ declare namespace Moleculer {
 		log(name: string, fields?: GenericObject, time?: number): Span;
 		setError(err: Error): Span;
 		finish(time?: number): Span;
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 	}
 
-	type TracingTagsFuncType = (ctx: Context, response?: any) => any;
+	type TracingActionTagsFuncType = (ctx: Context, response?: any) => GenericObject;
+	type TracingActionTags = TracingActionTagsFuncType | {
+		params?: boolean | string[];
+		meta?: boolean | string[];
+		response?: boolean | string[];
+	}
+
+	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
+	type TracingEventTags = TracingEventTagsFuncType | {
+		params?: boolean | string[];
+		meta?: boolean | string[];
+	}
+
+
 	interface TracingOptions {
 		enabled?: boolean;
-		tags?: TracingTagsFuncType | {
-			params?: boolean | string[];
-			meta?: boolean | string[];
-			response?: boolean | string[];
-		}
+		tags?: TracingActionTags | TracingEventTags;
+	}
+
+	interface TracingActionOptions extends TracingOptions {
+		tags?: TracingActionTags;
+	}
+
+	interface TracingEventOptions extends TracingOptions {
+		tags?: TracingEventTags;
 	}
 
 	class BaseTraceExporter {
@@ -200,12 +222,12 @@ declare namespace Moleculer {
 		enabled?: boolean;
 		collectProcessMetrics?: boolean;
 		collectInterval?: number;
-		reporter?: MetricsReporterOptions | Array<MetricsReporterOptions> | null;
+		reporter?: string | MetricsReporterOptions | Array<MetricsReporterOptions|string> | null;
 		defaultBuckets?: Array<number>;
 		defaultQuantiles?: Array<number>;
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
-		defaultAggregator?: number;
+		defaultAggregator?: string;
 	}
 
 	type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
@@ -322,6 +344,7 @@ declare namespace Moleculer {
 		labelNames?: Array<string>;
 		unit?: string;
 		aggregator?: string;
+		[key: string]: unknown;
 	}
 
 	interface MetricListOptions {
@@ -402,8 +425,10 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 	}
 
+	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
+
 	interface ActionCacheOptions {
-		enabled?: boolean;
+		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
 		keys?: Array<string>;
 		lock?: {
@@ -414,20 +439,32 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
+	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
+	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
+	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+
 	interface ActionHooks {
-		before?: (ctx: Context<any, any>) => Promise<void> | void;
-		after?: (ctx: Context<any, any>, res: any) => Promise<any> | any;
-		error?: (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+		before?: string | ActionHookBefore | Array<string | ActionHookBefore>;
+		after?: string | ActionHookAfter | Array<string | ActionHookAfter>;
+		error?: string | ActionHookError | Array<string | ActionHookError>;
+	}
+
+	interface RestSchema{
+		path?: string,
+		method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
+		fullPath?: string,
+		basePath?: string,
 	}
 
 	interface ActionSchema {
 		name?: string;
+		rest?: RestSchema | string | string[],
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
 		handler?: ActionHandler;
-		tracing?: boolean | TracingOptions;
+		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 		retryPolicy?: RetryPolicyOptions;
@@ -442,7 +479,7 @@ declare namespace Moleculer {
 		group?: string;
 		params?: ActionParams;
 		service?: Service;
-		tracing?: boolean | TracingOptions;
+		tracing?: boolean | TracingEventOptions;
 		bulkhead?: BulkheadOptions;
 		handler?: ActionHandler;
 		context?: boolean;
@@ -505,6 +542,8 @@ declare namespace Moleculer {
 		needAck: boolean | null;
 		ackID: string | null;
 
+		locals: GenericObject;
+
 		level: number;
 
 		params: P;
@@ -536,7 +575,7 @@ declare namespace Moleculer {
 		copy(endpoint: Endpoint): this;
 		copy(): this;
 
-		startSpan(name: string, opts: GenericObject): Span;
+		startSpan(name: string, opts?: GenericObject): Span;
 		finishSpan(span: Span, time?: number): void;
 
 		toJSON(): GenericObject;
@@ -601,16 +640,22 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
+	interface ServiceHooksBefore {
+		[key: string]: string | ActionHookBefore | Array<string | ActionHookBefore>;
+	}
+
+	interface ServiceHooksAfter {
+		[key: string]: string | ActionHookAfter | Array<string | ActionHookAfter>;
+	}
+
+	interface ServiceHooksError {
+		[key: string]: string | ActionHookError | Array<string | ActionHookError>;
+	}
+
 	interface ServiceHooks {
-		before?: {
-			[key: string]: ((ctx: Context<any, any>) => Promise<void> | void) | string | string[]
-		},
-		after?: {
-			[key: string]: ((ctx: Context<any, any>, res: any) => Promise<any> | any) | string | string[]
-		},
-		error?: {
-			[key: string]: ((ctx: Context<any, any>, err: Error) => Promise<void> | void) | string | string[]
-		},
+		before?: ServiceHooksBefore,
+		after?: ServiceHooksAfter,
+		error?: ServiceHooksError,
 	}
 
 	interface ServiceDependency {
@@ -643,6 +688,11 @@ declare namespace Moleculer {
 		[name: string]: ServiceAction;
 	}
 
+	interface WaitForServicesResult {
+		services: string[];
+		statuses: Array<{ name: string; available: boolean}>;
+	}
+
 	class Service<S = ServiceSettingSchema> implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
@@ -666,7 +716,15 @@ declare namespace Moleculer {
 		_start(): Promise<void>;
 		_stop(): Promise<void>;
 
-		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Promise<void>;
+		/**
+		 * Wait for the specified services to become available/registered with this broker.
+		 *
+		 * @param serviceNames The service, or services, we are waiting for.
+		 * @param timeout The total time this call may take. If this time has passed and the service(s)
+		 * 						    are not available an error will be thrown. (In milliseconds)
+		 * @param interval The time we will wait before once again checking if the service(s) are available (In milliseconds)
+		 */
+		waitForServices(serviceNames: string | Array<string> | Array<ServiceDependency>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<WaitForServicesResult>;
 
 
 		[name: string]: any;
@@ -702,7 +760,7 @@ declare namespace Moleculer {
 		delay?: number;
 		maxDelay?: number;
 		factor?: number;
-		check: CheckRetryable;
+		check?: CheckRetryable;
 	}
 
 	interface BrokerRegistryOptions {
@@ -729,6 +787,7 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 		disableReconnect?: boolean;
 		disableVersionCheck?: boolean;
+		maxChunkSize?: number;
 	}
 
 	interface BrokerTrackingOptions {
@@ -749,10 +808,8 @@ declare namespace Moleculer {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: LoggerConfig | Array<LoggerConfig> | boolean;
+		logger?: Loggers.Base | LoggerConfig | Array<LoggerConfig> | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
-		logFormatter?: Function | string;
-		logObjectPrinter?: Function;
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
@@ -925,6 +982,17 @@ declare namespace Moleculer {
 		removeIfExist(command:string): void;
 	}
 
+
+
+	namespace Loggers {
+		class Base {
+			constructor(opts?: GenericObject);
+			init(loggerFactory: LoggerFactory): void
+			stop(): void;
+			getLogLevel(mod: string): string
+			getLogHandler(bindings: GenericObject): GenericObject
+		}
+	}
 
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
@@ -1177,7 +1245,7 @@ declare namespace Moleculer {
 	type Cacher<T extends Cachers.Base = Cachers.Base> = T;
 
 	class Serializer {
-		constructor();
+		constructor(opts?: any);
 		init(broker: ServiceBroker): void;
 		serialize(obj: GenericObject, type: string): Buffer;
 		deserialize(buf: Buffer, type: string): GenericObject;
@@ -1187,10 +1255,12 @@ declare namespace Moleculer {
 		Base: Serializer,
 		JSON: Serializer,
 		Avro: Serializer,
+		CBOR: Serializer,
 		MsgPack: Serializer,
 		ProtoBuf: Serializer,
 		Thrift: Serializer,
-		Notepack: Serializer
+		Notepack: Serializer,
+		resolve: (type: string | GenericObject | Serializer) => Serializer,
 	};
 
 	class BaseValidator {
@@ -1248,8 +1318,8 @@ declare namespace Moleculer {
 		heartbeatReceived(nodeID:string, payload:GenericObject): void;
 		processRemoteNodeInfo(nodeID:string, payload:GenericObject): BrokerNode;
 		sendHeartbeat(): Promise<void>;
-		discoverNode(nodeID: string): Promise<void>;
-		discoverAllNodes(): Promise<void>;
+		discoverNode(nodeID: string): Promise<BrokerNode | void>;
+		discoverAllNodes(): Promise<BrokerNode[] | void>;
 		localNodeReady(): Promise<void>;
 		sendLocalNodeInfo(nodeID: string): Promise<void>;
 		localNodeDisconnected(): Promise<void>;
@@ -1385,7 +1455,7 @@ declare namespace Moleculer {
 		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
 		discoverNodes(): Promise<void>;
 		discoverNode(nodeID: string): Promise<void>;
-		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
+		sendNodeInfo(info: BrokerNode, nodeID?: string): Promise<void | Array<void>>;
 		sendPing(nodeID: string, id?: string): Promise<void>;
 		sendPong(payload: GenericObject): Promise<void>;
 		processPong(payload: GenericObject): void;
@@ -1513,6 +1583,29 @@ declare namespace Moleculer {
 			prompt(prompt: object | ReadonlyArray<object>): Promise<PromptObject>;
 			delimiter(value: string): void;
 		}
+	}
+
+	namespace Utils {
+		function isFunction(func: unknown): func is Function;
+		function isString(str: unknown): str is string;
+		function isObject(obj: unknown): obj is object;
+		function isPlainObject(obj: unknown): obj is object;
+		function isDate(date: unknown): date is Date;
+		function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
+		function humanize(millis?: number | null): string;
+		function generateToken(): string;
+		function removeFromArray<T>(arr: T[], item: T): T[];
+		function getNodeID(): string;
+		function getIpList(): string[];
+		function isPromise<T>(promise: unknown): promise is Promise<T>;
+		function polyfillPromise(P: typeof Promise): void;
+		function clearRequireCache(filename: string): void;
+		function match(text: string, pattern: string): boolean;
+		function deprecate(prop: unknown, msg?: string): void;
+		function safetyObject(obj: unknown, options?: { maxSafeObjectSize?: number }): any;
+		function dotSet<T extends object>(obj: T, path: string, value: unknown): T;
+		function makeDirs(path: string): void;
+		function parseByteString(value: string): number;
 	}
 }
 

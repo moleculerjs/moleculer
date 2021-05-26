@@ -10,6 +10,7 @@ const EventEmitter2 		= require("eventemitter2").EventEmitter2;
 const _ 					= require("lodash");
 const glob 					= require("glob");
 const path 					= require("path");
+const { format } 	  = require("util");
 
 const Transit 				= require("./transit");
 const Registry 				= require("./registry");
@@ -959,26 +960,39 @@ class ServiceBroker {
 		})));
 
 		if (serviceNames.length == 0)
-			return this.Promise.resolve();
+			return this.Promise.resolve({ services: [], statuses: [] });
 
 		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
 
 		const startTime = Date.now();
 		return new this.Promise((resolve, reject) => {
 			const check = () => {
-				const count = serviceNames.filter(fullName => {
-					return this.registry.hasService(fullName);
+				const serviceStatuses = serviceNames.map(serviceName => {
+					return {
+						name: serviceName,
+						available: this.registry.hasService(serviceName),
+					}
 				});
 
-				if (count.length == serviceNames.length) {
+				const availableServices = serviceStatuses.filter(s => s.available);
+
+				if (availableServices.length == serviceNames.length) {
 					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
-					return resolve();
+					return resolve({ services: serviceNames, statuses: serviceStatuses });
 				}
 
-				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
+				const unavailableServices = serviceStatuses.filter(s => !s.available);
+				logger.debug(format(
+					`%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...`,
+					availableServices.length,
+					availableServices.map(s => s.name).join(', '),
+					serviceNames.length,
+					unavailableServices.length,
+					unavailableServices.map(s => s.name).join(', ')
+				));
 
 				if (timeout && Date.now() - startTime > timeout)
-					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
+					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames, statuses: serviceStatuses }));
 
 				setTimeout(check, interval || this.options.dependencyInterval || 1000);
 			};
@@ -1188,7 +1202,8 @@ class ServiceBroker {
 	 * Multiple action calls.
 	 *
 	 * @param {Array<Object>|Object} def Calling definitions.
-	 * @returns {Promise<Array<Object>|Object>}
+	 * @param {Object} opts Calling options for each call.
+	 * @returns {Promise<Array<Object>|Object>|PromiseSettledResult}
 	 *
 	 * @example
 	 * Call `mcall` with an array:
@@ -1216,19 +1231,19 @@ class ServiceBroker {
 	 * @throws MoleculerServerError - If the `def` is not an `Array` and not an `Object`.
 	 * @memberof ServiceBroker
 	 */
-	mcall(def, opts) {
+	mcall(def, opts = {}) {
+		const { settled, ...options } = opts;
 		if (Array.isArray(def)) {
-			return this.Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
-
+			return utils.promiseAllControl(def.map(item => this.call(item.action, item.params, item.options || options)), settled, this.Promise);
 		} else if (utils.isObject(def)) {
 			let results = {};
 			let promises = Object.keys(def).map(name => {
 				const item = def[name];
-				const options = item.options || opts;
-				return this.call(item.action, item.params, options).then(res => results[name] = res);
+				const callOptions = item.options || options;
+				return this.call(item.action, item.params, callOptions).then(res => results[name] = res);
 			});
 
-			let p = this.Promise.all(promises);
+			let p = utils.promiseAllControl(promises, settled, this.Promise);
 
 			// Pointer to Context
 			p.ctx = promises.map(promise => promise.ctx);
@@ -1280,7 +1295,7 @@ class ServiceBroker {
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
-				if (ep.id == this.nodeID) {
+				if (ep.id === this.nodeID) {
 					// Local service, call handler
 					const newCtx = ctx.copy(ep);
 					promises.push(this.registry.events.callEventHandler(newCtx));
@@ -1312,12 +1327,12 @@ class ServiceBroker {
 			// Disabled balancer case
 			let groups = opts.groups;
 
-			if (!groups || groups.length == 0) {
+			if (!groups || groups.length === 0) {
 				// Apply to all groups
 				groups = this.getEventGroups(eventName);
 			}
 
-			if (groups.length == 0)
+			if (groups.length === 0)
 				return this.Promise.resolve();
 
 			ctx.eventGroups = groups;
@@ -1376,9 +1391,14 @@ class ServiceBroker {
 				if (groups.length == 0)
 					return; // Return here because balancer disabled, so we can't call the local services.
 
-				const newCtx = ctx.copy();
-				newCtx.eventGroups = groups;
-				return this.transit.sendEvent(newCtx); // Return here because balancer disabled, so we can't call the local services.
+				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+
+				// Return here because balancer disabled, so we can't call the local services.
+				return this.Promise.all(endpoints.map(ep => {
+					const newCtx = ctx.copy(ep);
+					newCtx.eventGroups = groups;
+					return this.transit.sendEvent(newCtx);
+				}));
 			}
 		}
 

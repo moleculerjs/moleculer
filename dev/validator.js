@@ -4,6 +4,7 @@ const broker = new ServiceBroker({
 	validator: {
 		type: "Fastest",
 		options: {
+			paramName: "myParams",
 			messages: {
 				required: "Missing field!"
 			}
@@ -15,7 +16,7 @@ broker.createService({
 	name: "greeter",
 	actions: {
 		welcome: {
-			params: {
+			myParams: {
 				name: "string"
 			},
 			handler(ctx) {

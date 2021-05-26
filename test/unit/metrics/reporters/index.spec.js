@@ -88,3 +88,23 @@ describe("Test MetricReporters resolver", () => {
 	});
 
 });
+
+describe("Test Reporter register", () => {
+	class MyCustom {}
+
+	it("should throw error if type if not correct", () => {
+		expect(() => {
+			MetricReporters.resolve("MyCustom");
+		}).toThrowError(BrokerOptionsError);
+	});
+
+	it("should register new type", () => {
+		MetricReporters.register("MyCustom", MyCustom);
+		expect(MetricReporters.MyCustom).toBe(MyCustom);
+	});
+
+	it("should find the new type", () => {
+		const reporter = MetricReporters.resolve("MyCustom");
+		expect(reporter).toBeInstanceOf(MyCustom);
+	});
+});

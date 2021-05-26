@@ -35,6 +35,7 @@ polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
 
 const utils = require("../../src/utils");
 utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
+utils.promiseAllControl = jest.requireActual("../../src/utils").promiseAllControl;
 
 const { protectReject } = require("./utils");
 const path = require("path");
@@ -1612,7 +1613,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait service", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1627,7 +1629,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an array of string", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices(["posts"], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices(["posts"], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1642,7 +1645,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an array of object", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices([{ name: "posts" }], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices([{ name: "posts" }], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1657,7 +1661,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an object", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices({ name: "posts" }, 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices({ name: "posts" }, 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
@@ -1672,7 +1677,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an array of object with version", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices([{ name: "posts", version: 1 }], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices([{ name: "posts", version: 1 }], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1687,7 +1693,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an array of object with version and unrelated property", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1702,7 +1709,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as a versioned string", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1717,7 +1725,8 @@ describe("Test broker.waitForServices", () => {
 	it("should wait for service when service is passed as an array of versioned strings", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({ services: ["v1.posts"], statuses: [{ name: "v1.posts", available: true }] });
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
@@ -1732,7 +1741,14 @@ describe("Test broker.waitForServices", () => {
 	it("should skip duplicated services", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices(["v2.posts", "users", { name: "posts", version: 2 }], 10 * 1000, 100).catch(protectReject).then(() => {
+		let p = broker.waitForServices(["v2.posts", "users", { name: "posts", version: 2 }], 10 * 1000, 100).catch(protectReject).then(result => {
+			expect(result).toEqual({
+				services: ["v2.posts", "users"],
+				statuses: [
+					{ name: "v2.posts", available: true },
+					{ name: "users", available: true },
+				],
+			});
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(12);
 			expect(broker.registry.hasService).toHaveBeenCalledWith("v2.posts");
 			expect(broker.registry.hasService).toHaveBeenCalledWith("users");
@@ -1778,6 +1794,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("posts", 300, 100).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(MoleculerError);
+			expect(err.data).toEqual({ services: ["posts"], statuses: [{ name: "posts", available: false }] });
 		});
 
 		clock.tick(450);
@@ -2324,6 +2341,28 @@ describe("Test broker.mcall", () => {
 			expect(err).toBeInstanceOf(MoleculerServerError);
 		});
 	});
+
+	if (process.versions.node.split(".")[0] >= 12) {
+		it("should call both action & return an array with settled", () => {
+			return broker.mcall([
+				{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+				{ action: "users.find", params: { limit: 2, sort: "username" } },
+				{ action: "service.notfound", params: { notfound: 1 } }
+			], { timeout: 200, settled: true }).then(res => {
+				expect(res).toEqual([
+					{ status: "fulfilled", value: "posts.find" },
+					{ status: "fulfilled", value: "users.find" },
+					{ status: "fulfilled", value: "service.notfound" }
+				]);
+				expect(broker.call).toHaveBeenCalledTimes(5);
+				expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
+				expect(broker.call).toHaveBeenCalledWith("users.find", {
+					limit: 2,
+					sort: "username"
+				}, { timeout: 200 });
+			});
+		});
+	}
 });
 
 
@@ -3036,7 +3075,8 @@ describe("Test broker broadcast", () => {
 		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
 		expect(broker.getEventGroups).toHaveBeenCalledWith("$user.event");
 
-		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
+
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
@@ -3050,7 +3090,7 @@ describe("Test broker broadcast", () => {
 			level: 1,
 			meta: {},
 			needAck: null,
-			nodeID: "server-1",
+			nodeID: "node-2",
 			options: {},
 			params: { name: "John" },
 			parentID: null,
@@ -3058,9 +3098,32 @@ describe("Test broker broadcast", () => {
 			span: null,
 			tracing: null
 		});
-		expect(ctx.endpoint).toBeNull();
+		expect(ctx.endpoint).toEqual({ id: "node-2" });
 
-		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+		ctx = broker.transit.sendEvent.mock.calls[1][0];
+		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
+		expect(ctx.toJSON()).toEqual({
+			id: "1",
+			ackID: null,
+			cachedResult: false,
+			caller: null,
+			eventGroups: ["payments"],
+			eventName: "$user.event",
+			eventType: "broadcast",
+			level: 1,
+			meta: {},
+			needAck: null,
+			nodeID: "node-3",
+			options: {},
+			params: { name: "John" },
+			parentID: null,
+			requestID: "1",
+			span: null,
+			tracing: null
+		});
+		expect(ctx.endpoint).toEqual({ id: "node-3" });
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(0);
 	});

@@ -59,5 +59,9 @@ function resolve(opt) {
 	throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
 }
 
-module.exports = Object.assign(Exporters, { resolve });
+function register(name, value) {
+	Exporters[name] = value;
+}
+
+module.exports = Object.assign(Exporters, { resolve, register });
 
