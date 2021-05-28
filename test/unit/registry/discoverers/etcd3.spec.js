@@ -7,6 +7,7 @@ const BaseDiscoverer = require("../../../../src/registry/discoverers").Base;
 const Etcd3Discoverer = require("../../../../src/registry/discoverers").Etcd3;
 const ServiceBroker = require("../../../../src/service-broker");
 const Serializers = require("../../../../src/serializers");
+const P = require("../../../../src/packets");
 
 describe("Test Etcd3Discoverer constructor", () => {
 
@@ -502,7 +503,7 @@ describe("Test Etcd3Discoverer 'discoverNode' method", () => {
 		expect(discoverer.logger.warn).toBeCalledTimes(0);
 
 		expect(discoverer.serializer.deserialize).toBeCalledTimes(1);
-		expect(discoverer.serializer.deserialize).toBeCalledWith("fake-data");
+		expect(discoverer.serializer.deserialize).toBeCalledWith("fake-data", P.PACKET_INFO);
 
 		expect(discoverer.processRemoteNodeInfo).toBeCalledTimes(1);
 		expect(discoverer.processRemoteNodeInfo).toBeCalledWith("node-1", "fake-data");
@@ -520,7 +521,7 @@ describe("Test Etcd3Discoverer 'discoverNode' method", () => {
 		expect(discoverer.logger.warn).toBeCalledTimes(1);
 
 		expect(discoverer.serializer.deserialize).toBeCalledTimes(1);
-		expect(discoverer.serializer.deserialize).toBeCalledWith("fake-data");
+		expect(discoverer.serializer.deserialize).toBeCalledWith("fake-data", P.PACKET_INFO);
 
 		expect(discoverer.processRemoteNodeInfo).toBeCalledTimes(0);
 	});

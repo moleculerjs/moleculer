@@ -12,6 +12,7 @@ const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray } = require("../../utils");
+const P = require("../../packets");
 
 let ETCD3;
 
@@ -160,7 +161,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						.then(() => this.leaseBeat = leaseBeat);
 				}
 			})
-			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data)))
+			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data, P.PACKET_HEARTBEAT)))
 			.then(() => this.lastBeatSeq = seq)
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
@@ -190,7 +191,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 					return this.client.getAll().prefix(`${this.PREFIX}/beats/`).buffers()
 						.then(result => Object.values(result).map(raw => {
 							try {
-								return this.serializer.deserialize(raw);
+								return this.serializer.deserialize(raw, P.PACKET_INFO);
 							} catch (err) {
 								this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
 							}
@@ -244,7 +245,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 					return;
 				}
 				try {
-					const info = this.serializer.deserialize(res);
+					const info = this.serializer.deserialize(res, P.PACKET_INFO);
 					return this.processRemoteNodeInfo(nodeID, info);
 				} catch (err) {
 					this.logger.warn("Unable to parse INFO packet", err, res);
@@ -304,7 +305,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 						.then(() => this.leaseInfo = leaseInfo);
 				}
 			})
-			.then(() => leaseInfo.put(key).value(this.serializer.serialize(payload)))
+			.then(() => leaseInfo.put(key).value(this.serializer.serialize(payload, P.PACKET_INFO)))
 			.then(() => {
 				this.lastInfoSeq = seq;
 
