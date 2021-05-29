@@ -1,6 +1,21 @@
 name: Benchmark test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - 'dev/**'
+      - 'examples/**'
+      - '*.md'
+
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'dev/**'
+      - 'examples/**'
+      - '*.md'
 
 jobs:
   common:

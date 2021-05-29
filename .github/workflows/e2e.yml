@@ -1,6 +1,23 @@
 name: E2E test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - 'benchmark/**'
+      - 'dev/**'
+      - 'examples/**'
+      - '*.md'
+
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'benchmark/**'
+      - 'dev/**'
+      - 'examples/**'
+      - '*.md'
 
 jobs:
   test:
