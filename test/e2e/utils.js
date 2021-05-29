@@ -58,7 +58,7 @@ async function executeScenarios(broker, waitForServices, waitForNodeIDs) {
 	return failed == 0;
 }
 
-function waitForNodes(broker, nodes, timeout = 10 * 1000) {
+function waitForNodes(broker, nodes, timeout = 20 * 1000) {
 	const startTime = Date.now();
 	broker.logger.info("Waiting for nodes...", nodes);
 	return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ function waitForNodes(broker, nodes, timeout = 10 * 1000) {
 			if (timeout && Date.now() - startTime > timeout)
 				return reject(new Error("Nodes waiting is timed out."));
 
-			setTimeout(check, 1000);
+			setTimeout(check, 2000);
 		};
 
 		check();
@@ -86,6 +86,7 @@ function createNode(nodeID, brokerOpts = {}) {
 		transporter = "kafka://localhost:9093";
 
 	const disableBalancer = process.env.DISABLEBALANCER != null ? process.env.DISABLEBALANCER == "true" : false;
+	const discoverer = process.env.DISCOVERER || "Local";
 
 	const broker = new ServiceBroker({
 		namespace: process.env.NAMESPACE,
@@ -94,6 +95,9 @@ function createNode(nodeID, brokerOpts = {}) {
 		transporter,
 		disableBalancer,
 		serializer: process.env.SERIALIZER || "JSON",
+		registry: {
+			discoverer
+		},
 		...brokerOpts
 	});
 
