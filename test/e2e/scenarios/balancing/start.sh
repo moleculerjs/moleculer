@@ -2,6 +2,7 @@
 
 echo "Transporter: $TRANSPORTER";
 echo "Serializer: $SERIALIZER";
+echo "Discoverer: $DISCOVERER";
 
 export NAMESPACE=balancing;
 
@@ -14,6 +15,7 @@ node scenario.js
 case $TRANSPORTER in
   (NATS|STAN|AMQP)
   	export DISABLEBALANCER=true;
+	export NAMESPACE=balancing-disabled;
 	echo "Start balancing scenario with disabled balancer...";
 
 	node node1.js & \

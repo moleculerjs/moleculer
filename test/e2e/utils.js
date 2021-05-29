@@ -64,6 +64,7 @@ function waitForNodes(broker, nodes, timeout = 30 * 1000) {
 	return new Promise((resolve, reject) => {
 		const check = () => {
 			const available = broker.registry.nodes.list({ onlyAvailable: true }).map(node => node.id);
+			broker.logger.info(`Available: '${available.join(", ")}'. Need: ${nodes.join(", ")}`);
 
 			if (nodes.every(nodeID => available.includes(nodeID))) {
 				broker.logger.info(`Nodes '${nodes.join(", ")}' are available.`);
@@ -73,7 +74,7 @@ function waitForNodes(broker, nodes, timeout = 30 * 1000) {
 			if (timeout && Date.now() - startTime > timeout)
 				return reject(new Error("Nodes waiting is timed out."));
 
-			setTimeout(check, 5000);
+			setTimeout(check, 2000);
 		};
 
 		check();
@@ -88,7 +89,7 @@ function createNode(nodeID, brokerOpts = {}) {
 	const disableBalancer = process.env.DISABLEBALANCER != null ? process.env.DISABLEBALANCER == "true" : false;
 	const discoverer = process.env.DISCOVERER || "Local";
 
-	const broker = new ServiceBroker({
+	const broker = new ServiceBroker(_.defaultsDeep(brokerOpts, {
 		namespace: process.env.NAMESPACE,
 		nodeID,
 		logLevel: process.env.LOGLEVEL || "warn",
@@ -98,8 +99,7 @@ function createNode(nodeID, brokerOpts = {}) {
 		registry: {
 			discoverer
 		},
-		...brokerOpts
-	});
+	}));
 
 	broker.loadService(path.join(__dirname, "./services/helper.service.js"));
 
