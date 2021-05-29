@@ -111,6 +111,7 @@ jobs:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
         DISCOVERER: ${{ matrix.discoverer }}
+        LOGLEVEL: info
         # LOGLEVEL: "${{ matrix.serializer == 'CBOR' && 'debug' || 'info' }}"
 
     - name: Stop containers
