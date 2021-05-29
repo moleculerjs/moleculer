@@ -25,10 +25,8 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-        transporter: [NATS]
-        serializer: [JSON]
-        #transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
-        #serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
+        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
+        serializer: [JSON, MsgPack, Notepack, ProtoBuf, Avro, Thrift, CBOR]
         discoverer: [Local, Etcd3, Redis]
       fail-fast: false
 
@@ -111,7 +109,6 @@ jobs:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
         DISCOVERER: ${{ matrix.discoverer }}
-        LOGLEVEL: info
         # LOGLEVEL: "${{ matrix.serializer == 'CBOR' && 'debug' || 'info' }}"
 
     - name: Stop containers
