@@ -24,10 +24,10 @@ async function executeScenarios(broker, waitForServices, waitForNodeIDs) {
 	}
 
 	if (waitForServices) {
-		await broker.waitForServices(waitForServices, 10 * 1000);
+		await broker.waitForServices(waitForServices, 30 * 1000);
 	}
 
-	if (!process.env.TRANSPORTER || process.env.TRANSPORTER == "TCP") {
+	if (!process.env.TRANSPORTER || process.env.TRANSPORTER == "TCP" || process.env.DISCOVERER != "Local") {
 		// Wait for extra time for discovering
 		await broker.Promise.delay(10 * 1000);
 	}
@@ -58,7 +58,7 @@ async function executeScenarios(broker, waitForServices, waitForNodeIDs) {
 	return failed == 0;
 }
 
-function waitForNodes(broker, nodes, timeout = 20 * 1000) {
+function waitForNodes(broker, nodes, timeout = 30 * 1000) {
 	const startTime = Date.now();
 	broker.logger.info("Waiting for nodes...", nodes);
 	return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ function waitForNodes(broker, nodes, timeout = 20 * 1000) {
 			if (timeout && Date.now() - startTime > timeout)
 				return reject(new Error("Nodes waiting is timed out."));
 
-			setTimeout(check, 2000);
+			setTimeout(check, 5000);
 		};
 
 		check();
