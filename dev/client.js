@@ -27,11 +27,11 @@ const broker = new ServiceBroker({
 	//serializer: "Thrift",
 	//requestTimeout: 1000,
 
-	//disableBalancer: true,
+	disableBalancer: true,
 
 	registry: {
 		//strategy: Strategies.Random
-		//discoverer: "Redis"
+		discoverer: "Etcd3"
 	},
 
 	cacher: true,

@@ -659,7 +659,7 @@ describe("Test RedisDiscoverer 'discoverAllNodes' method", () => {
 });
 
 describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
-	const broker = new ServiceBroker({ logger: false, nodeID: "node-99" });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-99", transporter: "Fake" });
 	broker.instanceID = "1234567890";
 	broker.getLocalNodeInfo = jest.fn(() => ({ a: 5 }));
 
@@ -714,6 +714,27 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 
 		expect(discoverer.recreateInfoUpdateTimer).toBeCalledTimes(1);
 		expect(discoverer.beat).toBeCalledTimes(0);
+
+		expect(discoverer.logger.error).toBeCalledTimes(0);
+	});
+
+	it("should send INFO & call recreateInfoUpdateTimer & beat & call makeBalancedSubscriptions", async () => {
+		broker.transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
+		broker.options.disableBalancer = true;
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendLocalNodeInfo();
+		// ---- ˇ ASSERTS ˇ ---
+		expect(broker.getLocalNodeInfo).toBeCalledTimes(1);
+		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
+		expect(discoverer.client.setex).toBeCalledTimes(1);
+		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, { a: 5, sender: "node-99", ver: "4" });
+
+		expect(broker.transit.tx.makeBalancedSubscriptions).toBeCalledTimes(1);
+
+		expect(discoverer.lastInfoSeq).toBe(1);
+
+		expect(discoverer.recreateInfoUpdateTimer).toBeCalledTimes(1);
+		expect(discoverer.beat).toBeCalledTimes(1);
 
 		expect(discoverer.logger.error).toBeCalledTimes(0);
 	});

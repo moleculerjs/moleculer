@@ -562,7 +562,7 @@ describe("Test Etcd3Discoverer 'discoverAllNodes' method", () => {
 });
 
 describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
-	const broker = new ServiceBroker({ logger: false, nodeID: "node-99" });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-99", transporter: "Fake" });
 	broker.instanceID = "1234567890";
 	broker.getLocalNodeInfo = jest.fn(() => ({ a: 5 }));
 
@@ -626,7 +626,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease.value).toBeCalledTimes(1);
 		expect(fakeLease.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
 		expect(fakeLease.on).toBeCalledTimes(1);
-		
+
 
 		expect(discoverer.lastInfoSeq).toBe(1);
 		expect(discoverer.beat).toBeCalledTimes(1);
@@ -678,6 +678,39 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
 
 		expect(discoverer.lastInfoSeq).toBe(2);
+		expect(discoverer.beat).toBeCalledTimes(1);
+		expect(discoverer.logger.error).toBeCalledTimes(0);
+	});
+
+	it("should recreate lease if seq is same & call makeBalancedSubscriptions", async () => {
+		broker.transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
+		broker.options.disableBalancer = true;
+		discoverer.localNode.seq++;
+		discoverer.leaseInfo = fakeLease;
+		discoverer.client.lease = jest.fn(() => fakeLease2);
+		fakeLease2.grant.mockClear();
+
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendLocalNodeInfo();
+		// ---- ˇ ASSERTS ˇ ---
+		expect(fakeLease.revoke).toBeCalledTimes(1);
+		expect(fakeLease.on).toBeCalledTimes(0);
+
+		expect(discoverer.client.lease).toBeCalledTimes(1);
+		expect(discoverer.client.lease).toBeCalledWith(60);
+		expect(fakeLease2.on).toBeCalledTimes(1);
+		expect(fakeLease2.grant).toBeCalledTimes(1);
+		expect(discoverer.leaseInfo).toBe(fakeLease2);
+
+		expect(broker.transit.tx.makeBalancedSubscriptions).toBeCalledTimes(1);
+
+		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
+		expect(fakeLease2.put).toBeCalledTimes(1);
+		expect(fakeLease2.put).toBeCalledWith("moleculer/discovery/info/node-99");
+		expect(fakeLease2.value).toBeCalledTimes(1);
+		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
+
+		expect(discoverer.lastInfoSeq).toBe(3);
 		expect(discoverer.beat).toBeCalledTimes(1);
 		expect(discoverer.logger.error).toBeCalledTimes(0);
 	});

@@ -276,7 +276,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 		const seq = this.localNode.seq;
 		let leaseInfo = this.leaseInfo;
 
-		return this.Promise.resolve()
+		const p = !nodeID && this.broker.options.disableBalancer ? this.transit.tx.makeBalancedSubscriptions() : this.Promise.resolve();
+		return p
 			.then(() => {
 				if (leaseInfo) {
 					if (seq != this.lastInfoSeq) {

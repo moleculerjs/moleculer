@@ -2401,32 +2401,6 @@ describe("Test Transit.sendNodeInfo", () => {
 		});
 	});
 
-	it("should call publish with correct params if has no nodeID & disableBalancer: true", () => {
-		// Set disableBalancer option
-		broker.options.disableBalancer = true;
-		transit.publish.mockClear();
-		transit.tx.makeBalancedSubscriptions.mockClear();
-
-		return transit.sendNodeInfo(localNodeInfo).then(() => {
-			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledTimes(1);
-			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.Packet);
-			expect(packet.type).toBe(P.PACKET_INFO);
-			expect(packet.target).toBe();
-			expect(packet.payload).toEqual({
-				"client": undefined,
-				"config": undefined,
-				"hostname": undefined,
-				"instanceID": broker.instanceID,
-				"ipList": undefined,
-				"metadata": { "region": "eu-west1" },
-				"seq": undefined,
-				"services": []
-			});
-		});
-	});
-
 	it("should call publish with correct params if has no nodeID & disableBalancer: false", () => {
 		// Set disableBalancer option
 		broker.options.disableBalancer = false;

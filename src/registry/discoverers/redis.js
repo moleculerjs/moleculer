@@ -339,8 +339,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		const key = this.INFO_KEY;
 		const seq = this.localNode.seq;
 
-		return this.Promise.resolve()
-			.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload, P.PACKET_INFO)))
+		const p = !nodeID && this.broker.options.disableBalancer ? this.transit.tx.makeBalancedSubscriptions() : this.Promise.resolve();
+		return p.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload, P.PACKET_INFO)))
 			.then(() => {
 				this.lastInfoSeq = seq;
 
