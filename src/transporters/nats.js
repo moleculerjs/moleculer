@@ -202,10 +202,13 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		if (this.useLegacy)
+		if (this.useLegacy) {
 			this.client.subscribe(t, msg => this.receive(cmd, msg));
-		else
-			this.client.subscribe(t, { callback: (err, msg) => this.receive(cmd, msg.data) });
+		} else {
+			this.client.subscribe(t, { callback: (err, msg) => {
+				this.receive(cmd, Buffer.from(msg.data));
+			} });
+		}
 
 		return this.broker.Promise.resolve();
 	}
@@ -223,7 +226,7 @@ class NatsTransporter extends Transporter {
 		if (this.useLegacy)
 			this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.receive(PACKET_REQUEST, msg)));
 		else
-			this.subscriptions.push(this.client.subscribe(topic, { queue, callback: (err, msg) => this.receive(PACKET_REQUEST, msg.data) }));
+			this.subscriptions.push(this.client.subscribe(topic, { queue, callback: (err, msg) => this.receive(PACKET_REQUEST, Buffer.from(msg.data)) }));
 	}
 
 	/**
@@ -239,7 +242,7 @@ class NatsTransporter extends Transporter {
 		if (this.useLegacy)
 			this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.receive(PACKET_EVENT, msg)));
 		else
-			this.subscriptions.push(this.client.subscribe(topic, { queue: group, callback: (err, msg) => this.receive(PACKET_EVENT, msg.data) }));
+			this.subscriptions.push(this.client.subscribe(topic, { queue: group, callback: (err, msg) => this.receive(PACKET_EVENT, Buffer.from(msg.data)) }));
 	}
 
 	/**
