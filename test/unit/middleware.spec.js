@@ -158,7 +158,7 @@ describe("Test MiddlewareHandler", () => {
 			expect(mw1.localAction).toHaveBeenCalledWith(handler, action);
 
 			expect(mw3.localAction).toHaveBeenCalledTimes(1);
-			expect(mw3.localAction).toHaveBeenCalledWith(jasmine.any(Function), action);
+			expect(mw3.localAction).toHaveBeenCalledWith(expect.any(Function), action);
 			expect(mw3.remoteAction).toHaveBeenCalledTimes(0);
 
 			return newHandler().catch(protectReject).then(res => {
@@ -185,7 +185,7 @@ describe("Test MiddlewareHandler", () => {
 			expect(mw1.localAction).toHaveBeenCalledTimes(0);
 			expect(mw3.localAction).toHaveBeenCalledTimes(0);
 			expect(mw3.remoteAction).toHaveBeenCalledTimes(1);
-			expect(mw3.remoteAction).toHaveBeenCalledWith(jasmine.any(Function), action);
+			expect(mw3.remoteAction).toHaveBeenCalledWith(expect.any(Function), action);
 
 			return newHandler().catch(protectReject).then(res => {
 				expect(res).toBe("John");

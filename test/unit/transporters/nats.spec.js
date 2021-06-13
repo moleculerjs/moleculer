@@ -67,12 +67,12 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 		let p = transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.client).toBeDefined();
 			expect(transporter.client.on).toHaveBeenCalledTimes(6);
-			expect(transporter.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("close", expect.any(Function));
 		});
 
 		transporter._client.onCallbacks.connect();
@@ -146,7 +146,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Function));
 
 		// Test subscribe callback
 		subCb("{ sender: \"node1\" }");
@@ -165,7 +165,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		transporter.subscribeBalancedRequest("posts.find");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", { queue: "posts.find" }, jasmine.any(Function));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", { queue: "posts.find" }, expect.any(Function));
 
 		// Test subscribe callback
 		subCb("{ sender: \"node1\" }");
@@ -187,7 +187,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			transporter.subscribeBalancedEvent("user.created", "mail");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail" }, jasmine.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail" }, expect.any(Function));
 
 			// Test subscribe callback
 			subCb("{ sender: \"node1\" }");
@@ -213,7 +213,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			transporter.subscribeBalancedEvent("user.*", "users");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.*", { queue: "users" }, jasmine.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.*", { queue: "users" }, expect.any(Function));
 		});
 
 		it("check with '**' wildchar topic", () => {
@@ -222,7 +222,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			transporter.subscribeBalancedEvent("user.**", "users");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, jasmine.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, expect.any(Function));
 		});
 
 		it("check with '**' wildchar (as not last) topic", () => {
@@ -231,7 +231,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			transporter.subscribeBalancedEvent("user.**.changed", "users");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, jasmine.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, expect.any(Function));
 		});
 	});
 

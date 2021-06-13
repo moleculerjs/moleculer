@@ -115,8 +115,8 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 			expect(transporter.client).toBeDefined();
 			expect(transporter.producer).toBeDefined();
 			expect(transporter.producer.on).toHaveBeenCalledTimes(2);
-			expect(transporter.producer.on).toHaveBeenCalledWith("ready", jasmine.any(Function));
-			expect(transporter.producer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(transporter.producer.on).toHaveBeenCalledWith("ready", expect.any(Function));
+			expect(transporter.producer.on).toHaveBeenCalledWith("error", expect.any(Function));
 		});
 
 		transporter.producer.callbacks.ready();
@@ -179,7 +179,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		]);
 
 		expect(transporter.producer.createTopics).toHaveBeenCalledTimes(1);
-		expect(transporter.producer.createTopics).toHaveBeenCalledWith(["MOL-TEST.REQ.node", "MOL-TEST.RES.node"], true, jasmine.any(Function));
+		expect(transporter.producer.createTopics).toHaveBeenCalledWith(["MOL-TEST.REQ.node", "MOL-TEST.RES.node"], true, expect.any(Function));
 
 		expect(Kafka.ConsumerGroup).toHaveBeenCalledTimes(1);
 		expect(Kafka.ConsumerGroup).toHaveBeenCalledWith( {
@@ -193,9 +193,9 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		expect(transporter.consumer).toBeDefined();
 
 		expect(transporter.consumer.on).toHaveBeenCalledTimes(3);
-		expect(transporter.consumer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-		expect(transporter.consumer.on).toHaveBeenCalledWith("message", jasmine.any(Function));
-		expect(transporter.consumer.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("error", expect.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("message", expect.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("connect", expect.any(Function));
 		transporter.consumer.callbacks.connect();
 
 		transporter.consumer.callbacks.message({
@@ -234,7 +234,7 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 			messages: [Buffer.from("json data")],
 			partition: 0,
 			attributes: 0
-		}], jasmine.any(Function));
+		}], expect.any(Function));
 
 		expect(transporter.serialize).toHaveBeenCalledTimes(1);
 		expect(transporter.serialize).toHaveBeenCalledWith(packet);

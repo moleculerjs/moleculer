@@ -380,8 +380,8 @@ describe("Test TcpTransporter startTcpServer", () => {
 		expect(TcpReader).toHaveBeenCalledWith(transporter, transporter.opts);
 
 		expect(transporter.writer.on).toHaveBeenCalledTimes(2);
-		expect(transporter.writer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-		expect(transporter.writer.on).toHaveBeenCalledWith("end", jasmine.any(Function));
+		expect(transporter.writer.on).toHaveBeenCalledWith("error", expect.any(Function));
+		expect(transporter.writer.on).toHaveBeenCalledWith("end", expect.any(Function));
 
 		expect(transporter.reader.listen).toHaveBeenCalledTimes(1);
 		expect(transporter.reader.listen).toHaveBeenCalledWith();
@@ -426,7 +426,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 		expect(UdpServer).toHaveBeenCalledWith(transporter, transporter.opts);
 
 		expect(transporter.udpServer.on).toHaveBeenCalledTimes(1);
-		expect(transporter.udpServer.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(transporter.udpServer.on).toHaveBeenCalledWith("message", expect.any(Function));
 
 		expect(transporter.udpServer.bind).toHaveBeenCalledTimes(1);
 		expect(transporter.udpServer.bind).toHaveBeenCalledWith();

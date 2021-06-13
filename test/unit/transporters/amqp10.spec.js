@@ -81,10 +81,10 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 				expect(transporter.connection).toBeDefined();
 				expect(transporter.connected).toEqual(true);
 				// expect(transporter.connection.on).toHaveBeenCalledTimes(4);
-				// expect(transporter.connection.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-				// expect(transporter.connection.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-				// expect(transporter.connection.on).toHaveBeenCalledWith("blocked", jasmine.any(Function));
-				// expect(transporter.connection.on).toHaveBeenCalledWith("unblocked", jasmine.any(Function));
+				// expect(transporter.connection.on).toHaveBeenCalledWith("error", expect.any(Function));
+				// expect(transporter.connection.on).toHaveBeenCalledWith("close", expect.any(Function));
+				// expect(transporter.connection.on).toHaveBeenCalledWith("blocked", expect.any(Function));
+				// expect(transporter.connection.on).toHaveBeenCalledWith("unblocked", expect.any(Function));
 			});
 	});
 

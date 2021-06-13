@@ -46,7 +46,7 @@ describe("Test FakeTransporter", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.bus.on).toHaveBeenCalledTimes(1);
-		expect(transporter.bus.on).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
+		expect(transporter.bus.on).toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Function));
 
 		// Test subscribe callback
 		subCb("{ sender: \"node1\" }");

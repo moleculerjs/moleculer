@@ -84,7 +84,7 @@ describe("Test TcpWriter.send", () => {
 			expect(writer.connect).toHaveBeenCalledTimes(0);
 
 			expect(socket.write).toHaveBeenCalledTimes(1);
-			expect(socket.write).toHaveBeenCalledWith(Buffer.from([12, 0, 0, 0, 10, 6, 100, 97, 116, 97]), jasmine.any(Function));
+			expect(socket.write).toHaveBeenCalledWith(Buffer.from([12, 0, 0, 0, 10, 6, 100, 97, 116, 97]), expect.any(Function));
 		});
 	});
 
@@ -159,8 +159,8 @@ describe("Test TcpWriter.connect", () => {
 			expect(writer.manageConnections).toHaveBeenCalledTimes(0);
 
 			expect(socket.on).toHaveBeenCalledTimes(2);
-			expect(socket.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(socket.on).toHaveBeenCalledWith("end", jasmine.any(Function));
+			expect(socket.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(socket.on).toHaveBeenCalledWith("end", expect.any(Function));
 
 			expect(socket.unref).toHaveBeenCalledTimes(1);
 
@@ -173,7 +173,7 @@ describe("Test TcpWriter.connect", () => {
 			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
 
 			expect(writer.emit).toHaveBeenCalledTimes(1);
-			expect(writer.emit).toHaveBeenCalledWith("error", jasmine.any(Error), "node-2");
+			expect(writer.emit).toHaveBeenCalledWith("error", expect.any(Error), "node-2");
 
 			// Socket end
 			writer.emit.mockClear();

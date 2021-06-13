@@ -43,7 +43,7 @@ describe("Test MemoryCacher init", () => {
 		cacher.init(broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", expect.any(Function));
 	});
 
 	it("should call cache clean after transporter connected", () => {

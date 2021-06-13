@@ -68,11 +68,11 @@ describe("Test UdpServer.startServer", () => {
 			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "127.0.0.1", "port": 4567 }, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "127.0.0.1", "port": 4567 }, expect.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
-			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(server.on).toHaveBeenCalledWith("message", expect.any(Function));
 
 			expect(server.setBroadcast).toHaveBeenCalledTimes(1);
 			expect(server.setBroadcast).toHaveBeenCalledWith(true);
@@ -96,11 +96,11 @@ describe("Test UdpServer.startServer", () => {
 			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "10.0.0.4", "port": 4567 }, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "10.0.0.4", "port": 4567 }, expect.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
-			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(server.on).toHaveBeenCalledWith("message", expect.any(Function));
 
 			expect(server.addMembership).toHaveBeenCalledTimes(1);
 			expect(server.addMembership).toHaveBeenCalledWith("239.0.0.2", "10.0.0.4");
@@ -292,11 +292,11 @@ describe("Test UdpServer.discover", () => {
 		udp.discover();
 
 		expect(udp.servers[0].send).toHaveBeenCalledTimes(2);
-		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.100.255", jasmine.any(Function));
-		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.200.255", jasmine.any(Function));
+		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.100.255", expect.any(Function));
+		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.200.255", expect.any(Function));
 
 		expect(udp.servers[1].send).toHaveBeenCalledTimes(1);
-		expect(udp.servers[1].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "239.0.0.2", jasmine.any(Function));
+		expect(udp.servers[1].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "239.0.0.2", expect.any(Function));
 	});
 });
 

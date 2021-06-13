@@ -219,7 +219,7 @@ describe("Test ServiceBroker constructor", () => {
 				windowTime: 60,
 				minRequestCount: 10,
 				halfOpenTime: 10 * 1000,
-				check: jasmine.any(Function)
+				check: expect.any(Function)
 			},
 
 			bulkhead: {
@@ -243,7 +243,7 @@ describe("Test ServiceBroker constructor", () => {
 				delay: 100,
 				maxDelay: 1000,
 				factor: 2,
-				check: jasmine.any(Function)
+				check: expect.any(Function)
 			},
 			requestTimeout: 5000,
 			maxCallLevel: 10,

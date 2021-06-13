@@ -189,8 +189,8 @@ describe("Test circuit breaker", () => {
 				expect(err.message).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
-					node: jasmine.any(Object),
-					action: jasmine.any(Object),
+					node: expect.any(Object),
+					action: expect.any(Object),
 					failures: 4,
 					passes: 2,
 				});
