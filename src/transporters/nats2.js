@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,7 +13,7 @@ const {
 } = require("../packets");
 
 /**
- * Transporter for NATS (nats.js v1.x.x). Not compatible with v2.x.x
+ * Transporter for NATS (nats.js v2.x.x)
  *
  * More info: http://nats.io/
  *
@@ -57,57 +57,35 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	connect() {
-		return new this.broker.Promise((resolve, reject) => {
-			let Nats;
-			try {
-				Nats = require("nats");
-			} catch(err) {
-				/* istanbul ignore next */
-				this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command.", err, true);
-			}
-			const client = Nats.connect(this.opts);
-			this._client = client; // For tests
-
-			client.on("connect", () => {
-				this.client = client;
-				this.logger.info("NATS client is connected.");
-				this.onConnected().then(resolve);
-			});
-
+		let Nats;
+		try {
+			Nats = require("nats");
+		} catch(err) {
 			/* istanbul ignore next */
-			client.on("reconnect", () => {
-				this.logger.info("NATS client is reconnected.");
-				this.onConnected(true);
-			});
+			this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command.", err, true);
+		}
+		return Nats.connect(this.opts).then(client => {
+			this.client = client;
 
-			/* istanbul ignore next */
-			client.on("reconnecting", () => {
-				this.logger.warn("NATS client is reconnecting...");
-			});
+			this.logger.info("NATS client is connected.");
 
-			/* istanbul ignore next */
-			client.on("disconnect", () => {
-				if (this.connected) {
-					this.logger.warn("NATS client is disconnected.");
-					this.connected = false;
+			(async () => {
+				for await (const s of this.client.status()) {
+					this.logger.info(`NATS client ${s.type}: ${s.data}`);
 				}
-			});
+			})().then();
 
-			/* istanbul ignore next */
-			client.on("error", e => {
-				this.logger.error("NATS error.", e.message);
-				this.logger.debug(e);
-
-				if (!client.connected)
-					reject(e);
-			});
-
-			/* istanbul ignore next */
-			client.on("close", () => {
+			client.closed().then(() => {
 				this.connected = false;
-				// Hint: It won't try reconnecting again, so we kill the process.
-				this.broker.fatal("NATS connection closed.");
+				this.logger.info("NATS connection closed.");
 			});
+
+			return this.onConnected();
+
+		}).catch(err => {
+			this.logger.error("NATS error.", err.message);
+			this.logger.debug(err);
+			throw err;
 		});
 	}
 
@@ -118,10 +96,9 @@ class NatsTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.flush(() => {
-				this.client.close();
-				this.client = null;
-			});
+			return this.client.flush()
+				.then(() => this.client.close())
+				.then(() => this.client = null);
 		}
 	}
 
@@ -136,7 +113,7 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		this.client.subscribe(t, msg => this.receive(cmd, msg));
+		this.client.subscribe(t, { callback: (err, msg) => this.receive(cmd, msg.data) });
 
 		return this.broker.Promise.resolve();
 	}
@@ -151,7 +128,7 @@ class NatsTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const queue = action;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.receive(PACKET_REQUEST, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue, callback: (err, msg) => this.receive(PACKET_REQUEST, msg.data) }));
 	}
 
 	/**
@@ -164,7 +141,7 @@ class NatsTransporter extends Transporter {
 	subscribeBalancedEvent(event, group) {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*.*$/g, ">");
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.receive(PACKET_EVENT, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue: group, callback: (err, msg) => this.receive(PACKET_EVENT, msg.data) }));
 	}
 
 	/**
@@ -173,12 +150,10 @@ class NatsTransporter extends Transporter {
 	 * @memberof BaseTransporter
 	 */
 	unsubscribeFromBalancedCommands() {
-		return new this.broker.Promise(resolve => {
-			this.subscriptions.forEach(uid => this.client.unsubscribe(uid));
-			this.subscriptions = [];
+		this.subscriptions.forEach(sub => sub.unsubscribe());
+		this.subscriptions = [];
 
-			this.client.flush(resolve);
-		});
+		return this.client.flush();
 	}
 
 	/**
@@ -192,11 +167,9 @@ class NatsTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.client) return this.broker.Promise.resolve();
-
-		return new this.broker.Promise(resolve => {
-			this.client.publish(topic, data, resolve);
-		});
+		if (this.client)
+			this.client.publish(topic, data);
+		return this.broker.Promise.resolve();
 	}
 }
 

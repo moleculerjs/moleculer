@@ -23,8 +23,8 @@ const broker = new ServiceBroker({
 	//transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "AMQP10",
-	transporter: "NATS",
-	//serializer: "Thrift",
+	transporter: "NATS2",
+	//serializer: "MsgPack",
 
 	disableBalancer: true,
 
@@ -34,7 +34,7 @@ const broker = new ServiceBroker({
 
 	registry: {
 		//strategy: Strategies.Random
-		discoverer: "Etcd3"
+		//discoverer: "Etcd3"
 	},
 
 	metrics: {

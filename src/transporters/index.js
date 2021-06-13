@@ -13,6 +13,7 @@ const Transporters = {
 	Base: require("./base"),
 	Fake: require("./fake"),
 	NATS: require("./nats"),
+	NATS2: require("./nats2"),
 	MQTT: require("./mqtt"),
 	Redis: require("./redis"),
 	AMQP: require("./amqp"),
