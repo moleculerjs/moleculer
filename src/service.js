@@ -54,6 +54,7 @@ class Service {
 		if (!isObject(broker))
 			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
+		this._started = false;
 		this.broker = broker;
 
 		if (broker)
@@ -264,7 +265,10 @@ class Service {
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);
 			})
-			.then(() => this.logger.info(`Service '${this.fullName}' started.`));
+			.then(() => {
+				this._started = true;
+				this.logger.info(`Service '${this.fullName}' started.`);
+			});
 	}
 
 	/**
@@ -296,7 +300,10 @@ class Service {
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStopped", [this], { reverse: true });
 			})
-			.then(() => this.logger.info(`Service '${this.fullName}' stopped.`));
+			.then(() => {
+				this._started = false;
+				this.logger.info(`Service '${this.fullName}' stopped.`);
+			});
 	}
 
 	/**
