@@ -23,11 +23,11 @@ const broker = new ServiceBroker({
 	*/
 	//transporter: "kafka://192.168.0.181:9092",
 	//transporter: "amqp://192.168.0.181:5672",
-	transporter: "NATS2",
+	transporter: "NATS",
 	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	registry: {
 		//strategy: Strategies.Random
