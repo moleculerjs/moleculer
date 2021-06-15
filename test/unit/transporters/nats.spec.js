@@ -8,6 +8,9 @@ const { protectReject } = require("../utils");
 jest.mock("nats");
 
 let Nats = require("nats");
+const NatsTransporter = require("../../../src/transporters/nats");
+
+describe("Test Nats V1.x", () => {
 Nats.connect = jest.fn(() => {
 	let onCallbacks = {};
 	return {
@@ -20,8 +23,7 @@ Nats.connect = jest.fn(() => {
 	};
 });
 
-const NatsTransporter = require("../../../src/transporters/nats");
-
+NatsTransporter.prototype.isLibLegacy = jest.fn(() => true)
 
 describe("Test NatsTransporter constructor", () => {
 
@@ -314,3 +316,5 @@ describe("Test NatsTransporter subscribe & publish", () => {
 
 	});
 });
+
+})
