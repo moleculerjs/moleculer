@@ -11,24 +11,25 @@ let Nats = require("nats");
 const NatsTransporter = require("../../../src/transporters/nats");
 
 describe("Test Nats V1.x", () => {
-Nats.connect = jest.fn(() => {
-	let onCallbacks = {};
-	return {
-		on: jest.fn((event, cb) => onCallbacks[event] = cb),
-		close: jest.fn(),
-		subscribe: jest.fn(),
-		publish: jest.fn(),
-
-		onCallbacks
-	};
-});
-
-NatsTransporter.prototype.isLibLegacy = jest.fn(() => true)
+	beforeAll(() => {
+		Nats.connect = jest.fn(() => {
+			let onCallbacks = {};
+			return {
+				on: jest.fn((event, cb) => onCallbacks[event] = cb),
+				close: jest.fn(),
+				subscribe: jest.fn(),
+				publish: jest.fn(),
+		
+				onCallbacks
+			};
+		});
+	})
 
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {
 		let transporter = new NatsTransporter();
+		transporter.isLibLegacy = jest.fn(() => true)
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1 });
 		expect(transporter.connected).toBe(false);
@@ -38,18 +39,21 @@ describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor with string param", () => {
 		let transporter = new NatsTransporter("nats://localhost");
+		transporter.isLibLegacy = jest.fn(() => true)
 		expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
 	});
 
 	it("check constructor with options", () => {
 		let opts = { host: "localhost", port: 1234 };
 		let transporter = new NatsTransporter(opts);
+		transporter.isLibLegacy = jest.fn(() => true)
 		expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true, maxReconnectAttempts: -1 });
 	});
 
 	it("check constructor with disabled preserveBuffers & maxReconnectAttempts", () => {
 		let opts = { preserveBuffers: false, maxReconnectAttempts: 3 };
 		let transporter = new NatsTransporter(opts);
+		transporter.isLibLegacy = jest.fn(() => true)
 		expect(transporter.opts).toEqual({ preserveBuffers: false, maxReconnectAttempts: 3 });
 	});
 });
@@ -62,6 +66,7 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 
 	beforeEach(() => {
 		transporter = new NatsTransporter();
+		transporter.isLibLegacy = jest.fn(() => true)
 		transporter.init(transit, msgHandler);
 	});
 
@@ -133,6 +138,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 
 	beforeEach(() => {
 		transporter = new NatsTransporter();
+		transporter.isLibLegacy = jest.fn(() => true)
 		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
 
 		let p = transporter.connect();
@@ -317,4 +323,129 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 });
 
+})
+
+
+describe("Tests Nats V2.x", () => {
+	beforeAll(() => {
+		Nats.connect = jest.fn(() => {
+			return Promise.resolve({
+				status: jest.fn(() => [Promise.resolve({type: 'Mock Type', data: 'Mock Data'})].values()),
+				closed: jest.fn(() => Promise.resolve()),
+				close: jest.fn(() => Promise.resolve()),
+				flush: jest.fn(() => Promise.resolve()),
+				subscribe: jest.fn(),
+				publish: jest.fn(),
+			});
+		});
+	})
+
+	
+	describe("Test NatsTransporter constructor", () => {
+	
+		it("check constructor", () => {
+			let transporter = new NatsTransporter();
+			transporter.isLibLegacy = jest.fn(() => false)
+			expect(transporter).toBeDefined();
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1 });
+			expect(transporter.connected).toBe(false);
+			expect(transporter.hasBuiltInBalancer).toBe(true);
+			expect(transporter.client).toBeNull();
+		});
+	
+		it("check constructor with string param", () => {
+			let transporter = new NatsTransporter("nats://localhost");
+			transporter.isLibLegacy = jest.fn(() => false)
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
+		});
+	
+		it("check constructor with options", () => {
+			let opts = { host: "localhost", port: 1234 };
+			let transporter = new NatsTransporter(opts);
+			transporter.isLibLegacy = jest.fn(() => false)
+			expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true, maxReconnectAttempts: -1 });
+		});
+	
+		it("check constructor with disabled preserveBuffers & maxReconnectAttempts", () => {
+			let opts = { preserveBuffers: false, maxReconnectAttempts: 3 };
+			let transporter = new NatsTransporter(opts);
+			transporter.isLibLegacy = jest.fn(() => false)
+			expect(transporter.opts).toEqual({ preserveBuffers: false, maxReconnectAttempts: 3 });
+		});
+	});
+
+	describe("Test NatsTransporter connect & disconnect & reconnect", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let transit = new Transit(broker);
+		let msgHandler = jest.fn();
+		let transporter;
+	
+		beforeEach(() => {
+			transporter = new NatsTransporter();
+			transporter.isLibLegacy = jest.fn(() => false)
+			transporter.init(transit, msgHandler);
+		});
+	
+		it("check connect", () => {
+			let p = transporter.connect().catch(protectReject).then(() => {
+				expect(transporter.client).toBeDefined();
+				expect(transporter.client.on).toHaveBeenCalledTimes(6);
+				expect(transporter.client.on).toHaveBeenCalledWith("connect", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("reconnect", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("error", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("close", expect.any(Function));
+			});
+	
+			transporter._client.onCallbacks.connect();
+	
+			return p;
+		});
+	
+		it("check onConnected after connect", () => {
+			transporter.onConnected = jest.fn(() => Promise.resolve());
+			let p = transporter.connect().catch(protectReject).then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected).toHaveBeenCalledWith();
+			});
+	
+			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+	
+			return p;
+		});
+	
+		it("check onConnected after reconnect", () => {
+			transporter.onConnected = jest.fn(() => Promise.resolve());
+	
+			let p = transporter.connect().catch(protectReject).then(() => {
+				transporter.onConnected.mockClear();
+				transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected).toHaveBeenCalledWith(true);
+			});
+	
+			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+	
+			return p;
+		});
+	
+		it("check disconnect", () => {
+			const flushCB = jest.fn(cb => cb());
+			let p = transporter.connect().catch(protectReject).then(() => {
+				let cb = transporter.client.close;
+				transporter.client.flush = flushCB;
+	
+				transporter.disconnect();
+				expect(transporter.client).toBeNull();
+				expect(cb).toHaveBeenCalledTimes(1);
+				expect(flushCB).toHaveBeenCalledTimes(1);
+	
+			});
+	
+			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+			return p;
+		});
+	
+	});
 })
