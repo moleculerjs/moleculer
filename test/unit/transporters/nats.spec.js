@@ -452,7 +452,7 @@ describe("Tests Nats V2.x", () => {
 			return p;
 		});
 	
-		it.skip("check subscribe", () => {
+		it("check subscribe", () => {
 			let subCb;
 			transporter.client.subscribe = jest.fn((name, {callback: cb}) => subCb = cb);
 			transporter.incomingMessage = jest.fn();
@@ -460,12 +460,12 @@ describe("Tests Nats V2.x", () => {
 			transporter.subscribe("REQ", "node");
 	
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", { callback: expect.any(Function) });
 	
 			// Test subscribe callback
-			subCb("{ sender: \"node1\" }");
+			subCb(null, { data: "{ sender: \"node1\" }" });
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
+			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", Buffer.from("{ sender: \"node1\" }"));
 		});
 	
 		it.skip("check subscribeBalancedRequest", () => {
