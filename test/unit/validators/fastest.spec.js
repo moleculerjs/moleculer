@@ -52,6 +52,7 @@ describe("Test Validator.compile", () => {
 
 		expect(v.validator.compile).toHaveBeenCalledTimes(1);
 	});
+
 });
 
 describe("Test Validator.validate", () => {
@@ -127,10 +128,6 @@ describe("Test Validator with context", () => {
 
 	it("should throw ValidationError without meta", () => {
 		let p = { c: "asd" };
-		return broker.start().then(() => broker.call("test.withCustomValidation", p))
-			.catch(err => {
-				expect(err).toBeInstanceOf(ValidationError);
-				expect(err.data[0].type).toEqual("isTest");
-			});
+		expect(broker.start().then(() => broker.call("test.withCustomValidation", p))).rejects.toThrow(ValidationError);
 	});
 });
