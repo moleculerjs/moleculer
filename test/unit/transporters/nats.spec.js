@@ -6,9 +6,42 @@ const { protectReject } = require("../utils");
 // const lolex = require("@sinonjs/fake-timers");
 
 jest.mock("nats");
+jest.mock("nats/package.json")
+
+let natsPackage = require("nats/package.json")
 
 let Nats = require("nats");
 const NatsTransporter = require("../../../src/transporters/nats");
+
+describe('Test isLibLegacy function', () => {
+
+	it('Should return true', () => {
+		// Set package version to legacy
+		natsPackage.version = '1.x.x'
+
+		let broker = new ServiceBroker({ logger: false });
+		let transit = new Transit(broker);
+		let transporter = new NatsTransporter()
+		transporter.init(transit);
+
+		actual = transporter.isLibLegacy()
+		expect(actual).toBe(true);
+	})
+
+	it('Should return false', () => {
+		// Set package version to new version
+		natsPackage.version = '2.x.x'
+
+		let broker = new ServiceBroker({ logger: false });
+		let transit = new Transit(broker);
+		let transporter = new NatsTransporter()
+		transporter.init(transit);
+
+		actual = transporter.isLibLegacy()
+		expect(actual).toBe(false);
+	})
+})
+
 
 describe("Test Nats V1.x", () => {
 	beforeAll(() => {
@@ -408,21 +441,21 @@ describe("Tests Nats V2.x", () => {
 			return p;
 		});
 		
-		/*
-		it("check onConnected after reconnect", () => {
-			transporter.onConnected = jest.fn(() => Promise.resolve());
 	
-			let p = transporter.connect().catch(protectReject).then(() => {
-				transporter.onConnected.mockClear();
-				transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
-				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-				expect(transporter.onConnected).toHaveBeenCalledWith(true);
-			});
+		// it("check onConnected after reconnect", () => {
+		// 	transporter.onConnected = jest.fn(() => Promise.resolve());
 	
-			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+		// 	let p = transporter.connect().catch(protectReject).then(() => {
+		// 		transporter.onConnected.mockClear();
+		// 		transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
+		// 		expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+		// 		expect(transporter.onConnected).toHaveBeenCalledWith(true);
+		// 	});
 	
-			return p;
-		});*/
+		// 	transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+	
+		// 	return p;
+		// });
 	
 		it("check disconnect", () => {
 			let p = transporter.connect().catch(protectReject).then(() => {
