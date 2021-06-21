@@ -24,9 +24,9 @@ const broker = new ServiceBroker({
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "AMQP10",
 	transporter: "NATS",
-	//serializer: "Thrift",
+	//serializer: "MsgPack",
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	//trackContext: true,
 
@@ -34,7 +34,7 @@ const broker = new ServiceBroker({
 
 	registry: {
 		//strategy: Strategies.Random
-		discoverer: "Etcd3"
+		//discoverer: "Etcd3"
 	},
 
 	metrics: {
