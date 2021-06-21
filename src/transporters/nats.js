@@ -161,8 +161,7 @@ class NatsTransporter extends Transporter {
 				});
 
 				return this.onConnected();
-
-			}).catch(err => {
+			}).catch(/* istanbul ignore next */ err => {
 				this.logger.error("NATS error.", err.message);
 				this.logger.debug(err);
 				throw err;
