@@ -95,9 +95,9 @@ class BaseValidator {
 						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
 
 						if (check.async)
-							return res.then(res => processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, action: ctx.action.name }));
+							return res.then(res => processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, event: ctx.event.name }));
 						else
-							return processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, action: ctx.action.name });
+							return processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, event: ctx.event.name });
 					};
 				}
 				return handler;

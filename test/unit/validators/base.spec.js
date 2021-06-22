@@ -85,12 +85,12 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
 
 			// Create fake context
-			const ctx = { params: { id: 5, name: "John" } };
+			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" } };
 
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }}});
+				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } });
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -165,12 +165,12 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
 
 			// Create fake context
-			const ctx = { params: { id: 5, name: "John" } };
+			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" }  };
 
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }}});
+				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, action: { name: "users.create" }  } });
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -229,12 +229,12 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
 
 			// Create fake context
-			const ctx = { params: { id: 5, name: "John" } };
+			const ctx = { params: { id: 5, name: "John" }, event: mockEvent };
 
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }}});
+				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, event: mockEvent } });
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -307,12 +307,12 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
 
 			// Create fake context
-			const ctx = { params: { id: 5, name: "John" } };
+			const ctx = { params: { id: 5, name: "John" }, event: mockEvent };
 
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }}});
+				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, event: mockEvent } });
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
