@@ -3,6 +3,7 @@
 const FastestValidator = require("../../../src/validators").Fastest;
 const ServiceBroker = require("../../../src/service-broker");
 const { ValidationError } = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 describe("Test FastestValidator constructor", () => {
 
@@ -118,16 +119,28 @@ describe("Test Validator with context", () => {
 		}
 	});
 
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
 	it("should validate with meta", () => {
-		let p = { c: "asd" };
-		return broker.start().then(() => broker.call("test.withCustomValidation", p, { meta: { isTest: true } }))
+		return broker.call("test.withCustomValidation", { c: "asd" }, { meta: { isTest: true } })
+			.catch(protectReject)
 			.then(res => {
 				expect(res).toEqual(123);
 			});
 	});
 
 	it("should throw ValidationError without meta", () => {
-		let p = { c: "asd" };
-		expect(broker.start().then(() => broker.call("test.withCustomValidation", p))).rejects.toThrow(ValidationError);
+		return broker.call("test.withCustomValidation", { c: "asd" }).then(protectReject).catch(err => {
+			expect(err).toBeInstanceOf(ValidationError);
+			expect(err.data).toEqual([{
+				action: "test.withCustomValidation",
+				actual: undefined,
+				field: "c",
+				message: "The 'meta.isTest' field is required.",
+				nodeID: broker.nodeID,
+				type: "isTest"
+			}]);
+		});
 	});
 });

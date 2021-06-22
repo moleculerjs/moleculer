@@ -67,7 +67,7 @@ class BaseValidator {
 				if (action[paramName] && typeof action[paramName] === "object") {
 					const check = self.compile(action[paramName]);
 					return function validateContextParams(ctx) {
-						let res = check(ctx.params !== null ? ctx.params : {}, { meta: ctx });
+						let res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
 						if (res === true)
 							return handler(ctx);
 						else {
@@ -84,7 +84,7 @@ class BaseValidator {
 				if (event[paramName] && typeof event[paramName] === "object") {
 					const check = self.compile(event[paramName]);
 					return function validateContextParams(ctx) {
-						let res = check(ctx.params != null ? ctx.params : {}, { meta: ctx});
+						let res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
 						if (res === true)
 							return handler(ctx);
 						else {
