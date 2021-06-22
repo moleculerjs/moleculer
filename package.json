@@ -86,7 +86,7 @@
     "lockfile-lint": "^4.6.2",
     "log4js": "^6.3.0",
     "moleculer-repl": "^0.6.5",
-    "mqtt": "^4.2.6",
+    "mqtt": "^4.2.8",
     "msgpack5": "^5.3.2",
     "nats": "^2.0.6",
     "node-nats-streaming": "^0.0.51",

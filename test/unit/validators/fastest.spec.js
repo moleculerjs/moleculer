@@ -3,6 +3,7 @@
 const FastestValidator = require("../../../src/validators").Fastest;
 const ServiceBroker = require("../../../src/service-broker");
 const { ValidationError } = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 describe("Test FastestValidator constructor", () => {
 
@@ -52,6 +53,7 @@ describe("Test Validator.compile", () => {
 
 		expect(v.validator.compile).toHaveBeenCalledTimes(1);
 	});
+
 });
 
 describe("Test Validator.validate", () => {
@@ -82,5 +84,63 @@ describe("Test Validator.convertSchemaToMoleculer", () => {
 		const obj = { a: 5 };
 
 		expect(v.convertSchemaToMoleculer(obj)).toBe(obj);
+	});
+});
+
+describe("Test Validator with context", () => {
+
+	const broker = new ServiceBroker({ logger: false });
+	broker.createService({
+		name: "test",
+		actions: {
+			withCustomValidation: {
+				params: {
+					c: {
+						type: "string",
+						messages: {
+							isTest: "The 'meta.isTest' field is required."
+						},
+						custom: (value, schema, path, parent, context) => {
+							const { meta: ctx } = context;
+							if (!(ctx && "meta" in ctx && "isTest" in ctx.meta)) {
+								return [
+									{
+										type: "isTest",
+										actual: undefined,
+									}
+								];
+							}
+							return value;
+						}
+					}
+				},
+				handler: jest.fn(() => 123)
+			}
+		}
+	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
+	it("should validate with meta", () => {
+		return broker.call("test.withCustomValidation", { c: "asd" }, { meta: { isTest: true } })
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toEqual(123);
+			});
+	});
+
+	it("should throw ValidationError without meta", () => {
+		return broker.call("test.withCustomValidation", { c: "asd" }).then(protectReject).catch(err => {
+			expect(err).toBeInstanceOf(ValidationError);
+			expect(err.data).toEqual([{
+				action: "test.withCustomValidation",
+				actual: undefined,
+				field: "c",
+				message: "The 'meta.isTest' field is required.",
+				nodeID: broker.nodeID,
+				type: "isTest"
+			}]);
+		});
 	});
 });
