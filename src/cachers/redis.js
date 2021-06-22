@@ -378,6 +378,35 @@ class RedisCacher extends BaseCacher {
 			return this._nodeScanDel(this.client, pattern);
 		}
 	}
+
+
+	/**
+	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
+	 *
+	 * @returns Promise<Array<Object>>
+	 */
+	getCacheKeys() {
+		return new Promise((resolve, reject) => {
+			const res = [];
+
+			const stream = this.client.scanStream({
+				match: this.prefix + "*",
+				count: 100
+			});
+
+			stream.on("data", (keys = []) => res.push(...keys));
+
+			stream.on("error", (err) => {
+				this.logger.error("Error occured while listing keys from node.", err);
+				reject(err);
+			});
+
+			stream.on("end", () => {
+				// End deleting keys from node
+				resolve(res.map(key => ({ key: key.startsWith(this.prefix) ? key.slice(this.prefix.length) : key })));
+			});
+		});
+	}
 }
 
 module.exports = RedisCacher;

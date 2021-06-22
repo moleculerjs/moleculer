@@ -140,16 +140,16 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 		let p = transporter.connect().then(() => {
 			expect(transporter.clientSub).toBeDefined();
 			expect(transporter.clientSub.on).toHaveBeenCalledTimes(4);
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("messageBuffer", jasmine.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("close", expect.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("messageBuffer", expect.any(Function));
 
 			expect(transporter.clientPub).toBeDefined();
 			expect(transporter.clientPub.on).toHaveBeenCalledTimes(3);
-			expect(transporter.clientPub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(transporter.clientPub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.clientPub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("close", expect.any(Function));
 		});
 
 		transporter._clientSub.onCallbacks.connect();

@@ -49,7 +49,7 @@ describe("Test Parser write", () => {
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
-		expect(cb).toHaveBeenCalledWith(jasmine.any(Error));
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
 		let err = cb.mock.calls[0][0];
 		expect(err.message).toBe("Invalid packet CRC! 49");
 		expect(parser.buf).toBeNull();
@@ -62,7 +62,7 @@ describe("Test Parser write", () => {
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
-		expect(cb).toHaveBeenCalledWith(jasmine.any(Error));
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
 		let err = cb.mock.calls[0][0];
 		expect(err.message).toBe("Incoming packet is larger than the 'maxPacketSize' limit (513 > 512)!");
 		expect(parser.buf).toBeNull();
@@ -78,7 +78,7 @@ describe("Test Parser write", () => {
 		expect(cb).toHaveBeenCalledWith();
 
 		expect(onData).toHaveBeenCalledTimes(1);
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, expect.any(Buffer));
 		let data = onData.mock.calls[0][1];
 		expect(data.toString()).toBe("data");
 
@@ -96,11 +96,11 @@ describe("Test Parser write", () => {
 		expect(cb).toHaveBeenCalledWith();
 
 		expect(onData).toHaveBeenCalledTimes(2);
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, expect.any(Buffer));
 		let data = onData.mock.calls[0][1];
 		expect(data.toString()).toBe("data1");
 
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_RES, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_RES, expect.any(Buffer));
 		data = onData.mock.calls[1][1];
 		expect(data.toString()).toBe("data2");
 

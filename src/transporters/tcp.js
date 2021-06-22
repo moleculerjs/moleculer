@@ -404,7 +404,7 @@ class TcpTransporter extends Transporter {
 				node.udpAddress = socket.remoteAddress;
 
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_HELLO packet");
+			this.logger.warn("Invalid incoming GOSSIP_HELLO packet.", err);
 			this.logger.debug("Content:", msg.toString());
 		}
 	}
@@ -491,16 +491,16 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	processGossipRequest(msg) {
+		const response = {
+			online: {},
+			offline: {}
+		};
+
 		try {
 			const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
 			const payload = packet.payload;
 
 			if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
-
-			const response = {
-				online: {},
-				offline: {}
-			};
 
 			const list = this.nodes.toArray();
 			list.forEach(node => {
@@ -595,8 +595,9 @@ class TcpTransporter extends Transporter {
 			}
 
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_REQ packet");
+			this.logger.warn("Invalid incoming GOSSIP_REQ packet.", err);
 			this.logger.debug("Content:", msg.toString());
+			// this.logger.debug("Response:", inspect(response, { depth: 10 }));
 		}
 	}
 
@@ -672,7 +673,7 @@ class TcpTransporter extends Transporter {
 				});
 			}
 		} catch(err) {
-			this.logger.warn("Invalid incoming GOSSIP_RES packet");
+			this.logger.warn("Invalid incoming GOSSIP_RES packet.", err);
 			this.logger.debug("Content:", msg.toString());
 		}
 	}

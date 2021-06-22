@@ -43,7 +43,7 @@ describe("Test MemoryCacher init", () => {
 		cacher.init(broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", expect.any(Function));
 	});
 
 	it("should call cache clean after transporter connected", () => {
@@ -444,6 +444,32 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 				expect(res.data).toEqual("hello");
 				expect(res.ttl).toBeLessThanOrEqual(30);
 			});
+		});
+	});
+});
+
+describe("Test MemoryCacher getCacheKeys method", ()=>{
+	const cacher = new MemoryCacher({
+		ttl: 30,
+		lock: true
+	});
+	const broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+	it("should return data and ttl", () => {
+		return Promise.all([
+			cacher.set("hello", "test"),
+			cacher.set("hello2", "test"),
+			cacher.set("hello3:test", "test")
+		]).then(() => {
+			return cacher.getCacheKeys();
+		}).then(res => {
+			expect(res).toEqual([
+				{ "key": "hello", expiresAt: expect.any(Number) },
+				{ "key": "hello2", expiresAt: expect.any(Number) },
+				{ "key": "hello3:test", expiresAt: expect.any(Number) },
+			]);
 		});
 	});
 });

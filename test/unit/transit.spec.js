@@ -61,7 +61,7 @@ describe("Test Transporter constructor", () => {
 		let transit = new Transit(broker, transporter, transitOptions);
 
 		expect(transporter.init).toHaveBeenCalledTimes(1);
-		expect(transporter.init).toHaveBeenCalledWith(transit, jasmine.any(Function), jasmine.any(Function));
+		expect(transporter.init).toHaveBeenCalledWith(transit, expect.any(Function), expect.any(Function));
 	});
 });
 
@@ -235,7 +235,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish with correct params", () => {
 		return transit.sendDisconnectPacket().catch(protectReject).then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(jasmine.any(P.Packet));
+			expect(transit.publish).toHaveBeenCalledWith(expect.any(P.Packet));
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet.type).toBe(P.PACKET_DISCONNECT);
 			expect(packet.payload).toEqual({});
@@ -2023,7 +2023,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(resolve).toHaveBeenCalledTimes(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject).toHaveBeenCalledTimes(1);
-		expect(reject).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
+		expect(reject).toHaveBeenCalledWith(expect.any(E.RequestRejectedError));
 	});
 
 	it("should reject pending orders by nodeID #2", () => {
@@ -2031,7 +2031,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(transit.pendingRequests.size).toBe(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject2).toHaveBeenCalledTimes(1);
-		expect(reject2).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
+		expect(reject2).toHaveBeenCalledWith(expect.any(E.RequestRejectedError));
 	});
 
 });
@@ -2401,32 +2401,6 @@ describe("Test Transit.sendNodeInfo", () => {
 		});
 	});
 
-	it("should call publish with correct params if has no nodeID & disableBalancer: true", () => {
-		// Set disableBalancer option
-		broker.options.disableBalancer = true;
-		transit.publish.mockClear();
-		transit.tx.makeBalancedSubscriptions.mockClear();
-
-		return transit.sendNodeInfo(localNodeInfo).then(() => {
-			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledTimes(1);
-			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.Packet);
-			expect(packet.type).toBe(P.PACKET_INFO);
-			expect(packet.target).toBe();
-			expect(packet.payload).toEqual({
-				"client": undefined,
-				"config": undefined,
-				"hostname": undefined,
-				"instanceID": broker.instanceID,
-				"ipList": undefined,
-				"metadata": { "region": "eu-west1" },
-				"seq": undefined,
-				"services": []
-			});
-		});
-	});
-
 	it("should call publish with correct params if has no nodeID & disableBalancer: false", () => {
 		// Set disableBalancer option
 		broker.options.disableBalancer = false;
@@ -2468,7 +2442,7 @@ describe("Test Transit.sendPing", () => {
 		expect(packet).toBeInstanceOf(P.Packet);
 		expect(packet.type).toBe(P.PACKET_PING);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ time: jasmine.any(Number), id: jasmine.any(String) });
+		expect(packet.payload).toEqual({ time: expect.any(Number), id: expect.any(String) });
 	});
 
 });
@@ -2487,7 +2461,7 @@ describe("Test Transit.sendPong", () => {
 		expect(packet).toBeInstanceOf(P.Packet);
 		expect(packet.type).toBe(P.PACKET_PONG);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ time: 123456, arrived: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ time: 123456, arrived: expect.any(Number) });
 	});
 
 });
@@ -2504,7 +2478,7 @@ describe("Test Transit.processPong", () => {
 		transit.processPong({ sender: "node-2", arrived: now, time: now - 500 });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", { "elapsedTime": jasmine.any(Number), "nodeID": "node-2", "timeDiff": jasmine.any(Number) });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", { "elapsedTime": expect.any(Number), "nodeID": "node-2", "timeDiff": expect.any(Number) });
 	});
 
 });

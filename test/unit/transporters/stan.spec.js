@@ -79,12 +79,12 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 		let p = transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.client).toBeDefined();
 			expect(transporter.client.on).toHaveBeenCalledTimes(6);
-			expect(transporter.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("close", expect.any(Function));
 		});
 
 		transporter._client.callbacks.connect();
@@ -162,12 +162,12 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Object));
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({
@@ -198,7 +198,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribeBalancedRequest("posts.find");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", "posts.find", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", "posts.find", expect.any(Object));
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 		expect(transporter.client.setDeliverAllAvailable).toHaveBeenCalledTimes(1);
@@ -206,7 +206,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		expect(transporter.client.setDurableName).toHaveBeenCalledWith("REQB");
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({
@@ -239,7 +239,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribeBalancedEvent("user.created", "mail");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", "mail", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", "mail", expect.any(Object));
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 		expect(transporter.client.setDeliverAllAvailable).toHaveBeenCalledTimes(1);
@@ -247,7 +247,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		expect(transporter.client.setDurableName).toHaveBeenCalledWith("EVENTB");
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({

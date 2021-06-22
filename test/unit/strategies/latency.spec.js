@@ -20,13 +20,13 @@ describe("Test LatencyStrategy constructor", () => {
 		let strategy = new LatencyStrategy(broker.registry, broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(7);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyMaster", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyMaster", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
 
 		// Test callbacks
 		/* Can't work due to bindings
@@ -57,8 +57,8 @@ describe("Test LatencyStrategy constructor", () => {
 		let strategy = new LatencyStrategy(broker.registry, broker, {});
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
 
 		return broker.start().catch(protectReject).then(() => {
 			expect(strategy.hostMap.size).toBe(0);

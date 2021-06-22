@@ -1053,8 +1053,7 @@ class Transit {
 	sendNodeInfo(info, nodeID) {
 		if (!this.connected || !this.isReady) return this.Promise.resolve();
 
-		const p = !nodeID && this.broker.options.disableBalancer ? this.tx.makeBalancedSubscriptions() : this.Promise.resolve();
-		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
+		return this.publish(new Packet(P.PACKET_INFO, nodeID, {
 			services: info.services,
 			ipList: info.ipList,
 			hostname: info.hostname,
@@ -1063,7 +1062,7 @@ class Transit {
 			instanceID: this.broker.instanceID,
 			metadata: info.metadata,
 			seq: info.seq
-		}))).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
 
 	}
 

@@ -31,6 +31,8 @@ module.exports = {
 	MetricReporters: require("./src/metrics/reporters"),
 	METRIC: require("./src/metrics/constants"),
 
+	Transit: require("./src/transit"),
+
 	Registry: require("./src/registry"),
 	Discoverers: require("./src/registry/discoverers"),
 

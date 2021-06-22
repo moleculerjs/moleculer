@@ -102,16 +102,16 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 		return transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.connection).toBeDefined();
 			expect(transporter.connection.on).toHaveBeenCalledTimes(4);
-			expect(transporter.connection.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.connection.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-			expect(transporter.connection.on).toHaveBeenCalledWith("blocked", jasmine.any(Function));
-			expect(transporter.connection.on).toHaveBeenCalledWith("unblocked", jasmine.any(Function));
+			expect(transporter.connection.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.connection.on).toHaveBeenCalledWith("close", expect.any(Function));
+			expect(transporter.connection.on).toHaveBeenCalledWith("blocked", expect.any(Function));
+			expect(transporter.connection.on).toHaveBeenCalledWith("unblocked", expect.any(Function));
 			expect(transporter.channel).toBeDefined();
 			expect(transporter.channel.on).toHaveBeenCalledTimes(4);
-			expect(transporter.channel.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.channel.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-			expect(transporter.channel.on).toHaveBeenCalledWith("return", jasmine.any(Function));
-			expect(transporter.channel.on).toHaveBeenCalledWith("drain", jasmine.any(Function));
+			expect(transporter.channel.on).toHaveBeenCalledWith("error", expect.any(Function));
+			expect(transporter.channel.on).toHaveBeenCalledWith("close", expect.any(Function));
+			expect(transporter.channel.on).toHaveBeenCalledWith("return", expect.any(Function));
+			expect(transporter.channel.on).toHaveBeenCalledWith("drain", expect.any(Function));
 			expect(transporter.channel.prefetch).toHaveBeenCalledTimes(1);
 			expect(transporter.channel.prefetch).toHaveBeenCalledWith(3);
 		});
@@ -286,7 +286,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.RES.node", { expires: 120000 });
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.RES.node", jasmine.any(Function), { noAck: true });
+					.toHaveBeenCalledWith("MOL-TEST.RES.node", expect.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -305,7 +305,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.INFO.node", { "autoDelete": true });
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.INFO.node", jasmine.any(Function), { noAck: true });
+					.toHaveBeenCalledWith("MOL-TEST.INFO.node", expect.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -325,7 +325,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.REQ.node", { expires: 120000 });
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: false });
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Function), { noAck: false });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -346,7 +346,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { expires: 120000, messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", jasmine.any(Function), { noAck: true });
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", expect.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -373,7 +373,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith(
 						"MOL-TEST.HEARTBEAT.node",
-						jasmine.any(Function),
+						expect.any(Function),
 						{ noAck: true }
 					);
 
@@ -403,7 +403,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect(transporter.channel.consume)
 						.toHaveBeenCalledWith(
 							`MOL-TEST.${type}.node`,
-							jasmine.any(Function),
+							expect.any(Function),
 							{ noAck: true }
 						);
 
@@ -424,7 +424,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", {});
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", jasmine.any(Function), {});
+					.toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", expect.any(Function), {});
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -443,7 +443,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear",
 						{ expires: 120000, messageTtl: 3000 });
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", jasmine.any(Function), {});
+					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", expect.any(Function), {});
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });

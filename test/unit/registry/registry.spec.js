@@ -445,8 +445,8 @@ describe("Test Registry.registerActions", () => {
 		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.save" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.find", handler: jasmine.any(Function), service });
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.save", handler: jasmine.any(Function), service });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", expect.any(Function), { "name": "users.find", handler: expect.any(Function), service });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", expect.any(Function), { "name": "users.save", handler: expect.any(Function), service });
 	});
 
 	it("should not call actions add & service addAction methods if has visibility", () => {
@@ -461,8 +461,8 @@ describe("Test Registry.registerActions", () => {
 		});
 
 		expect(registry.checkActionVisibility).toHaveBeenCalledTimes(2);
-		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.save", handler: jasmine.any(Function) }, node);
-		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.find", handler: jasmine.any(Function) }, node);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.save", handler: expect.any(Function) }, node);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.find", handler: expect.any(Function) }, node);
 
 		expect(registry.actions.add).toHaveBeenCalledTimes(0);
 		expect(service.addAction).toHaveBeenCalledTimes(0);
@@ -545,8 +545,8 @@ describe("Test Registry.registerEvents", () => {
 		expect(service.addEvent).toHaveBeenCalledWith({ "name": "user.removed" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), { "name": "user.created" });
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), { "name": "user.removed" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", expect.any(Function), { "name": "user.created" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", expect.any(Function), { "name": "user.removed" });
 	});
 });
 

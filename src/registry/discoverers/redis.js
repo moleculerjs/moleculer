@@ -13,6 +13,7 @@ const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray, isFunction } = require("../../utils");
+const P = require("../../packets");
 
 let Redis;
 
@@ -200,7 +201,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 				}
 
 				// Create new HB key
-				pl = pl.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data));
+				pl = pl.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data, P.PACKET_HEARTBEAT));
 				return pl.exec();
 			})
 			.then(() => this.lastBeatSeq = seq)
@@ -254,7 +255,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 											sender: p[0],
 											instanceID: p[1],
 											seq: Number(p[2]),
-											...this.serializer.deserialize(raw)
+											...this.serializer.deserialize(raw, P.PACKET_INFO)
 										};
 									} catch(err) {
 										this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
@@ -308,7 +309,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					return;
 				}
 				try {
-					const info = this.serializer.deserialize(res);
+					const info = this.serializer.deserialize(res, P.PACKET_INFO);
 					return this.processRemoteNodeInfo(nodeID, info);
 				} catch(err) {
 					this.logger.warn("Unable to parse INFO packet", err, res);
@@ -338,8 +339,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		const key = this.INFO_KEY;
 		const seq = this.localNode.seq;
 
-		return this.Promise.resolve()
-			.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload)))
+		const p = !nodeID && this.broker.options.disableBalancer ? this.transit.tx.makeBalancedSubscriptions() : this.Promise.resolve();
+		return p.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload, P.PACKET_INFO)))
 			.then(() => {
 				this.lastInfoSeq = seq;
 
