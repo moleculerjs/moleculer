@@ -1,11 +1,119 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.13...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.14...master)
+
+--------------------------------------------------
+<a name="0.14.14"></a>
+# [0.14.14](https://github.com/moleculerjs/moleculer/compare/v0.14.13...v0.14.14) (2021-06-xx)
+
+_105 commits from 11 contributors._
+
+## New CBOR serializer [#905](https://github.com/moleculerjs/moleculer/pull/905)
+CBOR ([cbor-x](https://github.com/kriszyp/cbor-x)) is a new serializer but faster than any other serializers.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: true,
+    serializer: "CBOR"
+};
+```
+
+**Benchmark**
+```
+Suite: Serialize packet with 10bytes
+√ JSON               509,217 rps
+√ Avro               308,711 rps
+√ MsgPack             79,932 rps
+√ ProtoBuf           435,183 rps
+√ Thrift              93,324 rps
+√ Notepack           530,121 rps
+√ CBOR             1,016,135 rps
+
+   JSON (#)            0%        (509,217 rps)   (avg: 1μs)
+   Avro           -39.38%        (308,711 rps)   (avg: 3μs)
+   MsgPack         -84.3%         (79,932 rps)   (avg: 12μs)
+   ProtoBuf       -14.54%        (435,183 rps)   (avg: 2μs)
+   Thrift         -81.67%         (93,324 rps)   (avg: 10μs)
+   Notepack        +4.11%        (530,121 rps)   (avg: 1μs)
+   CBOR           +99.55%      (1,016,135 rps)   (avg: 984ns)
+```
+
+## `settled` option in `broker.mcall`
+The `broker.mcall` method has a new `settled` option to receive all Promise results. Without this option, if you make a multi-call and one call is rejected, the response will be a rejected `Promise` and you don't know how many (and which) calls were rejected.
+
+If `settled: true`, the method returns a resolved `Promise` in any case and the response contains the statuses and responses of all calls.
+
+**Example**
+```js
+const res = await broker.mcall([
+    { action: "posts.find", params: { limit: 2, offset: 0 },
+    { action: "users.find", params: { limit: 2, sort: "username" } },
+    { action: "service.notfound", params: { notfound: 1 } }
+], { settled: true });
+console.log(res);
+```
+The `res` will be something similar to
+```js
+[
+    { status: "fulfilled", value: [/*... response of `posts.find`...*/] },
+    { status: "fulfilled", value: [/*... response of `users.find`...*/] },
+    { status: "rejected", reason: {/*... Rejected response/Error`...*/} }
+]
+```
+
+## New `MOLECULER_CONFIG` environment variable in Runner
+In the Moleculer Runner, you can configure the configuration filename and path with the `MOLECULER_CONFIG` environment variable. It means, no need to specify the config file with `--config` argument.
+
+## Supporting `nats@2.x.x` in NATS transporter
+The new nats `2.x.x` version has a new breaking API which has locked the NATS transporter for `nats@1.x.x` library. As of this release, the NATS transporter supports both major versions of the `nats` library. 
+
+_The transporter automatically detects the version of the library and uses the correct API._
+
+### Async custom validator functions and `ctx` as metadata
+**TODO !!!!**
+Since `fastest-validator@1.11.0`, the FastestValidator supports async custom validators and you can [pass metadata for custom validator functions](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#meta-information-for-custom-validators).
+In Moleculer, the `FastestValidator` passes the `ctx` as metadata. It means you can access to the current context, service, broker and you can make async calls (e.g calling another service) in custom checker functions.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        params: {
+            owner: { type: "string", custom: async (value, errors, schema, name, parent, context) => {
+                const ctx = context.meta;
+
+                const res = await ctx.call("users.checkUserID", { id: value });
+                if (res !== true)
+                    errors.push({ type: "invalidOwner", field: "owner", actual: value });
+                return value;
+            } }, 
+        }
+    }
+}
+```
+
+
+## Changes 
+- fix node crash in encryption mode with TCP transporter. [#849](https://github.com/moleculerjs/moleculer/pull/849)
+- expose `Utils` in typescript definition. [#909](https://github.com/moleculerjs/moleculer/pull/909)
+- other d.ts improvements. [#920](https://github.com/moleculerjs/moleculer/pull/920), [#922](https://github.com/moleculerjs/moleculer/pull/922), [#934](https://github.com/moleculerjs/moleculer/pull/934)
+- fix etcd3 discoverer lease-loss issue [#922](https://github.com/moleculerjs/moleculer/pull/922)
+- catch errors in Compression and Encryption middlewares. [#850](https://github.com/moleculerjs/moleculer/pull/850)
+- using optional peer dependencies. [#911](https://github.com/moleculerjs/moleculer/pull/911)
+- add relevant packet to to serialization and deserialization calls. [#932](https://github.com/moleculerjs/moleculer/pull/932)
+- fix disabled balancer issue with external discoverer. [#933](https://github.com/moleculerjs/moleculer/pull/933)
+
 
 --------------------------------------------------
 <a name="0.14.13"></a>
 # [0.14.13](https://github.com/moleculerjs/moleculer/compare/v0.14.12...v0.14.13) (2021-04-09)
 
-## Changes _(62 commits from 12 contributors)_
+_62 commits from 12 contributors._
+
+## Changes
 - update dependencies
 - logging if encryption middleware can't decrypt the data instead of crashing. [#853](https://github.com/moleculerjs/moleculer/pull/853)
 - fix `disableHeartbeatChecks` option handling. [#858](https://github.com/moleculerjs/moleculer/pull/858)
