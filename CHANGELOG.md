@@ -71,7 +71,6 @@ The new nats `2.x.x` version has a new breaking API which has locked the NATS tr
 _The transporter automatically detects the version of the library and uses the correct API._
 
 ### Async custom validator functions and `ctx` as metadata
-**TODO !!!!**
 Since `fastest-validator@1.11.0`, the FastestValidator supports async custom validators and you can [pass metadata for custom validator functions](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#meta-information-for-custom-validators).
 In Moleculer, the `FastestValidator` passes the `ctx` as metadata. It means you can access to the current context, service, broker and you can make async calls (e.g calling another service) in custom checker functions.
 
@@ -82,15 +81,17 @@ module.exports = {
     name: "posts",
     actions: {
         params: {
+            $$async: true,
             owner: { type: "string", custom: async (value, errors, schema, name, parent, context) => {
                 const ctx = context.meta;
 
-                const res = await ctx.call("users.checkUserID", { id: value });
+                const res = await ctx.call("users.isValid", { id: value });
                 if (res !== true)
                     errors.push({ type: "invalidOwner", field: "owner", actual: value });
                 return value;
             } }, 
-        }
+        },
+        /* ... */
     }
 }
 ```
