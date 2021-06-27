@@ -3,7 +3,7 @@
 
 --------------------------------------------------
 <a name="0.14.14"></a>
-# [0.14.14](https://github.com/moleculerjs/moleculer/compare/v0.14.13...v0.14.14) (2021-06-xx)
+# [0.14.14](https://github.com/moleculerjs/moleculer/compare/v0.14.13...v0.14.14) (2021-06-27)
 
 _105 commits from 11 contributors._
 
@@ -100,7 +100,7 @@ module.exports = {
 ## Changes 
 - fix node crash in encryption mode with TCP transporter. [#849](https://github.com/moleculerjs/moleculer/pull/849)
 - expose `Utils` in typescript definition. [#909](https://github.com/moleculerjs/moleculer/pull/909)
-- other d.ts improvements. [#920](https://github.com/moleculerjs/moleculer/pull/920), [#922](https://github.com/moleculerjs/moleculer/pull/922), [#934](https://github.com/moleculerjs/moleculer/pull/934)
+- other d.ts improvements. [#920](https://github.com/moleculerjs/moleculer/pull/920), [#922](https://github.com/moleculerjs/moleculer/pull/922), [#934](https://github.com/moleculerjs/moleculer/pull/934), [#950](https://github.com/moleculerjs/moleculer/pull/950)
 - fix etcd3 discoverer lease-loss issue [#922](https://github.com/moleculerjs/moleculer/pull/922)
 - catch errors in Compression and Encryption middlewares. [#850](https://github.com/moleculerjs/moleculer/pull/850)
 - using optional peer dependencies. [#911](https://github.com/moleculerjs/moleculer/pull/911)
