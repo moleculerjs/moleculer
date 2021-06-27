@@ -44,7 +44,10 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context<any, any>) => Promise<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any, S = ServiceSettingSchema> = (
+		this: Service<S>,
+		ctx: Context<any, any>
+	) => Promise<T> | T;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
@@ -595,9 +598,15 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventLegacyHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
+	type ServiceEventLegacyHandler = (
+		this: Service,
+		payload: any,
+		sender: string,
+		eventName: string,
+		ctx: Context
+	) => void;
 
-	type ServiceEventHandler = ((ctx: Context) => void) & ThisType<Service>;
+	type ServiceEventHandler = (this: Service, ctx: Context) => void;
 
 	interface ServiceEvent {
 		name?: string;
@@ -611,7 +620,12 @@ declare namespace Moleculer {
 
 	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent };
 
-	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
+	type ServiceMethods = {
+		[key: string]: <S = ServiceSettingSchema>(
+			this: Service,
+			...args: any[]
+		) => any;
+	};
 
 	type CallMiddlewareHandler = (actionName: string, params: any, opts: CallingOptions) => Promise<any>;
 	type Middleware = {
@@ -624,7 +638,10 @@ declare namespace Moleculer {
 			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler)
 	}
 
-	type MiddlewareInit = (broker: ServiceBroker) => Middleware & ThisType<ServiceBroker>;
+	type MiddlewareInit = (
+		this: ServiceBroker,
+		broker: ServiceBroker
+	) => Middleware;
 	interface MiddlewareCallHandlerOptions {
 		reverse?: boolean
 	}
@@ -682,7 +699,15 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceAction = (<T = Promise<any>, P extends GenericObject = GenericObject>(params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
+	type ServiceAction = <
+		T = Promise<any>,
+		P extends GenericObject = GenericObject,
+		S = ServiceSettingSchema
+	>(
+		this: Service<S>,
+		params?: P,
+		opts?: CallingOptions
+	) => T;
 
 	interface ServiceActions {
 		[name: string]: ServiceAction;
