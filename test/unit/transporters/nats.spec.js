@@ -389,7 +389,13 @@ describe("Tests Nats V2.x", () => {
 		it("check constructor with string param", () => {
 			let transporter = new NatsTransporter("nats://localhost");
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, servers: ["nats://localhost"] });
+		});
+
+		it("check constructor with string param of multiple servers", () => {
+			let transporter = new NatsTransporter("nats://server1:4222,nats://server2:4222,nats://server3:4222");
+			transporter.isLibLegacy = jest.fn(() => false);
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, servers: ["server1:4222", "nats://server2:4222", "nats://server3:4222"] });
 		});
 
 		it("check constructor with options", () => {
