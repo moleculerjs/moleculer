@@ -389,13 +389,13 @@ describe("Tests Nats V2.x", () => {
 		it("check constructor with string param", () => {
 			let transporter = new NatsTransporter("nats://localhost");
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, servers: ["nats://localhost"] });
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
 		});
 
 		it("check constructor with string param of multiple servers", () => {
 			let transporter = new NatsTransporter("nats://server1:4222,nats://server2:4222,nats://server3:4222");
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, servers: ["server1:4222", "server2:4222", "server3:4222"] });
+			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://server1:4222,nats://server2:4222,nats://server3:4222" });
 		});
 
 		it("check constructor with options", () => {
@@ -420,9 +420,20 @@ describe("Tests Nats V2.x", () => {
 		let transporter;
 
 		beforeEach(() => {
-			transporter = new NatsTransporter();
+			transporter = new NatsTransporter("nats://server1:4222,nats://server2:4222,nats://server3:4222");
 			transporter.isLibLegacy = jest.fn(() => false);
 			transporter.init(transit, msgHandler);
+		});
+
+		it("check connect options servers", () => {
+			let p = transporter.connect().catch(protectReject).then(() => {
+				expect(transporter.client).toBeDefined();
+				expect(transporter.client.status).toHaveBeenCalledTimes(1);
+				expect(transporter.client.closed).toHaveBeenCalledTimes(1);
+				expect(Nats.connect).toHaveBeenLastCalledWith({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://server1:4222,nats://server2:4222,nats://server3:4222", servers: ["server1:4222", "server2:4222", "server3:4222"] });
+			});
+
+			return p;
 		});
 
 		it("check connect", () => {
