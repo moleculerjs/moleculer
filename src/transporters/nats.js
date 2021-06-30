@@ -144,6 +144,7 @@ class NatsTransporter extends Transporter {
 			});
 		} else {
 			// NATS v2
+			if(this.opts.url) this.opts.servers = this.opts.url.split(",").map(server => new URL(server).host);
 			return Nats.connect(this.opts).then(client => {
 				this.client = client;
 
