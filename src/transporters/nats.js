@@ -31,7 +31,7 @@ class NatsTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
-			opts = { url: opts };
+			opts = { servers: opts.split(",").map(server => new URL(server).host) };
 
 		super(opts);
 
