@@ -957,6 +957,7 @@ declare namespace Moleculer {
 		tracking?: boolean;
 		paramsCloning?: boolean;
 		caller?: string;
+		settled?: boolean;
 	}
 
 	interface CallDefinition<P extends GenericObject = GenericObject> {
