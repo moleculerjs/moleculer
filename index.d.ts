@@ -956,7 +956,7 @@ declare namespace Moleculer {
 		requestID?: string;
 		tracking?: boolean;
 		paramsCloning?: boolean;
-		caller
+		caller?: string;
 	}
 
 	interface MCallCallingOptions extends CallingOptions{
