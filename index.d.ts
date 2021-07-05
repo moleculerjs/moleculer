@@ -959,6 +959,10 @@ declare namespace Moleculer {
 		caller?: string;
 	}
 
+	interface MCallCallingOptions extends CallingOptions{
+		settled?: boolean;
+	}
+
 	interface CallDefinition<P extends GenericObject = GenericObject> {
 		action: string;
 		params: P;
@@ -1085,7 +1089,7 @@ declare namespace Moleculer {
 		call<T>(actionName: string): Promise<T>;
 		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: CallingOptions): Promise<Array<T> | T>;
+		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: MCallCallingOptions): Promise<Array<T> | T>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
