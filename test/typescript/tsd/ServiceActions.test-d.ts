@@ -23,6 +23,8 @@ class TestService extends Service {
 					},
 				},
 				bar() {
+					this.actions.foo(); // check `this` ref in `foo`, should not throw error;
+
 					expectType<Service<ServiceSettingSchema>>(this);
 					expectType<ServiceActions>(testService.actions);
 				},
