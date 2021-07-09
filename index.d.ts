@@ -702,9 +702,7 @@ declare namespace Moleculer {
 	type ServiceAction = <
 		T = Promise<any>,
 		P extends GenericObject = GenericObject,
-		S = ServiceSettingSchema
 	>(
-		this: Service<S>,
 		params?: P,
 		opts?: CallingOptions
 	) => T;
