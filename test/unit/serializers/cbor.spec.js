@@ -62,4 +62,16 @@ describe("Test CborSerializer", () => {
 
 		expect(res).toEqual(input);
 	});
+
+	it("should allow maps to be serialized with useTag259ForMaps option true", () => {
+		const options = { useTag259ForMaps: true };
+		const optsSerializer = new CborSerializer(options);
+		optsSerializer.init();
+
+		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const s = optsSerializer.serialize(input);
+		const res = optsSerializer.deserialize(s);
+
+		expect(res).toEqual(input);
+	});
 });
