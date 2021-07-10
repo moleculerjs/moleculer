@@ -1,5 +1,18 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.14...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.15...master)
+
+--------------------------------------------------
+<a name="0.14.15"></a>
+# [0.14.15](https://github.com/moleculerjs/moleculer/compare/v0.14.14...v0.14.15) (2021-07-10)
+
+_15 commits from 5 contributors._
+
+## Changes
+- fix `nats` version in peerDependencies.
+- convert `url` to `servers` in nats@2. [#954](https://github.com/moleculerjs/moleculer/pull/954)
+- add typing for `mcall` `settled` option. [#957](https://github.com/moleculerjs/moleculer/pull/957)
+- revert TS `ThisType` issue in 0.14.14. [#958](https://github.com/moleculerjs/moleculer/pull/958)
+- update dependencies
 
 --------------------------------------------------
 <a name="0.14.14"></a>
