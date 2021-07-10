@@ -31,6 +31,14 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts.maxParamsLength).toBe(1024);
 	});
 
+	it("should add option for pingInterval", () => {
+		let opts = { pingInterval: 5000 };
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual(opts);
+		expect(cacher.opts.pingInterval).toBe(5000);
+	});
+
 	it("should create with redis opts from string", () => {
 		let opts = "redis://localhost:6379";
 		let cacher = new RedisCacher(opts);
@@ -39,6 +47,7 @@ describe("Test RedisCacher constructor", () => {
 			keygen: null,
 			ttl: null,
 			prefix: null,
+			pingInterval: null,
 			maxParamsLength: null,
 			redis: opts
 		});
@@ -152,6 +161,30 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher.serializer).toBeInstanceOf(Serializers.Notepack);
 	});
 
+	it("should ping based on interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: 25,
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(1);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(2);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(3);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
 });
 
 describe("Test RedisCacher set & get without prefix", () => {
@@ -574,13 +607,33 @@ describe("Test RedisCacher with opts.lock", () => {
 });
 
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let cacher = new RedisCacher();
-	cacher.init(broker); // for empty logger
-
 	it("should call client.quit", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new RedisCacher();
+		cacher.init(broker); // for empty logger
 		cacher.close();
-		expect(cacher.client.quit).toHaveBeenCalledTimes(1);
+	});
+
+	it("should clear interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: 25,
+		};
+
+		let cacher = new RedisCacher(opts);
+		cacher.init(broker); // for empty logger
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		expect(jest.getTimerCount()).toBe(1);
+
+		cacher.close();
+		expect(jest.getTimerCount()).toBe(0);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 });
 
