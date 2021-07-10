@@ -29,7 +29,7 @@ class CborSerializer extends BaseSerializer {
 	 */
 	constructor(opts) {
 		super(opts);
-		this.opts = _.defaultsDeep(opts, { useRecords: false });
+		this.opts = _.defaultsDeep(opts, { useRecords: false, useTag259ForMaps: false });
 	}
 
 	/**
