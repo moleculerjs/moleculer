@@ -34,7 +34,8 @@ class RedisCacher extends BaseCacher {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			prefix: null
+			prefix: null,
+			pingInterval: null,
 		});
 	}
 
@@ -113,6 +114,15 @@ class RedisCacher extends BaseCacher {
 		// create an instance of serializer (default to JSON)
 		this.serializer = Serializers.resolve(this.opts.serializer);
 		this.serializer.init(this.broker);
+
+		// add interval for ping if set
+		if (typeof this.opts.pingInterval === "number") {
+			setInterval(() => {
+				this.client.ping().catch((err) => {
+					this.logger.error("Failed to send PING to Redis Server", err);
+				});
+			}, this.opts.pingInterval);
+		}
 
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}

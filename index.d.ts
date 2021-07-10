@@ -1232,6 +1232,7 @@ declare namespace Moleculer {
 		redis?: GenericObject;
 		redlock?: GenericObject;
 		monitor?: boolean;
+		pingInterval?: number;
 	}
 
 	namespace Cachers {
