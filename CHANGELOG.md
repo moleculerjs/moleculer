@@ -13,6 +13,7 @@ _15 commits from 5 contributors._
 - add typing for `mcall` `settled` option. [#957](https://github.com/moleculerjs/moleculer/pull/957)
 - revert TS `ThisType` issue in 0.14.14. [#958](https://github.com/moleculerjs/moleculer/pull/958)
 - update dependencies
+- add `useTag259ForMaps: false` default option for CBOR serializer to keep the compatibility.
 
 --------------------------------------------------
 <a name="0.14.14"></a>
