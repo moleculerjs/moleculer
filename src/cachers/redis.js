@@ -34,8 +34,11 @@ class RedisCacher extends BaseCacher {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			prefix: null
+			prefix: null,
+			pingInterval: null,
 		});
+
+		this.pingIntervalHandle = null;
 	}
 
 	/**
@@ -114,6 +117,19 @@ class RedisCacher extends BaseCacher {
 		this.serializer = Serializers.resolve(this.opts.serializer);
 		this.serializer.init(this.broker);
 
+		// add interval for ping if set
+		if (this.opts.pingInterval > 0) {
+			this.pingIntervalHandle = setInterval(() => {
+				this.client.ping()
+					.then(() => {
+						this.logger.debug("Sent PING to Redis Server");
+					})
+					.catch((err) => {
+						this.logger.error("Failed to send PING to Redis Server", err);
+					});
+			}, Number(this.opts.pingInterval));
+		}
+
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
 
@@ -123,6 +139,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	close() {
+		if (this.pingIntervalHandle != null) {
+			clearInterval(this.pingIntervalHandle);
+			this.pingIntervalHandle = null;
+		}
 		return this.client != null ? this.client.quit() : Promise.resolve();
 	}
 
