@@ -161,7 +161,7 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher.serializer).toBeInstanceOf(Serializers.Notepack);
 	});
 
-	it("should ping based on interval", () => {
+	it("should ping based on numeric interval", () => {
 		jest.useFakeTimers();
 		let broker = new ServiceBroker({ logger: false });
 
@@ -181,6 +181,56 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher.client.ping).toHaveBeenCalledTimes(2);
 		jest.advanceTimersByTime(25);
 		expect(cacher.client.ping).toHaveBeenCalledTimes(3);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
+
+	it("should ping based on numeric string interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: "25",
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(1);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(2);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(3);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
+
+	it("should not ping with malformed pingInterval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: "foo",
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
 
 		jest.clearAllTimers();
 		jest.useRealTimers();
