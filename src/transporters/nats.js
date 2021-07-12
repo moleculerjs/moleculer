@@ -152,7 +152,7 @@ class NatsTransporter extends Transporter {
 
 				(async () => {
 					for await (const s of this.client.status()) {
-						this.logger.info(`NATS client ${s.type}: ${s.data}`);
+						this.logger.debug(`NATS client ${s.type}: ${s.data}`);
 					}
 				})().then();
 
