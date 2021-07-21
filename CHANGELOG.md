@@ -2,6 +2,19 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.15...master)
 
 --------------------------------------------------
+<a name="0.14.16"></a>
+# [0.14.16](https://github.com/moleculerjs/moleculer/compare/v0.14.15...v0.14.16) (2021-07-21)
+
+_11 commits from 4 contributors._
+
+## Changes
+- fix `nats-streaming` version in peerDependencies.
+- RedisCacher `pingInterval` option. [#961](https://github.com/moleculerjs/moleculer/pull/961)
+- Update NATS transporter messages to debug. [#963](https://github.com/moleculerjs/moleculer/pull/963)
+- update d.ts file. [#964](https://github.com/moleculerjs/moleculer/pull/964) [#966](https://github.com/moleculerjs/moleculer/pull/966)
+- update dependencies
+
+--------------------------------------------------
 <a name="0.14.15"></a>
 # [0.14.15](https://github.com/moleculerjs/moleculer/compare/v0.14.14...v0.14.15) (2021-07-10)
 
