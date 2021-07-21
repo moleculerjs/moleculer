@@ -4,7 +4,6 @@ let Endpoint = require("../../../src/registry/endpoint");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test Endpoint", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -44,5 +43,4 @@ describe("Test Endpoint", () => {
 
 		expect(ep.isAvailable).toBe(true);
 	});
-
 });

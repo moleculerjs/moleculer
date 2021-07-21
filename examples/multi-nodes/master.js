@@ -7,8 +7,18 @@ const cluster = require("cluster");
 const ServiceBroker = require("../../src/service-broker");
 
 const stopSignals = [
-	"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT",
-	"SIGBUS", "SIGFPE", "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGTERM"
+	"SIGHUP",
+	"SIGINT",
+	"SIGQUIT",
+	"SIGILL",
+	"SIGTRAP",
+	"SIGABRT",
+	"SIGBUS",
+	"SIGFPE",
+	"SIGUSR1",
+	"SIGSEGV",
+	"SIGUSR2",
+	"SIGTERM"
 ];
 let stopping = false;
 
@@ -46,7 +56,10 @@ const broker = new ServiceBroker({
 			},
 			action(broker, args) {
 				console.log(args);
-				return broker.call("nodes.scale", { count: (Number(args.count != null ? args.count : 0)), kill: args.kill });
+				return broker.call("nodes.scale", {
+					count: Number(args.count != null ? args.count : 0),
+					kill: args.kill
+				});
 			}
 		}
 	]
@@ -54,13 +67,13 @@ const broker = new ServiceBroker({
 
 broker.loadService(path.join(__dirname, "node-controller.service.js"));
 
-broker.start()
+broker
+	.start()
 	.then(async () => {
 		broker.repl();
 
 		const nodeCount = Number(process.env.NODE_COUNT);
-		if (nodeCount > 0)
-			await broker.call("nodes.scale", { count: nodeCount });
+		if (nodeCount > 0) await broker.call("nodes.scale", { count: nodeCount });
 
 		stopSignals.forEach(signal => {
 			process.on(signal, () => {

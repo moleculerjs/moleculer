@@ -14,14 +14,13 @@ describe("Test ThriftSerializer constructor", () => {
 });
 
 describe("Test ProtoBuf serializer", () => {
-
 	const serializer = new ThriftSerializer();
 	serializer.init();
 
 	it("should serialize the disconnect packet", () => {
 		const obj = {
 			ver: "4",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCONNECT);
 		expect(s.length).toBe(22);
@@ -48,7 +47,7 @@ describe("Test ProtoBuf serializer", () => {
 	it("should serialize the discover packet", () => {
 		const obj = {
 			ver: "4",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCOVER);
 		expect(s.length).toBe(22);
@@ -63,20 +62,27 @@ describe("Test ProtoBuf serializer", () => {
 			ver: "4",
 			sender: "test-1",
 			services: [
-				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
-					"users.create": {}
-				}, events: {
-					"user.created": {}
-				} }
+				{
+					name: "users",
+					version: "2",
+					settings: {},
+					metadata: {},
+					actions: {
+						"users.create": {}
+					},
+					events: {
+						"user.created": {}
+					}
+				}
 			],
 			config: {},
 			instanceID: "123456",
-			ipList: [ "127.0.0.1" ],
+			ipList: ["127.0.0.1"],
 			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
-				langVersion: "6.10.2",
+				langVersion: "6.10.2"
 			},
 			metadata: {
 				region: "eu-west1"
@@ -89,7 +95,6 @@ describe("Test ProtoBuf serializer", () => {
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
-
 	});
 
 	it("should serialize the event packet", () => {
@@ -110,7 +115,6 @@ describe("Test ProtoBuf serializer", () => {
 			requestID: "request-id",
 			caller: "posts.created",
 			needAck: true
-
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(182);
@@ -139,7 +143,6 @@ describe("Test ProtoBuf serializer", () => {
 			requestID: "request-id",
 			caller: "posts.created",
 			needAck: true
-
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(211);
@@ -164,7 +167,6 @@ describe("Test ProtoBuf serializer", () => {
 			requestID: "request-id",
 			caller: "posts.created",
 			needAck: true
-
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(157);
@@ -188,7 +190,6 @@ describe("Test ProtoBuf serializer", () => {
 			requestID: "request-id",
 			caller: "posts.created",
 			needAck: true
-
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(157);
@@ -208,7 +209,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -238,7 +239,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -268,7 +269,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -302,7 +303,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,
@@ -345,7 +346,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: true,
@@ -394,12 +395,12 @@ describe("Test ProtoBuf serializer", () => {
 				stack: "STACK_PLACEHOLDER",
 				data: {
 					a: 5
-				},
+				}
 			},
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,
@@ -425,9 +426,11 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, {
-			time: { buffer: Buffer.from([0, 0, 0, 0, 0, 18, 214, 135]), offset: 0 }
-		}));
+		expect(res).toEqual(
+			Object.assign(obj, {
+				time: { buffer: Buffer.from([0, 0, 0, 0, 0, 18, 214, 135]), offset: 0 }
+			})
+		);
 	});
 
 	it("should serialize the pong packet", () => {
@@ -436,23 +439,23 @@ describe("Test ProtoBuf serializer", () => {
 			sender: "test-1",
 			id: "123",
 			time: 1234567,
-			arrived: 7654321,
+			arrived: 7654321
 		};
 		const s = serializer.serialize(obj, P.PACKET_PONG);
 		expect(s.length).toBe(54);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, {
-			time: { buffer: Buffer.from([0, 0, 0, 0, 0, 18, 214, 135]), offset: 0 },
-			arrived: { buffer: Buffer.from([0, 0, 0, 0, 0, 116, 203, 177]), offset: 0 }
-		}));
+		expect(res).toEqual(
+			Object.assign(obj, {
+				time: { buffer: Buffer.from([0, 0, 0, 0, 0, 18, 214, 135]), offset: 0 },
+				arrived: { buffer: Buffer.from([0, 0, 0, 0, 0, 116, 203, 177]), offset: 0 }
+			})
+		);
 	});
-
 });
 
 describe("Test ProtoBuf serializer with Gossip packets", () => {
-
 	const serializer = new ThriftSerializer();
 	serializer.init();
 
@@ -461,7 +464,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 			ver: "4",
 			sender: "test-1",
 			host: "server-host",
-			port: 45450,
+			port: 45450
 		};
 		const s = serializer.serialize(obj, P.PACKET_GOSSIP_HELLO);
 		expect(s.length).toBe(47);
@@ -533,6 +536,4 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
 		expect(res).toEqual(obj);
 	});
-
 });
-

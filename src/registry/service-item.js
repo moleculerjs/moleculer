@@ -12,7 +12,6 @@
  * @class ServiceItem
  */
 class ServiceItem {
-
 	/**
 	 * Creates an instance of ServiceItem.
 	 *

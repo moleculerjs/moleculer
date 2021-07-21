@@ -13,14 +13,13 @@ const Types = require("./types");
 const Reporters = require("./reporters");
 const { registerCommonMetrics, updateCommonMetrics } = require("./commons");
 
-const METRIC_NAME_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_:.]*$/;
-const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
+const METRIC_NAME_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_:.]*$/;
+const METRIC_LABEL_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 
 /**
  * Metric Registry class
  */
 class MetricRegistry {
-
 	/**
 	 * Creates an instance of MetricRegistry.
 	 *
@@ -34,8 +33,7 @@ class MetricRegistry {
 
 		this.dirty = true;
 
-		if (opts === true || opts === false)
-			opts = { enabled: opts };
+		if (opts === true || opts === false) opts = { enabled: opts };
 
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
@@ -53,8 +51,7 @@ class MetricRegistry {
 
 		this.store = new Map();
 
-		if (this.opts.enabled)
-			this.logger.info("Metrics: Enabled");
+		if (this.opts.enabled) this.logger.info("Metrics: Enabled");
 	}
 
 	/**
@@ -62,10 +59,11 @@ class MetricRegistry {
 	 */
 	init() {
 		if (this.opts.enabled) {
-
 			// Create Reporter instances
 			if (this.opts.reporter) {
-				const reporters = Array.isArray(this.opts.reporter) ? this.opts.reporter : [this.opts.reporter];
+				const reporters = Array.isArray(this.opts.reporter)
+					? this.opts.reporter
+					: [this.opts.reporter];
 
 				this.reporter = _.compact(reporters).map(r => {
 					const reporter = Reporters.resolve(r);
@@ -73,8 +71,14 @@ class MetricRegistry {
 					return reporter;
 				});
 
-				const reporterNames = this.reporter.map(reporter => this.broker.getConstructorName(reporter));
-				this.logger.info(`Metric reporter${reporterNames.length > 1 ? "s" : ""}: ${reporterNames.join(", ")}`);
+				const reporterNames = this.reporter.map(reporter =>
+					this.broker.getConstructorName(reporter)
+				);
+				this.logger.info(
+					`Metric reporter${reporterNames.length > 1 ? "s" : ""}: ${reporterNames.join(
+						", "
+					)}`
+				);
 			}
 
 			// Start colllect timer
@@ -121,14 +125,11 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	register(opts) {
-		if (!isPlainObject(opts))
-			throw new Error("Wrong argument. Must be an Object.");
+		if (!isPlainObject(opts)) throw new Error("Wrong argument. Must be an Object.");
 
-		if (!opts.type)
-			throw new Error("The metric 'type' property is mandatory.");
+		if (!opts.type) throw new Error("The metric 'type' property is mandatory.");
 
-		if (!opts.name)
-			throw new Error("The metric 'name' property is mandatory.");
+		if (!opts.name) throw new Error("The metric 'name' property is mandatory.");
 
 		if (!METRIC_NAME_REGEXP.test(opts.name))
 			throw new Error("The metric 'name' is not valid: " + opts.name);
@@ -137,14 +138,12 @@ class MetricRegistry {
 			opts.labelNames.forEach(name => {
 				if (!METRIC_LABEL_REGEXP.test(name))
 					throw new Error(`The '${opts.name}' metric label name is not valid: ${name}`);
-
 			});
 		}
 
 		const MetricClass = Types.resolve(opts.type);
 
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = new MetricClass(opts, this);
 		this.store.set(opts.name, item);
@@ -171,8 +170,7 @@ class MetricRegistry {
 	 */
 	getMetric(name) {
 		const item = this.store.get(name);
-		if (!item)
-			return null;
+		if (!item) return null;
 
 		return item;
 	}
@@ -188,12 +186,13 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	increment(name, labels, value = 1, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		if (!isFunction(item.increment))
-			throw new Error("Invalid metric type. Incrementing works only with counter & gauge metric types.");
+			throw new Error(
+				"Invalid metric type. Incrementing works only with counter & gauge metric types."
+			);
 
 		return item.increment(labels, value, timestamp);
 	}
@@ -209,8 +208,7 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	decrement(name, labels, value = 1, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		if (!isFunction(item.decrement))
@@ -230,12 +228,13 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	set(name, value, labels, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		if (!isFunction(item.set))
-			throw new Error("Invalid metric type. Value setting works only with counter, gauge & info metric types.");
+			throw new Error(
+				"Invalid metric type. Value setting works only with counter, gauge & info metric types."
+			);
 
 		return item.set(value, labels, timestamp);
 	}
@@ -251,12 +250,13 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	observe(name, value, labels, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		if (!isFunction(item.observe))
-			throw new Error("Invalid metric type. Observing works only with histogram metric type.");
+			throw new Error(
+				"Invalid metric type. Observing works only with histogram metric type."
+			);
 
 		return item.observe(value, labels, timestamp);
 	}
@@ -271,8 +271,7 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	reset(name, labels, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		item.reset(labels, timestamp);
@@ -287,8 +286,7 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	resetAll(name, timestamp) {
-		if (!this.opts.enabled)
-			return null;
+		if (!this.opts.enabled) return null;
 
 		const item = this.getMetric(name);
 		item.resetAll(timestamp);
@@ -309,7 +307,9 @@ class MetricRegistry {
 			item = this.getMetric(name);
 			if (!isFunction(item.observe) && !isFunction(item.set)) {
 				/* istanbul ignore next */
-				throw new Error("Invalid metric type. Timing works only with histogram or gauge metric types");
+				throw new Error(
+					"Invalid metric type. Timing works only with histogram or gauge metric types"
+				);
 			}
 		}
 
@@ -319,10 +319,8 @@ class MetricRegistry {
 			const duration = (delta[0] + delta[1] / 1e9) * 1000;
 
 			if (item) {
-				if (item.type == METRIC.TYPE_HISTOGRAM)
-					item.observe(duration, labels, timestamp);
-				else if (item.type == METRIC.TYPE_GAUGE)
-					item.set(duration, labels, timestamp);
+				if (item.type == METRIC.TYPE_HISTOGRAM) item.observe(duration, labels, timestamp);
+				else if (item.type == METRIC.TYPE_GAUGE) item.set(duration, labels, timestamp);
 			}
 
 			return duration;
@@ -342,7 +340,9 @@ class MetricRegistry {
 	changed(metric, value, labels, timestamp) {
 		this.dirty = true;
 		if (Array.isArray(this.reporter))
-			this.reporter.forEach(reporter => reporter.metricChanged(metric, value, labels, timestamp));
+			this.reporter.forEach(reporter =>
+				reporter.metricChanged(metric, value, labels, timestamp)
+			);
 	}
 
 	/**
@@ -357,26 +357,33 @@ class MetricRegistry {
 		const res = [];
 		opts = opts || {};
 
-		const types = opts.types != null ? (isString(opts.types) ? [opts.types] : opts.types) : null;
-		const includes = opts.includes != null ? (isString(opts.includes) ? [opts.includes] : opts.includes) : null;
-		const excludes = opts.excludes != null ? (isString(opts.excludes) ? [opts.excludes] : opts.excludes) : null;
+		const types =
+			opts.types != null ? (isString(opts.types) ? [opts.types] : opts.types) : null;
+		const includes =
+			opts.includes != null
+				? isString(opts.includes)
+					? [opts.includes]
+					: opts.includes
+				: null;
+		const excludes =
+			opts.excludes != null
+				? isString(opts.excludes)
+					? [opts.excludes]
+					: opts.excludes
+				: null;
 
 		this.store.forEach(metric => {
-			if (types && !types.some(type => metric.type == type))
-				return;
+			if (types && !types.some(type => metric.type == type)) return;
 
-			if (includes && !includes.some(pattern => match(metric.name, pattern)))
-				return;
+			if (includes && !includes.some(pattern => match(metric.name, pattern))) return;
 
-			if (excludes && !excludes.every(pattern => !match(metric.name, pattern)))
-				return;
+			if (excludes && !excludes.every(pattern => !match(metric.name, pattern))) return;
 
 			res.push(metric.toObject());
 		});
 
 		return res;
 	}
-
 
 	/**
 	 * Pluralize metric units.
@@ -385,7 +392,7 @@ class MetricRegistry {
 	 * @returns {String}
 	 */
 	pluralizeUnit(unit) {
-		switch(unit) {
+		switch (unit) {
 			case METRIC.UNIT_GHZ:
 				return unit;
 		}

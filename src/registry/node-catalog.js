@@ -6,9 +6,9 @@
 
 "use strict";
 
-const _ 			= require("lodash");
-const os 			= require("os");
-const Node 			= require("./node");
+const _ = require("lodash");
+const os = require("os");
+const Node = require("./node");
 const { getIpList } = require("../utils");
 
 /**
@@ -17,7 +17,6 @@ const { getIpList } = require("../utils");
  * @class NodeCatalog
  */
 class NodeCatalog {
-
 	/**
 	 * Creates an instance of NodeCatalog.
 	 *
@@ -119,8 +118,7 @@ class NodeCatalog {
 	onlineCount() {
 		let count = 0;
 		this.nodes.forEach(node => {
-			if (node.available)
-				count++;
+			if (node.available) count++;
 		});
 
 		return count;
@@ -194,16 +192,12 @@ class NodeCatalog {
 
 			this.registry.updateMetrics();
 
-			if (isUnexpected)
-				this.logger.warn(`Node '${node.id}' disconnected unexpectedly.`);
-			else
-				this.logger.info(`Node '${node.id}' disconnected.`);
+			if (isUnexpected) this.logger.warn(`Node '${node.id}' disconnected unexpectedly.`);
+			else this.logger.info(`Node '${node.id}' disconnected.`);
 
-			if (this.broker.transit)
-				this.broker.transit.removePendingRequestByNodeID(nodeID);
+			if (this.broker.transit) this.broker.transit.removePendingRequestByNodeID(nodeID);
 		}
 	}
-
 
 	/**
 	 * Get a node list
@@ -215,13 +209,10 @@ class NodeCatalog {
 	list({ onlyAvailable = false, withServices = false }) {
 		let res = [];
 		this.nodes.forEach(node => {
-			if (onlyAvailable && !node.available)
-				return;
+			if (onlyAvailable && !node.available) return;
 
-			if (withServices)
-				res.push(_.omit(node, ["rawInfo"]));
-			else
-				res.push(_.omit(node, ["services", "rawInfo"]));
+			if (withServices) res.push(_.omit(node, ["rawInfo"]));
+			else res.push(_.omit(node, ["services", "rawInfo"]));
 		});
 
 		return res;

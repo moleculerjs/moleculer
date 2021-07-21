@@ -26,10 +26,9 @@ describe("Test ThrottleMiddleware", () => {
 	});
 
 	describe("Test localEvent", () => {
-
 		let clock;
 
-		beforeAll(() => clock = lolex.install({ now: 100000 }));
+		beforeAll(() => (clock = lolex.install({ now: 100000 })));
 		afterAll(() => clock.uninstall());
 
 		it("should not wrap handler if throttle is not set", () => {
@@ -47,7 +46,6 @@ describe("Test ThrottleMiddleware", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 			expect(newHandler).not.toBe(handler);
 		});
-
 
 		it("should invoke when event not received in 5 seconds", () => {
 			event.throttle = 5000;
@@ -80,9 +78,6 @@ describe("Test ThrottleMiddleware", () => {
 			clock.tick(3000);
 			newHandler(ctx);
 			expect(event.handler).toBeCalledTimes(3);
-
 		});
-
 	});
-
 });

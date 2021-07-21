@@ -14,7 +14,7 @@ fetch.Promise = Promise;
 const { MoleculerError } = require("../errors");
 
 const util = require("util");
-const { isObject }	= require("../utils");
+const { isObject } = require("../utils");
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -27,7 +27,6 @@ const { isObject }	= require("../utils");
  * @extends {BaseLogger}
  */
 class DatadogLogger extends BaseLogger {
-
 	/**
 	 * Creates an instance of DatadogLogger.
 	 * @param {Object} opts
@@ -50,7 +49,9 @@ class DatadogLogger extends BaseLogger {
 		this.timer = null;
 
 		if (!this.opts.apiKey)
-			throw new MoleculerError("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
+			throw new MoleculerError(
+				"Datadog API key is missing. Set DATADOG_API_KEY environment variable."
+			);
 	}
 
 	/**
@@ -61,7 +62,15 @@ class DatadogLogger extends BaseLogger {
 	init(loggerFactory) {
 		super.init(loggerFactory);
 
-		this.objectPrinter = this.opts.objectPrinter ? this.opts.objectPrinter : o => util.inspect(o, { showHidden: false, depth: 2, colors: false, breakLength: Number.POSITIVE_INFINITY });
+		this.objectPrinter = this.opts.objectPrinter
+			? this.opts.objectPrinter
+			: o =>
+					util.inspect(o, {
+						showHidden: false,
+						depth: 2,
+						colors: false,
+						breakLength: Number.POSITIVE_INFINITY
+					});
 
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
@@ -88,13 +97,11 @@ class DatadogLogger extends BaseLogger {
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		const printArgs = args => {
 			return args.map(p => {
-				if (isObject(p) || Array.isArray(p))
-					return this.objectPrinter(p);
+				if (isObject(p) || Array.isArray(p)) return this.objectPrinter(p);
 				return p;
 			});
 		};
@@ -104,7 +111,12 @@ class DatadogLogger extends BaseLogger {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);
 			if (typeIdx > levelIdx) return;
 
-			this.queue.push({ ts: Date.now(), level: type, msg: printArgs(args).join(" "), bindings });
+			this.queue.push({
+				ts: Date.now(),
+				level: type,
+				msg: printArgs(args).join(" "),
+				bindings
+			});
 			if (!this.opts.interval) this.flush();
 		};
 	}
@@ -116,8 +128,7 @@ class DatadogLogger extends BaseLogger {
 			{ name: "namespace", value: row.bindings.ns }
 		];
 
-		if (row.bindings.svc)
-			tags.push({ name: "service", value: row.bindings.svc });
+		if (row.bindings.svc) tags.push({ name: "service", value: row.bindings.svc });
 
 		return tags.map(row => `${row.name}:${row.value}`).join(",");
 	}
@@ -152,14 +163,20 @@ class DatadogLogger extends BaseLogger {
 				method: "post",
 				body: JSON.stringify(data),
 				headers: {
-					"Content-Type": "application/json",
+					"Content-Type": "application/json"
 				}
-			}).then((/*res*/) => {
-				// console.info("Logs are uploaded to DataDog. Status: ", res.statusText);
-			}).catch(err => {
-				/* istanbul ignore next */
-				console.warn("Unable to upload logs to Datadog server. Error:" + err.message, err); // eslint-disable-line no-console
-			});
+			})
+				.then((/*res*/) => {
+					// console.info("Logs are uploaded to DataDog. Status: ", res.statusText);
+				})
+				.catch(err => {
+					/* istanbul ignore next */
+					// eslint-disable-next-line no-console
+					console.warn(
+						"Unable to upload logs to Datadog server. Error:" + err.message,
+						err
+					);
+				});
 		}
 
 		return this.broker.Promise.resolve();

@@ -11,8 +11,7 @@ const { ValidationError } = require("../errors");
 const BaseValidator = require("./base");
 const _ = require("lodash");
 
-class FastestValidator  extends BaseValidator{
-
+class FastestValidator extends BaseValidator {
 	constructor(opts) {
 		super(opts);
 		this.validator = new Validator(this.opts);
@@ -37,8 +36,7 @@ class FastestValidator  extends BaseValidator{
 	 */
 	validate(params, schema) {
 		const res = this.validator.validate(params, _.cloneDeep(schema));
-		if (res !== true)
-			throw new ValidationError("Parameters validation error!", null, res);
+		if (res !== true) throw new ValidationError("Parameters validation error!", null, res);
 
 		return true;
 	}

@@ -68,7 +68,11 @@ class MoleculerRetryableError extends MoleculerError {
  */
 class BrokerDisconnectedError extends MoleculerRetryableError {
 	constructor() {
-		super("The broker's transporter has disconnected. Please try again when a connection is reestablished.", 502, "BAD_GATEWAY");
+		super(
+			"The broker's transporter has disconnected. Please try again when a connection is reestablished.",
+			502,
+			"BAD_GATEWAY"
+		);
 		// Stack trace is hidden because it creates a lot of logs and, in this case, won't help users find the issue
 		this.stack = "";
 	}
@@ -80,8 +84,7 @@ class BrokerDisconnectedError extends MoleculerRetryableError {
  * @class MoleculerServerError
  * @extends {MoleculerRetryableError}
  */
-class MoleculerServerError extends MoleculerRetryableError {
-}
+class MoleculerServerError extends MoleculerRetryableError {}
 
 /**
  * Moleculer Error class for client errors which is not retryable.
@@ -105,7 +108,6 @@ class MoleculerClientError extends MoleculerError {
 	}
 }
 
-
 /**
  * 'Service not found' Error message
  *
@@ -124,13 +126,11 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 		let msg;
 		if (data.nodeID && data.action)
 			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
-		else if (data.action)
-			msg = `Service '${data.action}' is not found.`;
+		else if (data.action) msg = `Service '${data.action}' is not found.`;
 
 		if (data.service && data.version)
 			msg = `Service '${data.version}.${data.service}' not found.`;
-		else if (data.service)
-			msg = `Service '${data.service}' not found.`;
+		else if (data.service) msg = `Service '${data.service}' not found.`;
 
 		super(msg, 404, "SERVICE_NOT_FOUND", data);
 	}
@@ -154,8 +154,7 @@ class ServiceNotAvailableError extends MoleculerRetryableError {
 		let msg;
 		if (data.nodeID)
 			msg = `Service '${data.action}' is not available on '${data.nodeID}' node.`;
-		else
-			msg = `Service '${data.action}' is not available.`;
+		else msg = `Service '${data.action}' is not available.`;
 
 		super(msg, 404, "SERVICE_NOT_AVAILABLE", data);
 	}
@@ -176,7 +175,12 @@ class RequestTimeoutError extends MoleculerRetryableError {
 	 * @memberof RequestTimeoutError
 	 */
 	constructor(data) {
-		super(`Request is timed out when call '${data.action}' action on '${data.nodeID}' node.`, 504, "REQUEST_TIMEOUT", data);
+		super(
+			`Request is timed out when call '${data.action}' action on '${data.nodeID}' node.`,
+			504,
+			"REQUEST_TIMEOUT",
+			data
+		);
 	}
 }
 
@@ -195,7 +199,12 @@ class RequestSkippedError extends MoleculerError {
 	 * @memberof RequestSkippedError
 	 */
 	constructor(data) {
-		super(`Calling '${data.action}' is skipped because timeout reached on '${data.nodeID}' node.`, 514, "REQUEST_SKIPPED", data);
+		super(
+			`Calling '${data.action}' is skipped because timeout reached on '${data.nodeID}' node.`,
+			514,
+			"REQUEST_SKIPPED",
+			data
+		);
 		this.retryable = false;
 	}
 }
@@ -215,7 +224,12 @@ class RequestRejectedError extends MoleculerRetryableError {
 	 * @memberof RequestRejectedError
 	 */
 	constructor(data) {
-		super(`Request is rejected when call '${data.action}' action on '${data.nodeID}' node.`, 503, "REQUEST_REJECTED", data);
+		super(
+			`Request is rejected when call '${data.action}' action on '${data.nodeID}' node.`,
+			503,
+			"REQUEST_REJECTED",
+			data
+		);
 	}
 }
 
@@ -234,7 +248,12 @@ class QueueIsFullError extends MoleculerRetryableError {
 	 * @memberof QueueIsFullError
 	 */
 	constructor(data) {
-		super(`Queue is full. Request '${data.action}' action on '${data.nodeID}' node is rejected.`, 429, "QUEUE_FULL", data);
+		super(
+			`Queue is full. Request '${data.action}' action on '${data.nodeID}' node is rejected.`,
+			429,
+			"QUEUE_FULL",
+			data
+		);
 	}
 }
 
@@ -274,7 +293,12 @@ class MaxCallLevelError extends MoleculerError {
 	 * @memberof MaxCallLevelError
 	 */
 	constructor(data) {
-		super(`Request level is reached the limit (${data.level}) on '${data.nodeID}' node.`, 500, "MAX_CALL_LEVEL", data);
+		super(
+			`Request level is reached the limit (${data.level}) on '${data.nodeID}' node.`,
+			500,
+			"MAX_CALL_LEVEL",
+			data
+		);
 		this.retryable = false;
 	}
 }
@@ -331,11 +355,18 @@ class GracefulStopTimeoutError extends MoleculerError {
 	 * @memberof GracefulStopTimeoutError
 	 */
 	constructor(data) {
-		if (data && data.service)  {
-			super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", data && data.service ? {
-				name: data.service.name,
-				version: data.service.version
-			} : null);
+		if (data && data.service) {
+			super(
+				`Unable to stop '${data.service.name}' service gracefully.`,
+				500,
+				"GRACEFUL_STOP_TIMEOUT",
+				data && data.service
+					? {
+							name: data.service.name,
+							version: data.service.version
+					  }
+					: null
+			);
 		} else {
 			super("Unable to stop ServiceBroker gracefully.", 500, "GRACEFUL_STOP_TIMEOUT");
 		}
@@ -389,31 +420,46 @@ class InvalidPacketDataError extends MoleculerError {
 function recreateError(err) {
 	const Class = module.exports[err.name];
 	if (Class) {
-		switch(err.name) {
-			case "MoleculerError": return new Class(err.message, err.code, err.type, err.data);
-			case "MoleculerRetryableError": return new Class(err.message, err.code, err.type, err.data);
-			case "MoleculerServerError": return new Class(err.message, err.code, err.type, err.data);
-			case "MoleculerClientError": return new Class(err.message, err.code, err.type, err.data);
+		switch (err.name) {
+			case "MoleculerError":
+				return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerRetryableError":
+				return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerServerError":
+				return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerClientError":
+				return new Class(err.message, err.code, err.type, err.data);
 
-			case "ValidationError": return new Class(err.message, err.type, err.data);
+			case "ValidationError":
+				return new Class(err.message, err.type, err.data);
 
-			case "ServiceNotFoundError": return new Class(err.data);
-			case "ServiceNotAvailableError": return new Class(err.data);
-			case "RequestTimeoutError": return new Class(err.data);
-			case "RequestSkippedError": return new Class(err.data);
-			case "RequestRejectedError": return new Class(err.data);
-			case "QueueIsFullError": return new Class(err.data);
-			case "MaxCallLevelError": return new Class(err.data);
-			case "GracefulStopTimeoutError": return new Class(err.data);
-			case "ProtocolVersionMismatchError": return new Class(err.data);
-			case "InvalidPacketDataError": return new Class(err.data);
+			case "ServiceNotFoundError":
+				return new Class(err.data);
+			case "ServiceNotAvailableError":
+				return new Class(err.data);
+			case "RequestTimeoutError":
+				return new Class(err.data);
+			case "RequestSkippedError":
+				return new Class(err.data);
+			case "RequestRejectedError":
+				return new Class(err.data);
+			case "QueueIsFullError":
+				return new Class(err.data);
+			case "MaxCallLevelError":
+				return new Class(err.data);
+			case "GracefulStopTimeoutError":
+				return new Class(err.data);
+			case "ProtocolVersionMismatchError":
+				return new Class(err.data);
+			case "InvalidPacketDataError":
+				return new Class(err.data);
 
 			case "ServiceSchemaError":
-			case "BrokerOptionsError": return new Class(err.message, err.data);
+			case "BrokerOptionsError":
+				return new Class(err.message, err.data);
 		}
 	}
 }
-
 
 module.exports = {
 	MoleculerError,

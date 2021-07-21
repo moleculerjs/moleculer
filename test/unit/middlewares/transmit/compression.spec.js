@@ -11,7 +11,6 @@ describe("Test CompressionMiddleware", () => {
 	const broker = new ServiceBroker({ logger: false });
 
 	describe("Without threshold", () => {
-
 		it("should register hooks", () => {
 			const mw = Middleware();
 			mw.created(broker);
@@ -27,11 +26,18 @@ describe("Test CompressionMiddleware", () => {
 			const next = jest.fn(() => Promise.resolve());
 			const send = mw.transporterSend.call(broker, next);
 
-			return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-				expect(next.mock.calls[0][1]).toEqual(Buffer.concat([COMPRESSED_FLAG, zlib.deflateSync(Buffer.from("uncompressed data"))]));
-			});
+			return send("topic", Buffer.from("uncompressed data"), meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
+					expect(next.mock.calls[0][1]).toEqual(
+						Buffer.concat([
+							COMPRESSED_FLAG,
+							zlib.deflateSync(Buffer.from("uncompressed data"))
+						])
+					);
+				});
 		});
 
 		it("should decompress with 'deflate'", () => {
@@ -41,12 +47,21 @@ describe("Test CompressionMiddleware", () => {
 			const meta = {};
 			const next = jest.fn();
 			const receive = mw.transporterReceive.call(broker, next);
-			const compressedData = Buffer.concat([COMPRESSED_FLAG, zlib.deflateSync(Buffer.from("compressed data"))]);
+			const compressedData = Buffer.concat([
+				COMPRESSED_FLAG,
+				zlib.deflateSync(Buffer.from("compressed data"))
+			]);
 
-			return receive("topic", compressedData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
-			});
+			return receive("topic", compressedData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith(
+						"topic",
+						Buffer.from("compressed data"),
+						meta
+					);
+				});
 		});
 
 		it("should compress with 'deflateRaw'", () => {
@@ -57,11 +72,18 @@ describe("Test CompressionMiddleware", () => {
 			const next = jest.fn(() => Promise.resolve());
 			const send = mw.transporterSend.call(broker, next);
 
-			return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-				expect(next.mock.calls[0][1]).toEqual(Buffer.concat([COMPRESSED_FLAG, zlib.deflateRawSync(Buffer.from("uncompressed data"))]));
-			});
+			return send("topic", Buffer.from("uncompressed data"), meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
+					expect(next.mock.calls[0][1]).toEqual(
+						Buffer.concat([
+							COMPRESSED_FLAG,
+							zlib.deflateRawSync(Buffer.from("uncompressed data"))
+						])
+					);
+				});
 		});
 
 		it("should decompress with 'deflateRaw'", () => {
@@ -71,12 +93,21 @@ describe("Test CompressionMiddleware", () => {
 			const meta = {};
 			const next = jest.fn();
 			const receive = mw.transporterReceive.call(broker, next);
-			const compressedData = Buffer.concat([COMPRESSED_FLAG, zlib.deflateRawSync(Buffer.from("compressed data"))]);
+			const compressedData = Buffer.concat([
+				COMPRESSED_FLAG,
+				zlib.deflateRawSync(Buffer.from("compressed data"))
+			]);
 
-			return receive("topic", compressedData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
-			});
+			return receive("topic", compressedData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith(
+						"topic",
+						Buffer.from("compressed data"),
+						meta
+					);
+				});
 		});
 
 		it("should compress with 'gzip'", () => {
@@ -87,11 +118,18 @@ describe("Test CompressionMiddleware", () => {
 			const next = jest.fn(() => Promise.resolve());
 			const send = mw.transporterSend.call(broker, next);
 
-			return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-				expect(next.mock.calls[0][1]).toEqual(Buffer.concat([COMPRESSED_FLAG, zlib.gzipSync(Buffer.from("uncompressed data"))]));
-			});
+			return send("topic", Buffer.from("uncompressed data"), meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
+					expect(next.mock.calls[0][1]).toEqual(
+						Buffer.concat([
+							COMPRESSED_FLAG,
+							zlib.gzipSync(Buffer.from("uncompressed data"))
+						])
+					);
+				});
 		});
 
 		it("should decompress with 'gzip'", () => {
@@ -101,14 +139,22 @@ describe("Test CompressionMiddleware", () => {
 			const meta = {};
 			const next = jest.fn();
 			const receive = mw.transporterReceive.call(broker, next);
-			const compressedData = Buffer.concat([COMPRESSED_FLAG, zlib.gzipSync(Buffer.from("compressed data"))]);
+			const compressedData = Buffer.concat([
+				COMPRESSED_FLAG,
+				zlib.gzipSync(Buffer.from("compressed data"))
+			]);
 
-			return receive("topic", compressedData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
-			});
+			return receive("topic", compressedData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith(
+						"topic",
+						Buffer.from("compressed data"),
+						meta
+					);
+				});
 		});
-
 	});
 
 	describe("With threshold", () => {
@@ -126,22 +172,30 @@ describe("Test CompressionMiddleware", () => {
 			next.mockClear();
 			const send = mw.transporterSend.call(broker, next);
 
-			return send("topic", shortData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-				expect(next.mock.calls[0][1]).toEqual(Buffer.concat([NOT_COMPRESSED_FLAG, shortData]));
-			});
+			return send("topic", shortData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
+					expect(next.mock.calls[0][1]).toEqual(
+						Buffer.concat([NOT_COMPRESSED_FLAG, shortData])
+					);
+				});
 		});
 
 		it("should compress large packets", () => {
 			next.mockClear();
 			const send = mw.transporterSend.call(broker, next);
 
-			return send("topic", longData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-				expect(next.mock.calls[0][1]).toEqual(Buffer.concat([COMPRESSED_FLAG, zlib.deflateSync(longData)]));
-			});
+			return send("topic", longData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
+					expect(next.mock.calls[0][1]).toEqual(
+						Buffer.concat([COMPRESSED_FLAG, zlib.deflateSync(longData)])
+					);
+				});
 		});
 
 		it("should decompress if compressed regardless the threshold", () => {
@@ -149,10 +203,12 @@ describe("Test CompressionMiddleware", () => {
 			const receive = mw.transporterReceive.call(broker, next);
 			const compressedData = Buffer.concat([COMPRESSED_FLAG, zlib.deflateSync(shortData)]);
 
-			return receive("topic", compressedData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", shortData, meta);
-			});
+			return receive("topic", compressedData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", shortData, meta);
+				});
 		});
 
 		it("should not decompress if not compressed regardless the threshold", () => {
@@ -160,12 +216,12 @@ describe("Test CompressionMiddleware", () => {
 			const receive = mw.transporterReceive.call(broker, next);
 			const compressedData = Buffer.concat([NOT_COMPRESSED_FLAG, shortData]);
 
-			return receive("topic", compressedData, meta).catch(protectReject).then(() => {
-				expect(next).toHaveBeenCalledTimes(1);
-				expect(next).toHaveBeenCalledWith("topic", shortData, meta);
-			});
+			return receive("topic", compressedData, meta)
+				.catch(protectReject)
+				.then(() => {
+					expect(next).toHaveBeenCalledTimes(1);
+					expect(next).toHaveBeenCalledWith("topic", shortData, meta);
+				});
 		});
 	});
-
 });
-

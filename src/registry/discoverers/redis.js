@@ -23,15 +23,13 @@ let Redis;
  * @class RedisDiscoverer
  */
 class RedisDiscoverer extends BaseDiscoverer {
-
 	/**
 	 * Creates an instance of Discoverer.
 	 *
 	 * @memberof RedisDiscoverer
 	 */
 	constructor(opts) {
-		if (typeof opts === "string")
-			opts = { redis: opts };
+		if (typeof opts === "string") opts = { redis: opts };
 
 		super(opts);
 
@@ -40,7 +38,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			serializer: "JSON",
 			fullCheck: 10, // Disable with `0` or `null`
 			scanLength: 100,
-			monitor: false,
+			monitor: false
 		});
 
 		// Loop counter for full checks. Starts from a random value for better distribution
@@ -73,10 +71,18 @@ class RedisDiscoverer extends BaseDiscoverer {
 			Redis = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+			this.broker.fatal(
+				"The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.",
+				err,
+				true
+			);
 		}
 
-		this.logger.warn(kleur.yellow().bold("Redis Discoverer is an EXPERIMENTAL module. Do NOT use it in production!"));
+		this.logger.warn(
+			kleur
+				.yellow()
+				.bold("Redis Discoverer is an EXPERIMENTAL module. Do NOT use it in production!")
+		);
 
 		// Using shorter instanceID to reduce the network traffic
 		this.instanceHash = this.broker.instanceID.substring(0, 8);
@@ -116,7 +122,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.lastBeatSeq = 0;
 		});
 
-		this.client.on("error", (err) => {
+		this.client.on("error", err => {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -124,7 +130,9 @@ class RedisDiscoverer extends BaseDiscoverer {
 		if (this.opts.monitor && isFunction(this.client.monitor)) {
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis Discoverer entering monitoring mode...");
-				monitor.on("monitor", (time, args/*, source, database*/) => this.logger.debug(args));
+				monitor.on("monitor", (time, args /*, source, database*/) =>
+					this.logger.debug(args)
+				);
 			});
 		}
 
@@ -141,19 +149,28 @@ class RedisDiscoverer extends BaseDiscoverer {
 	stop() {
 		if (this.infoUpdateTimer) clearTimeout(this.infoUpdateTimer);
 
-		return super.stop()
-			.then(() => {
-				if (this.client)
-					return this.client.quit();
-			});
+		return super.stop().then(() => {
+			if (this.client) return this.client.quit();
+		});
 	}
 
 	/**
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true, description: "Number of Service Registry fetching from Redis" });
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS, description: "Time of Service Registry fetching from Redis" });
+		this.broker.metrics.register({
+			name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL,
+			type: METRIC.TYPE_COUNTER,
+			rate: true,
+			description: "Number of Service Registry fetching from Redis"
+		});
+		this.broker.metrics.register({
+			name: METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME,
+			type: METRIC.TYPE_HISTOGRAM,
+			quantiles: true,
+			unit: METRIC.UNIT_MILLISECONDS,
+			description: "Time of Service Registry fetching from Redis"
+		});
 	}
 
 	/**
@@ -166,7 +183,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			// Reset the INFO packet expiry.
 			this.client.expire(this.INFO_KEY, 60 * 60); // 60 mins
 			this.recreateInfoUpdateTimer();
-		}, 20 * 60 * 1000 ); // 20 mins
+		}, 20 * 60 * 1000); // 20 mins
 		this.infoUpdateTimer.unref();
 	}
 
@@ -201,10 +218,14 @@ class RedisDiscoverer extends BaseDiscoverer {
 				}
 
 				// Create new HB key
-				pl = pl.setex(key, this.opts.heartbeatTimeout, this.serializer.serialize(data, P.PACKET_HEARTBEAT));
+				pl = pl.setex(
+					key,
+					this.opts.heartbeatTimeout,
+					this.serializer.serialize(data, P.PACKET_HEARTBEAT)
+				);
 				return pl.exec();
 			})
-			.then(() => this.lastBeatSeq = seq)
+			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
 			.then(() => {
@@ -218,7 +239,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 */
 	collectOnlineNodes() {
 		// Get the current node list so that we can check the disconnected nodes.
-		const prevNodes = this.registry.nodes.list({ onlyAvailable: true, withServices: false })
+		const prevNodes = this.registry.nodes
+			.list({ onlyAvailable: true, withServices: false })
 			.map(node => node.id)
 			.filter(nodeID => nodeID !== this.broker.nodeID);
 
@@ -247,20 +269,27 @@ class RedisDiscoverer extends BaseDiscoverer {
 							//this.logger.debug("Full check", this.idx);
 							this.idx = 0;
 
-							return this.client.mgetBuffer(...scannedKeys)
-								.then(packets => packets.map((raw, i) => {
+							return this.client.mgetBuffer(...scannedKeys).then(packets =>
+								packets.map((raw, i) => {
 									try {
-										const p = scannedKeys[i].substring(`${this.PREFIX}-BEAT:`.length).split("|");
+										const p = scannedKeys[i]
+											.substring(`${this.PREFIX}-BEAT:`.length)
+											.split("|");
 										return {
 											sender: p[0],
 											instanceID: p[1],
 											seq: Number(p[2]),
 											...this.serializer.deserialize(raw, P.PACKET_INFO)
 										};
-									} catch(err) {
-										this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
+									} catch (err) {
+										this.logger.warn(
+											"Unable to parse HEARTBEAT packet",
+											err,
+											raw
+										);
 									}
-								}));
+								})
+							);
 						} else {
 							//this.logger.debug("Lazy check", this.idx);
 							// Lazy check
@@ -284,12 +313,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 					})
 					.then(() => resolve());
 			});
-
 		}).then(() => {
 			if (prevNodes.length > 0) {
 				// Disconnected nodes
 				prevNodes.forEach(nodeID => {
-					this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
+					this.logger.info(
+						`The node '${nodeID}' is not available. Removing from registry...`
+					);
 					this.remoteNodeDisconnected(nodeID, true);
 				});
 			}
@@ -302,19 +332,18 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	discoverNode(nodeID) {
-		return this.client.getBuffer(`${this.PREFIX}-INFO:${nodeID}`)
-			.then(res => {
-				if (!res) {
-					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
-					return;
-				}
-				try {
-					const info = this.serializer.deserialize(res, P.PACKET_INFO);
-					return this.processRemoteNodeInfo(nodeID, info);
-				} catch(err) {
-					this.logger.warn("Unable to parse INFO packet", err, res);
-				}
-			});
+		return this.client.getBuffer(`${this.PREFIX}-INFO:${nodeID}`).then(res => {
+			if (!res) {
+				this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
+				return;
+			}
+			try {
+				const info = this.serializer.deserialize(res, P.PACKET_INFO);
+				return this.processRemoteNodeInfo(nodeID, info);
+			} catch (err) {
+				this.logger.warn("Unable to parse INFO packet", err, res);
+			}
+		});
 	}
 
 	/**
@@ -331,24 +360,32 @@ class RedisDiscoverer extends BaseDiscoverer {
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();
 
-		const payload = Object.assign({
-			ver: this.broker.PROTOCOL_VERSION,
-			sender: this.broker.nodeID
-		}, info);
+		const payload = Object.assign(
+			{
+				ver: this.broker.PROTOCOL_VERSION,
+				sender: this.broker.nodeID
+			},
+			info
+		);
 
 		const key = this.INFO_KEY;
 		const seq = this.localNode.seq;
 
-		const p = !nodeID && this.broker.options.disableBalancer ? this.transit.tx.makeBalancedSubscriptions() : this.Promise.resolve();
-		return p.then(() => this.client.setex(key, 30 * 60, this.serializer.serialize(payload, P.PACKET_INFO)))
+		const p =
+			!nodeID && this.broker.options.disableBalancer
+				? this.transit.tx.makeBalancedSubscriptions()
+				: this.Promise.resolve();
+		return p
+			.then(() =>
+				this.client.setex(key, 30 * 60, this.serializer.serialize(payload, P.PACKET_INFO))
+			)
 			.then(() => {
 				this.lastInfoSeq = seq;
 
 				this.recreateInfoUpdateTimer();
 
 				// Sending a new heartbeat because it contains the `seq`
-				if (!nodeID)
-					return this.beat();
+				if (!nodeID) return this.beat();
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to Redis server", err);
@@ -383,12 +420,13 @@ class RedisDiscoverer extends BaseDiscoverer {
 				}
 
 				stream.pause();
-				return this.client.del(keys)
+				return this.client
+					.del(keys)
 					.then(() => stream.resume())
-					.catch((err) => reject(err));
+					.catch(err => reject(err));
 			});
 
-			stream.on("error", (err) => {
+			stream.on("error", err => {
 				this.logger.error(`Error occured while deleting Redis keys '${match}'.`, err);
 				reject(err);
 			});

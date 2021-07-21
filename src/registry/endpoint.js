@@ -30,9 +30,7 @@ class Endpoint {
 		this.state = true;
 	}
 
-	destroy() {
-
-	}
+	destroy() {}
 
 	/**
 	 * Get availability
@@ -44,9 +42,7 @@ class Endpoint {
 		return this.state;
 	}
 
-	update() {
-
-	}
+	update() {}
 }
 
 module.exports = Endpoint;

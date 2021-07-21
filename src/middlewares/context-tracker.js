@@ -9,13 +9,12 @@
 const { GracefulStopTimeoutError } = require("../errors");
 
 module.exports = function ContextTrackerMiddleware(broker) {
-
 	function addContext(ctx) {
 		if (ctx.service) {
-		// Local request
+			// Local request
 			ctx.service._trackedContexts.push(ctx);
 		} else {
-		// Remote request
+			// Remote request
 			ctx.broker._trackedContexts.push(ctx);
 		}
 	}
@@ -23,25 +22,23 @@ module.exports = function ContextTrackerMiddleware(broker) {
 	function removeContext(ctx) {
 		if (ctx.service) {
 			const idx = ctx.service._trackedContexts.indexOf(ctx);
-			if (idx !== -1)
-				ctx.service._trackedContexts.splice(idx, 1);
+			if (idx !== -1) ctx.service._trackedContexts.splice(idx, 1);
 		} else {
 			const idx = ctx.broker._trackedContexts.indexOf(ctx);
-			if (idx !== -1)
-				ctx.broker._trackedContexts.splice(idx, 1);
+			if (idx !== -1) ctx.broker._trackedContexts.splice(idx, 1);
 		}
 	}
 
 	function wrapTrackerMiddleware(handler) {
 		if (this.options.tracking && this.options.tracking.enabled) {
-
 			return function ContextTrackerMiddleware(ctx) {
-
-				const tracked = ctx.options.tracking != null ? ctx.options.tracking : this.options.tracking.enabled;
+				const tracked =
+					ctx.options.tracking != null
+						? ctx.options.tracking
+						: this.options.tracking.enabled;
 
 				// If no need to track
-				if (!tracked)
-					return handler(ctx);
+				if (!tracked) return handler(ctx);
 
 				// Track the context
 				addContext(ctx);
@@ -49,13 +46,15 @@ module.exports = function ContextTrackerMiddleware(broker) {
 				// Call the handler
 				let p = handler(ctx);
 
-				p = p.then(res => {
-					removeContext(ctx);
-					return res;
-				}).catch(err => {
-					removeContext(ctx);
-					throw err;
-				});
+				p = p
+					.then(res => {
+						removeContext(ctx);
+						return res;
+					})
+					.catch(err => {
+						removeContext(ctx);
+						throw err;
+					});
 
 				return p;
 			}.bind(this);
@@ -65,10 +64,9 @@ module.exports = function ContextTrackerMiddleware(broker) {
 	}
 
 	function waitingForActiveContexts(list, logger, time, service) {
-		if (!list || list.length === 0)
-			return broker.Promise.resolve();
+		if (!list || list.length === 0) return broker.Promise.resolve();
 
-		return new broker.Promise((resolve) => {
+		return new broker.Promise(resolve => {
 			let timedOut = false;
 			const timeout = setTimeout(() => {
 				timedOut = true;
@@ -87,8 +85,7 @@ module.exports = function ContextTrackerMiddleware(broker) {
 						logger.warn(`Waiting for ${list.length} running context(s)...`);
 						first = false;
 					}
-					if (!timedOut)
-						setTimeout(checkForContexts, 100);
+					if (!timedOut) setTimeout(checkForContexts, 100);
 				}
 			};
 			setImmediate(checkForContexts);
@@ -115,12 +112,22 @@ module.exports = function ContextTrackerMiddleware(broker) {
 
 		// Before a local service stopping
 		serviceStopping(service) {
-			return waitingForActiveContexts(service._trackedContexts, service.logger, service.settings.$shutdownTimeout || service.broker.options.tracking.shutdownTimeout, service);
+			return waitingForActiveContexts(
+				service._trackedContexts,
+				service.logger,
+				service.settings.$shutdownTimeout ||
+					service.broker.options.tracking.shutdownTimeout,
+				service
+			);
 		},
 
 		// Before broker stopping
 		stopping(broker) {
-			return waitingForActiveContexts(broker._trackedContexts, broker.logger, broker.options.tracking.shutdownTimeout);
-		},
+			return waitingForActiveContexts(
+				broker._trackedContexts,
+				broker.logger,
+				broker.options.tracking.shutdownTimeout
+			);
+		}
 	};
 };

@@ -4,7 +4,6 @@ let EventEndpoint = require("../../../src/registry/endpoint-event");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test EventEndpoint", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 

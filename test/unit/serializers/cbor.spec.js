@@ -11,16 +11,14 @@ describe("Test CborSerializer constructor", () => {
 	});
 });
 
-
 describe("Test CborSerializer", () => {
-
 	let serializer = new CborSerializer();
 	serializer.init();
 
 	it("should serialize the event packet", () => {
 		const now = new Date();
 		const obj = {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -43,7 +41,10 @@ describe("Test CborSerializer", () => {
 	});
 
 	it("should deserialize maps to objects by default", () => {
-		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const input = new Map([
+			["foo", "bar"],
+			["baz", "qux"]
+		]);
 		const s = serializer.serialize(input);
 		const res = serializer.deserialize(s);
 
@@ -56,7 +57,10 @@ describe("Test CborSerializer", () => {
 		const optsSerializer = new CborSerializer(options);
 		optsSerializer.init();
 
-		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const input = new Map([
+			["foo", "bar"],
+			["baz", "qux"]
+		]);
 		const s = optsSerializer.serialize(input);
 		const res = optsSerializer.deserialize(s);
 
@@ -68,7 +72,10 @@ describe("Test CborSerializer", () => {
 		const optsSerializer = new CborSerializer(options);
 		optsSerializer.init();
 
-		const input = new Map([["foo", "bar"], ["baz", "qux"]]);
+		const input = new Map([
+			["foo", "bar"],
+			["baz", "qux"]
+		]);
 		const s = optsSerializer.serialize(input);
 		const res = optsSerializer.deserialize(s);
 

@@ -15,7 +15,6 @@ const TcpWriter = require("../../../../src/transporters/tcp/tcp-writer");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test TcpWriter constructor", () => {
-
 	it("check constructor", () => {
 		let transporter = {
 			logger: jest.fn(),
@@ -30,7 +29,6 @@ describe("Test TcpWriter constructor", () => {
 		expect(writer.sockets).toBeInstanceOf(Map);
 		expect(writer.logger).toBe(transporter.logger);
 	});
-
 });
 
 describe("Test TcpWriter.send", () => {
@@ -57,22 +55,30 @@ describe("Test TcpWriter.send", () => {
 	});
 
 	it("should call connect if no socket", () => {
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).then(() => {
-			expect(writer.connect).toHaveBeenCalledTimes(1);
-			expect(writer.connect).toHaveBeenCalledWith(node.id);
-			expect(socket.lastUsed).toBeDefined();
-		});
+		return writer
+			.send("node-2", P.PACKET_REQUEST, Buffer.from("data"))
+			.catch(protectReject)
+			.then(() => {
+				expect(writer.connect).toHaveBeenCalledTimes(1);
+				expect(writer.connect).toHaveBeenCalledWith(node.id);
+				expect(socket.lastUsed).toBeDefined();
+			});
 	});
 
 	it("should reject error and call removeSocket if write throw error", () => {
 		writer.removeSocket = jest.fn();
-		socket.write = jest.fn(() => { throw new Error("Write error"); });
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(Error);
-
-			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
-			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
+		socket.write = jest.fn(() => {
+			throw new Error("Write error");
 		});
+		return writer
+			.send("node-2", P.PACKET_REQUEST, Buffer.from("data"))
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(Error);
+
+				expect(writer.removeSocket).toHaveBeenCalledTimes(1);
+				expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
+			});
 	});
 
 	it("should not call connect & call write", () => {
@@ -80,14 +86,19 @@ describe("Test TcpWriter.send", () => {
 		writer.sockets.set("node-2", socket);
 		writer.connect.mockClear();
 
-		return writer.send("node-2", C.PACKET_GOSSIP_REQ_ID, Buffer.from("data")).catch(protectReject).then(() => {
-			expect(writer.connect).toHaveBeenCalledTimes(0);
+		return writer
+			.send("node-2", C.PACKET_GOSSIP_REQ_ID, Buffer.from("data"))
+			.catch(protectReject)
+			.then(() => {
+				expect(writer.connect).toHaveBeenCalledTimes(0);
 
-			expect(socket.write).toHaveBeenCalledTimes(1);
-			expect(socket.write).toHaveBeenCalledWith(Buffer.from([12, 0, 0, 0, 10, 6, 100, 97, 116, 97]), expect.any(Function));
-		});
+				expect(socket.write).toHaveBeenCalledTimes(1);
+				expect(socket.write).toHaveBeenCalledWith(
+					Buffer.from([12, 0, 0, 0, 10, 6, 100, 97, 116, 97]),
+					expect.any(Function)
+				);
+			});
 	});
-
 });
 
 describe("Test TcpWriter.connect", () => {
@@ -126,10 +137,13 @@ describe("Test TcpWriter.connect", () => {
 	});
 
 	it("should reject error if no node info", () => {
-		return writer.connect("node-2").then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(E.MoleculerError);
-			expect(err.message).toBe("Missing node info for 'node-2'!");
-		});
+		return writer
+			.connect("node-2")
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(E.MoleculerError);
+				expect(err.message).toBe("Missing node info for 'node-2'!");
+			});
 	});
 
 	it("should connect & send sendHello", () => {
@@ -139,53 +153,56 @@ describe("Test TcpWriter.connect", () => {
 		writer.manageConnections = jest.fn();
 		writer.removeSocket = jest.fn();
 
-		let p = writer.connect("node-2").catch(protectReject).then(s => {
-			expect(socket).toBe(s);
-			expect(socket.nodeID).toBe("node-2");
-			expect(socket.lastUsed).toBeDefined();
+		let p = writer
+			.connect("node-2")
+			.catch(protectReject)
+			.then(s => {
+				expect(socket).toBe(s);
+				expect(socket.nodeID).toBe("node-2");
+				expect(socket.lastUsed).toBeDefined();
 
-			expect(socket.setNoDelay).toHaveBeenCalledTimes(1);
-			expect(socket.setNoDelay).toHaveBeenCalledWith(true);
+				expect(socket.setNoDelay).toHaveBeenCalledTimes(1);
+				expect(socket.setNoDelay).toHaveBeenCalledWith(true);
 
-			expect(transporter.getNodeAddress).toHaveBeenCalledTimes(1);
-			expect(transporter.getNodeAddress).toHaveBeenCalledWith(node);
+				expect(transporter.getNodeAddress).toHaveBeenCalledTimes(1);
+				expect(transporter.getNodeAddress).toHaveBeenCalledWith(node);
 
-			expect(writer.addSocket).toHaveBeenCalledTimes(1);
-			expect(writer.addSocket).toHaveBeenCalledWith("node-2", socket, true);
+				expect(writer.addSocket).toHaveBeenCalledTimes(1);
+				expect(writer.addSocket).toHaveBeenCalledWith("node-2", socket, true);
 
-			expect(transporter.sendHello).toHaveBeenCalledTimes(1);
-			expect(transporter.sendHello).toHaveBeenCalledWith("node-2");
+				expect(transporter.sendHello).toHaveBeenCalledTimes(1);
+				expect(transporter.sendHello).toHaveBeenCalledWith("node-2");
 
-			expect(writer.manageConnections).toHaveBeenCalledTimes(0);
+				expect(writer.manageConnections).toHaveBeenCalledTimes(0);
 
-			expect(socket.on).toHaveBeenCalledTimes(2);
-			expect(socket.on).toHaveBeenCalledWith("error", expect.any(Function));
-			expect(socket.on).toHaveBeenCalledWith("end", expect.any(Function));
+				expect(socket.on).toHaveBeenCalledTimes(2);
+				expect(socket.on).toHaveBeenCalledWith("error", expect.any(Function));
+				expect(socket.on).toHaveBeenCalledWith("end", expect.any(Function));
 
-			expect(socket.unref).toHaveBeenCalledTimes(1);
+				expect(socket.unref).toHaveBeenCalledTimes(1);
 
-			// Fire socket error
-			writer.emit = jest.fn();
+				// Fire socket error
+				writer.emit = jest.fn();
 
-			socketCallbacks.error(new Error());
+				socketCallbacks.error(new Error());
 
-			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
-			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
+				expect(writer.removeSocket).toHaveBeenCalledTimes(1);
+				expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
 
-			expect(writer.emit).toHaveBeenCalledTimes(1);
-			expect(writer.emit).toHaveBeenCalledWith("error", expect.any(Error), "node-2");
+				expect(writer.emit).toHaveBeenCalledTimes(1);
+				expect(writer.emit).toHaveBeenCalledWith("error", expect.any(Error), "node-2");
 
-			// Socket end
-			writer.emit.mockClear();
-			writer.removeSocket.mockClear();
-			socketCallbacks.end();
+				// Socket end
+				writer.emit.mockClear();
+				writer.removeSocket.mockClear();
+				socketCallbacks.end();
 
-			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
-			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
+				expect(writer.removeSocket).toHaveBeenCalledTimes(1);
+				expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
 
-			expect(writer.emit).toHaveBeenCalledTimes(1);
-			expect(writer.emit).toHaveBeenCalledWith("end", "node-2");
-		});
+				expect(writer.emit).toHaveBeenCalledTimes(1);
+				expect(writer.emit).toHaveBeenCalledWith("end", "node-2");
+			});
 
 		netConnectCB();
 
@@ -205,9 +222,12 @@ describe("Test TcpWriter.connect", () => {
 		writer.sockets.set(4, null);
 		writer.sockets.set(5, null);
 
-		let p = writer.connect("node-2").catch(protectReject).then(() => {
-			expect(writer.manageConnections).toHaveBeenCalledTimes(1);
-		});
+		let p = writer
+			.connect("node-2")
+			.catch(protectReject)
+			.then(() => {
+				expect(writer.manageConnections).toHaveBeenCalledTimes(1);
+			});
 
 		netConnectCB();
 
@@ -218,10 +238,13 @@ describe("Test TcpWriter.connect", () => {
 		transporter.getNode = jest.fn(() => node);
 		transporter.sendHello = jest.fn(() => Promise.reject(new Error("Hello error")));
 
-		let p = writer.connect("node-2").then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(Error);
-			expect(err.message).toBe("Hello error");
-		});
+		let p = writer
+			.connect("node-2")
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(Error);
+				expect(err.message).toBe("Hello error");
+			});
 
 		netConnectCB();
 
@@ -230,15 +253,18 @@ describe("Test TcpWriter.connect", () => {
 
 	it("should reject if connect throw exception", () => {
 		transporter.getNode = jest.fn(() => node);
-		net.connect = jest.fn(() => { throw new Error("Connection error"); });
-
-		return writer.connect("node-2").then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(Error);
-			expect(err.message).toBe("Connection error");
+		net.connect = jest.fn(() => {
+			throw new Error("Connection error");
 		});
 
+		return writer
+			.connect("node-2")
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(Error);
+				expect(err.message).toBe("Connection error");
+			});
 	});
-
 });
 
 describe("Test TcpWriter.manageConnections", () => {
@@ -250,7 +276,6 @@ describe("Test TcpWriter.manageConnections", () => {
 			logger: broker.logger,
 			broker
 		};
-
 	});
 
 	it("should not call removeSocket", () => {
@@ -284,7 +309,6 @@ describe("Test TcpWriter.manageConnections", () => {
 		expect(writer.removeSocket).toHaveBeenCalledWith("node-5");
 		expect(writer.removeSocket).toHaveBeenCalledWith("node-3");
 	});
-
 });
 
 describe("Test TcpWriter.addSocket & removeSocket", () => {
@@ -329,7 +353,6 @@ describe("Test TcpWriter.addSocket & removeSocket", () => {
 		expect(writer.sockets.get("node-2")).toEqual({ id: 4 });
 	});
 
-
 	it("should remove socket", () => {
 		let s = {
 			destroyed: true,
@@ -361,9 +384,7 @@ describe("Test TcpWriter.addSocket & removeSocket", () => {
 
 		expect(s.destroy).toHaveBeenCalledTimes(1);
 	});
-
 });
-
 
 describe("Test TcpWriter.close", () => {
 	let transporter = {
@@ -384,5 +405,4 @@ describe("Test TcpWriter.close", () => {
 
 		expect(end).toHaveBeenCalledTimes(2);
 	});
-
 });

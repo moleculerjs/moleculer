@@ -30,12 +30,14 @@ const middleware2 = {
 					//resolve("data from mw2");
 					resolve();
 				}, 300);
-			}).then(() => {
-				return handler(ctx);
-			}).then(res => {
-				broker.logger.info(kleur.magenta("    mw2 after", ctx.action.name));
-				return res;
-			});
+			})
+				.then(() => {
+					return handler(ctx);
+				})
+				.then(res => {
+					broker.logger.info(kleur.magenta("    mw2 after", ctx.action.name));
+					return res;
+				});
 		};
 	}
 };
@@ -49,10 +51,8 @@ const middleware3 = {
 			const res = await handler(ctx);
 			broker.logger.info(kleur.cyan("mw3 after", ctx.action.name));
 			if (res) {
-				if (ctx.action.name == "users.get")
-					delete res.gravatar;
-				if (ctx.action.name == "posts.get")
-					delete res.content;
+				if (ctx.action.name == "users.get") delete res.gravatar;
+				if (ctx.action.name == "posts.get") delete res.content;
 			}
 			return res;
 		};
@@ -65,11 +65,7 @@ let broker = new ServiceBroker({
 	logLevel: "info",
 	transporter: null,
 	cacher: true,
-	middlewares: [
-		middleware1,
-		middleware2,
-		middleware3
-	]
+	middlewares: [middleware1, middleware2, middleware3]
 });
 
 /* Execution order
@@ -87,11 +83,11 @@ broker.call
 broker.loadService(path.join(__dirname, "..", "post.service.js"));
 broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start().then(() => {
-
-	return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res))
+	return broker
+		.call("posts.get", { id: 3 })
+		.then(res => broker.logger.info(res))
 		.then(() => {
 			console.log(kleur.bold("\n--- NEXT CALL FROM CACHE ---\n"));
 			return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));
 		});
-
 });

@@ -1,8 +1,8 @@
 "use strict";
 
-const _ 					= require("lodash");
-const BaseTraceExporter 	= require("./base");
-const { isFunction } 		= require("../../utils");
+const _ = require("lodash");
+const BaseTraceExporter = require("./base");
+const { isFunction } = require("../../utils");
 
 /**
  * Event Trace Exporter.
@@ -10,7 +10,6 @@ const { isFunction } 		= require("../../utils");
  * @class EventTraceExporter
  */
 class EventTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of EventTraceExporter.
 	 * @param {Object?} opts
@@ -56,7 +55,9 @@ class EventTraceExporter extends BaseTraceExporter {
 			this.timer.unref();
 		}
 
-		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags)
+			? this.opts.defaultTags.call(this, tracer)
+			: this.opts.defaultTags;
 	}
 
 	/**
@@ -81,8 +82,7 @@ class EventTraceExporter extends BaseTraceExporter {
 			if (span.tags.eventName == this.opts.eventName) return;
 
 			this.queue.push(span);
-			if (!this.timer)
-				this.flush();
+			if (!this.timer) this.flush();
 		}
 	}
 
@@ -97,8 +97,7 @@ class EventTraceExporter extends BaseTraceExporter {
 			if (span.tags.eventName == this.opts.eventName) return;
 
 			this.queue.push(span);
-			if (!this.timer)
-				this.flush();
+			if (!this.timer) this.flush();
 		}
 	}
 
@@ -134,13 +133,11 @@ class EventTraceExporter extends BaseTraceExporter {
 
 		return Array.from(this.queue).map(span => {
 			const newSpan = Object.assign({}, span);
-			if (newSpan.error)
-				newSpan.error = this.errorToObject(span.error);
+			if (newSpan.error) newSpan.error = this.errorToObject(span.error);
 
 			return newSpan;
 		});
 	}
-
 }
 
 module.exports = EventTraceExporter;

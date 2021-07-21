@@ -19,7 +19,6 @@ const cwd = process.cwd();
  * @class LoggerFactory
  */
 class LoggerFactory {
-
 	/**
 	 * Constructor of LoggerFactory
 	 */
@@ -40,16 +39,16 @@ class LoggerFactory {
 		if (opts === false || opts == null) {
 			// No logger
 			this.appenders = [];
-
 		} else if (opts === true || opts === console) {
 			// Default console logger
-			this.appenders = [Loggers.resolve({
-				type: "Console",
-				options: {
-					level: globalLogLevel
-				}
-			})];
-
+			this.appenders = [
+				Loggers.resolve({
+					type: "Console",
+					options: {
+						level: globalLogLevel
+					}
+				})
+			];
 		} else {
 			if (!Array.isArray(opts)) {
 				opts = [opts];
@@ -62,7 +61,9 @@ class LoggerFactory {
 
 				// Build-in with options
 				if (isPlainObject(o))
-					return Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } }));
+					return Loggers.resolve(
+						_.defaultsDeep({}, o, { options: { level: globalLogLevel } })
+					);
 
 				// Custom logger instance
 				return Loggers.resolve(o);
@@ -96,7 +97,7 @@ class LoggerFactory {
 				lineNumber: site.getLineNumber(),
 				columnNumber: site.getColumnNumber(),
 				methodName: site.getMethodName(),
-				functionName: site.getFunctionName(),
+				functionName: site.getFunctionName()
 			};
 		}
 	}
@@ -118,20 +119,19 @@ class LoggerFactory {
 		const appenders = this.appenders;
 
 		const logHandlers = _.compact(appenders.map(app => app.getLogHandler(bindings)));
-		const hasNewLogEntryMiddleware = broker.middlewares && broker.middlewares.registeredHooks.newLogEntry;
+		const hasNewLogEntryMiddleware =
+			broker.middlewares && broker.middlewares.registeredHooks.newLogEntry;
 
-		Loggers.LEVELS.forEach((type) => {
-			if (logHandlers.length == 0 && !hasNewLogEntryMiddleware)
-				return logger[type] = noop;
+		Loggers.LEVELS.forEach(type => {
+			if (logHandlers.length == 0 && !hasNewLogEntryMiddleware) return (logger[type] = noop);
 
-			logger[type] = function(...args) {
+			logger[type] = function (...args) {
 				if (hasNewLogEntryMiddleware)
 					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
 				if (logHandlers.length == 0) return;
 
-				for(let i = 0; i < logHandlers.length; i++)
-					logHandlers[i](type, args);
+				for (let i = 0; i < logHandlers.length; i++) logHandlers[i](type, args);
 			};
 		});
 
@@ -145,7 +145,6 @@ class LoggerFactory {
 		};*/
 
 		logger.appenders = appenders;
-
 
 		this.cache.set(this.getBindingsKey(bindings), logger);
 
@@ -161,11 +160,8 @@ class LoggerFactory {
 	getBindingsKey(bindings) {
 		if (!bindings) return "";
 
-		return ["nodeID", "ns", "mod"]
-			.map(key => bindings[key])
-			.join("|");
+		return ["nodeID", "ns", "mod"].map(key => bindings[key]).join("|");
 	}
-
 }
 
 module.exports = LoggerFactory;

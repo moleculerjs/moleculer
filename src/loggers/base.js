@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { match, isObject, isString }	= require("../utils");
+const { match, isObject, isString } = require("../utils");
 
 const LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
@@ -17,7 +17,6 @@ const LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
  * @class BaseLogger
  */
 class BaseLogger {
-
 	/**
 	 * Creates an instance of BaseLogger.
 	 *
@@ -37,7 +36,7 @@ class BaseLogger {
 	 *
 	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(loggerFactory)  {
+	init(loggerFactory) {
 		this.loggerFactory = loggerFactory;
 		this.broker = this.loggerFactory.broker;
 		this.Promise = this.broker.Promise;
@@ -54,17 +53,14 @@ class BaseLogger {
 		mod = mod ? mod.toUpperCase() : "";
 
 		const level = this.opts.level;
-		if (isString(level))
-			return level;
+		if (isString(level)) return level;
 
 		if (isObject(level)) {
-			if (level[mod])
-				return level[mod];
+			if (level[mod]) return level[mod];
 
 			// Find with matching
 			const key = Object.keys(level).find(m => match(mod, m) && m !== "**");
-			if (key)
-				return level[key];
+			if (key) return level[key];
 			else if (level["**"]) {
 				return level["**"];
 			}

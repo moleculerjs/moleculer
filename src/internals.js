@@ -9,7 +9,7 @@
 const { MoleculerClientError } = require("./errors");
 const utils = require("./utils");
 
-module.exports = function() {
+module.exports = function () {
 	const schema = {
 		name: "$node",
 
@@ -18,8 +18,18 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					withServices: { type: "boolean", optional: true, convert: true, default: false },
-					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
+					withServices: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					onlyAvailable: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					}
 				},
 				handler(ctx) {
 					return this.broker.registry.getNodeList(ctx.params);
@@ -31,11 +41,21 @@ module.exports = function() {
 				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
-					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
 					withActions: { type: "boolean", optional: true, convert: true, default: false },
 					withEvents: { type: "boolean", optional: true, convert: true, default: false },
-					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
-					grouping: { type: "boolean", optional: true, convert: true, default: true },
+					onlyAvailable: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					grouping: { type: "boolean", optional: true, convert: true, default: true }
 				},
 				handler(ctx) {
 					return this.broker.registry.getServiceList(ctx.params);
@@ -47,9 +67,24 @@ module.exports = function() {
 				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
-					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
-					withEndpoints: { type: "boolean", optional: true, convert: true, default: false },
-					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					withEndpoints: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					onlyAvailable: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					}
 				},
 				handler(ctx) {
 					return this.broker.registry.getActionList(ctx.params);
@@ -61,9 +96,24 @@ module.exports = function() {
 				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
-					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
-					withEndpoints: { type: "boolean", optional: true, convert: true, default: false },
-					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					withEndpoints: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					},
+					onlyAvailable: {
+						type: "boolean",
+						optional: true,
+						convert: true,
+						default: false
+					}
 				},
 				handler(ctx) {
 					return this.broker.registry.getEventList(ctx.params);
@@ -91,13 +141,31 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
-					includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
-					excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
+					types: {
+						type: "multi",
+						optional: true,
+						rules: [{ type: "string" }, { type: "array", items: "string" }]
+					},
+					includes: {
+						type: "multi",
+						optional: true,
+						rules: [{ type: "string" }, { type: "array", items: "string" }]
+					},
+					excludes: {
+						type: "multi",
+						optional: true,
+						rules: [{ type: "string" }, { type: "array", items: "string" }]
+					}
 				},
 				handler(ctx) {
 					if (!this.broker.isMetricsEnabled())
-						return this.Promise.reject(new MoleculerClientError("Metrics feature is disabled", 400, "METRICS_DISABLED"));
+						return this.Promise.reject(
+							new MoleculerClientError(
+								"Metrics feature is disabled",
+								400,
+								"METRICS_DISABLED"
+							)
+						);
 
 					return this.broker.metrics.list(ctx.params);
 				}

@@ -81,13 +81,17 @@ class Node {
 	 * @param {Function} cpuUsage
 	 */
 	updateLocalInfo(cpuUsage) {
-		return cpuUsage().then(res => {
-			const newVal = Math.round(res.avg);
-			if (this.cpu != newVal) {
-				this.cpu = newVal;
-				this.cpuSeq++;
-			}
-		}).catch(() => { /* silent */ });
+		return cpuUsage()
+			.then(res => {
+				const newVal = Math.round(res.avg);
+				if (this.cpu != newVal) {
+					this.cpu = newVal;
+					this.cpuSeq++;
+				}
+			})
+			.catch(() => {
+				/* silent */
+			});
 	}
 
 	/**

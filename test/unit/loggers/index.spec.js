@@ -10,7 +10,6 @@ class MyLogger extends Loggers.Base {
 process.env.DATADOG_API_KEY = "datadog-api-key";
 
 describe("Test Loggers resolver", () => {
-
 	it("should throw error", () => {
 		expect(() => Loggers.resolve()).toThrowError(BrokerOptionsError);
 		expect(() => Loggers.resolve({})).toThrowError(BrokerOptionsError);
@@ -27,7 +26,9 @@ describe("Test Loggers resolver", () => {
 		let options = { bunyan: { a: 5 } };
 		let logger = Loggers.resolve({ type: "Bunyan", options });
 		expect(logger).toBeInstanceOf(Loggers.Bunyan);
-		expect(logger.opts).toEqual(expect.objectContaining({ bunyan: { a: 5, name: "moleculer" } }));
+		expect(logger.opts).toEqual(
+			expect.objectContaining({ bunyan: { a: 5, name: "moleculer" } })
+		);
 	});
 
 	it("should resolve console logger from string", () => {
@@ -119,7 +120,6 @@ describe("Test Loggers resolver", () => {
 		expect(logger).toBeInstanceOf(Loggers.Base);
 		expect(logger.opts).toEqual(expect.objectContaining({ a: 5 }));
 	});
-
 });
 
 describe("Test Logger register", () => {

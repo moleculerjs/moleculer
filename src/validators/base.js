@@ -10,7 +10,6 @@ const { ValidationError } = require("../errors");
 const _ = require("lodash");
 
 class BaseValidator {
-
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
 			paramName: "params"
@@ -60,12 +59,13 @@ class BaseValidator {
 		const self = this;
 		const paramName = this.opts.paramName;
 
-		const processCheckResponse = function(ctx, handler, res, additionalInfo) {
-			if (res === true)
-				return handler(ctx);
+		const processCheckResponse = function (ctx, handler, res, additionalInfo) {
+			if (res === true) return handler(ctx);
 			else {
 				res = res.map(data => Object.assign(data, additionalInfo));
-				return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
+				return broker.Promise.reject(
+					new ValidationError("Parameters validation error!", null, res)
+				);
 			}
 		};
 
@@ -78,9 +78,17 @@ class BaseValidator {
 					return function validateContextParams(ctx) {
 						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
 						if (check.async)
-							return res.then(res => processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, action: ctx.action.name }));
+							return res.then(res =>
+								processCheckResponse(ctx, handler, res, {
+									nodeID: ctx.nodeID,
+									action: ctx.action.name
+								})
+							);
 						else
-							return processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, action: ctx.action.name });
+							return processCheckResponse(ctx, handler, res, {
+								nodeID: ctx.nodeID,
+								action: ctx.action.name
+							});
 					};
 				}
 				return handler;
@@ -94,9 +102,17 @@ class BaseValidator {
 						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
 
 						if (check.async)
-							return res.then(res => processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, event: ctx.event.name }));
+							return res.then(res =>
+								processCheckResponse(ctx, handler, res, {
+									nodeID: ctx.nodeID,
+									event: ctx.event.name
+								})
+							);
 						else
-							return processCheckResponse(ctx, handler, res, { nodeID: ctx.nodeID, event: ctx.event.name });
+							return processCheckResponse(ctx, handler, res, {
+								nodeID: ctx.nodeID,
+								event: ctx.event.name
+							});
 					};
 				}
 				return handler;
@@ -104,6 +120,5 @@ class BaseValidator {
 		};
 	}
 }
-
 
 module.exports = BaseValidator;

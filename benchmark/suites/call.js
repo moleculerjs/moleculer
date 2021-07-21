@@ -16,7 +16,7 @@ function createBroker(opts) {
 }
 
 const bench1 = benchmark.createSuite("Call methods");
-(function() {
+(function () {
 	const broker = createBroker();
 
 	bench1.ref("broker.call (normal)", done => {
@@ -26,27 +26,26 @@ const bench1 = benchmark.createSuite("Call methods");
 	bench1.add("broker.call (with params)", done => {
 		broker.call("users.empty", { id: 5, sort: "name created", limit: 10 }).then(done);
 	});
-
 })();
 
 // ----------------------------------------------------------------
 const bench2 = benchmark.createSuite("Call with middlewares");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench2.ref("Call without middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ internalMiddlewares: false });
 	bench2.ref("Call without internal middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const mw1 = {
 		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
@@ -60,7 +59,7 @@ const bench2 = benchmark.createSuite("Call with middlewares");
 	});
 })();
 
-(function() {
+(function () {
 	const mw1 = {
 		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
@@ -79,21 +78,21 @@ const bench3 = benchmark.createSuite("Call with cachers");
 
 const MemoryCacher = require("../../src/cachers").Memory;
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench3.ref("No cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher (keys filter)", done => {
 		return broker.call("users.get2", { id: 5 }).then(done);
@@ -103,39 +102,38 @@ const MemoryCacher = require("../../src/cachers").Memory;
 // ----------------------------------------------------------------
 const bench4 = benchmark.createSuite("Call with param validator");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench4.ref("No validator", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench4.add("With validator passes", done => {
 		return broker.call("users.validate", { id: 5 }).then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench4.add("With validator fail", done => {
-		return broker.call("users.validate", { id: "a5" })
-			.catch(done);
+		return broker.call("users.validate", { id: "a5" }).catch(done);
 	});
 })();
 
 // ----------------------------------------------------------------
 const bench5 = benchmark.createSuite("Call with metrics");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench5.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ metrics: true });
 	bench5.add("With metrics", done => {
 		return broker.call("users.empty").then(done);
@@ -145,14 +143,14 @@ const bench5 = benchmark.createSuite("Call with metrics");
 // ----------------------------------------------------------------
 const bench6 = benchmark.createSuite("Call with tracing");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench6.ref("No tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ tracing: true });
 	bench6.add("With tracing", done => {
 		return broker.call("users.empty").then(done);

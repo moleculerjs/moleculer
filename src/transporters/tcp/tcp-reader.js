@@ -6,9 +6,9 @@
 
 "use strict";
 
-const net 			= require("net");
-const EventEmitter 	= require("events");
-const Parser		= require("./parser");
+const net = require("net");
+const EventEmitter = require("events");
+const Parser = require("./parser");
 
 /**
  * TCP Reader for TcpTransporter
@@ -17,7 +17,6 @@ const Parser		= require("./parser");
  * @extends {EventEmitter}
  */
 class TcpReader extends EventEmitter {
-
 	/**
 	 * Creates an instance of TcpReader.
 	 *
@@ -45,14 +44,12 @@ class TcpReader extends EventEmitter {
 	 */
 	listen() {
 		return new this.Promise((resolve, reject) => {
-
 			const server = net.createServer(socket => this.onTcpClientConnected(socket));
 
 			server.on("error", err => {
 				this.logger.error("Server error.", err);
 
-				if (reject)
-					reject(err);
+				if (reject) reject(err);
 			});
 
 			let h = this.opts.port;

@@ -1,9 +1,9 @@
 let fakerator = require("fakerator")();
 
-module.exports = function(broker) {
+module.exports = function (broker) {
 	let users = fakerator.times(fakerator.entity.user, 10);
 
-	users.forEach((user, i) => user.id = i + 1);
+	users.forEach((user, i) => (user.id = i + 1));
 
 	return {
 		name: "users",

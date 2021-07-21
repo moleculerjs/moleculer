@@ -1,6 +1,6 @@
 "use strict";
 
-const utils	= require("../../../src/utils");
+const utils = require("../../../src/utils");
 utils.makeDirs = jest.fn();
 
 const MetricCommons = require("../../../src/metrics/commons");
@@ -16,13 +16,10 @@ const METRIC = require("../../../src/metrics/constants");
 const lolex = require("@sinonjs/fake-timers");
 
 describe("Test Metric Registry", () => {
-
 	describe("Test Constructor", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		it("should create with default options", () => {
-
 			const metric = new MetricRegistry(broker);
 
 			expect(metric.broker).toBe(broker);
@@ -37,14 +34,13 @@ describe("Test Metric Registry", () => {
 		});
 
 		it("should create with custom options", () => {
-
 			const metric = new MetricRegistry(broker, {
 				enabled: false,
 				collectProcessMetrics: false,
 
 				reporter: "Prometheus",
 
-				defaultBuckets: [1,2,3,4,5],
+				defaultBuckets: [1, 2, 3, 4, 5],
 				defaultQuantiles: [0.1, 0.5, 0.9]
 			});
 
@@ -61,7 +57,6 @@ describe("Test Metric Registry", () => {
 	});
 
 	describe("Test init method", () => {
-
 		let clock;
 		beforeAll(() => {
 			clock = lolex.install();
@@ -70,7 +65,6 @@ describe("Test Metric Registry", () => {
 		afterAll(() => {
 			clock.uninstall();
 		});
-
 
 		const broker = new ServiceBroker({ logger: false });
 
@@ -130,7 +124,6 @@ describe("Test Metric Registry", () => {
 			expect(metric.reporter[0]).toBeInstanceOf(MetricReporters.Event);
 			expect(metric.reporter[1]).toBeInstanceOf(MetricReporters.Console);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -147,11 +140,9 @@ describe("Test Metric Registry", () => {
 			await metric.stop();
 			expect(metric.reporter[0].stop).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test register method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -161,11 +152,19 @@ describe("Test Metric Registry", () => {
 			expect(() => metric.register("John")).toThrow("Wrong argument. Must be an Object.");
 
 			expect(() => metric.register({})).toThrow("The metric 'type' property is mandatory.");
-			expect(() => metric.register({ type: "counter" })).toThrow("The metric 'name' property is mandatory.");
-			expect(() => metric.register({ type: "counter", name: "test!" })).toThrow("The metric 'name' is not valid: test!");
-			expect(() => metric.register({ type: "counter", name: "test", labelNames: ["label!"] })).toThrow("The 'test' metric label name is not valid: label!");
+			expect(() => metric.register({ type: "counter" })).toThrow(
+				"The metric 'name' property is mandatory."
+			);
+			expect(() => metric.register({ type: "counter", name: "test!" })).toThrow(
+				"The metric 'name' is not valid: test!"
+			);
+			expect(() =>
+				metric.register({ type: "counter", name: "test", labelNames: ["label!"] })
+			).toThrow("The 'test' metric label name is not valid: label!");
 
-			expect(() => metric.register({ type: "unknow", name: "test" })).toThrow("Invalid metric type 'unknow'.");
+			expect(() => metric.register({ type: "unknow", name: "test" })).toThrow(
+				"Invalid metric type 'unknow'."
+			);
 
 			expect(metric.store.size).toBe(0);
 		});
@@ -177,7 +176,10 @@ describe("Test Metric Registry", () => {
 		});
 
 		it("should return null if metrics disabled", () => {
-			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			const metric = new MetricRegistry(broker, {
+				enabled: false,
+				collectProcessMetrics: false
+			});
 			const item = metric.register({ type: "counter", name: "test" });
 			expect(item).toBeNull();
 			expect(metric.store.size).toBe(0);
@@ -185,7 +187,6 @@ describe("Test Metric Registry", () => {
 	});
 
 	describe("Test hasMetric method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		it("should find the stored metrics if metrics enabled", () => {
@@ -199,7 +200,10 @@ describe("Test Metric Registry", () => {
 		});
 
 		it("should not find if metrics disabled", () => {
-			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			const metric = new MetricRegistry(broker, {
+				enabled: false,
+				collectProcessMetrics: false
+			});
 			metric.register({ name: "test.first", type: "counter" });
 			metric.register({ name: "test.second", type: "gauge" });
 
@@ -207,11 +211,9 @@ describe("Test Metric Registry", () => {
 			expect(metric.hasMetric("test.second")).toBe(false);
 			expect(metric.hasMetric("test.third")).toBe(false);
 		});
-
 	});
 
 	describe("Test getMetric method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		it("should return the stored metrics if metrics enabled", () => {
@@ -225,7 +227,10 @@ describe("Test Metric Registry", () => {
 		});
 
 		it("should return null if metrics disabled", () => {
-			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			const metric = new MetricRegistry(broker, {
+				enabled: false,
+				collectProcessMetrics: false
+			});
 			metric.register({ name: "test.first", type: "counter" });
 			metric.register({ name: "test.second", type: "gauge" });
 
@@ -233,11 +238,9 @@ describe("Test Metric Registry", () => {
 			expect(metric.getMetric("test.second")).toBeNull();
 			expect(metric.getMetric("test.third")).toBeNull();
 		});
-
 	});
 
 	describe("Test increment method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -262,7 +265,9 @@ describe("Test Metric Registry", () => {
 
 		it("should throw error if increment method is not exist", () => {
 			metric.register({ type: "histogram", name: "test.histogram" });
-			expect(() => metric.increment("test.histogram")).toThrow("Invalid metric type. Incrementing works only with counter & gauge metric types.");
+			expect(() => metric.increment("test.histogram")).toThrow(
+				"Invalid metric type. Incrementing works only with counter & gauge metric types."
+			);
 		});
 
 		it("should not call increment method if metric disabled", () => {
@@ -273,11 +278,9 @@ describe("Test Metric Registry", () => {
 
 			expect(counter.increment).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test decrement method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -308,7 +311,9 @@ describe("Test Metric Registry", () => {
 
 		it("should throw error if decrement method is not exist", () => {
 			metric.register({ type: "histogram", name: "test.histogram" });
-			expect(() => metric.decrement("test.histogram")).toThrow("Invalid metric type. Decrementing works only with gauge metric type.");
+			expect(() => metric.decrement("test.histogram")).toThrow(
+				"Invalid metric type. Decrementing works only with gauge metric type."
+			);
 		});
 
 		it("should not call decrement method if metric disabled", () => {
@@ -319,11 +324,9 @@ describe("Test Metric Registry", () => {
 
 			expect(gauge.decrement).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test set method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -348,7 +351,9 @@ describe("Test Metric Registry", () => {
 
 		it("should throw error if set method is not exist", () => {
 			metric.register({ type: "histogram", name: "test.histogram" });
-			expect(() => metric.set("test.histogram")).toThrow("Invalid metric type. Value setting works only with counter, gauge & info metric types.");
+			expect(() => metric.set("test.histogram")).toThrow(
+				"Invalid metric type. Value setting works only with counter, gauge & info metric types."
+			);
 		});
 
 		it("should not call set method if metric disabled", () => {
@@ -359,11 +364,9 @@ describe("Test Metric Registry", () => {
 
 			expect(info.set).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test observe method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -388,7 +391,9 @@ describe("Test Metric Registry", () => {
 
 		it("should throw error if observe method is not exist", () => {
 			metric.register({ type: "counter", name: "test.counter" });
-			expect(() => metric.observe("test.counter")).toThrow("Invalid metric type. Observing works only with histogram metric type.");
+			expect(() => metric.observe("test.counter")).toThrow(
+				"Invalid metric type. Observing works only with histogram metric type."
+			);
 		});
 
 		it("should not call observe method if metric disabled", () => {
@@ -399,11 +404,9 @@ describe("Test Metric Registry", () => {
 
 			expect(histogram.observe).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test reset method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -433,11 +436,9 @@ describe("Test Metric Registry", () => {
 
 			expect(histogram.reset).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test resetAll method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -468,11 +469,9 @@ describe("Test Metric Registry", () => {
 
 			expect(histogram.resetAll).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test timer method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
 
@@ -502,7 +501,6 @@ describe("Test Metric Registry", () => {
 			expect(duration).toBeGreaterThan(0.001);
 			expect(gauge.set).toHaveBeenCalledTimes(1);
 			expect(gauge.set).toHaveBeenCalledWith(expect.any(Number), { a: 5 }, now);
-
 		});
 
 		it("should call histogram.observe method", () => {
@@ -512,7 +510,11 @@ describe("Test Metric Registry", () => {
 			const duration = timeEnd();
 			expect(duration).toBeGreaterThan(0.001);
 			expect(histogram.observe).toHaveBeenCalledTimes(1);
-			expect(histogram.observe).toHaveBeenCalledWith(expect.any(Number), undefined, undefined);
+			expect(histogram.observe).toHaveBeenCalledWith(
+				expect.any(Number),
+				undefined,
+				undefined
+			);
 		});
 
 		it("should call histogram.observe method with params", () => {
@@ -538,12 +540,9 @@ describe("Test Metric Registry", () => {
 			expect(duration).toBeGreaterThan(0.001);
 			expect(gauge.set).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
-
 	describe("Test changed method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, {
 			reporter: ["Event", "CSV"],
@@ -560,23 +559,31 @@ describe("Test Metric Registry", () => {
 			metric.changed("test.counter", 5.3, labels, 123456);
 
 			expect(metric.reporter[0].metricChanged).toHaveBeenCalledTimes(1);
-			expect(metric.reporter[0].metricChanged).toHaveBeenCalledWith("test.counter", 5.3, labels, 123456);
+			expect(metric.reporter[0].metricChanged).toHaveBeenCalledWith(
+				"test.counter",
+				5.3,
+				labels,
+				123456
+			);
 
 			expect(metric.reporter[1].metricChanged).toHaveBeenCalledTimes(1);
-			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith("test.counter", 5.3, labels, 123456);
+			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith(
+				"test.counter",
+				5.3,
+				labels,
+				123456
+			);
 		});
-
 	});
 
 	describe("Test list method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const registry = new MetricRegistry(broker, {
 			collectProcessMetrics: false
 		});
 		registry.init();
 
-		const mockToObject = function() {
+		const mockToObject = function () {
 			return {
 				name: this.name,
 				type: this.type
@@ -584,91 +591,102 @@ describe("Test Metric Registry", () => {
 		};
 
 		registry.register({ name: "os.datetime.utc", type: "gauge" }).toObject = mockToObject;
-		registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).toObject = mockToObject;
-		registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" }).toObject = mockToObject;
-		registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" }).toObject = mockToObject;
-		registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes" }).toObject = mockToObject;
+		registry.register({
+			name: "test.info",
+			type: "info",
+			description: "Test Info Metric"
+		}).toObject = mockToObject;
+		registry.register({
+			name: "test.counter",
+			type: "counter",
+			labelNames: ["action"],
+			description: "Test Counter Metric"
+		}).toObject = mockToObject;
+		registry.register({
+			name: "test.gauge-total",
+			type: "gauge",
+			labelNames: ["action"],
+			description: "Test Gauge Metric"
+		}).toObject = mockToObject;
+		registry.register({
+			name: "test.histogram",
+			type: "histogram",
+			labelNames: ["action"],
+			buckets: true,
+			quantiles: true,
+			unit: "bytes"
+		}).toObject = mockToObject;
 
 		it("should list all metrics", () => {
 			const res = registry.list();
 
 			expect(res).toEqual([
-				{ "name": "os.datetime.utc", "type": "gauge" },
-				{ "name": "test.info", "type": "info" },
-				{ "name": "test.counter", "type": "counter" },
-				{ "name": "test.gauge-total", "type": "gauge" },
-				{ "name": "test.histogram", "type": "histogram" }
+				{ name: "os.datetime.utc", type: "gauge" },
+				{ name: "test.info", type: "info" },
+				{ name: "test.counter", type: "counter" },
+				{ name: "test.gauge-total", type: "gauge" },
+				{ name: "test.histogram", type: "histogram" }
 			]);
 		});
 
 		it("should filtering type", () => {
 			const res = registry.list({ types: "counter" });
 
-			expect(res).toEqual([
-				{ "name": "test.counter", "type": "counter" },
-			]);
+			expect(res).toEqual([{ name: "test.counter", type: "counter" }]);
 		});
 
 		it("should filtering types", () => {
 			const res = registry.list({ types: ["counter", "histogram"] });
 
 			expect(res).toEqual([
-				{ "name": "test.counter", "type": "counter" },
-				{ "name": "test.histogram", "type": "histogram" }
+				{ name: "test.counter", type: "counter" },
+				{ name: "test.histogram", type: "histogram" }
 			]);
 		});
 
 		it("should filtering includes", () => {
 			const res = registry.list({ includes: "test.counter" });
 
-			expect(res).toEqual([
-				{ "name": "test.counter", "type": "counter" },
-			]);
+			expect(res).toEqual([{ name: "test.counter", type: "counter" }]);
 		});
 
 		it("should filtering multi includes", () => {
 			const res = registry.list({ includes: ["test.co**", "os.**"] });
 
 			expect(res).toEqual([
-				{ "name": "os.datetime.utc", "type": "gauge" },
-				{ "name": "test.counter", "type": "counter" },
+				{ name: "os.datetime.utc", type: "gauge" },
+				{ name: "test.counter", type: "counter" }
 			]);
 		});
 
 		it("should filtering excludes", () => {
 			const res = registry.list({ excludes: "test.**" });
 
-			expect(res).toEqual([
-				{ "name": "os.datetime.utc", "type": "gauge" },
-			]);
+			expect(res).toEqual([{ name: "os.datetime.utc", type: "gauge" }]);
 		});
 
 		it("should filtering multi excludes", () => {
 			const res = registry.list({ excludes: ["test.counter", "os.**"] });
 
 			expect(res).toEqual([
-				{ "name": "test.info", "type": "info" },
-				{ "name": "test.gauge-total", "type": "gauge" },
-				{ "name": "test.histogram", "type": "histogram" }
+				{ name: "test.info", type: "info" },
+				{ name: "test.gauge-total", type: "gauge" },
+				{ name: "test.histogram", type: "histogram" }
 			]);
 		});
 
 		it("should filtering all", () => {
 			const res = registry.list({
-				types: ["counter", "gauge"] ,
-				includes: "test.**" ,
+				types: ["counter", "gauge"],
+				includes: "test.**",
 				excludes: ["test.counter"]
 			});
 
-			expect(res).toEqual([
-				{ "name": "test.gauge-total", "type": "gauge" },
-			]);
+			expect(res).toEqual([{ name: "test.gauge-total", type: "gauge" }]);
 		});
-
 	});
 
 	describe("Test pluralizeUnit method", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		const metric = new MetricRegistry(broker, {});
 		metric.init();
@@ -678,7 +696,5 @@ describe("Test Metric Registry", () => {
 			expect(metric.pluralizeUnit(METRIC.UNIT_BYTE)).toBe("bytes");
 			expect(metric.pluralizeUnit(METRIC.UNIT_GHZ)).toBe("GHz");
 		});
-
 	});
 });
-

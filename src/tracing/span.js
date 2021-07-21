@@ -16,7 +16,6 @@ function defProp(instance, propName, value, readOnly = false) {
  * @class Span
  */
 class Span {
-
 	/**
 	 * Creates an instance of Span.
 	 * @param {Tracer} tracer
@@ -41,19 +40,20 @@ class Span {
 			if (typeof this.opts.service == "string") {
 				this.service = {
 					name: this.opts.service,
-					fullName: this.opts.service,
+					fullName: this.opts.service
 				};
 			} else {
 				this.service = {
 					name: this.opts.service.name,
 					version: this.opts.service.version,
-					fullName: this.opts.service.fullName,
+					fullName: this.opts.service.fullName
 				};
 			}
 		}
 
 		this.priority = this.opts.priority != null ? this.opts.priority : 5;
-		this.sampled = this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);
+		this.sampled =
+			this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);
 
 		this.startTime = null;
 		this.startTicks = null;
@@ -65,11 +65,9 @@ class Span {
 		this.logs = [];
 		this.tags = {};
 
-		if (this.opts.defaultTags)
-			this.addTags(this.opts.defaultTags);
+		if (this.opts.defaultTags) this.addTags(this.opts.defaultTags);
 
-		if (this.opts.tags)
-			this.addTags(this.opts.tags);
+		if (this.opts.tags) this.addTags(this.opts.tags);
 	}
 
 	/**
@@ -164,7 +162,12 @@ class Span {
 
 		// console.log(`"${this.name}" stop time: ${this.finishTime}  Duration: ${this.duration}`);
 
-		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`, this.tags);
+		this.logger.debug(
+			`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(
+				this.duration
+			).toFixed(3)} ms`,
+			this.tags
+		);
 
 		this.tracer.spanFinished(this);
 
@@ -197,7 +200,6 @@ class Span {
 		};
 		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r);
 	}
-
 }
 
 module.exports = Span;

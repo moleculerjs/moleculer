@@ -59,8 +59,7 @@ class AsyncStorage {
 
 	_init(asyncId, type, triggerAsyncId) {
 		// Skip TIMERWRAP type
-		if (type === "TIMERWRAP")
-			return;
+		if (type === "TIMERWRAP") return;
 
 		const item = this.store.get(triggerAsyncId);
 		if (item) {

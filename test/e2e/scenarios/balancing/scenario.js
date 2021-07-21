@@ -1,5 +1,11 @@
 const _ = require("lodash");
-const { assert, createNode, executeScenarios, addScenario, logEventEmitting } = require("../../utils");
+const {
+	assert,
+	createNode,
+	executeScenarios,
+	addScenario,
+	logEventEmitting
+} = require("../../utils");
 
 const broker = createNode("supervisor", {
 	registry: {
@@ -28,9 +34,11 @@ addScenario("balance action calls", async () => {
 		name: "John"
 	};
 
-	await Promise.all(_.times(9, async () => {
-		await broker.call("test.work", params);
-	}));
+	await Promise.all(
+		_.times(9, async () => {
+			await broker.call("test.work", params);
+		})
+	);
 
 	// ---- ˇ ASSERTS ˇ ---
 	// Wait for scenario events...
@@ -41,9 +49,15 @@ addScenario("balance action calls", async () => {
 	assert(calls.length, 9);
 	if (!disableBalancer) {
 		assert(calls.map(c => c.nodeID).sort(), [
-			"node1", "node1", "node1",
-			"node2", "node2", "node2",
-			"node3", "node3", "node3",
+			"node1",
+			"node1",
+			"node1",
+			"node2",
+			"node2",
+			"node2",
+			"node3",
+			"node3",
+			"node3"
 		]);
 	}
 	assert(calls.filter(c => _.isEqual(c.params, params)).length, 9);
@@ -56,11 +70,13 @@ addScenario("direct action calls", async () => {
 		id: 1,
 		name: "John"
 	};
-	await Promise.all(_.times(9, async () => {
-		await broker.call("test.work", params, {
-			nodeID: "node2"
-		});
-	}));
+	await Promise.all(
+		_.times(9, async () => {
+			await broker.call("test.work", params, {
+				nodeID: "node2"
+			});
+		})
+	);
 
 	// ---- ˇ ASSERTS ˇ ---
 	// Wait for scenario events...
@@ -81,9 +97,11 @@ addScenario("balance emitted events", async () => {
 		name: "John"
 	};
 
-	await Promise.all(_.times(6, async () => {
-		await broker.emit("user.created", payload);
-	}));
+	await Promise.all(
+		_.times(6, async () => {
+			await broker.emit("user.created", payload);
+		})
+	);
 
 	// ---- ˇ ASSERTS ˇ ---
 	// Wait for scenario events...
@@ -93,12 +111,24 @@ addScenario("balance emitted events", async () => {
 	assert(events.length, 6 * 3); // 6 emitted event and 3 services
 	if (!disableBalancer) {
 		assert(events.map(e => `${e.nodeID}:${e.service}`).sort(), [
-			"node1:payment",	"node1:payment",	"node1:payment",
-			"node1:users",		"node1:users",		"node1:users",
-			"node2:mail",		"node2:mail",		"node2:mail",
-			"node2:mail",		"node2:mail",		"node2:mail",
-			"node3:payment",	"node3:payment",	"node3:payment",
-			"supervisor:users",	"supervisor:users",	"supervisor:users",
+			"node1:payment",
+			"node1:payment",
+			"node1:payment",
+			"node1:users",
+			"node1:users",
+			"node1:users",
+			"node2:mail",
+			"node2:mail",
+			"node2:mail",
+			"node2:mail",
+			"node2:mail",
+			"node2:mail",
+			"node3:payment",
+			"node3:payment",
+			"node3:payment",
+			"supervisor:users",
+			"supervisor:users",
+			"supervisor:users"
 		]);
 	}
 	assert(events.filter(e => _.isEqual(e.params, payload)).length, 6 * 3);
@@ -112,9 +142,11 @@ addScenario("broadcast events", async () => {
 		name: "John"
 	};
 
-	await Promise.all(_.times(3, async () => {
-		await broker.broadcast("user.created", payload);
-	}));
+	await Promise.all(
+		_.times(3, async () => {
+			await broker.broadcast("user.created", payload);
+		})
+	);
 
 	// ---- ˇ ASSERTS ˇ ---
 	// Wait for scenario events...
@@ -125,11 +157,21 @@ addScenario("broadcast events", async () => {
 	assert(events.length, 15);
 	if (!disableBalancer) {
 		assert(events.map(e => `${e.nodeID}:${e.service}`).sort(), [
-			"node1:payment",	"node1:payment",	"node1:payment",
-			"node1:users",		"node1:users",		"node1:users",
-			"node2:mail",		"node2:mail",		"node2:mail",
-			"node3:payment",	"node3:payment",	"node3:payment",
-			"supervisor:users",	"supervisor:users",	"supervisor:users",
+			"node1:payment",
+			"node1:payment",
+			"node1:payment",
+			"node1:users",
+			"node1:users",
+			"node1:users",
+			"node2:mail",
+			"node2:mail",
+			"node2:mail",
+			"node3:payment",
+			"node3:payment",
+			"node3:payment",
+			"supervisor:users",
+			"supervisor:users",
+			"supervisor:users"
 		]);
 	}
 	assert(events.filter(e => _.isEqual(e.params, payload)).length, 15);
@@ -143,9 +185,11 @@ addScenario("broadcastLocal events", async () => {
 		name: "John"
 	};
 
-	await Promise.all(_.times(3, async () => {
-		await broker.broadcastLocal("user.created", payload);
-	}));
+	await Promise.all(
+		_.times(3, async () => {
+			await broker.broadcastLocal("user.created", payload);
+		})
+	);
 
 	// ---- ˇ ASSERTS ˇ ---
 	// Wait for scenario events...
@@ -155,7 +199,9 @@ addScenario("broadcastLocal events", async () => {
 
 	assert(events.length, 3);
 	assert(events.map(e => `${e.nodeID}:${e.service}`).sort(), [
-		"supervisor:users",	"supervisor:users",	"supervisor:users",
+		"supervisor:users",
+		"supervisor:users",
+		"supervisor:users"
 	]);
 	assert(events.filter(e => _.isEqual(e.params, payload)).length, 3);
 });
@@ -170,7 +216,7 @@ if (disableBalancer && ["AMQP"].includes(transporter)) {
 		// ---- ^ SETUP ^ ---
 
 		await Promise.all([
-			broker.call("test.hello", { i : 0, delay: 2000 }),
+			broker.call("test.hello", { i: 0, delay: 2000 }),
 			..._.times(8, i => broker.call("test.hello", { i: i + 1, delay: 50 }))
 		]);
 

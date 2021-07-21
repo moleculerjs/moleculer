@@ -6,7 +6,7 @@
 
 "use strict";
 
-const Transporter 	= require("./base");
+const Transporter = require("./base");
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
@@ -23,7 +23,6 @@ global.bus = new EventEmitter2({
  * @extends {Transporter}
  */
 class FakeTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of FakeTransporter.
 	 *

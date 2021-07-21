@@ -23,12 +23,10 @@ const Exporters = {
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Exporters).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Exporters[n];
+	if (n) return Exporters[n];
 }
 
 /**
@@ -43,17 +41,15 @@ function resolve(opt) {
 		return opt;
 	} else if (isString(opt)) {
 		let ExporterClass = getByName(opt);
-		if (ExporterClass)
-			return new ExporterClass();
-		else
-			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
-
+		if (ExporterClass) return new ExporterClass();
+		else throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
 	} else if (isObject(opt)) {
 		let ExporterClass = getByName(opt.type);
-		if (ExporterClass)
-			return new ExporterClass(opt.options);
+		if (ExporterClass) return new ExporterClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt.type}'.`, {
+				type: opt.type
+			});
 	}
 
 	throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
@@ -64,4 +60,3 @@ function register(name, value) {
 }
 
 module.exports = Object.assign(Exporters, { resolve, register });
-

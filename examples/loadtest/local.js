@@ -12,7 +12,7 @@ let ServiceBroker = require("../../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
 	logger: null,
-	transporter: null,
+	transporter: null
 	//metrics: true
 });
 
@@ -32,19 +32,21 @@ let payload = { a: random(0, 100), b: random(0, 100) };
 let count = 0;
 
 function work() {
-	broker.call("math.add", payload).then(res => {
-		if (count++ % 10 * 1000) {
-			// Fast cycle
-			work();
-		} else {
-			// Slow cycle
-			setImmediate(() => work());
-		}
-		return res;
-
-	}).catch(err => {
-		throw err;
-	});
+	broker
+		.call("math.add", payload)
+		.then(res => {
+			if ((count++ % 10) * 1000) {
+				// Fast cycle
+				work();
+			} else {
+				// Slow cycle
+				setImmediate(() => work());
+			}
+			return res;
+		})
+		.catch(err => {
+			throw err;
+		});
 }
 
 broker.start().then(() => {
@@ -62,7 +64,5 @@ broker.start().then(() => {
 				startTime = Date.now();
 			}
 		}, 1000);
-
 	}, 1000);
-
 });

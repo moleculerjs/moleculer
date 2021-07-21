@@ -4,7 +4,6 @@ const P = require("../../../../src/packets");
 const Parser = require("../../../../src/transporters/tcp/parser");
 
 describe("Test Parser constructor", () => {
-
 	it("check constructor", () => {
 		let opts = {};
 
@@ -13,7 +12,6 @@ describe("Test Parser constructor", () => {
 		expect(parser.maxPacketSize).toBe(5000);
 		expect(parser.buf).toBeNull();
 	});
-
 });
 
 describe("Test Parser write", () => {
@@ -64,7 +62,9 @@ describe("Test Parser write", () => {
 		expect(cb).toHaveBeenCalledTimes(1);
 		expect(cb).toHaveBeenCalledWith(expect.any(Error));
 		let err = cb.mock.calls[0][0];
-		expect(err.message).toBe("Incoming packet is larger than the 'maxPacketSize' limit (513 > 512)!");
+		expect(err.message).toBe(
+			"Incoming packet is larger than the 'maxPacketSize' limit (513 > 512)!"
+		);
 		expect(parser.buf).toBeNull();
 	});
 
@@ -89,7 +89,12 @@ describe("Test Parser write", () => {
 		let cb = jest.fn();
 		onData.mockClear();
 
-		let buf = Buffer.from([13, 0, 0, 0, 11, 6, 100, 97, 116, 97, 49].concat([12, 0, 0, 0, 11, 7, 100, 97, 116, 97, 50], [13, 0, 0, 0, 11, 6, 100, 97]));
+		let buf = Buffer.from(
+			[13, 0, 0, 0, 11, 6, 100, 97, 116, 97, 49].concat(
+				[12, 0, 0, 0, 11, 7, 100, 97, 116, 97, 50],
+				[13, 0, 0, 0, 11, 6, 100, 97]
+			)
+		);
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
@@ -107,6 +112,4 @@ describe("Test Parser write", () => {
 		expect(parser.buf).toBeInstanceOf(Buffer);
 		expect(parser.buf).toEqual(Buffer.from([13, 0, 0, 0, 11, 6, 100, 97]));
 	});
-
 });
-

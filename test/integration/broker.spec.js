@@ -17,26 +17,36 @@ describe("Test load services", () => {
 			}
 		});
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(broker.getLocalService("mailer", 2)).toBeDefined();
-			expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
-		}).then(() => {
-			return broker.call("v2.mailer.send").then(() => {
-				expect(handler).toHaveBeenCalledTimes(1);
-			});
-		}).catch(protectReject).then(() => broker.stop());
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.getLocalService("mailer", 2)).toBeDefined();
+				expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
+			})
+			.then(() => {
+				return broker.call("v2.mailer.send").then(() => {
+					expect(handler).toHaveBeenCalledTimes(1);
+				});
+			})
+			.catch(protectReject)
+			.then(() => broker.stop());
 	});
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
 		expect(count).toBe(5);
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(broker.getLocalService("math")).toBeDefined();
-			expect(broker.getLocalService("posts")).toBeDefined();
-			expect(broker.getLocalService("users")).toBeDefined();
-			expect(broker.getLocalService("test")).toBeDefined();
-		}).then(() => broker.stop());
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.getLocalService("math")).toBeDefined();
+				expect(broker.getLocalService("posts")).toBeDefined();
+				expect(broker.getLocalService("users")).toBeDefined();
+				expect(broker.getLocalService("test")).toBeDefined();
+			})
+			.then(() => broker.stop());
 	});
 
 	it("should create service from ES6 instance without schema mods", () => {
@@ -62,14 +72,22 @@ describe("Test load services", () => {
 
 		broker.createService(ES6Service);
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(broker.getLocalService("es6-without-schema-mods", 2)).toBeDefined();
-			expect(broker.registry.actions.isAvailable("v2.es6-without-schema-mods.send")).toBe(true);
-		}).then(() => {
-			return broker.call("v2.es6-without-schema-mods.send").then(() => {
-				expect(handler).toHaveBeenCalledTimes(1);
-			});
-		}).catch(protectReject).then(() => broker.stop());
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.getLocalService("es6-without-schema-mods", 2)).toBeDefined();
+				expect(broker.registry.actions.isAvailable("v2.es6-without-schema-mods.send")).toBe(
+					true
+				);
+			})
+			.then(() => {
+				return broker.call("v2.es6-without-schema-mods.send").then(() => {
+					expect(handler).toHaveBeenCalledTimes(1);
+				});
+			})
+			.catch(protectReject)
+			.then(() => broker.stop());
 	});
 
 	it("should create service from ES6 instance with schema mods", () => {
@@ -95,19 +113,26 @@ describe("Test load services", () => {
 
 		broker.createService(ES6Service, { version: 3 });
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(broker.getLocalService("es6-with-schema-mods", 3)).toBeDefined();
-			expect(broker.registry.actions.isAvailable("v3.es6-with-schema-mods.send")).toBe(true);
-		}).then(() => {
-			return broker.call("v3.es6-with-schema-mods.send").then(() => {
-				expect(handler).toHaveBeenCalledTimes(1);
-			});
-		}).catch(protectReject).then(() => broker.stop());
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.getLocalService("es6-with-schema-mods", 3)).toBeDefined();
+				expect(broker.registry.actions.isAvailable("v3.es6-with-schema-mods.send")).toBe(
+					true
+				);
+			})
+			.then(() => {
+				return broker.call("v3.es6-with-schema-mods.send").then(() => {
+					expect(handler).toHaveBeenCalledTimes(1);
+				});
+			})
+			.catch(protectReject)
+			.then(() => broker.stop());
 	});
 });
 
 describe("Test local call", () => {
-
 	let broker = new ServiceBroker({ logger: false, metrics: true });
 
 	let actionHandler = jest.fn(ctx => ctx);
@@ -126,7 +151,6 @@ describe("Test local call", () => {
 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());
-
 
 	it("should return context & call the action handler", () => {
 		return broker.call("posts.find").then(ctx => {
@@ -171,13 +195,17 @@ describe("Test local call", () => {
 		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
 			expect(ctx.id).not.toBe(parentCtx.id);
 			expect(ctx.params).toBe(params);
-			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"], status: true, verified: true });
+			expect(ctx.meta).toEqual({
+				user: "Jane",
+				roles: ["admin"],
+				status: true,
+				verified: true
+			});
 			expect(ctx.level).toBe(2);
 			expect(ctx.tracing).toBe(true);
 			expect(ctx.parentID).toBe(parentCtx.id);
 			expect(ctx.requestID).toBe("12345");
 		});
-
 	});
 
 	it("should merge meta from sub context to parent context", () => {
@@ -224,13 +252,10 @@ describe("Test local call", () => {
 				}
 			});
 		});
-
 	});
 });
 
-
 describe("Test versioned action registration", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 
 	let findV1 = jest.fn(ctx => ctx);
@@ -268,11 +293,9 @@ describe("Test versioned action registration", () => {
 			expect(findV2).toHaveBeenCalledTimes(1);
 		});
 	});
-
 });
 
 describe("Test cachers", () => {
-
 	let broker = new ServiceBroker({
 		logger: false,
 		cacher: new MemoryCacher()
@@ -329,7 +352,6 @@ describe("Test cachers", () => {
 			expect(handler).toHaveBeenCalledTimes(0);
 		});
 	});
-
 });
 /*
 describe("Test async current Context store", () => {

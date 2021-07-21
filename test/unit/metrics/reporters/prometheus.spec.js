@@ -10,9 +10,7 @@ const MetricRegistry = require("../../../../src/metrics/registry");
 // TODO: call server.close in afters
 
 describe("Test Prometheus Reporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new PrometheusReporter();
 
@@ -28,7 +26,7 @@ describe("Test Prometheus Reporter class", () => {
 
 				port: 3030,
 				path: "/metrics",
-				defaultLabels: expect.any(Function),
+				defaultLabels: expect.any(Function)
 			});
 		});
 
@@ -55,10 +53,9 @@ describe("Test Prometheus Reporter class", () => {
 
 				port: 12345,
 				path: "/meter",
-				defaultLabels: expect.any(Function),
+				defaultLabels: expect.any(Function)
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -70,7 +67,11 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should create HTTP server", () => {
-			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "test-node",
+				namespace: "test-ns"
+			});
 			const registry = new MetricRegistry(broker);
 			reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
@@ -79,7 +80,11 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should generate defaultLabels", () => {
-			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "test-node",
+				namespace: "test-ns"
+			});
 			const registry = new MetricRegistry(broker);
 			reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
@@ -91,7 +96,11 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should set static defaultLabels", () => {
-			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "test-node",
+				namespace: "test-ns"
+			});
 			const registry = new MetricRegistry(broker);
 			reporter = new PrometheusReporter({
 				port: 0,
@@ -107,7 +116,6 @@ describe("Test Prometheus Reporter class", () => {
 				b: "John"
 			});
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -118,7 +126,11 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should stop HTTP server", () => {
-			broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "test-node",
+				namespace: "test-ns"
+			});
 			const registry = new MetricRegistry(broker);
 			const reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
@@ -130,7 +142,6 @@ describe("Test Prometheus Reporter class", () => {
 	});
 
 	describe("Test HTTP handler method", () => {
-
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
 		let reporter;
@@ -138,7 +149,9 @@ describe("Test Prometheus Reporter class", () => {
 			reporter = new PrometheusReporter({ port: 0 });
 			reporter.init(registry);
 
-			reporter.generatePrometheusResponse = jest.fn(() => "Fake generatePrometheusResponse content.");
+			reporter.generatePrometheusResponse = jest.fn(
+				() => "Fake generatePrometheusResponse content."
+			);
 		});
 
 		afterEach(async () => {
@@ -158,7 +171,9 @@ describe("Test Prometheus Reporter class", () => {
 		});
 
 		it("should call generatePrometheusResponse method and send response", async () => {
-			const res = await request(reporter.server).get("/metrics").set("Accept-Encoding", "none");
+			const res = await request(reporter.server)
+				.get("/metrics")
+				.set("Accept-Encoding", "none");
 			expect(res.statusCode).toBe(200);
 			expect(res.headers["content-type"]).toBe("text/plain; version=0.0.4; charset=utf-8");
 			expect(res.text).toBe("Fake generatePrometheusResponse content.");
@@ -169,7 +184,9 @@ describe("Test Prometheus Reporter class", () => {
 		it("should call generatePrometheusResponse method and send response", async () => {
 			reporter.generatePrometheusResponse.mockClear();
 
-			const res = await request(reporter.server).get("/metrics").set("Accept-Encoding", "gzip");
+			const res = await request(reporter.server)
+				.get("/metrics")
+				.set("Accept-Encoding", "gzip");
 			expect(res.statusCode).toBe(200);
 			expect(res.headers["content-type"]).toBe("text/plain; version=0.0.4; charset=utf-8");
 			expect(res.headers["content-encoding"]).toBe("gzip");
@@ -181,7 +198,7 @@ describe("Test Prometheus Reporter class", () => {
 
 	describe("Test generatePrometheusResponse method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
@@ -207,25 +224,45 @@ describe("Test Prometheus Reporter class", () => {
 			reporter.init(registry);
 
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric", rate: true });
-			registry.increment("test.gauge-total", { action: "users-\"John\"" }, 10);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric",
+				rate: true
+			});
+			registry.increment("test.gauge-total", { action: 'users-"John"' }, 10);
 			clock.tick(100);
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", null, { action: "posts" });
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes", rate: true });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "bytes",
+				rate: true
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			clock.tick(500);
 			registry.observe("test.histogram", 6, null);
 			registry.observe("test.histogram", 2, null);
-
 
 			registry.observe("test.histogram", 1, { action: "auth" });
 			registry.observe("test.histogram", 3, { action: "auth" });
@@ -238,7 +275,5 @@ describe("Test Prometheus Reporter class", () => {
 
 			expect(res).toMatchSnapshot();
 		});
-
 	});
-
 });

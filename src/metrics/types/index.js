@@ -13,7 +13,7 @@ const Types = {
 	Counter: require("./counter"),
 	Gauge: require("./gauge"),
 	Histogram: require("./histogram"),
-	Info: require("./info"),
+	Info: require("./info")
 };
 
 /**
@@ -24,12 +24,10 @@ const Types = {
  */
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Types).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Types[n];
+	if (n) return Types[n];
 }
 
 /**
@@ -41,8 +39,7 @@ function getByName(name) {
  */
 function resolve(type) {
 	const TypeClass = getByName(type);
-	if (!TypeClass)
-		throw new BrokerOptionsError(`Invalid metric type '${type}'.`, { type });
+	if (!TypeClass) throw new BrokerOptionsError(`Invalid metric type '${type}'.`, { type });
 
 	return TypeClass;
 }

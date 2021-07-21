@@ -13,10 +13,8 @@ const NODE_PREFIX = process.env.NODE_PREFIX || "node";
 function val(value) {
 	if (Number.isNaN(value)) return "-";
 
-	if (value > 1000 * 1000)
-		return Number(value / 1000 / 1000).toFixed(0) + "M";
-	if (value > 1000)
-		return Number(value / 1000).toFixed(0) + "K";
+	if (value > 1000 * 1000) return Number(value / 1000 / 1000).toFixed(0) + "M";
+	if (value > 1000) return Number(value / 1000).toFixed(0) + "K";
 
 	return Number(value).toFixed(0);
 }
@@ -38,7 +36,7 @@ module.exports = {
 			handler(ctx) {
 				return this.scale(ctx.params.count, { kill: !!ctx.params.kill });
 			}
-		},
+		}
 	},
 
 	/*events: {
@@ -49,12 +47,10 @@ module.exports = {
 
 	events: {
 		"$services.changed"(ctx) {
-			if (this.settings.printRegistry)
-				this.printRegistry();
+			if (this.settings.printRegistry) this.printRegistry();
 		},
 		"$node.disconnected"(ctx) {
-			if (this.settings.printRegistry)
-				this.printRegistry();
+			if (this.settings.printRegistry) this.printRegistry();
 		}
 	},
 
@@ -63,8 +59,9 @@ module.exports = {
 			if (num > this.nodes.length) {
 				// Start new nodes
 				this.logger.info(`Starting ${num - this.nodes.length} new nodes...`);
-				return _.times(num - this.nodes.length, () => this.startNewNode(this.getNextNodeID()));
-
+				return _.times(num - this.nodes.length, () =>
+					this.startNewNode(this.getNextNodeID())
+				);
 			} else if (num < this.nodes.length && num >= 0) {
 				// Stop random nodes
 				this.logger.info(`Stopping ${this.nodes.length - num} nodes...`);
@@ -72,10 +69,8 @@ module.exports = {
 				return _.times(this.nodes.length - num, () => {
 					const idx = _.random(tmp.length - 1);
 					const node = tmp.splice(idx, 1)[0];
-					if (opts.kill)
-						return this.killNode(node);
-					else
-						return this.stopNode(node);
+					if (opts.kill) return this.killNode(node);
+					else return this.stopNode(node);
 				});
 			}
 		},
@@ -128,8 +123,7 @@ module.exports = {
 					msg.list.map(metric => this.addMetric(metric, worker.nodeID));
 			} else if (msg.event == "registry") {
 				this.updateWorkerRegistry(worker.nodeID, msg.nodes);
-				if (this.settings.printRegistry)
-					this.printRegistry();
+				if (this.settings.printRegistry) this.printRegistry();
 			} else {
 				this.logger.info(msg);
 			}
@@ -140,8 +134,7 @@ module.exports = {
 		},
 
 		addMetric(metric, nodeID) {
-			if (!this.metrics[metric.name])
-				this.metrics[metric.name] = {};
+			if (!this.metrics[metric.name]) this.metrics[metric.name] = {};
 
 			const item = this.metrics[metric.name];
 			item[nodeID] = metric.values;
@@ -149,53 +142,96 @@ module.exports = {
 
 		removeNodeIDFromMetric(nodeID) {
 			Object.keys(this.metrics).map(name => {
-				if (this.metrics[name][nodeID])
-					delete this.metrics[name][nodeID];
+				if (this.metrics[name][nodeID]) delete this.metrics[name][nodeID];
 			});
 		},
 
 		printMetrics() {
-			console.log(kleur.yellow().bold("\nMetrics:  "), kleur.grey("Time:"), kleur.grey(humanize(process.uptime() * 1000)));
-			console.log(kleur.yellow().bold(  "========"));
+			console.log(
+				kleur.yellow().bold("\nMetrics:  "),
+				kleur.grey("Time:"),
+				kleur.grey(humanize(process.uptime() * 1000))
+			);
+			console.log(kleur.yellow().bold("========"));
 
 			const rows = [];
-			let totalTx = 0, totalTxRate = 0, totalTxBytes = 0, totalTxBytesRate = 0;
-			let totalRx = 0, totalRxRate = 0, totalRxBytes = 0, totalRxBytesRate = 0;
+			let totalTx = 0,
+				totalTxRate = 0,
+				totalTxBytes = 0,
+				totalTxBytesRate = 0;
+			let totalRx = 0,
+				totalRxRate = 0,
+				totalRxBytes = 0,
+				totalRxBytesRate = 0;
 			this.nodes.forEach(node => {
-				const txPackets = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.sent.total", "value");
+				const txPackets = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.sent.total",
+					"value"
+				);
 				if (txPackets) totalTx += txPackets;
-				const txPacketsRate = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.sent.total", "rate");
+				const txPacketsRate = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.sent.total",
+					"rate"
+				);
 				if (txPacketsRate) totalTxRate += txPacketsRate;
-				const txBytes = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.sent.bytes", "value");
+				const txBytes = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.sent.bytes",
+					"value"
+				);
 				if (txBytes) totalTxBytes += txBytes;
-				const txBytesRate = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.sent.bytes", "rate");
+				const txBytesRate = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.sent.bytes",
+					"rate"
+				);
 				if (txBytesRate) totalTxBytesRate += txBytesRate;
 
-				const rxPackets = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.received.total", "value");
+				const rxPackets = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.received.total",
+					"value"
+				);
 				if (rxPackets) totalRx += rxPackets;
-				const rxPacketsRate = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.received.total", "rate");
+				const rxPacketsRate = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.received.total",
+					"rate"
+				);
 				if (rxPacketsRate) totalRxRate += rxPacketsRate;
-				const rxBytes = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.received.bytes", "value");
+				const rxBytes = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.received.bytes",
+					"value"
+				);
 				if (rxBytes) totalRxBytes += rxBytes;
-				const rxBytesRate = this.getMetricValueByNode(node.nodeID, "moleculer.transporter.packets.received.bytes", "rate");
+				const rxBytesRate = this.getMetricValueByNode(
+					node.nodeID,
+					"moleculer.transporter.packets.received.bytes",
+					"rate"
+				);
 				if (rxBytesRate) totalRxBytesRate += rxBytesRate;
 
 				if (txPackets) {
-					rows.push([
-						padE(node.nodeID, 8),
-						kleur.grey("TX:"),
-						kleur.green().bold(padS(val(txPackets) + " pck", 8)),
-						kleur.green().bold(padS(val(txPacketsRate / 60) + " p/s", 8)),
-						kleur.green().bold(padS(this.humanReadableBytes(txBytes), 8)),
-						kleur.grey("/"),
-						kleur.green().bold(padS(this.humanReadableBps(txBytesRate), 8)),
-						kleur.grey("   RX:"),
-						kleur.green().bold(padS(val(rxPackets) + " pck", 8)),
-						kleur.green().bold(padS(val(rxPacketsRate / 60) + " p/s", 8)),
-						kleur.green().bold(padS(this.humanReadableBytes(rxBytes), 8)),
-						kleur.grey("/"),
-						kleur.green().bold(padS(this.humanReadableBps(rxBytesRate), 8))
-					].join(" "));
+					rows.push(
+						[
+							padE(node.nodeID, 8),
+							kleur.grey("TX:"),
+							kleur.green().bold(padS(val(txPackets) + " pck", 8)),
+							kleur.green().bold(padS(val(txPacketsRate / 60) + " p/s", 8)),
+							kleur.green().bold(padS(this.humanReadableBytes(txBytes), 8)),
+							kleur.grey("/"),
+							kleur.green().bold(padS(this.humanReadableBps(txBytesRate), 8)),
+							kleur.grey("   RX:"),
+							kleur.green().bold(padS(val(rxPackets) + " pck", 8)),
+							kleur.green().bold(padS(val(rxPacketsRate / 60) + " p/s", 8)),
+							kleur.green().bold(padS(this.humanReadableBytes(rxBytes), 8)),
+							kleur.grey("/"),
+							kleur.green().bold(padS(this.humanReadableBps(rxBytesRate), 8))
+						].join(" ")
+					);
 				}
 			});
 			this.columnize(rows, 2).forEach(row => console.log(" ", ...row));
@@ -203,38 +239,49 @@ module.exports = {
 			// Total
 			if (totalTx || totalRx) {
 				console.log(padE("  ", 80, "-"));
-				console.log([" ",
-					padE("Total", 8),
-					kleur.grey("TX:"),
-					kleur.green().bold(padS(val(totalTx) + " pck", 8)),
-					kleur.green().bold(padS(val(totalTxRate / 60) + " p/s", 8)),
-					kleur.green().bold(padS(this.humanReadableBytes(totalTxBytes), 8)),
-					kleur.grey("/"),
-					kleur.green().bold(padS(this.humanReadableBps(totalTxBytesRate), 8)),
-					kleur.grey("   RX:"),
-					kleur.green().bold(padS(val(totalRx) + " pck", 8)),
-					kleur.green().bold(padS(val(totalRxRate / 60) + " p/s", 8)),
-					kleur.green().bold(padS(this.humanReadableBytes(totalRxBytes), 8)),
-					kleur.grey("/"),
-					kleur.green().bold(padS(this.humanReadableBps(totalRxBytesRate), 8))
-				].join(" "));
+				console.log(
+					[
+						" ",
+						padE("Total", 8),
+						kleur.grey("TX:"),
+						kleur.green().bold(padS(val(totalTx) + " pck", 8)),
+						kleur.green().bold(padS(val(totalTxRate / 60) + " p/s", 8)),
+						kleur.green().bold(padS(this.humanReadableBytes(totalTxBytes), 8)),
+						kleur.grey("/"),
+						kleur.green().bold(padS(this.humanReadableBps(totalTxBytesRate), 8)),
+						kleur.grey("   RX:"),
+						kleur.green().bold(padS(val(totalRx) + " pck", 8)),
+						kleur.green().bold(padS(val(totalRxRate / 60) + " p/s", 8)),
+						kleur.green().bold(padS(this.humanReadableBytes(totalRxBytes), 8)),
+						kleur.grey("/"),
+						kleur.green().bold(padS(this.humanReadableBps(totalRxBytesRate), 8))
+					].join(" ")
+				);
 			}
 		},
 
-		printRegistry: _.debounce(function() {
+		printRegistry: _.debounce(function () {
 			console.log("\x1b[2J");
 			console.log("\x1b[0;0H");
-			console.log(kleur.yellow().bold("\nRegistry:  "), kleur.grey("Time:"), kleur.grey(humanize(process.uptime() * 1000)));
-			console.log(kleur.yellow().bold(  "========"));
+			console.log(
+				kleur.yellow().bold("\nRegistry:  "),
+				kleur.grey("Time:"),
+				kleur.grey(humanize(process.uptime() * 1000))
+			);
+			console.log(kleur.yellow().bold("========"));
 
-			const nodeIDs = _.uniq([].concat(
-				Object.keys(this.workerRegistry),
-				this.broker.registry.nodes.toArray().map(node => node.id)
-			))
+			const nodeIDs = _.uniq(
+				[].concat(
+					Object.keys(this.workerRegistry),
+					this.broker.registry.nodes.toArray().map(node => node.id)
+				)
+			)
 				.filter(nodeID => nodeID != this.broker.nodeID)
 				.sort((a, b) => Number(a.replace(/[^\d]/g, "")) - Number(b.replace(/[^\d]/g, "")));
 
-			nodeIDs.forEach(nodeID => this.printWorkerRegistry(nodeID, this.workerRegistry[nodeID], nodeIDs));
+			nodeIDs.forEach(nodeID =>
+				this.printWorkerRegistry(nodeID, this.workerRegistry[nodeID], nodeIDs)
+			);
 		}, 250),
 
 		printWorkerRegistry(mainNodeID, nodes, allNodeIDs) {
@@ -253,10 +300,8 @@ module.exports = {
 				}
 				if (nodes && nodes[nodeID]) {
 					const node = nodes[nodeID];
-					if (node.available)
-						s += kleur.green().bold("█");
-					else
-						s += kleur.red().bold("█");
+					if (node.available) s += kleur.green().bold("█");
+					else s += kleur.red().bold("█");
 				} else {
 					s += kleur.red().bold("█");
 				}
@@ -271,7 +316,7 @@ module.exports = {
 
 			let tmp = [];
 			arr.forEach((item, i) => {
-				if ((i+1) % count == 0) {
+				if ((i + 1) % count == 0) {
 					tmp.push(item);
 					res.push(tmp);
 					tmp = [];
@@ -280,8 +325,7 @@ module.exports = {
 				}
 			});
 
-			if (tmp.length > 0)
-				res.push(tmp);
+			if (tmp.length > 0) res.push(tmp);
 
 			return res;
 		},
@@ -320,7 +364,7 @@ module.exports = {
 			if (bytes >= 1000 * 1000) return `${(bytes / 1000 / 1000).toFixed(0)} MB`;
 			if (bytes >= 1000) return `${(bytes / 1000).toFixed(0)} kB`;
 			else return `${bytes.toFixed(0)} B`;
-		},
+		}
 	},
 
 	created() {
@@ -332,8 +376,7 @@ module.exports = {
 
 	started() {
 		// Print after the fresh metrics received
-		if (this.settings.printIO)
-			this.metricTimer = setInterval(() => this.printMetrics(), 5000);
+		if (this.settings.printIO) this.metricTimer = setInterval(() => this.printMetrics(), 5000);
 
 		//if (this.settings.printRegistry)
 		//	this.metricTimer = setInterval(() => this.printRegistry(), 2000);
@@ -342,5 +385,4 @@ module.exports = {
 	stopped() {
 		clearInterval(this.metricTimer);
 	}
-
 };

@@ -19,9 +19,7 @@ const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
 describe("Test CSVReporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new CSVReporter();
 
@@ -42,7 +40,7 @@ describe("Test CSVReporter class", () => {
 				types: null,
 				interval: 5,
 				filenameFormatter: null,
-				rowFormatter: null,
+				rowFormatter: null
 			});
 
 			expect(reporter.lastChanges).toBeInstanceOf(Set);
@@ -62,7 +60,7 @@ describe("Test CSVReporter class", () => {
 				rowDelimiter: "\r\n",
 				mode: "label",
 				types: ["gauge", "counter"],
-				interval: 10,
+				interval: 10
 			});
 
 			expect(reporter.opts).toEqual({
@@ -81,15 +79,14 @@ describe("Test CSVReporter class", () => {
 				interval: 10,
 
 				filenameFormatter: null,
-				rowFormatter: null,
+				rowFormatter: null
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should start timer & create directory", () => {
@@ -137,7 +134,6 @@ describe("Test CSVReporter class", () => {
 
 			expect(reporter.flush).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test labelsToStr method", () => {
@@ -149,15 +145,16 @@ describe("Test CSVReporter class", () => {
 		it("should convert labels to filename compatible string", () => {
 			expect(reporter.labelsToStr()).toBe("");
 			expect(reporter.labelsToStr({})).toBe("");
-			expect(reporter.labelsToStr({
-				a: 5,
-				b: "John",
-				c: true,
-				d: null,
-				e: "%Hello . Mol:ec?uler/"
-			})).toBe("a=5--b=John--c=true--d=null--e=Hello_._Moleculer");
+			expect(
+				reporter.labelsToStr({
+					a: 5,
+					b: "John",
+					c: true,
+					d: null,
+					e: "%Hello . Mol:ec?uler/"
+				})
+			).toBe("a=5--b=John--c=true--d=null--e=Hello_._Moleculer");
 		});
-
 	});
 
 	describe("Test getFilename method", () => {
@@ -180,7 +177,9 @@ describe("Test CSVReporter class", () => {
 
 		it("should create label-based filename", () => {
 			reporter.opts.mode = "label";
-			expect(reporter.getFilename(metric, item)).toBe("/metrics/moleculer.request.total/moleculer.request.total--a=5--b=John_Doe.csv");
+			expect(reporter.getFilename(metric, item)).toBe(
+				"/metrics/moleculer.request.total/moleculer.request.total--a=5--b=John_Doe.csv"
+			);
 		});
 
 		it("should create metric-based filename", () => {
@@ -188,9 +187,12 @@ describe("Test CSVReporter class", () => {
 			expect(reporter.getFilename(metric, item)).toBe("/xyz.csv");
 
 			expect(reporter.opts.filenameFormatter).toHaveBeenCalledTimes(1);
-			expect(reporter.opts.filenameFormatter).toHaveBeenCalledWith("moleculer.request.total", metric, item);
+			expect(reporter.opts.filenameFormatter).toHaveBeenCalledWith(
+				"moleculer.request.total",
+				metric,
+				item
+			);
 		});
-
 	});
 
 	describe("Test writeRow method", () => {
@@ -228,9 +230,7 @@ describe("Test CSVReporter class", () => {
 			expect(fs.appendFileSync).toHaveBeenCalledTimes(1);
 			expect(fs.appendFileSync).toHaveBeenCalledWith("test.csv", "data1;data2\r\n");
 		});
-
 	});
-
 
 	describe("Test flush method", () => {
 		let clock, broker, registry, reporter;
@@ -259,19 +259,37 @@ describe("Test CSVReporter class", () => {
 		afterAll(() => clock.uninstall());
 
 		it("should call broker emit with changes", () => {
-
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -288,7 +306,7 @@ describe("Test CSVReporter class", () => {
 
 		it("should write changes only", () => {
 			ROWS = [];
-			reporter.opts.rowFormatter = jest.fn((data, headers/*, metric, item*/) => {
+			reporter.opts.rowFormatter = jest.fn((data, headers /*, metric, item*/) => {
 				data.push("MyData");
 				headers.push("MyField");
 			});
@@ -304,9 +322,6 @@ describe("Test CSVReporter class", () => {
 
 			expect(ROWS).toMatchSnapshot();
 			expect(reporter.lastChanges.size).toBe(0);
-
 		});
-
 	});
-
 });

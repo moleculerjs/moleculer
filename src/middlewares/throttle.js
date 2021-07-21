@@ -7,7 +7,6 @@
 "use strict";
 
 module.exports = function throttleMiddleware(broker) {
-
 	function wrapEventThrottleMiddleware(handler, event) {
 		if (event.throttle > 0) {
 			let lastInvoke = 0;

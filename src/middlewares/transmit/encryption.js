@@ -35,7 +35,9 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 
 		transporterSend(next) {
 			return (topic, data, meta) => {
-				const encrypter = iv ? crypto.createCipheriv(algorithm, password, iv) : crypto.createCipher(algorithm, password);
+				const encrypter = iv
+					? crypto.createCipheriv(algorithm, password, iv)
+					: crypto.createCipher(algorithm, password);
 				const res = Buffer.concat([encrypter.update(data), encrypter.final()]);
 				return next(topic, res, meta);
 			};
@@ -44,10 +46,12 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 		transporterReceive(next) {
 			return (cmd, data, s) => {
 				try {
-					const decrypter = iv ? crypto.createDecipheriv(algorithm, password, iv) : crypto.createDecipher(algorithm, password);
+					const decrypter = iv
+						? crypto.createDecipheriv(algorithm, password, iv)
+						: crypto.createDecipher(algorithm, password);
 					const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
 					return next(cmd, res, s);
-				} catch(err) {
+				} catch (err) {
 					logger.error("Received packet decryption error.", err);
 				}
 			};

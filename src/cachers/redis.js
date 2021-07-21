@@ -19,7 +19,6 @@ const Serializers = require("../serializers");
  * @class RedisCacher
  */
 class RedisCacher extends BaseCacher {
-
 	/**
 	 * Creates an instance of RedisCacher.
 	 *
@@ -28,14 +27,13 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	constructor(opts) {
-		if (typeof opts === "string")
-			opts = { redis: opts };
+		if (typeof opts === "string") opts = { redis: opts };
 
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
 			prefix: null,
-			pingInterval: null,
+			pingInterval: null
 		});
 
 		this.pingIntervalHandle = null;
@@ -54,7 +52,11 @@ class RedisCacher extends BaseCacher {
 			Redis = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+			this.broker.fatal(
+				"The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.",
+				err,
+				true
+			);
 		}
 		/**
 		 * ioredis client instance
@@ -75,7 +77,7 @@ class RedisCacher extends BaseCacher {
 			this.logger.info("Redis cacher connected.");
 		});
 
-		this.client.on("error", (err) => {
+		this.client.on("error", err => {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -83,31 +85,29 @@ class RedisCacher extends BaseCacher {
 			Redlock = require("redlock");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.logger.warn("The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command.");
+			this.logger.warn(
+				"The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command."
+			);
 		}
 		if (Redlock) {
-			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client];
+			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [
+				this.client
+			];
 			/**
 			 * redlock client instance
 			 * @memberof RedisCacher
 			 */
-			this.redlock = new Redlock(
-				redlockClients,
-				_.omit(this.opts.redlock, ["clients"])
-			);
+			this.redlock = new Redlock(redlockClients, _.omit(this.opts.redlock, ["clients"]));
 			// Non-blocking redlock client, used for tryLock()
-			this.redlockNonBlocking = new Redlock(
-				redlockClients,
-				{
-					retryCount: 0
-				}
-			);
+			this.redlockNonBlocking = new Redlock(redlockClients, {
+				retryCount: 0
+			});
 		}
 		if (this.opts.monitor) {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis cacher entering monitoring mode...");
-				monitor.on("monitor", (time, args/*, source, database*/) => {
+				monitor.on("monitor", (time, args /*, source, database*/) => {
 					this.logger.debug(args);
 				});
 			});
@@ -120,11 +120,12 @@ class RedisCacher extends BaseCacher {
 		// add interval for ping if set
 		if (this.opts.pingInterval > 0) {
 			this.pingIntervalHandle = setInterval(() => {
-				this.client.ping()
+				this.client
+					.ping()
 					.then(() => {
 						this.logger.debug("Sent PING to Redis Server");
 					})
-					.catch((err) => {
+					.catch(err => {
 						this.logger.error("Failed to send PING to Redis Server", err);
 					});
 			}, Number(this.opts.pingInterval));
@@ -159,7 +160,7 @@ class RedisCacher extends BaseCacher {
 		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
 
-		return this.client.getBuffer(this.prefix + key).then((data) => {
+		return this.client.getBuffer(this.prefix + key).then(data => {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
 				this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
@@ -195,8 +196,7 @@ class RedisCacher extends BaseCacher {
 		data = this.serializer.serialize(data);
 		this.logger.debug(`SET ${key}`);
 
-		if (ttl == null)
-			ttl = this.opts.ttl;
+		if (ttl == null) ttl = this.opts.ttl;
 
 		let p;
 		if (ttl) {
@@ -231,7 +231,8 @@ class RedisCacher extends BaseCacher {
 		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
-		return this.client.del(keysToDelete)
+		return this.client
+			.del(keysToDelete)
 			.then(res => {
 				timeEnd();
 				return res;
@@ -258,19 +259,20 @@ class RedisCacher extends BaseCacher {
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_CLEAN_TIME);
 
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
-		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
+		const normalizedPatterns = cleaningPatterns.map(
+			match => this.prefix + match.replace(/\*\*/g, "*")
+		);
 		this.logger.debug(`CLEAN ${match}`);
 		return this._sequentialPromises(normalizedPatterns)
 			.then(res => {
 				timeEnd();
 				return res;
 			})
-			.catch((err) => {
+			.catch(err => {
 				timeEnd();
 				this.logger.error(`Redis 'scanDel' error. Pattern: ${err.pattern}`, err);
 				throw err;
 			});
-
 	}
 
 	/**
@@ -282,28 +284,32 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	getWithTTL(key) {
-		return this.client.pipeline().getBuffer(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
-			let [err0, data] = res[0];
-			let [err1, ttl] = res[1];
-			if(err0){
-				return this.broker.Promise.reject(err0);
-			}
-			if(err1){
-				return this.broker.Promise.reject(err1);
-			}
-			if (data) {
-				this.logger.debug(`FOUND ${key}`);
-				try {
-					data = this.serializer.deserialize(data);
-				} catch (err) {
-					this.logger.error("Redis result parse error.", err, data);
-					data = null;
+		return this.client
+			.pipeline()
+			.getBuffer(this.prefix + key)
+			.ttl(this.prefix + key)
+			.exec()
+			.then(res => {
+				let [err0, data] = res[0];
+				let [err1, ttl] = res[1];
+				if (err0) {
+					return this.broker.Promise.reject(err0);
 				}
-			}
-			return { data, ttl };
-		});
+				if (err1) {
+					return this.broker.Promise.reject(err1);
+				}
+				if (data) {
+					this.logger.debug(`FOUND ${key}`);
+					try {
+						data = this.serializer.deserialize(data);
+					} catch (err) {
+						this.logger.error("Redis result parse error.", err, data);
+						data = null;
+					}
+				}
+				return { data, ttl };
+			});
 	}
-
 
 	/**
 	 * Acquire a lock
@@ -314,10 +320,10 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	lock(key, ttl=15000) {
+	lock(key, ttl = 15000) {
 		key = this.prefix + key + "-lock";
-		return this.redlock.lock(key, ttl).then(lock=>{
-			return ()=>lock.unlock();
+		return this.redlock.lock(key, ttl).then(lock => {
+			return () => lock.unlock();
 		});
 	}
 
@@ -330,10 +336,10 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	tryLock(key, ttl=15000) {
+	tryLock(key, ttl = 15000) {
 		key = this.prefix + key + "-lock";
-		return this.redlockNonBlocking.lock(key, ttl).then(lock=>{
-			return ()=>lock.unlock();
+		return this.redlockNonBlocking.lock(key, ttl).then(lock => {
+			return () => lock.unlock();
 		});
 	}
 
@@ -373,13 +379,13 @@ class RedisCacher extends BaseCacher {
 					.then(() => {
 						stream.resume();
 					})
-					.catch((err) => {
+					.catch(err => {
 						err.pattern = pattern;
 						return reject(err);
 					});
 			});
 
-			stream.on("error", (err) => {
+			stream.on("error", err => {
 				this.logger.error(`Error occured while deleting keys '${pattern}' from node.`, err);
 				reject(err);
 			});
@@ -399,7 +405,6 @@ class RedisCacher extends BaseCacher {
 		}
 	}
 
-
 	/**
 	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
 	 *
@@ -416,14 +421,18 @@ class RedisCacher extends BaseCacher {
 
 			stream.on("data", (keys = []) => res.push(...keys));
 
-			stream.on("error", (err) => {
+			stream.on("error", err => {
 				this.logger.error("Error occured while listing keys from node.", err);
 				reject(err);
 			});
 
 			stream.on("end", () => {
 				// End deleting keys from node
-				resolve(res.map(key => ({ key: key.startsWith(this.prefix) ? key.slice(this.prefix.length) : key })));
+				resolve(
+					res.map(key => ({
+						key: key.startsWith(this.prefix) ? key.slice(this.prefix.length) : key
+					}))
+				);
 			});
 		});
 	}

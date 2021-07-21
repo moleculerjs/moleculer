@@ -9,5 +9,5 @@
 module.exports = {
 	Tracer: require("./tracer"),
 	Span: require("./span"),
-	Exporters: require("./exporters"),
+	Exporters: require("./exporters")
 };

@@ -9,7 +9,6 @@ const { isObject } = require("../../utils");
  * @class BaseTraceExporter
  */
 class BaseTraceExporter {
-
 	/**
 	 * Creates an instance of BaseTraceExporter.
 	 * @param {Object?} opts
@@ -92,8 +91,7 @@ class BaseTraceExporter {
 			const o = obj[k];
 			const pp = (path ? path + "." : "") + k;
 
-			if (isObject(o))
-				Object.assign(res, this.flattenTags(o, convertToString, pp));
+			if (isObject(o)) Object.assign(res, this.flattenTags(o, convertToString, pp));
 			else if (o !== undefined) {
 				res[pp] = convertToString ? String(o) : o;
 			}

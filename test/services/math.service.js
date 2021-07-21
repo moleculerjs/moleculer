@@ -22,10 +22,8 @@ module.exports = {
 		div(ctx) {
 			let a = Number(ctx.params.a);
 			let b = Number(ctx.params.b);
-			if (b != 0)
-				return a / b;
-			else
-				throw new Error("Divide by zero!");
+			if (b != 0) return a / b;
+			else throw new Error("Divide by zero!");
 		}
 	}
 };

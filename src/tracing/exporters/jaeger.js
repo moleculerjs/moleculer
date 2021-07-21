@@ -6,9 +6,9 @@
 
 "use strict";
 
-const _ 					= require("lodash");
-const BaseTraceExporter 	= require("./base");
-const { isFunction } 		= require("../../utils");
+const _ = require("lodash");
+const BaseTraceExporter = require("./base");
+const { isFunction } = require("../../utils");
 
 let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTTPSender;
 
@@ -26,7 +26,6 @@ let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTT
  * @class JaegerTraceExporter
  */
 class JaegerTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of JaegerTraceExporter.
 	 * @param {Object?} opts
@@ -36,7 +35,6 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-
 			/** @type {String?} HTTP Reporter endpoint - is set, HTTP Reporter will be used. */
 			endpoint: null,
 			/** @type {String} UDP Sender host option. */
@@ -73,17 +71,25 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		super.init(tracer);
 
 		try {
-			Jaeger						= require("jaeger-client");
-			GuaranteedThroughputSampler	= require("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler").default;
-			RemoteControlledSampler		= require("jaeger-client/dist/src/samplers/remote_sampler").default;
-			UDPSender					= require("jaeger-client/dist/src/reporters/udp_sender").default;
-			HTTPSender					= require("jaeger-client/dist/src/reporters/http_sender").default;
-		} catch(err) {
+			Jaeger = require("jaeger-client");
+			GuaranteedThroughputSampler =
+				require("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler").default;
+			RemoteControlledSampler =
+				require("jaeger-client/dist/src/samplers/remote_sampler").default;
+			UDPSender = require("jaeger-client/dist/src/reporters/udp_sender").default;
+			HTTPSender = require("jaeger-client/dist/src/reporters/http_sender").default;
+		} catch (err) {
 			/* istanbul ignore next */
-			this.tracer.broker.fatal("The 'jaeger-client' package is missing! Please install it with 'npm install jaeger-client --save' command!", err, true);
+			this.tracer.broker.fatal(
+				"The 'jaeger-client' package is missing! Please install it with 'npm install jaeger-client --save' command!",
+				err,
+				true
+			);
 		}
 
-		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags)
+			? this.opts.defaultTags.call(this, tracer)
+			: this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags);
 		}
@@ -94,7 +100,9 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 */
 	stop() {
 		if (this.tracers) {
-			return this.broker.Promise.all(Object.values(this.tracers).map(tracer => tracer.close()));
+			return this.broker.Promise.all(
+				Object.values(this.tracers).map(tracer => tracer.close())
+			);
 		}
 		return this.broker.Promise.resolve();
 	}
@@ -109,7 +117,11 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		if (this.opts.endpoint) {
 			reporter = new HTTPSender({ endpoint: this.opts.endpoint, logger: this.logger });
 		} else {
-			reporter = new UDPSender({ host: this.opts.host, port: this.opts.port, logger: this.logger });
+			reporter = new UDPSender({
+				host: this.opts.host,
+				port: this.opts.port,
+				logger: this.logger
+			});
 		}
 
 		return new Jaeger.RemoteReporter(reporter);
@@ -120,24 +132,31 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 *
 	 */
 	getSampler(serviceName) {
-		if (isFunction(this.opts.sampler))
-			return this.opts.sampler;
+		if (isFunction(this.opts.sampler)) return this.opts.sampler;
 
 		if (this.opts.sampler.type == "RateLimiting")
-			return new Jaeger.RateLimitingSampler(this.opts.sampler.options.maxTracesPerSecond,
-				this.opts.sampler.options.initBalance);
+			return new Jaeger.RateLimitingSampler(
+				this.opts.sampler.options.maxTracesPerSecond,
+				this.opts.sampler.options.initBalance
+			);
 
 		if (this.opts.sampler.type == "Probabilistic")
 			return new Jaeger.ProbabilisticSampler(this.opts.sampler.options.samplingRate);
 
 		if (this.opts.sampler.type == "GuaranteedThroughput")
-			return new GuaranteedThroughputSampler(this.opts.sampler.options.lowerBound,
-				this.opts.sampler.options.samplingRate);
+			return new GuaranteedThroughputSampler(
+				this.opts.sampler.options.lowerBound,
+				this.opts.sampler.options.samplingRate
+			);
 
 		if (this.opts.sampler.type == "RemoteControlled")
 			return new RemoteControlledSampler(serviceName, this.opts.sampler.options);
 
-		return new Jaeger.ConstSampler((this.opts.sampler.options && this.opts.sampler.options.decision != null) ? this.opts.sampler.options.decision : 1);
+		return new Jaeger.ConstSampler(
+			this.opts.sampler.options && this.opts.sampler.options.decision != null
+				? this.opts.sampler.options.decision
+				: 1
+		);
 	}
 
 	/**
@@ -147,13 +166,17 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @returns {Jaeger.Tracer}
 	 */
 	getTracer(serviceName) {
-		if (this.tracers[serviceName])
-			return this.tracers[serviceName];
+		if (this.tracers[serviceName]) return this.tracers[serviceName];
 
 		const sampler = this.getSampler(serviceName);
 		const reporter = this.getReporter();
 
-		const tracer = new Jaeger.Tracer(serviceName, reporter, sampler, Object.assign({ logger: this.logger }, this.opts.tracerOptions));
+		const tracer = new Jaeger.Tracer(
+			serviceName,
+			reporter,
+			sampler,
+			Object.assign({ logger: this.logger }, this.opts.tracerOptions)
+		);
 		this.tracers[serviceName] = tracer;
 
 		return tracer;
@@ -197,15 +220,25 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		const jaegerSpan = tracer.startSpan(span.name, {
 			startTime: span.startTime,
 			childOf: parentCtx,
-			tags: this.flattenTags(_.defaultsDeep({
-				"span.type": span.type
-			}, span.tags, this.defaultTags))
+			tags: this.flattenTags(
+				_.defaultsDeep(
+					{
+						"span.type": span.type
+					},
+					span.tags,
+					this.defaultTags
+				)
+			)
 		});
 
 		this.addLogs(jaegerSpan, span.logs);
 
 		this.addTags(jaegerSpan, "service", serviceName);
-		this.addTags(jaegerSpan, Jaeger.opentracing.Tags.SPAN_KIND, Jaeger.opentracing.Tags.SPAN_KIND_RPC_SERVER);
+		this.addTags(
+			jaegerSpan,
+			Jaeger.opentracing.Tags.SPAN_KIND,
+			Jaeger.opentracing.Tags.SPAN_KIND_RPC_SERVER
+		);
 
 		const sc = jaegerSpan.context();
 		sc.traceId = this.convertID(span.traceID);
@@ -229,11 +262,14 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 */
 	addLogs(span, logs) {
 		if (Array.isArray(logs)) {
-			logs.forEach((log) => {
-				span.log({
-					event: log.name,
-					payload: log.fields,
-				}, log.time);
+			logs.forEach(log => {
+				span.log(
+					{
+						event: log.name,
+						payload: log.fields
+					},
+					log.time
+				);
 			});
 		}
 	}
@@ -262,12 +298,10 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @returns {String}
 	 */
 	convertID(id) {
-		if (id)
-			return Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex");
+		if (id) return Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex");
 
 		return null;
 	}
-
 }
 
 module.exports = JaegerTraceExporter;

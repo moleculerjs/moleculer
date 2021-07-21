@@ -13,7 +13,6 @@ const path = require("path");
 const fs = require("fs");
 const METRIC = require("../constants");
 
-
 const MODE_METRIC = "metric";
 const MODE_LABEL = "label";
 /**
@@ -23,7 +22,6 @@ const MODE_LABEL = "label";
  * @extends {BaseReporter}
  */
 class CSVReporter extends BaseReporter {
-
 	/**
 	 * Creates an instance of CSVReporter.
 	 * @param {Object} opts
@@ -44,7 +42,7 @@ class CSVReporter extends BaseReporter {
 			interval: 5,
 
 			filenameFormatter: null,
-			rowFormatter: null,
+			rowFormatter: null
 		});
 
 		this.lastChanges = new Set();
@@ -81,7 +79,8 @@ class CSVReporter extends BaseReporter {
 		const keys = Object.keys(labels);
 		if (keys.length == 0) return "";
 
-		return keys.map(key => `${this.formatLabelName(key)}=${labels[key]}`)
+		return keys
+			.map(key => `${this.formatLabelName(key)}=${labels[key]}`)
 			.join("--")
 			.replace(/[\s]/g, "_")
 			.replace(/[|&:;$%@"<>()+,/?]/g, "");
@@ -103,7 +102,11 @@ class CSVReporter extends BaseReporter {
 			}
 			case MODE_LABEL: {
 				const labelStr = this.labelsToStr(item.labels);
-				return path.join(this.folder, metricName, `${metricName}${labelStr ? "--" + labelStr : ""}.csv`);
+				return path.join(
+					this.folder,
+					metricName,
+					`${metricName}${labelStr ? "--" + labelStr : ""}.csv`
+				);
 			}
 		}
 	}
@@ -117,11 +120,10 @@ class CSVReporter extends BaseReporter {
 		const list = this.registry.list({
 			types: this.opts.types,
 			includes: this.opts.includes,
-			excludes: this.opts.excludes,
+			excludes: this.opts.excludes
 		});
 
-		if (list.length == 0)
-			return;
+		if (list.length == 0) return;
 
 		this.logger.debug("Write metrics values to CSV files...");
 
@@ -143,12 +145,11 @@ class CSVReporter extends BaseReporter {
 					data.push(item.labels[label] != null ? item.labels[label].toString() : "");
 				});
 
-				switch(metric.type) {
+				switch (metric.type) {
 					case METRIC.TYPE_COUNTER:
 					case METRIC.TYPE_GAUGE:
 					case METRIC.TYPE_INFO: {
-						if (item.value == null)
-							return;
+						if (item.value == null) return;
 
 						headers.push("Value");
 						data.push(item.value.toString());
@@ -156,24 +157,33 @@ class CSVReporter extends BaseReporter {
 						break;
 					}
 					case METRIC.TYPE_HISTOGRAM: {
-						headers.push("Count"); data.push(item.count);
-						headers.push("Sum"); data.push(item.sum);
+						headers.push("Count");
+						data.push(item.count);
+						headers.push("Sum");
+						data.push(item.sum);
 
 						if (item.buckets) {
 							Object.keys(item.buckets).forEach(b => {
-								headers.push(`Bucket_${b}`); data.push(item.buckets[b]);
+								headers.push(`Bucket_${b}`);
+								data.push(item.buckets[b]);
 							});
 						}
 
 						if (item.quantiles) {
-							headers.push("Min"); data.push(item.min);
-							headers.push("Mean"); data.push(item.mean);
-							headers.push("Var"); data.push(item.variance);
-							headers.push("StdDev"); data.push(item.stdDev);
-							headers.push("Max"); data.push(item.max);
+							headers.push("Min");
+							data.push(item.min);
+							headers.push("Mean");
+							data.push(item.mean);
+							headers.push("Var");
+							data.push(item.variance);
+							headers.push("StdDev");
+							data.push(item.stdDev);
+							headers.push("Max");
+							data.push(item.max);
 
 							Object.keys(item.quantiles).forEach(key => {
-								headers.push(`Quantile_${key}`); data.push(item.quantiles[key]);
+								headers.push(`Quantile_${key}`);
+								data.push(item.quantiles[key]);
 							});
 						}
 
@@ -199,13 +209,19 @@ class CSVReporter extends BaseReporter {
 	writeRow(filename, headers, fields) {
 		try {
 			if (!fs.existsSync(filename))
-				fs.writeFileSync(filename, headers.join(this.opts.delimiter) + this.opts.rowDelimiter);
+				fs.writeFileSync(
+					filename,
+					headers.join(this.opts.delimiter) + this.opts.rowDelimiter
+				);
 
 			fs.appendFileSync(filename, fields.join(this.opts.delimiter) + this.opts.rowDelimiter);
-
 		} catch (err) {
 			/* istanbul ignore next */
-			this.logger.error(`Unable to write metrics values to the '${filename}' file. Error: ${err.message}`, fields, err);
+			this.logger.error(
+				`Unable to write metrics values to the '${filename}' file. Error: ${err.message}`,
+				fields,
+				err
+			);
 		}
 	}
 

@@ -15,7 +15,6 @@ const { MoleculerServerError } = require("../errors");
  * @class EndpointList
  */
 class EndpointList {
-
 	/**
 	 * Creates an instance of EndpointList.
 	 * @param {Registry} registry
@@ -74,8 +73,7 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	getFirst() {
-		if (this.endpoints.length > 0)
-			return this.endpoints[0];
+		if (this.endpoints.length > 0) return this.endpoints[0];
 
 		return null;
 	}
@@ -92,7 +90,12 @@ class EndpointList {
 		const ret = this.strategy.select(list, ctx);
 		if (!ret) {
 			/* istanbul ignore next */
-			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy) });
+			throw new MoleculerServerError(
+				"Strategy returned an invalid endpoint.",
+				500,
+				"INVALID_ENDPOINT",
+				{ strategy: typeof this.strategy }
+			);
 		}
 		return ret;
 	}
@@ -119,8 +122,7 @@ class EndpointList {
 		if (this.endpoints.length === 1) {
 			// No need to select a node, return the only one
 			const item = this.endpoints[0];
-			if (item.isAvailable)
-				return item;
+			if (item.isAvailable) return item;
 
 			return null;
 		}
@@ -128,13 +130,11 @@ class EndpointList {
 		// Search local item
 		if (this.registry.opts.preferLocal === true && this.hasLocal()) {
 			const ep = this.nextLocal(ctx);
-			if (ep && ep.isAvailable)
-				return ep;
+			if (ep && ep.isAvailable) return ep;
 		}
 
 		const epList = this.endpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0)
-			return null;
+		if (epList.length == 0) return null;
 
 		return this.select(epList, ctx);
 	}
@@ -156,15 +156,13 @@ class EndpointList {
 		if (this.localEndpoints.length === 1) {
 			// No need to select a node, return the only one
 			const item = this.localEndpoints[0];
-			if (item.isAvailable)
-				return item;
+			if (item.isAvailable) return item;
 
 			return null;
 		}
 
 		const epList = this.localEndpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0)
-			return null;
+		if (epList.length == 0) return null;
 
 		return this.select(epList, ctx);
 	}
@@ -217,8 +215,7 @@ class EndpointList {
 	 */
 	getEndpointByNodeID(nodeID) {
 		const ep = this.endpoints.find(ep => ep.id == nodeID);
-		if (ep && ep.isAvailable)
-			return ep;
+		if (ep && ep.isAvailable) return ep;
 
 		return null;
 	}

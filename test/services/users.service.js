@@ -6,10 +6,10 @@ const { delay } = require("../../src/utils");
 
 let users = fakerator.times(fakerator.entity.user, 10);
 
-_.each(users, (user, i) => user.id = i + 1);
+_.each(users, (user, i) => (user.id = i + 1));
 let c = 0;
 
-module.exports = function(broker) {
+module.exports = function (broker) {
 	return new broker.ServiceFactory(broker, {
 		name: "users",
 

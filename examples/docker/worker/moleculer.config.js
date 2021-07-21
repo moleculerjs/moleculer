@@ -9,8 +9,7 @@ module.exports = {
 	logLevel: "info",
 	transporter: {
 		type: "TCP",
-		options: {
-		}
+		options: {}
 	},
 	hotReload: true
 };

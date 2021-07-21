@@ -2,7 +2,6 @@ const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("../unit/utils");
 
 describe("Test Service handlers", () => {
-
 	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
@@ -41,7 +40,12 @@ describe("Test Service handlers", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
+		expect(eventHandler).toHaveBeenCalledWith(
+			{ id: 1, name: "John" },
+			"node-1",
+			"user.created",
+			expect.any(broker.ContextFactory)
+		);
 	});
 
 	it("should call stop handler", () => {
@@ -52,7 +56,6 @@ describe("Test Service handlers", () => {
 });
 
 describe("Test Service handlers after broker.start", () => {
-
 	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
@@ -89,7 +92,12 @@ describe("Test Service handlers after broker.start", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
+		expect(eventHandler).toHaveBeenCalledWith(
+			{ id: 1, name: "John" },
+			"node-1",
+			"user.created",
+			expect.any(broker.ContextFactory)
+		);
 	});
 
 	it("should call stop handler", () => {
@@ -98,7 +106,6 @@ describe("Test Service handlers after broker.start", () => {
 		});
 	});
 });
-
 
 describe("Test Service requesting during stopping", () => {
 	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
@@ -114,7 +121,7 @@ describe("Test Service requesting during stopping", () => {
 		},
 
 		stopped() {
-			return new this.Promise((resolve) => {
+			return new this.Promise(resolve => {
 				resolver = resolve;
 			});
 		}
@@ -132,7 +139,8 @@ describe("Test Service requesting during stopping", () => {
 	beforeAll(() => Promise.all([broker1.start(), broker2.start()]));
 
 	it("should call action", () => {
-		return broker1.call("posts.find")
+		return broker1
+			.call("posts.find")
 			.catch(protectReject)
 			.then(() => {
 				expect(schema1.actions.find).toHaveBeenCalledTimes(1);

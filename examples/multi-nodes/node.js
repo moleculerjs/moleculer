@@ -11,14 +11,12 @@ class ProcessEventMetricReporter extends EventReporter {
 	sendEvent() {
 		let list = this.registry.list({
 			includes: this.opts.includes,
-			excludes: this.opts.excludes,
+			excludes: this.opts.excludes
 		});
 
-		if (this.opts.onlyChanges)
-			list = list.filter(metric => this.lastChanges.has(metric.name));
+		if (this.opts.onlyChanges) list = list.filter(metric => this.lastChanges.has(metric.name));
 
-		if (list.length == 0)
-			return;
+		if (list.length == 0) return;
 
 		process.send({ event: "metrics", list });
 
@@ -27,7 +25,6 @@ class ProcessEventMetricReporter extends EventReporter {
 }
 
 function start(opts) {
-
 	const transporter = process.env.TRANSPORTER || "NATS";
 
 	// Create broker
@@ -35,7 +32,8 @@ function start(opts) {
 		namespace: process.env.NAMESPACE || "nodes",
 		nodeID: opts.nodeID || "node-" + process.pid,
 		transporter,
-		logger: ["Console"/*, {
+		logger: [
+			"Console" /*, {
 		type: "File",
 		options: {
 			// Logging level
@@ -47,7 +45,8 @@ function start(opts) {
 			// Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
 			formatter: "short"
 		}
-	}*/],
+	}*/
+		],
 		logLevel: process.env.LOGLEVEL || "warn",
 		metrics: {
 			enabled: true,
@@ -81,17 +80,20 @@ function start(opts) {
 	//broker.localBus.on("$node.connected", () => sendUpdatedRegistry());
 	broker.localBus.on("$node.disconnected", () => sendUpdatedRegistry());
 
-	broker.start()
-		.then(() => {
-			process.on("message", async msg => {
-				if (msg.cmd == "stop") {
-					await broker.stop();
-					process.exit(0);
-				}
-			});
-			process.send({ event: "started", nodeID: broker.nodeID, tx: transporter, pid: process.pid });
+	broker.start().then(() => {
+		process.on("message", async msg => {
+			if (msg.cmd == "stop") {
+				await broker.stop();
+				process.exit(0);
+			}
 		});
-
+		process.send({
+			event: "started",
+			nodeID: broker.nodeID,
+			tx: transporter,
+			pid: process.pid
+		});
+	});
 }
 
 process.on("message", msg => {

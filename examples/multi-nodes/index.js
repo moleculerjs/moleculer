@@ -12,7 +12,6 @@ if (cluster.isMaster) {
 		serialization: "json"
 	});
 	require("./master.js");
-
 } else {
 	require("./node.js");
 }
