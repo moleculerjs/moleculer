@@ -6,13 +6,17 @@
 
 "use strict";
 
-const net 			= require("net");
-const EventEmitter 	= require("events");
+const net = require("net");
+const EventEmitter = require("events");
 
 const { MoleculerError } = require("../../errors");
-const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID } = require("./constants");
+const {
+	PACKET_GOSSIP_REQ_ID,
+	PACKET_GOSSIP_RES_ID,
+	PACKET_GOSSIP_HELLO_ID
+} = require("./constants");
 
-const HEADER_SIZE	= 6;
+const HEADER_SIZE = 6;
 
 /**
  * TCP Writer for TcpTransporter
@@ -21,7 +25,6 @@ const HEADER_SIZE	= 6;
  * @extends {EventEmitter}
  */
 class TcpWriter extends EventEmitter {
-
 	/**
 	 * Creates an instance of TcpWriter.
 	 *
@@ -68,36 +71,31 @@ class TcpWriter extends EventEmitter {
 					this.logger.debug(`Connected successfully to '${nodeID}'.`);
 
 					// Handle racing problem, we send first a HELLO packet with our connection info
-					this.transporter.sendHello(nodeID)
+					this.transporter
+						.sendHello(nodeID)
 						.then(() => resolve(socket))
 						.catch(err => reject(err));
 
-					if (this.sockets.size > this.opts.maxConnections)
-						this.manageConnections();
-
+					if (this.sockets.size > this.opts.maxConnections) this.manageConnections();
 				});
 
 				socket.on("error", err => {
 					this.removeSocket(nodeID);
 					this.emit("error", err, nodeID);
 
-					if (reject)
-						reject(err);
+					if (reject) reject(err);
 				});
 
 				socket.on("end", () => {
 					this.removeSocket(nodeID);
 					this.emit("end", nodeID);
 
-					if (reject)
-						reject(new Error("Connection closed"));
+					if (reject) reject(new Error("Connection closed"));
 				});
 
 				socket.unref();
-
-			} catch(err) {
-				if (reject)
-					reject(err);
+			} catch (err) {
+				if (reject) reject(err);
 			}
 		});
 	}
@@ -113,17 +111,19 @@ class TcpWriter extends EventEmitter {
 		return this.Promise.resolve()
 			.then(() => {
 				let socket = this.sockets.get(nodeID);
-				if (socket && !socket.destroyed)
-					return socket;
+				if (socket && !socket.destroyed) return socket;
 
 				return this.connect(nodeID);
 			})
 			.then(socket => {
-				if ([PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID].indexOf(type) == -1)
+				if (
+					[PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID].indexOf(
+						type
+					) == -1
+				)
 					socket.lastUsed = Date.now();
 
 				return new this.Promise((resolve, reject) => {
-
 					// Create binary payload
 					const header = Buffer.alloc(HEADER_SIZE);
 					header.writeInt32BE(data.length + HEADER_SIZE, 1);
@@ -139,7 +139,7 @@ class TcpWriter extends EventEmitter {
 							//this.logger.info(data.toString());
 							resolve();
 						});
-					} catch(err) {
+					} catch (err) {
 						this.removeSocket(nodeID);
 						reject(err);
 					}
@@ -154,12 +154,11 @@ class TcpWriter extends EventEmitter {
 	 */
 	manageConnections() {
 		let count = this.sockets.size - this.opts.maxConnections;
-		if (count <= 0)
-			return;
+		if (count <= 0) return;
 
 		const list = [];
 		this.sockets.forEach((socket, nodeID) => list.push({ nodeID, lastUsed: socket.lastUsed }));
-		list.sort((a,b) => a.lastUsed - b.lastUsed);
+		list.sort((a, b) => a.lastUsed - b.lastUsed);
 
 		count = Math.min(count, list.length - 1);
 		const removable = list.slice(0, count);
@@ -181,8 +180,7 @@ class TcpWriter extends EventEmitter {
 	 */
 	addSocket(nodeID, socket, force) {
 		const s = this.sockets.get(nodeID);
-		if (!force && s && !s.destroyed)
-			return;
+		if (!force && s && !s.destroyed) return;
 
 		this.sockets.set(nodeID, socket);
 	}
@@ -194,8 +192,7 @@ class TcpWriter extends EventEmitter {
 	 */
 	removeSocket(nodeID) {
 		const socket = this.sockets.get(nodeID);
-		if (socket && !socket.destroyed)
-			socket.destroy();
+		if (socket && !socket.destroyed) socket.destroy();
 
 		this.sockets.delete(nodeID);
 	}
@@ -207,9 +204,8 @@ class TcpWriter extends EventEmitter {
 	 */
 	close() {
 		// Close all live sockets
-		this.sockets.forEach((socket) => {
-			if (!socket.destroyed)
-				socket.end();
+		this.sockets.forEach(socket => {
+			if (!socket.destroyed) socket.end();
 		});
 
 		this.sockets.clear();

@@ -25,7 +25,6 @@ describe("Test Tracing Span", () => {
 		};
 
 		it("should create with default options", () => {
-
 			const span = new Span(tracer, "test-123");
 
 			expect(span.tracer).toBe(tracer);
@@ -71,7 +70,7 @@ describe("Test Tracing Span", () => {
 				sampled: false,
 				defaultTags: {
 					a: 5,
-					b: "John",
+					b: "John"
 				},
 				tags: {
 					b: "Jane",
@@ -122,7 +121,7 @@ describe("Test Tracing Span", () => {
 				sampled: false,
 				defaultTags: {
 					a: 5,
-					b: "John",
+					b: "John"
 				},
 				tags: {
 					b: "Jane",
@@ -143,7 +142,7 @@ describe("Test Tracing Span", () => {
 			expect(span.parentID).toBe("parent-id");
 			expect(span.service).toEqual({
 				name: "v2.posts",
-				fullName: "v2.posts",
+				fullName: "v2.posts"
 			});
 
 			expect(span.priority).toBe(4);
@@ -163,7 +162,6 @@ describe("Test Tracing Span", () => {
 
 			expect(tracer.shouldSample).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test span starting", () => {
@@ -203,7 +201,6 @@ describe("Test Tracing Span", () => {
 			expect(fakeTracer.spanStarted).toBeCalledTimes(1);
 			expect(fakeTracer.spanStarted).toBeCalledWith(span);
 		});
-
 	});
 
 	describe("Test span addTags", () => {
@@ -257,7 +254,6 @@ describe("Test Tracing Span", () => {
 				}
 			});
 		});
-
 	});
 
 	describe("Test log method", () => {
@@ -282,49 +278,57 @@ describe("Test Tracing Span", () => {
 				}
 			});
 
-			expect(span.logs).toEqual([{
-				name: "first-log",
-				time: 10203040,
-				elapsed: 20,
-				fields: {
-					a: 10,
-					b: "John",
-					c: {
-						d: true,
-						e: "string"
+			expect(span.logs).toEqual([
+				{
+					name: "first-log",
+					time: 10203040,
+					elapsed: 20,
+					fields: {
+						a: 10,
+						b: "John",
+						c: {
+							d: true,
+							e: "string"
+						}
 					}
 				}
-			}]);
+			]);
 		});
 
 		it("should store log with time", () => {
 			now.mockReturnValueOnce(20);
-			span.log("second-log", {
-				a: 100
-			}, 10203030);
+			span.log(
+				"second-log",
+				{
+					a: 100
+				},
+				10203030
+			);
 
-			expect(span.logs).toEqual([{
-				name: "first-log",
-				time: 10203040,
-				elapsed: 20,
-				fields: {
-					a: 10,
-					b: "John",
-					c: {
-						d: true,
-						e: "string"
+			expect(span.logs).toEqual([
+				{
+					name: "first-log",
+					time: 10203040,
+					elapsed: 20,
+					fields: {
+						a: 10,
+						b: "John",
+						c: {
+							d: true,
+							e: "string"
+						}
+					}
+				},
+				{
+					name: "second-log",
+					time: 10203030,
+					elapsed: 10,
+					fields: {
+						a: 100
 					}
 				}
-			},{
-				name: "second-log",
-				time: 10203030,
-				elapsed: 10,
-				fields: {
-					a: 100
-				}
-			}]);
+			]);
 		});
-
 	});
 
 	describe("Test isActive method", () => {
@@ -347,7 +351,6 @@ describe("Test Tracing Span", () => {
 			span.finish();
 			expect(span.isActive()).toBe(false);
 		});
-
 	});
 
 	describe("Test setError method", () => {
@@ -370,7 +373,6 @@ describe("Test Tracing Span", () => {
 
 			expect(span.error).toBe(err);
 		});
-
 	});
 
 	describe("Test span finishing", () => {
@@ -413,7 +415,6 @@ describe("Test Tracing Span", () => {
 			expect(fakeTracer.spanFinished).toBeCalledTimes(1);
 			expect(fakeTracer.spanFinished).toBeCalledWith(span);
 		});
-
 	});
 
 	describe("Test span create sub-span", () => {
@@ -440,7 +441,7 @@ describe("Test Tracing Span", () => {
 			expect(fakeTracer.startSpan).toBeCalledWith("child-span", {
 				traceID: "12345678-abcdef",
 				parentID: "12345678-abcdef",
-				sampled: true,
+				sampled: true
 			});
 		});
 
@@ -465,7 +466,5 @@ describe("Test Tracing Span", () => {
 				}
 			});
 		});
-
 	});
 });
-

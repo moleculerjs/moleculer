@@ -57,44 +57,73 @@ let otherService = {
 function createNodes(ns) {
 	const logger = false;
 	// Create nodes
-	const master = new ServiceBroker({ namespace: ns, nodeID: "master", transporter: "Fake", logger });
+	const master = new ServiceBroker({
+		namespace: ns,
+		nodeID: "master",
+		transporter: "Fake",
+		logger
+	});
 	master.createService(_.cloneDeep(otherService));
 	master.createService(_.cloneDeep(otherService), { name: "other2" });
 
-	const nodeUser1 = new ServiceBroker({ namespace: ns, nodeID: "user-1", transporter: "Fake", logger });
+	const nodeUser1 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "user-1",
+		transporter: "Fake",
+		logger
+	});
 	nodeUser1.createService(_.cloneDeep(userService));
 	nodeUser1.localBus.on("$internal.user.event", () => flow.push("nodeUser1-on-$iue"));
 
-
-	const nodeUser2 = new ServiceBroker({ namespace: ns, nodeID: "user-2", transporter: "Fake", logger });
+	const nodeUser2 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "user-2",
+		transporter: "Fake",
+		logger
+	});
 	nodeUser2.createService(_.cloneDeep(userService));
 	nodeUser2.createService(_.cloneDeep(otherService));
-	const nodeUser3 = new ServiceBroker({ namespace: ns, nodeID: "user-3", transporter: "Fake", logger });
+	const nodeUser3 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "user-3",
+		transporter: "Fake",
+		logger
+	});
 	nodeUser3.createService(_.cloneDeep(userService));
 
-	const nodePay1 = new ServiceBroker({ namespace: ns, nodeID: "pay-1", transporter: "Fake", logger });
+	const nodePay1 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "pay-1",
+		transporter: "Fake",
+		logger
+	});
 	nodePay1.createService(_.cloneDeep(paymentService));
-	const nodePay2 = new ServiceBroker({ namespace: ns, nodeID: "pay-2", transporter: "Fake", logger });
+	const nodePay2 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "pay-2",
+		transporter: "Fake",
+		logger
+	});
 	nodePay2.createService(_.cloneDeep(paymentService));
 	nodePay2.createService(_.cloneDeep(otherService), { name: "other2" });
 
-	const nodeMail1 = new ServiceBroker({ namespace: ns, nodeID: "mail-1", transporter: "Fake", logger });
+	const nodeMail1 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "mail-1",
+		transporter: "Fake",
+		logger
+	});
 	nodeMail1.createService(_.cloneDeep(mailService));
-	const nodeMail2 = new ServiceBroker({ namespace: ns, nodeID: "mail-2", transporter: "Fake", logger });
+	const nodeMail2 = new ServiceBroker({
+		namespace: ns,
+		nodeID: "mail-2",
+		transporter: "Fake",
+		logger
+	});
 	nodeMail2.createService(_.cloneDeep(mailService));
 
-	return [
-		master,
-		nodeUser1,
-		nodeUser2,
-		nodeUser3,
-		nodePay1,
-		nodePay2,
-		nodeMail1,
-		nodeMail2
-	];
+	return [master, nodeUser1, nodeUser2, nodeUser3, nodePay1, nodePay2, nodeMail1, nodeMail2];
 }
-
 
 describe("Test event balancing", () => {
 	const nodes = createNodes("balancing");
@@ -112,72 +141,46 @@ describe("Test event balancing", () => {
 		return Promise.all(nodes.map(node => node.stop()));
 	});
 
-	beforeEach(() => flow = []);
+	beforeEach(() => (flow = []));
 
 	it("send a 'user.created' event with balancing #1", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"user-1-users-uc",
-			"pay-1-payment-uc",
-			"mail-1-mail-u*"
-		]);
+		expect(flow).toEqual(["user-1-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
 	});
 
 	it("send a 'user.created' event with balancing #2", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"user-2-users-uc",
-			"pay-2-payment-uc",
-			"mail-2-mail-u*"
-		]);
+		expect(flow).toEqual(["user-2-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
 	});
 
 	it("send a 'user.created' event with balancing #3", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"user-3-users-uc",
-			"pay-1-payment-uc",
-			"mail-1-mail-u*"
-		]);
+		expect(flow).toEqual(["user-3-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
 	});
 
 	it("send a 'user.created' event with balancing #4", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"user-1-users-uc",
-			"pay-2-payment-uc",
-			"mail-2-mail-u*"
-		]);
+		expect(flow).toEqual(["user-1-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
 	});
-
 
 	it("send a 'user.updated' event with balancing #1", () => {
 		master.emit("user.updated");
-		expect(flow).toEqual([
-			"mail-1-mail-u*"
-		]);
+		expect(flow).toEqual(["mail-1-mail-u*"]);
 	});
 
 	it("send a 'user.updated' event with balancing #2", () => {
 		master.emit("user.updated");
-		expect(flow).toEqual([
-			"mail-2-mail-u*"
-		]);
+		expect(flow).toEqual(["mail-2-mail-u*"]);
 	});
 
 	it("send a 'user.created' event to filtered groups #1", () => {
 		master.emit("user.created", null, "payment");
-		expect(flow).toEqual([
-			"pay-1-payment-uc"
-		]);
+		expect(flow).toEqual(["pay-1-payment-uc"]);
 	});
 
 	it("send a 'user.created' event to filtered groups #2", () => {
 		master.emit("user.created", null, ["payment", "mail"]);
-		expect(flow).toEqual([
-			"pay-2-payment-uc",
-			"mail-1-mail-u*"
-		]);
+		expect(flow).toEqual(["pay-2-payment-uc", "mail-1-mail-u*"]);
 	});
 
 	it("broadcast a 'user.created' event to all nodes & services", () => {
@@ -195,10 +198,7 @@ describe("Test event balancing", () => {
 
 	it("broadcast a 'user.created' event to filtered group", () => {
 		master.broadcast("user.created", null, "payment");
-		expect(flow).toEqual([
-			"pay-1-payment-uc",
-			"pay-2-payment-uc",
-		]);
+		expect(flow).toEqual(["pay-1-payment-uc", "pay-2-payment-uc"]);
 	});
 
 	it("broadcast a 'user.created' event to filtered groups", () => {
@@ -213,16 +213,12 @@ describe("Test event balancing", () => {
 
 	it("broadcastLocal a 'user.created' event to local services", () => {
 		master.broadcastLocal("user.created");
-		expect(flow).toEqual([
-		]);
+		expect(flow).toEqual([]);
 	});
 
 	it("broadcastLocal an 'other.thing' event to local services", () => {
 		master.broadcastLocal("other.thing");
-		expect(flow).toEqual([
-			"master-other-ot",
-			"master-other2-ot"
-		]);
+		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
 	});
 
 	it("broadcast an 'other.thing' event to all services", () => {
@@ -237,45 +233,29 @@ describe("Test event balancing", () => {
 
 	it("emit an 'other.thing' event with preferLocal", () => {
 		master.emit("other.thing");
-		expect(flow).toEqual([
-			"master-other-ot",
-			"master-other2-ot"
-		]);
+		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
 	});
 
 	it("emit an 'other.thing' event with preferLocal 2nd", () => {
 		master.emit("other.thing");
-		expect(flow).toEqual([
-			"master-other-ot",
-			"master-other2-ot"
-		]);
+		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
 	});
 
 	it("emit an 'other.thing' without preferLocal", () => {
 		master.registry.opts.preferLocal = false;
 		master.emit("other.thing");
-		expect(flow).toEqual([
-			"master-other-ot",
-			"master-other2-ot"
-		]);
+		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
 		flow = [];
 
 		master.emit("other.thing");
-		expect(flow).toEqual([
-			"user-2-other-ot",
-			"pay-2-other2-ot"
-		]);
+		expect(flow).toEqual(["user-2-other-ot", "pay-2-other2-ot"]);
 	});
 
 	// --- LOCAL EVENTS ---
 
 	it("broadcast a '$internal.user.event' event on master", () => {
 		master.broadcast("$internal.user.event");
-		expect(flow).toEqual([
-			"user-1-users-$iue",
-			"user-2-users-$iue",
-			"user-3-users-$iue",
-		]);
+		expect(flow).toEqual(["user-1-users-$iue", "user-2-users-$iue", "user-3-users-$iue"]);
 	});
 
 	it("broadcast a '$internal.user.event' event on node1", () => {
@@ -290,28 +270,32 @@ describe("Test event balancing", () => {
 
 	it("broadcastLocal a '$internal.user.event' event on node1", () => {
 		nodeUser1.broadcastLocal("$internal.user.event");
-		expect(flow).toEqual([
-			"nodeUser1-on-$iue",
-			"user-1-users-$iue"
-		]);
+		expect(flow).toEqual(["nodeUser1-on-$iue", "user-1-users-$iue"]);
 	});
 
 	it("emit a '$internal.user.event' event on node1", () => {
 		nodeUser1.emit("$internal.user.event");
-		expect(flow).toEqual([
-			"nodeUser1-on-$iue",
-			"user-1-users-$iue"
-		]);
+		expect(flow).toEqual(["nodeUser1-on-$iue", "user-1-users-$iue"]);
 	});
 });
 
 describe("Test multiple handler in the same group balancing", () => {
-	const master = new ServiceBroker({ namespace: "groups", nodeID: "master", transporter: "Fake", logger: false });
+	const master = new ServiceBroker({
+		namespace: "groups",
+		nodeID: "master",
+		transporter: "Fake",
+		logger: false
+	});
 	master.createService(_.cloneDeep(paymentService));
 	master.createService(_.cloneDeep(stripeService));
 	master.createService(_.cloneDeep(userService));
 
-	const nodePay1 = new ServiceBroker({ namespace: "groups", nodeID: "pay-1", transporter: "Fake", logger: false });
+	const nodePay1 = new ServiceBroker({
+		namespace: "groups",
+		nodeID: "pay-1",
+		transporter: "Fake",
+		logger: false
+	});
 	nodePay1.createService(_.cloneDeep(paymentService));
 	nodePay1.createService(_.cloneDeep(stripeService));
 
@@ -323,31 +307,23 @@ describe("Test multiple handler in the same group balancing", () => {
 		return Promise.all([master.stop(), nodePay1.stop()]);
 	});
 
-	beforeEach(() => flow = []);
+	beforeEach(() => (flow = []));
 
 	// --- EMIT WITH LOCALPREFER ---
 
 	it("send a 'user.created' event with balancing #1", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"master-payment-uc",
-			"master-users-uc",
-		]);
+		expect(flow).toEqual(["master-payment-uc", "master-users-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing #2", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"master-stripe-uc",
-			"master-users-uc",
-		]);
+		expect(flow).toEqual(["master-stripe-uc", "master-users-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing to filtered group", () => {
 		master.emit("user.created", null, "payment");
-		expect(flow).toEqual([
-			"master-payment-uc",
-		]);
+		expect(flow).toEqual(["master-payment-uc"]);
 	});
 
 	// --- EMIT WITHOUT LOCALPREFER ---
@@ -356,34 +332,23 @@ describe("Test multiple handler in the same group balancing", () => {
 		master.registry.opts.preferLocal = false;
 		nodePay1.registry.opts.preferLocal = false;
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"master-stripe-uc",
-			"master-users-uc",
-		]);
+		expect(flow).toEqual(["master-stripe-uc", "master-users-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing #2", () => {
 		master.emit("user.created");
-		expect(flow).toEqual([
-			"master-users-uc",
-			"pay-1-payment-uc",
-		]);
+		expect(flow).toEqual(["master-users-uc", "pay-1-payment-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing to filtered group #1", () => {
 		master.emit("user.created", null, "payment");
-		expect(flow).toEqual([
-			"pay-1-stripe-uc",
-		]);
+		expect(flow).toEqual(["pay-1-stripe-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing to filtered group #2", () => {
 		master.emit("user.created", null, "payment");
-		expect(flow).toEqual([
-			"master-payment-uc",
-		]);
+		expect(flow).toEqual(["master-payment-uc"]);
 	});
-
 
 	// --- BROADCAST ---
 
@@ -417,6 +382,4 @@ describe("Test multiple handler in the same group balancing", () => {
 			"master-stripe-uc"
 		]);
 	});
-
 });
-

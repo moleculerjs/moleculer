@@ -7,7 +7,6 @@ const { protectReject } = require("./utils");
 
 describe("Test Service class", () => {
 	describe("Test constructor", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		jest.spyOn(Service.prototype, "parseServiceSchema");
@@ -38,11 +37,9 @@ describe("Test Service class", () => {
 			expect(Service.prototype.parseServiceSchema).toBeCalledTimes(1);
 			expect(Service.prototype.parseServiceSchema).toBeCalledWith(schema);
 		});
-
 	});
 
 	describe("Test parseServiceSchema", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		jest.spyOn(broker, "callMiddlewareHookSync");
@@ -65,7 +62,9 @@ describe("Test Service class", () => {
 				/* eslint-disable-next-line */
 				console.error = jest.fn();
 				svc.parseServiceSchema({});
-			}).toThrowError("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?");
+			}).toThrowError(
+				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?"
+			);
 			expect(Service.applyMixins).toBeCalledTimes(0);
 		});
 
@@ -193,9 +192,16 @@ describe("Test Service class", () => {
 		});
 
 		it("should register actions", () => {
-			jest.spyOn(svc, "_createAction").mockImplementation((action, name) => ({ name, handler: action.handler || action }));
-			jest.spyOn(broker.middlewares, "wrapHandler").mockImplementation((type, handler, action) => handler);
-			jest.spyOn(broker.registry, "createPrivateActionEndpoint").mockImplementation(() => ({ id: "nodeID" }));
+			jest.spyOn(svc, "_createAction").mockImplementation((action, name) => ({
+				name,
+				handler: action.handler || action
+			}));
+			jest.spyOn(broker.middlewares, "wrapHandler").mockImplementation(
+				(type, handler, action) => handler
+			);
+			jest.spyOn(broker.registry, "createPrivateActionEndpoint").mockImplementation(() => ({
+				id: "nodeID"
+			}));
 			const schema = {
 				name: "posts",
 				actions: {
@@ -213,12 +219,28 @@ describe("Test Service class", () => {
 			expect(svc._createAction).toHaveBeenNthCalledWith(2, schema.actions.gamma, "gamma");
 
 			expect(broker.middlewares.wrapHandler).toBeCalledTimes(2);
-			expect(broker.middlewares.wrapHandler).toHaveBeenNthCalledWith(1, "localAction", expect.any(Function), { name: "alpha", handler: expect.any(Function) });
-			expect(broker.middlewares.wrapHandler).toHaveBeenNthCalledWith(2, "localAction", expect.any(Function), { name: "gamma", handler: expect.any(Function) });
+			expect(broker.middlewares.wrapHandler).toHaveBeenNthCalledWith(
+				1,
+				"localAction",
+				expect.any(Function),
+				{ name: "alpha", handler: expect.any(Function) }
+			);
+			expect(broker.middlewares.wrapHandler).toHaveBeenNthCalledWith(
+				2,
+				"localAction",
+				expect.any(Function),
+				{ name: "gamma", handler: expect.any(Function) }
+			);
 
 			expect(broker.registry.createPrivateActionEndpoint).toBeCalledTimes(2);
-			expect(broker.registry.createPrivateActionEndpoint).toHaveBeenNthCalledWith(1, { name: "alpha", handler: expect.any(Function) });
-			expect(broker.registry.createPrivateActionEndpoint).toHaveBeenNthCalledWith(2, { name: "gamma", handler: expect.any(Function) });
+			expect(broker.registry.createPrivateActionEndpoint).toHaveBeenNthCalledWith(1, {
+				name: "alpha",
+				handler: expect.any(Function)
+			});
+			expect(broker.registry.createPrivateActionEndpoint).toHaveBeenNthCalledWith(2, {
+				name: "gamma",
+				handler: expect.any(Function)
+			});
 
 			expect(svc._serviceSpecification).toEqual({
 				name: "posts",
@@ -248,7 +270,7 @@ describe("Test Service class", () => {
 			const schema = {
 				name: "posts",
 				actions: {
-					alpha: jest.fn(() => "Alpha"),
+					alpha: jest.fn(() => "Alpha")
 				}
 			};
 			svc.parseServiceSchema(schema);
@@ -271,7 +293,10 @@ describe("Test Service class", () => {
 		});
 
 		it("should register events", () => {
-			jest.spyOn(svc, "_createEvent").mockImplementation((event, name) => ({ name, handler: event.handler || event }));
+			jest.spyOn(svc, "_createEvent").mockImplementation((event, name) => ({
+				name,
+				handler: event.handler || event
+			}));
 
 			const schema = {
 				name: "posts",
@@ -285,8 +310,16 @@ describe("Test Service class", () => {
 			svc.parseServiceSchema(schema);
 
 			expect(svc._createEvent).toBeCalledTimes(2);
-			expect(svc._createEvent).toHaveBeenNthCalledWith(1, schema.events["user.created"], "user.created");
-			expect(svc._createEvent).toHaveBeenNthCalledWith(2, schema.events["posts.updated"], "posts.updated");
+			expect(svc._createEvent).toHaveBeenNthCalledWith(
+				1,
+				schema.events["user.created"],
+				"user.created"
+			);
+			expect(svc._createEvent).toHaveBeenNthCalledWith(
+				2,
+				schema.events["posts.updated"],
+				"posts.updated"
+			);
 
 			expect(svc._serviceSpecification).toEqual({
 				name: "posts",
@@ -315,7 +348,7 @@ describe("Test Service class", () => {
 			const schema = {
 				name: "posts",
 				events: {
-					"user.created": jest.fn(() => "User created"),
+					"user.created": jest.fn(() => "User created")
 				}
 			};
 			svc.parseServiceSchema(schema);
@@ -369,30 +402,30 @@ describe("Test Service class", () => {
 
 			expect(FLOW.join("-")).toBe("C1-C2");
 		});
-
 	});
 
 	describe("Test _getPublicSettings", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		const svc = new Service(broker);
 
 		it("should skip the properties by $secureSettings", () => {
-			expect(svc._getPublicSettings({
-				a: 5,
-				auth: {
-					user: "user",
-					pass: "pass"
-				},
-				tokens: {
-					a: 111,
-					b: 222
-				},
-				x: "x",
+			expect(
+				svc._getPublicSettings({
+					a: 5,
+					auth: {
+						user: "user",
+						pass: "pass"
+					},
+					tokens: {
+						a: 111,
+						b: 222
+					},
+					x: "x",
 
-				$secureSettings: ["auth.pass", "tokens"]
-			})).toEqual({
+					$secureSettings: ["auth.pass", "tokens"]
+				})
+			).toEqual({
 				a: 5,
 				auth: {
 					user: "user"
@@ -402,18 +435,20 @@ describe("Test Service class", () => {
 		});
 
 		it("should keep all properties without $secureSettings", () => {
-			expect(svc._getPublicSettings({
-				a: 5,
-				auth: {
-					user: "user",
-					pass: "pass"
-				},
-				tokens: {
-					a: 111,
-					b: 222
-				},
-				x: "x"
-			})).toEqual({
+			expect(
+				svc._getPublicSettings({
+					a: 5,
+					auth: {
+						user: "user",
+						pass: "pass"
+					},
+					tokens: {
+						a: 111,
+						b: 222
+					},
+					x: "x"
+				})
+			).toEqual({
 				a: 5,
 				auth: {
 					user: "user",
@@ -429,7 +464,6 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test _init", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		const svc = new Service(broker);
@@ -491,11 +525,9 @@ describe("Test Service class", () => {
 
 			expect(FLOW.join("-")).toBe("C1-C2");
 		});
-
 	});
 
 	describe("Test _start", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		const svc = new Service(broker);
@@ -615,7 +647,6 @@ describe("Test Service class", () => {
 
 			expect(FLOW.join("-")).toBe("S1-S2");
 		});
-
 	});
 
 	describe("Test _stop", () => {
@@ -635,8 +666,12 @@ describe("Test Service class", () => {
 			await svc._stop();
 
 			expect(broker.callMiddlewareHook).toBeCalledTimes(2);
-			expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStopping", [svc], { reverse: true });
-			expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStopped", [svc], { reverse: true });
+			expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStopping", [svc], {
+				reverse: true
+			});
+			expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStopped", [svc], {
+				reverse: true
+			});
 		});
 
 		it("should call single stopped lifecycle event handler", async () => {
@@ -680,21 +715,28 @@ describe("Test Service class", () => {
 		svc.parseServiceSchema({ name: "posts", version: 2 });
 
 		it("should throw error if method schema is invalid", () => {
-			expect(() => { svc._createMethod(null, "list"); }).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
-			expect(() => { svc._createMethod("schema", "list"); }).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
+			expect(() => {
+				svc._createMethod(null, "list");
+			}).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
+			expect(() => {
+				svc._createMethod("schema", "list");
+			}).toThrowError("Invalid method definition in 'list' method in 'v2.posts' service!");
 		});
 
 		it("should throw error if action handler is not defined", () => {
-			expect(() => { svc._createMethod({}, "list"); })
-				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
-			expect(() => { svc._createMethod({ handler: null }, "list"); })
-				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
-			expect(() => { svc._createMethod({ handler: "wrong" }, "list"); })
-				.toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+			expect(() => {
+				svc._createMethod({}, "list");
+			}).toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+			expect(() => {
+				svc._createMethod({ handler: null }, "list");
+			}).toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
+			expect(() => {
+				svc._createMethod({ handler: "wrong" }, "list");
+			}).toThrowError("Missing method handler on 'list' method in 'v2.posts' service!");
 		});
 
 		it("should create action definition from a shorthand handler", () => {
-			const handler = jest.fn(function(name) {
+			const handler = jest.fn(function (name) {
 				expect(this).toBe(svc);
 				return `Hello ${name}`;
 			});
@@ -714,7 +756,7 @@ describe("Test Service class", () => {
 		it("should create action definition from a schema", () => {
 			const schema = {
 				uppercase: true,
-				handler: jest.fn(function(name) {
+				handler: jest.fn(function (name) {
 					expect(this).toBe(svc);
 					return `Hello ${name}`;
 				})
@@ -732,7 +774,6 @@ describe("Test Service class", () => {
 			expect(svc.hello).toBe(res.handler);
 			expect(svc.hello("John")).toBe("Hello John");
 		});
-
 	});
 
 	describe("Test _createAction", () => {
@@ -744,21 +785,28 @@ describe("Test Service class", () => {
 		jest.spyOn(svc.Promise, "method");
 
 		it("should throw error if action schema is invalid", () => {
-			expect(() => { svc._createAction(null, "list"); }).toThrowError("Invalid action definition in 'list' action in 'v2.posts' service!");
-			expect(() => { svc._createAction("schema", "list"); }).toThrowError("Invalid action definition in 'list' action in 'v2.posts' service!");
+			expect(() => {
+				svc._createAction(null, "list");
+			}).toThrowError("Invalid action definition in 'list' action in 'v2.posts' service!");
+			expect(() => {
+				svc._createAction("schema", "list");
+			}).toThrowError("Invalid action definition in 'list' action in 'v2.posts' service!");
 		});
 
 		it("should throw error if action handler is not defined", () => {
-			expect(() => { svc._createAction({}, "list"); })
-				.toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
-			expect(() => { svc._createAction({ handler: null }, "list"); })
-				.toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
-			expect(() => { svc._createAction({ handler: "wrong" }, "list"); })
-				.toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
+			expect(() => {
+				svc._createAction({}, "list");
+			}).toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
+			expect(() => {
+				svc._createAction({ handler: null }, "list");
+			}).toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
+			expect(() => {
+				svc._createAction({ handler: "wrong" }, "list");
+			}).toThrowError("Missing action handler on 'list' action in 'v2.posts' service!");
 		});
 
 		it("should create action definition from a shorthand handler", () => {
-			const handler = jest.fn(function() {
+			const handler = jest.fn(function () {
 				expect(this).toBe(svc);
 				return "Hello";
 			});
@@ -782,14 +830,17 @@ describe("Test Service class", () => {
 
 		it("should create action definition with cache", () => {
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				params: {
-					a: "string"
+			const res = svc._createAction(
+				{
+					params: {
+						a: "string"
+					},
+					cache: true,
+					etc: "etc",
+					handler
 				},
-				cache: true,
-				etc: "etc",
-				handler
-			}, "list");
+				"list"
+			);
 
 			expect(res).toEqual({
 				name: "v2.posts.list",
@@ -812,9 +863,12 @@ describe("Test Service class", () => {
 			svc.settings.$noServiceNamePrefix = true;
 
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				handler
-			}, "list");
+			const res = svc._createAction(
+				{
+					handler
+				},
+				"list"
+			);
 
 			expect(res).toStrictEqual({
 				name: "list",
@@ -830,9 +884,12 @@ describe("Test Service class", () => {
 			svc.settings.$cache = true;
 
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				handler
-			}, "list");
+			const res = svc._createAction(
+				{
+					handler
+				},
+				"list"
+			);
 
 			expect(res).toStrictEqual({
 				name: "v2.posts.list",
@@ -847,9 +904,12 @@ describe("Test Service class", () => {
 			svc.settings.$cache = false;
 
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				handler
-			}, "list");
+			const res = svc._createAction(
+				{
+					handler
+				},
+				"list"
+			);
 
 			expect(res).toStrictEqual({
 				name: "v2.posts.list",
@@ -864,10 +924,13 @@ describe("Test Service class", () => {
 			svc.settings.$cache = true;
 
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				handler,
-				cache: false
-			}, "list");
+			const res = svc._createAction(
+				{
+					handler,
+					cache: false
+				},
+				"list"
+			);
 
 			expect(res).toStrictEqual({
 				name: "v2.posts.list",
@@ -882,12 +945,15 @@ describe("Test Service class", () => {
 			svc.settings.$cache = true;
 
 			const handler = jest.fn(() => "Hello");
-			const res = svc._createAction({
-				handler,
-				cache: {
-					keys: ["id"]
-				}
-			}, "list");
+			const res = svc._createAction(
+				{
+					handler,
+					cache: {
+						keys: ["id"]
+					}
+				},
+				"list"
+			);
 
 			expect(res).toStrictEqual({
 				name: "v2.posts.list",
@@ -910,21 +976,32 @@ describe("Test Service class", () => {
 		jest.spyOn(svc.Promise, "method");
 
 		it("should throw error if event schema is invalid", () => {
-			expect(() => { svc._createEvent(null, "user.created"); }).toThrowError("Invalid event definition in 'user.created' event in 'v2.posts' service!");
-			expect(() => { svc._createEvent("schema", "user.created"); }).toThrowError("Invalid event definition in 'user.created' event in 'v2.posts' service!");
+			expect(() => {
+				svc._createEvent(null, "user.created");
+			}).toThrowError(
+				"Invalid event definition in 'user.created' event in 'v2.posts' service!"
+			);
+			expect(() => {
+				svc._createEvent("schema", "user.created");
+			}).toThrowError(
+				"Invalid event definition in 'user.created' event in 'v2.posts' service!"
+			);
 		});
 
 		it("should throw error if event handler is not defined", () => {
-			expect(() => { svc._createEvent({}, "user.created"); })
-				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
-			expect(() => { svc._createEvent({ handler: null }, "user.created"); })
-				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
-			expect(() => { svc._createEvent({ handler: "wrong" }, "user.created"); })
-				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+			expect(() => {
+				svc._createEvent({}, "user.created");
+			}).toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+			expect(() => {
+				svc._createEvent({ handler: null }, "user.created");
+			}).toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+			expect(() => {
+				svc._createEvent({ handler: "wrong" }, "user.created");
+			}).toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
 		});
 
 		it("should create event definition from a shorthand handler", () => {
-			const handler = jest.fn(function() {
+			const handler = jest.fn(function () {
 				expect(this).toBe(svc);
 				return "Hello";
 			});
@@ -943,15 +1020,18 @@ describe("Test Service class", () => {
 
 		it("should create event definition from event schema", () => {
 			svc.Promise.method.mockClear();
-			const handler = jest.fn(function() {
+			const handler = jest.fn(function () {
 				expect(this).toBe(svc);
 				return "Hello";
 			});
-			const res = svc._createEvent({
-				name: "user.updated",
-				handler,
-				etc: "etc"
-			}, "other");
+			const res = svc._createEvent(
+				{
+					name: "user.updated",
+					handler,
+					etc: "etc"
+				},
+				"other"
+			);
 
 			expect(res).toEqual({
 				name: "user.updated",
@@ -968,18 +1048,21 @@ describe("Test Service class", () => {
 		});
 
 		it("should create event definition with multiple handlers", () => {
-			const handler1 = jest.fn(function() {
+			const handler1 = jest.fn(function () {
 				expect(this).toBe(svc);
 				return "Hello1";
 			});
-			const handler2 = jest.fn(function() {
+			const handler2 = jest.fn(function () {
 				expect(this).toBe(svc);
 				return "Hello2";
 			});
 
-			const res = svc._createEvent({
-				handler: [handler1, handler2]
-			}, "user.updated");
+			const res = svc._createEvent(
+				{
+					handler: [handler1, handler2]
+				},
+				"user.updated"
+			);
 
 			expect(res).toEqual({
 				name: "user.updated",
@@ -993,14 +1076,17 @@ describe("Test Service class", () => {
 		});
 
 		it("should call handler with legacy arguments", () => {
-			const handler = function(payload, nodeID, eventName, ctx) {
+			const handler = function (payload, nodeID, eventName, ctx) {
 				expect(this).toBe(svc);
 				return { payload, nodeID, eventName, ctx };
 			};
 
-			const res = svc._createEvent({
-				handler
-			}, "user.updated");
+			const res = svc._createEvent(
+				{
+					handler
+				},
+				"user.updated"
+			);
 
 			expect.assertions(5);
 
@@ -1018,14 +1104,17 @@ describe("Test Service class", () => {
 		});
 
 		it("should call handler with context", () => {
-			const handler = function(ctx) {
+			const handler = function (ctx) {
 				expect(this).toBe(svc);
 				return { ctx };
 			};
 
-			const res = svc._createEvent({
-				handler
-			}, "user.updated");
+			const res = svc._createEvent(
+				{
+					handler
+				},
+				"user.updated"
+			);
 
 			expect.assertions(5);
 
@@ -1043,19 +1132,22 @@ describe("Test Service class", () => {
 		});
 
 		it("should call handler with multiple times", () => {
-			const handler1 = function(ctx) {
+			const handler1 = function (ctx) {
 				expect(this).toBe(svc);
 				return { ctx };
 			};
 
-			const handler2 = function(payload, nodeID, eventName, ctx) {
+			const handler2 = function (payload, nodeID, eventName, ctx) {
 				expect(this).toBe(svc);
 				return { payload, nodeID, eventName, ctx };
 			};
 
-			const res = svc._createEvent({
-				handler: [handler1, handler2]
-			}, "user.updated");
+			const res = svc._createEvent(
+				{
+					handler: [handler1, handler2]
+				},
+				"user.updated"
+			);
 
 			//expect.assertions(5);
 
@@ -1122,7 +1214,11 @@ describe("Test Service class", () => {
 				}
 			});
 
-			const res = await svc.emitLocalEventHandler("user.created", { id: 5 }, { requestID: "12345" });
+			const res = await svc.emitLocalEventHandler(
+				"user.created",
+				{ id: 5 },
+				{ requestID: "12345" }
+			);
 			expect(res).toBe("Hello");
 
 			expect.assertions(7);
@@ -1131,14 +1227,13 @@ describe("Test Service class", () => {
 		it("should throw error if event is not exist", async () => {
 			try {
 				await svc.emitLocalEventHandler("not.found");
-			} catch(err) {
+			} catch (err) {
 				expect(err.code).toBe(500);
 				expect(err.type).toBe("NOT_FOUND_EVENT");
 				expect(err.message).toBe("No 'not.found' registered local event handler");
 				expect(err.data).toEqual({ eventName: "not.found" });
 			}
 		});
-
 	});
 
 	describe("Test waitForServices", () => {
@@ -1151,13 +1246,16 @@ describe("Test Service class", () => {
 			await svc.waitForServices(["users", "auth"], 3000, 500);
 
 			expect(broker.waitForServices).toHaveBeenCalledTimes(1);
-			expect(broker.waitForServices).toHaveBeenCalledWith(["users", "auth"], 3000, 500, svc.logger);
+			expect(broker.waitForServices).toHaveBeenCalledWith(
+				["users", "auth"],
+				3000,
+				500,
+				svc.logger
+			);
 		});
-
 	});
 
 	describe("Test static applyMixins", () => {
-
 		beforeAll(() => jest.spyOn(Service, "mergeSchemas").mockImplementation(s => s));
 		afterAll(() => Service.mergeSchemas.mockRestore());
 
@@ -1246,7 +1344,6 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemas", () => {
-
 		beforeAll(() => {
 			jest.spyOn(Service, "mergeSchemaSettings").mockImplementation(s => s);
 			jest.spyOn(Service, "mergeSchemaMetadata").mockImplementation(s => s);
@@ -1277,7 +1374,7 @@ describe("Test Service class", () => {
 				name: "posts",
 				version: 3,
 
-				mixins: [ mixin2 ],
+				mixins: [mixin2],
 
 				dependencies: ["users", "auth"],
 
@@ -1294,10 +1391,7 @@ describe("Test Service class", () => {
 						"*": () => {}
 					},
 					after: {
-						list: [
-							() => {},
-							() => {}
-						]
+						list: [() => {}, () => {}]
 					},
 					error: {
 						"*": () => {}
@@ -1318,7 +1412,7 @@ describe("Test Service class", () => {
 				},
 
 				methods: {
-					doSomething() {},
+					doSomething() {}
 				},
 
 				events: {
@@ -1362,12 +1456,19 @@ describe("Test Service class", () => {
 			expect(Service.mergeSchemaLifecycleHandlers).toBeCalledWith(mixin.stopped, undefined);
 
 			expect(Service.mergeSchemaUniqArray).toBeCalledTimes(2);
-			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(1, mixin.mixins, undefined);
-			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(2, mixin.dependencies, undefined);
+			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
+				1,
+				mixin.mixins,
+				undefined
+			);
+			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
+				2,
+				mixin.dependencies,
+				undefined
+			);
 
 			expect(Service.mergeSchemaUnknown).toBeCalledTimes(1);
 			expect(Service.mergeSchemaUnknown).toHaveBeenNthCalledWith(1, mixin.custom, undefined);
-
 		});
 
 		it("should call custom merge method", () => {
@@ -1388,10 +1489,13 @@ describe("Test Service class", () => {
 		it("should not overwrite the name & version", () => {
 			Service.mergeSchemaUnknown.mockClear();
 
-			const mixed = Service.mergeSchemas({
-				name: "first",
-				version: 1
-			}, {});
+			const mixed = Service.mergeSchemas(
+				{
+					name: "first",
+					version: 1
+				},
+				{}
+			);
 
 			expect(mixed).toEqual({
 				name: "first",
@@ -1402,24 +1506,25 @@ describe("Test Service class", () => {
 		it("should overwrite the name & version", () => {
 			Service.mergeSchemaUnknown.mockClear();
 
-			const mixed = Service.mergeSchemas({
-				name: "first",
-				version: 1
-			}, {
-				name: "second",
-				version: 2
-			});
+			const mixed = Service.mergeSchemas(
+				{
+					name: "first",
+					version: 1
+				},
+				{
+					name: "second",
+					version: 2
+				}
+			);
 
 			expect(mixed).toEqual({
 				name: "second",
 				version: 2
 			});
 		});
-
 	});
 
 	describe("Test static mergeSchemaSettings", () => {
-
 		it("should merge values", () => {
 			const src = {
 				a: 5,
@@ -1524,14 +1629,13 @@ describe("Test Service class", () => {
 				b: "John",
 				c: {
 					d: true,
-					e: 45.8,
+					e: 45.8
 				}
 			});
 		});
 	});
 
 	describe("Test static mergeSchemaMetadata", () => {
-
 		it("should merge values", () => {
 			const src = {
 				a: 5,
@@ -1564,30 +1668,17 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemaUniqArray", () => {
-
 		it("should merge values", () => {
-			const src = [1,2,3,4,5];
-			const prev = [2,4,6,8,10];
+			const src = [1, 2, 3, 4, 5];
+			const prev = [2, 4, 6, 8, 10];
 
 			const res = Service.mergeSchemaUniqArray(src, prev);
 			expect(res).toEqual([1, 2, 3, 4, 5, 6, 8, 10]);
 		});
 
 		it("should merge objects", () => {
-			const src = [
-				{ id: 1 },
-				{ id: 2 },
-				{ id: 3 },
-				{ id: 4 },
-				{ id: 5 },
-			];
-			const prev = [
-				{ id: 2 },
-				{ id: 4 },
-				{ id: 6 },
-				{ id: 8 },
-				{ id: 10 },
-			];
+			const src = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }];
+			const prev = [{ id: 2 }, { id: 4 }, { id: 6 }, { id: 8 }, { id: 10 }];
 
 			const res = Service.mergeSchemaUniqArray(src, prev);
 			expect(res).toEqual([
@@ -1604,12 +1695,11 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemaDependencies", () => {
-
 		it("should merge values", () => {
 			jest.spyOn(Service, "mergeSchemaUniqArray");
 
-			const src = [1,2,3,4,5];
-			const prev = [2,4,6,8,10];
+			const src = [1, 2, 3, 4, 5];
+			const prev = [2, 4, 6, 8, 10];
 
 			const res = Service.mergeSchemaDependencies(src, prev);
 			expect(res).toEqual([1, 2, 3, 4, 5, 6, 8, 10]);
@@ -1620,21 +1710,17 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemaHooks", () => {
-
 		it("should merge values", () => {
 			const src = {
 				before: {
 					all: "src-before-all"
 				},
 				after: {
-					list: [
-						"src-after-list1",
-						"src-after-list2",
-					]
+					list: ["src-after-list1", "src-after-list2"]
 				},
 				error: {
 					all: "src-error-all",
-					remove: "src-error-remove",
+					remove: "src-error-remove"
 				}
 			};
 
@@ -1669,7 +1755,6 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemaActions", () => {
-
 		it("should merge actions", () => {
 			const src = {
 				create() {},
@@ -1719,7 +1804,7 @@ describe("Test Service class", () => {
 					},
 					handler: expect.any(Function)
 				},
-				remove: expect.any(Function),
+				remove: expect.any(Function)
 			});
 		});
 
@@ -1736,7 +1821,7 @@ describe("Test Service class", () => {
 					hooks: {
 						before: "src-create-before",
 						after: ["src-create-after1", "src-create-after2"],
-						error: "src-create-error",
+						error: "src-create-error"
 					},
 					handler() {}
 				},
@@ -1754,8 +1839,8 @@ describe("Test Service class", () => {
 					hooks: {
 						before: "prev-create-before",
 						after: ["prev-create-after1", "prev-create-after2"],
-						error: "prev-create-error",
-					},
+						error: "prev-create-error"
+					}
 				},
 
 				update: {
@@ -1764,7 +1849,7 @@ describe("Test Service class", () => {
 						after: "prev-update-after",
 						error: "prev-update-error"
 					}
-				},
+				}
 			};
 
 			const res = Service.mergeSchemaActions(src, prev);
@@ -1780,7 +1865,12 @@ describe("Test Service class", () => {
 				find: {
 					hooks: {
 						before: ["prev-create-before", "src-create-before"],
-						after: ["src-create-after1", "src-create-after2", "prev-create-after1", "prev-create-after2"],
+						after: [
+							"src-create-after1",
+							"src-create-after2",
+							"prev-create-after1",
+							"prev-create-after2"
+						],
 						error: ["src-create-error", "prev-create-error"]
 					},
 					handler: expect.any(Function)
@@ -1792,25 +1882,24 @@ describe("Test Service class", () => {
 						error: "prev-update-error"
 					},
 					handler: expect.any(Function)
-				},
+				}
 			});
 		});
 	});
 
 	describe("Test static mergeSchemaMethods", () => {
-
 		it("should merge values", () => {
 			const src = {
 				find: "src-find",
 				list: "src-list",
-				update: "src-update",
+				update: "src-update"
 			};
 
 			const prev = {
 				create: "prev-create",
 				list: "prev-list",
 				update: "prev-update",
-				remove: "prev-remove",
+				remove: "prev-remove"
 			};
 
 			const res = Service.mergeSchemaMethods(src, prev);
@@ -1819,13 +1908,12 @@ describe("Test Service class", () => {
 				find: "src-find",
 				list: "src-list",
 				update: "src-update",
-				remove: "prev-remove",
+				remove: "prev-remove"
 			});
 		});
 	});
 
 	describe("Test static mergeSchemaEvents", () => {
-
 		it("should merge actions", () => {
 			const src = {
 				create() {},
@@ -1837,12 +1925,12 @@ describe("Test Service class", () => {
 				},
 				update: {
 					handler() {}
-				},
+				}
 			};
 
 			const prev = {
 				find: {
-					group: "user",
+					group: "user"
 				},
 
 				update: {
@@ -1880,24 +1968,23 @@ describe("Test Service class", () => {
 					},
 					handler: expect.any(Function)
 				},
-				remove: expect.any(Function),
+				remove: expect.any(Function)
 			});
 		});
 	});
 
 	describe("Test static mergeSchemaLifecycleHandlers", () => {
-
 		it("should merge values", () => {
 			const src = {
 				created: "src-created",
 				started: "src-started",
-				stopped: "src-stopped",
+				stopped: "src-stopped"
 			};
 
 			const prev = {
 				created: "prev-created",
 				started: "prev-started",
-				stopped: "prev-stopped",
+				stopped: "prev-stopped"
 			};
 
 			const res = Service.mergeSchemaLifecycleHandlers("src-created", "prev-created");
@@ -1906,7 +1993,6 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static mergeSchemaUnknown", () => {
-
 		it("should merge values", () => {
 			expect(Service.mergeSchemaUnknown("John", "Bob")).toBe("John");
 			expect(Service.mergeSchemaUnknown("John", null)).toBe("John");
@@ -1920,12 +2006,10 @@ describe("Test Service class", () => {
 	});
 
 	describe("Test static getVersionedFullName", () => {
-
 		it("should create version service names", () => {
 			expect(Service.getVersionedFullName("posts")).toBe("posts");
 			expect(Service.getVersionedFullName("posts", 5)).toBe("v5.posts");
 			expect(Service.getVersionedFullName("posts", "testing")).toBe("testing.posts");
 		});
 	});
-
 });

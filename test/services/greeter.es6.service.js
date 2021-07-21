@@ -1,7 +1,6 @@
 const Service = require("../../src/service");
 
 class GreeterService extends Service {
-
 	constructor(broker) {
 		super(broker);
 
@@ -36,7 +35,7 @@ class GreeterService extends Service {
 			},
 			created: this.serviceCreated,
 			started: this.serviceStarted,
-			stopped: this.serviceStopped,
+			stopped: this.serviceStopped
 		});
 	}
 

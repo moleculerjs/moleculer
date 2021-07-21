@@ -8,7 +8,6 @@ let ActionEndpoint = require("../../../src/registry/endpoint-action");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test EndpointList constructor", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 	const strategyOptions = { count: 5 };
@@ -17,7 +16,15 @@ describe("Test EndpointList constructor", () => {
 	it("should create a new list", () => {
 		Strategy.mockClear();
 
-		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy, strategyOptions);
+		list = new EndpointList(
+			registry,
+			broker,
+			"listName",
+			"groupName",
+			ActionEndpoint,
+			Strategy,
+			strategyOptions
+		);
 
 		expect(list).toBeDefined();
 		expect(list.registry).toBe(registry);
@@ -36,13 +43,19 @@ describe("Test EndpointList constructor", () => {
 	});
 
 	it("should set internal flag", () => {
-		let list = new EndpointList(registry, broker, "$listName", "groupName", ActionEndpoint, Strategy);
+		let list = new EndpointList(
+			registry,
+			broker,
+			"$listName",
+			"groupName",
+			ActionEndpoint,
+			Strategy
+		);
 
 		expect(list).toBeDefined();
 		expect(list.name).toBe("$listName");
 		expect(list.internal).toBe(true);
 	});
-
 });
 
 describe("Test EndpointList.add", () => {
@@ -53,10 +66,23 @@ describe("Test EndpointList.add", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	let epUpdate = jest.fn();
-	list.EndPointFactory = jest.fn((registry, broker, node, service, action) => ({ local: false, update: epUpdate, node, service, action }));
+	list.EndPointFactory = jest.fn((registry, broker, node, service, action) => ({
+		local: false,
+		update: epUpdate,
+		node,
+		service,
+		action
+	}));
 
 	it("should add a new Endpoint", () => {
 		expect(list.endpoints.length).toBe(0);
@@ -98,8 +124,6 @@ describe("Test EndpointList.add", () => {
 		expect(epUpdate).toHaveBeenCalledWith(action2);
 		expect(list.endpoints.length).toBe(2);
 	});
-
-
 });
 
 describe("Test EndpointList.getFirst", () => {
@@ -108,7 +132,14 @@ describe("Test EndpointList.getFirst", () => {
 	let ep = {};
 	let select = jest.fn(() => ep);
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	it("should return null if empty", () => {
 		expect(list.getFirst()).toBeNull();
@@ -118,7 +149,6 @@ describe("Test EndpointList.getFirst", () => {
 		list.endpoints = [{ a: 5 }, { b: 10 }];
 		expect(list.getFirst()).toBe(list.endpoints[0]);
 	});
-
 });
 
 describe("Test EndpointList.select", () => {
@@ -126,13 +156,20 @@ describe("Test EndpointList.select", () => {
 	let registry = broker.registry;
 	let ep = {};
 	let select = jest.fn(() => ep);
-	let MockStrategy = function() {
+	let MockStrategy = function () {
 		return {
 			select
 		};
 	};
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, MockStrategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		MockStrategy
+	);
 
 	let arr = [{}, ep];
 	let ctx = {};
@@ -150,7 +187,6 @@ describe("Test EndpointList.select", () => {
 			list.select(arr);
 		}).toThrowError(MoleculerError);
 	});
-
 });
 
 describe("Test EndpointList.next", () => {
@@ -164,7 +200,14 @@ describe("Test EndpointList.next", () => {
 	let action = { name: "test.hello" };
 	let ctx = {};
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.select = jest.fn(() => ep1);
 
@@ -279,7 +322,6 @@ describe("Test EndpointList.next", () => {
 
 		list.internal = false;
 	});
-
 });
 
 describe("Test EndpointList.nextLocal", () => {
@@ -293,7 +335,14 @@ describe("Test EndpointList.nextLocal", () => {
 	let action = { name: "test.hello" };
 	let ctx = {};
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 	list.select = jest.fn(() => ep1);
 
 	it("should return null if no endpoints", () => {
@@ -358,7 +407,6 @@ describe("Test EndpointList.nextLocal", () => {
 		expect(list.nextLocal(ctx)).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
-
 });
 
 describe("Test EndpointList.hasAvailable", () => {
@@ -368,7 +416,14 @@ describe("Test EndpointList.hasAvailable", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	let ep1 = list.add({ id: "node-1" }, service, action);
 	let ep2 = list.add({ id: broker.nodeID }, service, action);
@@ -382,7 +437,6 @@ describe("Test EndpointList.hasAvailable", () => {
 		ep2.state = false;
 		expect(list.hasAvailable()).toBe(false);
 	});
-
 });
 
 describe("Test EndpointList.hasLocal", () => {
@@ -392,7 +446,14 @@ describe("Test EndpointList.hasLocal", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.add({ id: "node-1" }, service, action);
 	list.add({ id: broker.nodeID }, service, action);
@@ -403,7 +464,6 @@ describe("Test EndpointList.hasLocal", () => {
 		list.localEndpoints = [];
 		expect(list.hasLocal()).toBe(false);
 	});
-
 });
 
 describe("Test EndpointList.getEndpointByNodeID", () => {
@@ -413,7 +473,14 @@ describe("Test EndpointList.getEndpointByNodeID", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	let ep1 = list.add({ id: "node-1" }, service, action);
 	let ep2 = list.add({ id: broker.nodeID }, service, action);
@@ -428,7 +495,6 @@ describe("Test EndpointList.getEndpointByNodeID", () => {
 		expect(list.getEndpointByNodeID("node-1")).toBe(null);
 		expect(list.getEndpointByNodeID("node-123")).toBe(null);
 	});
-
 });
 
 describe("Test EndpointList.hasNodeID", () => {
@@ -438,7 +504,14 @@ describe("Test EndpointList.hasNodeID", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.add({ id: "node-1" }, service, action);
 	list.add({ id: broker.nodeID }, service, action);
@@ -448,7 +521,6 @@ describe("Test EndpointList.hasNodeID", () => {
 		expect(list.hasNodeID("node-1")).toBe(true);
 		expect(list.hasNodeID("node-123")).toBe(false);
 	});
-
 });
 
 describe("Test EndpointList.removeByService", () => {
@@ -459,7 +531,14 @@ describe("Test EndpointList.removeByService", () => {
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.add({ id: "node-1" }, service1, action);
 	list.add({ id: broker.nodeID }, service2, action);
@@ -479,7 +558,6 @@ describe("Test EndpointList.removeByService", () => {
 		expect(list.count()).toBe(0);
 		expect(list.hasLocal()).toBe(false);
 	});
-
 });
 
 describe("Test EndpointList.removeByNodeID", () => {
@@ -490,7 +568,14 @@ describe("Test EndpointList.removeByNodeID", () => {
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.add({ id: "node-1" }, service1, action);
 	list.add({ id: broker.nodeID }, service2, action);
@@ -508,7 +593,6 @@ describe("Test EndpointList.removeByNodeID", () => {
 		expect(list.count()).toBe(0);
 		expect(list.hasLocal()).toBe(false);
 	});
-
 });
 
 describe("Test EndpointList.setLocalEndpoints", () => {
@@ -519,7 +603,14 @@ describe("Test EndpointList.setLocalEndpoints", () => {
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	let list = new EndpointList(
+		registry,
+		broker,
+		"listName",
+		"groupName",
+		ActionEndpoint,
+		Strategy
+	);
 
 	list.add({ id: "node-1" }, service1, action);
 	let ep2 = list.add({ id: broker.nodeID }, service2, action);
@@ -534,5 +625,4 @@ describe("Test EndpointList.setLocalEndpoints", () => {
 		list.removeByNodeID(broker.nodeID);
 		expect(list.localEndpoints).toEqual([]);
 	});
-
 });

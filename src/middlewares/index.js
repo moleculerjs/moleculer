@@ -30,7 +30,7 @@ const Middlewares = {
 
 	Debugging: {
 		TransitLogger: require("./debugging/transit-logger"),
-		ActionLogger: require("./debugging/action-logger"),
+		ActionLogger: require("./debugging/action-logger")
 	}
 };
 

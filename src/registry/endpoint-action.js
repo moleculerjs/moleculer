@@ -15,7 +15,6 @@ const Endpoint = require("./endpoint");
  * @extends {Endpoint}
  */
 class ActionEndpoint extends Endpoint {
-
 	/**
 	 * Creates an instance of ActionEndpoint.
 	 * @param {Registry} registry

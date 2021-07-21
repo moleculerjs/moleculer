@@ -16,11 +16,8 @@ const os = require("os");
 
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });
 
-
 describe("Test Datadog logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new DatadogLogger();
 
@@ -65,9 +62,10 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should throw error if apiKey is not defined", () => {
-			expect(() => new DatadogLogger({ apiKey: "" })).toThrow("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
+			expect(() => new DatadogLogger({ apiKey: "" })).toThrow(
+				"Datadog API key is missing. Set DATADOG_API_KEY environment variable."
+			);
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -105,7 +103,6 @@ describe("Test Datadog logger class", () => {
 
 			expect(logger.objectPrinter).toBe(objectPrinter);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -124,7 +121,6 @@ describe("Test Datadog logger class", () => {
 			expect(logger.flush).toHaveBeenCalledTimes(1);
 			expect(logger.timer).toBeNull();
 		});
-
 	});
 
 	describe("Test getTags method", () => {
@@ -135,7 +131,6 @@ describe("Test Datadog logger class", () => {
 			await logger.stop();
 		});
 
-
 		it("should return tags from row", () => {
 			logger = new DatadogLogger({
 				env: "production"
@@ -143,15 +138,16 @@ describe("Test Datadog logger class", () => {
 
 			logger.init(loggerFactory);
 
-			expect(logger.getTags({
-				bindings: {
-					nodeID: "my-node",
-					ns: "namespace",
-					svc: "users"
-				}
-			})).toBe("env:production,nodeID:my-node,namespace:namespace,service:users");
+			expect(
+				logger.getTags({
+					bindings: {
+						nodeID: "my-node",
+						ns: "namespace",
+						svc: "users"
+					}
+				})
+			).toBe("env:production,nodeID:my-node,namespace:namespace,service:users");
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -187,12 +183,42 @@ describe("Test Datadog logger class", () => {
 			logHandler("trace", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "level": "fatal", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "error", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "warn", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "info", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "debug", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "trace", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 }
+				{
+					level: "fatal",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "error",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "warn",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "info",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "debug",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "trace",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				}
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(0);
@@ -214,10 +240,30 @@ describe("Test Datadog logger class", () => {
 			logHandler("trace", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "level": "fatal", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "error", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "warn", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
-				{ "level": "info", "msg": "message { a: 5 }", "bindings": { mod: "my-service", nodeID: "node-1" }, "ts": 0 },
+				{
+					level: "fatal",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "error",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "warn",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				},
+				{
+					level: "info",
+					msg: "message { a: 5 }",
+					bindings: { mod: "my-service", nodeID: "node-1" },
+					ts: 0
+				}
 			]);
 		});
 
@@ -256,13 +302,22 @@ describe("Test Datadog logger class", () => {
 			logHandler("error", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "ts": 0, "level": "fatal", "msg": "message { a: 5 }", "bindings": { "nodeID": "node-1", mod: "my-service" } },
-				{ "ts": 0, "level": "error", "msg": "message { a: 5 }", "bindings": { "nodeID": "node-1", mod: "my-service" } },
+				{
+					ts: 0,
+					level: "fatal",
+					msg: "message { a: 5 }",
+					bindings: { nodeID: "node-1", mod: "my-service" }
+				},
+				{
+					ts: 0,
+					level: "error",
+					msg: "message { a: 5 }",
+					bindings: { nodeID: "node-1", mod: "my-service" }
+				}
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(2);
 		});
-
 	});
 
 	describe("Test flush method", () => {
@@ -307,13 +362,16 @@ describe("Test Datadog logger class", () => {
 			logger.flush();
 
 			expect(fetch).toHaveBeenCalledTimes(1);
-			expect(fetch).toHaveBeenCalledWith("https://http-intake.logs.datadoghq.com/v1/input/datadog-api-key", {
-				method: "post",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: "[{\"timestamp\":0,\"level\":\"fatal\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"my-host\"},{\"timestamp\":0,\"level\":\"error\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"my-host\"}]"
-			});
+			expect(fetch).toHaveBeenCalledWith(
+				"https://http-intake.logs.datadoghq.com/v1/input/datadog-api-key",
+				{
+					method: "post",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: '[{"timestamp":0,"level":"fatal","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"},{"timestamp":0,"level":"error","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"}]'
+				}
+			);
 		});
 
 		it("should call flush after interval", () => {
@@ -331,8 +389,5 @@ describe("Test Datadog logger class", () => {
 
 			expect(logger.flush).toHaveBeenCalledTimes(1);
 		});
-
 	});
-
 });
-

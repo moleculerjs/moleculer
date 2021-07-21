@@ -24,7 +24,6 @@ const setProp = (o, k, v) => {
  * @extends {BaseMetric}
  */
 class HistogramMetric extends BaseMetric {
-
 	/**
 	 * Creates an instance of HistogramMetric.
 	 * @param {Object} opts
@@ -37,9 +36,17 @@ class HistogramMetric extends BaseMetric {
 
 		// Create buckets
 		if (isPlainObject(opts.linearBuckets)) {
-			this.buckets = HistogramMetric.generateLinearBuckets(opts.linearBuckets.start, opts.linearBuckets.width, opts.linearBuckets.count);
+			this.buckets = HistogramMetric.generateLinearBuckets(
+				opts.linearBuckets.start,
+				opts.linearBuckets.width,
+				opts.linearBuckets.count
+			);
 		} else if (isPlainObject(opts.exponentialBuckets)) {
-			this.buckets = HistogramMetric.generateExponentialBuckets(opts.exponentialBuckets.start, opts.exponentialBuckets.factor, opts.exponentialBuckets.count);
+			this.buckets = HistogramMetric.generateExponentialBuckets(
+				opts.exponentialBuckets.start,
+				opts.exponentialBuckets.factor,
+				opts.exponentialBuckets.count
+			);
 		} else if (Array.isArray(opts.buckets)) {
 			this.buckets = Array.from(opts.buckets);
 		} else if (opts.buckets === true) {
@@ -81,8 +88,7 @@ class HistogramMetric extends BaseMetric {
 				labels: _.pick(labels, this.labelNames)
 			});
 
-			if (this.rate)
-				item.rate = new MetricRate(this, item, 1);
+			if (this.rate) item.rate = new MetricRate(this, item, 1);
 
 			this.values.set(hash, item);
 		}
@@ -105,8 +111,7 @@ class HistogramMetric extends BaseMetric {
 			item.quantileValues.add(value);
 		}
 
-		if (item.rate)
-			item.rate.update(item.count);
+		if (item.rate) item.rate.update(item.count);
 
 		this.changed(value, labels, timestamp);
 
@@ -130,7 +135,9 @@ class HistogramMetric extends BaseMetric {
 	 * @memberof HistogramMetric
 	 */
 	generateSnapshot() {
-		return Array.from(this.values.keys()).map(key => this.generateItemSnapshot(this.values.get(key), key));
+		return Array.from(this.values.keys()).map(key =>
+			this.generateItemSnapshot(this.values.get(key), key)
+		);
 	}
 
 	/**
@@ -148,17 +155,18 @@ class HistogramMetric extends BaseMetric {
 			count: item.count,
 			sum: item.sum,
 			lastValue: item.lastValue,
-			timestamp: item.timestamp,
+			timestamp: item.timestamp
 		};
 
 		if (this.buckets)
-			snapshot.buckets = this.buckets.reduce((a, b) => setProp(a, b, item.bucketValues[b]), {});
+			snapshot.buckets = this.buckets.reduce(
+				(a, b) => setProp(a, b, item.bucketValues[b]),
+				{}
+			);
 
-		if (this.quantiles)
-			Object.assign(snapshot, item.quantileValues.snapshot());
+		if (this.quantiles) Object.assign(snapshot, item.quantileValues.snapshot());
 
-		if (item.rate)
-			snapshot.rate = item.rate.rate;
+		if (item.rate) snapshot.rate = item.rate.rate;
 
 		return snapshot;
 	}
@@ -180,7 +188,12 @@ class HistogramMetric extends BaseMetric {
 		}
 
 		if (this.quantiles) {
-			item.quantileValues = new TimeWindowQuantiles(this, this.quantiles, this.maxAgeSeconds, this.ageBuckets);
+			item.quantileValues = new TimeWindowQuantiles(
+				this,
+				this.quantiles,
+				this.maxAgeSeconds,
+				this.ageBuckets
+			);
 		}
 
 		return item;
@@ -226,8 +239,7 @@ class HistogramMetric extends BaseMetric {
 	 */
 	static generateLinearBuckets(start, width, count) {
 		const buckets = [];
-		for (let i = 0; i < count; i++)
-			buckets.push(start + i * width);
+		for (let i = 0; i < count; i++) buckets.push(start + i * width);
 
 		return buckets;
 	}
@@ -244,8 +256,7 @@ class HistogramMetric extends BaseMetric {
 	 */
 	static generateExponentialBuckets(start, factor, count) {
 		const buckets = [];
-		for (let i = 0; i < count; i++)
-			buckets[i] = start * Math.pow(factor, i);
+		for (let i = 0; i < count; i++) buckets[i] = start * Math.pow(factor, i);
 
 		return buckets;
 	}
@@ -257,7 +268,6 @@ class HistogramMetric extends BaseMetric {
  * @class TimeWindowQuantiles
  */
 class TimeWindowQuantiles {
-
 	/**
 	 * Creates an instance of TimeWindowQuantiles.
 	 * @param {BaseMetric} metric
@@ -272,7 +282,7 @@ class TimeWindowQuantiles {
 		this.maxAgeSeconds = maxAgeSeconds;
 		this.ageBuckets = ageBuckets;
 		this.ringBuckets = [];
-		for(let i = 0; i < ageBuckets; i++) {
+		for (let i = 0; i < ageBuckets; i++) {
 			this.ringBuckets.push(new Bucket());
 		}
 		this.dirty = true;
@@ -334,14 +344,16 @@ class TimeWindowQuantiles {
 	 * @memberof TimeWindowQuantiles
 	 */
 	snapshot() {
-		if (!this.dirty && this.lastSnapshot)
-			return this.lastSnapshot;
+		if (!this.dirty && this.lastSnapshot) return this.lastSnapshot;
 
 		const samples = this.ringBuckets.reduce((a, b) => a.concat(b.samples), []);
 		samples.sort(sortAscending);
 
 		const mean = samples.length ? samples.reduce((a, b) => a + b, 0) / samples.length : null;
-		const variance = samples.length > 1 ? samples.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (samples.length - 1) : null;
+		const variance =
+			samples.length > 1
+				? samples.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (samples.length - 1)
+				: null;
 		const stdDev = variance ? Math.sqrt(variance) : null;
 
 		this.lastSnapshot = {
@@ -350,7 +362,10 @@ class TimeWindowQuantiles {
 			variance,
 			stdDev,
 			max: samples.length ? samples[samples.length - 1] : null,
-			quantiles: this.quantiles.reduce((a, q) => setProp(a, q, samples[Math.ceil(q * samples.length) - 1]), {})
+			quantiles: this.quantiles.reduce(
+				(a, q) => setProp(a, q, samples[Math.ceil(q * samples.length) - 1]),
+				{}
+			)
 		};
 
 		this.clearDirty();

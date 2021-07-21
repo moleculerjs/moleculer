@@ -8,7 +8,6 @@ let ActionEndpoint = require("../../../src/registry/endpoint-action");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ActionCatalog constructor", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -23,7 +22,6 @@ describe("Test ActionCatalog constructor", () => {
 		expect(catalog.actions).toBeInstanceOf(Map);
 		expect(catalog.EndpointFactory).toBe(ActionEndpoint);
 	});
-
 });
 
 describe("Test ActionCatalog methods", () => {
@@ -61,7 +59,6 @@ describe("Test ActionCatalog methods", () => {
 
 		expect(list.add).toHaveBeenCalledTimes(1);
 		expect(list.add).toHaveBeenCalledWith(node, service, action);
-
 	});
 
 	it("should return the list", () => {
@@ -83,7 +80,10 @@ describe("Test ActionCatalog methods", () => {
 
 	it("should call list.removeByService", () => {
 		let service2 = { name: "echo" };
-		let list2 = catalog.add(broker.registry.nodes.localNode, service2, { name: "echo.reply", cache: true });
+		let list2 = catalog.add(broker.registry.nodes.localNode, service2, {
+			name: "echo.reply",
+			cache: true
+		});
 
 		list.removeByService = jest.fn();
 		list2.removeByService = jest.fn();
@@ -99,61 +99,62 @@ describe("Test ActionCatalog methods", () => {
 		let res = catalog.list({});
 		expect(res).toEqual([
 			{
-				"action": {
-					"name": "test.hello"
+				action: {
+					name: "test.hello"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": false,
-				"name": "test.hello"
+				available: true,
+				count: 1,
+				hasLocal: false,
+				name: "test.hello"
 			},
 			{
-				"action": {
-					"name": "echo.reply",
-					"cache": true
+				action: {
+					name: "echo.reply",
+					cache: true
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "echo.reply"
+				available: true,
+				count: 1,
+				hasLocal: true,
+				name: "echo.reply"
 			}
 		]);
 
 		res = catalog.list({ onlyLocal: true, skipInternal: true });
-		expect(res).toEqual( [{
-			"action": {
-				"cache": true,
-				"name": "echo.reply"
-			},
-			"available": true,
-			"count": 1,
-			"hasLocal": true,
-			"name": "echo.reply"
-		}]);
+		expect(res).toEqual([
+			{
+				action: {
+					cache: true,
+					name: "echo.reply"
+				},
+				available: true,
+				count: 1,
+				hasLocal: true,
+				name: "echo.reply"
+			}
+		]);
 
 		catalog.get("test.hello").hasAvailable = jest.fn(() => false);
 		res = catalog.list({ withEndpoints: true, onlyAvailable: true });
 		expect(res).toEqual([
 			{
-				"action": {
-					"name": "echo.reply",
-					"cache": true
+				action: {
+					name: "echo.reply",
+					cache: true
 				},
-				"available": true,
-				"count": 1,
-				"endpoints": [
+				available: true,
+				count: 1,
+				endpoints: [
 					{
-						"available": true,
-						"nodeID": broker.registry.nodes.localNode.id,
-						"state": true
+						available: true,
+						nodeID: broker.registry.nodes.localNode.id,
+						state: true
 					}
 				],
-				"hasLocal": true,
-				"name": "echo.reply"
+				hasLocal: true,
+				name: "echo.reply"
 			}
 		]);
 	});
-
 });
 
 describe("Test ActionCatalog add method", () => {
@@ -175,7 +176,11 @@ describe("Test ActionCatalog add method", () => {
 
 	it("should create an EndpointList with custom strategy", () => {
 		let node = { id: "server-1" };
-		let action = { name: "test.welcome", strategy: "CpuUsage", strategyOptions: { sampleCount: 6 } };
+		let action = {
+			name: "test.welcome",
+			strategy: "CpuUsage",
+			strategyOptions: { sampleCount: 6 }
+		};
 
 		list = catalog.add(node, service, action);
 
@@ -183,5 +188,4 @@ describe("Test ActionCatalog add method", () => {
 		expect(list.strategy).toBeInstanceOf(CpuStrategy);
 		expect(list.strategy.opts).toEqual({ sampleCount: 6, lowCpuUsage: 10 });
 	});
-
 });

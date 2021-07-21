@@ -16,7 +16,6 @@ const { isObject } = require("lodash");
  * @extends {Transporter}
  */
 class MqttTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of MqttTransporter.
 	 *
@@ -54,9 +53,13 @@ class MqttTransporter extends Transporter {
 			let mqtt;
 			try {
 				mqtt = require("mqtt");
-			} catch(err) {
+			} catch (err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
+				this.broker.fatal(
+					"The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.",
+					err,
+					true
+				);
 			}
 
 			const client = mqtt.connect(this.opts);
@@ -70,12 +73,11 @@ class MqttTransporter extends Transporter {
 			});
 
 			/* istanbul ignore next */
-			client.on("error", (e) => {
+			client.on("error", e => {
 				this.logger.error("MQTT error.", e.message);
 				this.logger.debug(e);
 
-				if (!client.connected)
-					reject(e);
+				if (!client.connected) reject(e);
 			});
 
 			/* istanbul ignore next */
@@ -120,7 +122,9 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	getTopicName(cmd, nodeID) {
-		return this.prefix + this.topicSeparator + cmd + (nodeID ? this.topicSeparator + nodeID : "");
+		return (
+			this.prefix + this.topicSeparator + cmd + (nodeID ? this.topicSeparator + nodeID : "")
+		);
 	}
 
 	/**
@@ -135,8 +139,7 @@ class MqttTransporter extends Transporter {
 		return new this.broker.Promise((resolve, reject) => {
 			const topic = this.getTopicName(cmd, nodeID);
 			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
-				if (err)
-					return reject(err);
+				if (err) return reject(err);
 
 				this.logger.debug("MQTT server granted", granted);
 
@@ -161,14 +164,12 @@ class MqttTransporter extends Transporter {
 		return new this.broker.Promise((resolve, reject) => {
 			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
-				if (err)
-					return reject(err);
+				if (err) return reject(err);
 
 				resolve();
 			});
 		});
 	}
-
 }
 
 module.exports = MqttTransporter;

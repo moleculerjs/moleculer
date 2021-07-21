@@ -23,7 +23,6 @@ const BASE_URL = "https://api.datadoghq.com/api/";
  *
  */
 class DatadogReporter extends BaseReporter {
-
 	/**
 	 * Constructor of DatadogReporters
 	 * @param {Object} opts
@@ -39,7 +38,7 @@ class DatadogReporter extends BaseReporter {
 			path: "/series",
 			apiKey: process.env.DATADOG_API_KEY,
 			//appKey: process.env.DATADOG_APP_KEY,
-			defaultLabels: (registry) => ({
+			defaultLabels: registry => ({
 				namespace: registry.broker.namespace,
 				nodeID: registry.broker.nodeID
 			}),
@@ -47,7 +46,9 @@ class DatadogReporter extends BaseReporter {
 		});
 
 		if (!this.opts.apiKey)
-			throw new MoleculerError("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
+			throw new MoleculerError(
+				"Datadog API key is missing. Set DATADOG_API_KEY environment variable."
+			);
 	}
 
 	/**
@@ -66,7 +67,9 @@ class DatadogReporter extends BaseReporter {
 			this.timer.unref();
 		}
 
-		this.defaultLabels = isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
+		this.defaultLabels = isFunction(this.opts.defaultLabels)
+			? this.opts.defaultLabels.call(this, registry)
+			: this.opts.defaultLabels;
 	}
 
 	/**
@@ -92,19 +95,26 @@ class DatadogReporter extends BaseReporter {
 
 		if (series.length == 0) return;
 
-		return fetch(`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`, {
-			method: "post",
-			body: JSON.stringify({ series }),
-			headers: {
-				"Content-Type": "application/json",
-
+		return fetch(
+			`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`,
+			{
+				method: "post",
+				body: JSON.stringify({ series }),
+				headers: {
+					"Content-Type": "application/json"
+				}
 			}
-		}).then(res => {
-			this.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
-		}).catch(err => {
-			/* istanbul ignore next */
-			this.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
-		});
+		)
+			.then(res => {
+				this.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
+			})
+			.catch(err => {
+				/* istanbul ignore next */
+				this.logger.warn(
+					"Unable to upload metrics to Datadog server. Error:" + err.message,
+					err
+				);
+			});
 	}
 
 	/**
@@ -143,10 +153,9 @@ class DatadogReporter extends BaseReporter {
 			*/
 
 			const snapshot = metric.snapshot();
-			if (snapshot.length == 0)
-				return;
+			if (snapshot.length == 0) return;
 
-			switch(metric.type) {
+			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
 				case METRIC.TYPE_GAUGE: {
 					snapshot.forEach(item => {
@@ -195,7 +204,6 @@ class DatadogReporter extends BaseReporter {
 						}
 
 						if (item.quantiles) {
-
 							Object.keys(item.quantiles).forEach(key => {
 								series.push({
 									metric: this.formatMetricName(metric.name + ".q" + key),
@@ -262,7 +270,6 @@ class DatadogReporter extends BaseReporter {
 								tags: this.labelsToTags(item.labels),
 								host: this.opts.host
 							});
-
 						}
 					});
 					break;
@@ -280,8 +287,7 @@ class DatadogReporter extends BaseReporter {
 	 * @memberof DatadogReporter
 	 */
 	escapeLabelValue(str) {
-		if (typeof str == "string")
-			return str.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+		if (typeof str == "string") return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 		return str;
 	}
 
@@ -296,16 +302,16 @@ class DatadogReporter extends BaseReporter {
 	labelsToTags(itemLabels) {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {});
 		const keys = Object.keys(labels);
-		if (keys.length == 0)
-			return [];
+		if (keys.length == 0) return [];
 
-		return keys.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`);
+		return keys.map(
+			key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`
+		);
 	}
 
 	posixTimestamp(time) {
 		return time != null ? Math.floor(time / 1000) : undefined;
 	}
-
 }
 
 module.exports = DatadogReporter;

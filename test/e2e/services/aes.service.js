@@ -1,5 +1,5 @@
-const _ 								= require("lodash");
-const crypto 							= require("crypto");
+const _ = require("lodash");
+const crypto = require("crypto");
 
 const iv = Buffer.from(crypto.randomBytes(16));
 const password = Buffer.from(crypto.randomBytes(32));

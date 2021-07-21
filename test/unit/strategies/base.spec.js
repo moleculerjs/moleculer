@@ -26,5 +26,4 @@ describe("Test BaseStrategy", () => {
 
 		expect(strategy.select).toBeInstanceOf(Function);
 	});
-
 });

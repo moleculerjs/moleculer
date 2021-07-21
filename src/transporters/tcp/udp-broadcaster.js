@@ -6,11 +6,11 @@
 
 "use strict";
 
-const EventEmitter 	= require("events");
-const os 			= require("os");
-const dgram 		= require("dgram");
-const ipaddr 		= require("ipaddr.js");
-const _ 			= require("lodash");
+const EventEmitter = require("events");
+const os = require("os");
+const dgram = require("dgram");
+const ipaddr = require("ipaddr.js");
+const _ = require("lodash");
 /**
  * UDP Discovery Server for TcpTransporter
  *
@@ -18,7 +18,6 @@ const _ 			= require("lodash");
  * @extends {EventEmitter}
  */
 class UdpServer extends EventEmitter {
-
 	/**
 	 * Creates an instance of UdpServer.
 	 *
@@ -60,11 +59,25 @@ class UdpServer extends EventEmitter {
 				if (this.opts.udpMulticast) {
 					// Bind only one interface
 					if (this.opts.udpBindAddress)
-						return this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
+						return this.startServer(
+							this.opts.udpBindAddress,
+							this.opts.udpPort,
+							this.opts.udpMulticast,
+							this.opts.udpMulticastTTL
+						);
 
 					// Binding all interfaces
 					const ipList = this.getInterfaceAddresses();
-					return this.Promise.all(ipList.map(ip => this.startServer(ip, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL)));
+					return this.Promise.all(
+						ipList.map(ip =>
+							this.startServer(
+								ip,
+								this.opts.udpPort,
+								this.opts.udpMulticast,
+								this.opts.udpMulticastTTL
+							)
+						)
+					);
 				}
 			})
 			.then(() => {
@@ -91,7 +104,10 @@ class UdpServer extends EventEmitter {
 	startServer(host, port, multicastAddress, ttl) {
 		return new this.Promise(resolve => {
 			try {
-				const server = dgram.createSocket({ type: "udp4", reuseAddr: this.opts.udpReuseAddr });
+				const server = dgram.createSocket({
+					type: "udp4",
+					reuseAddr: this.opts.udpReuseAddr
+				});
 
 				server.on("message", this.onMessage.bind(this));
 
@@ -106,26 +122,31 @@ class UdpServer extends EventEmitter {
 				server.bind({ port, host, exclusive: true }, () => {
 					try {
 						if (multicastAddress) {
-							this.logger.info(`UDP Multicast Server is listening on ${host}:${port}. Membership: ${multicastAddress}`);
+							this.logger.info(
+								`UDP Multicast Server is listening on ${host}:${port}. Membership: ${multicastAddress}`
+							);
 							server.setMulticastInterface(host);
 							server.addMembership(multicastAddress, host);
 							server.setMulticastTTL(ttl || 1);
 							server.destinations = [multicastAddress];
 						} else {
-							this.logger.info(`UDP Broadcast Server is listening on ${host}:${port}`);
+							this.logger.info(
+								`UDP Broadcast Server is listening on ${host}:${port}`
+							);
 							server.setBroadcast(true);
 
 							if (typeof this.opts.udpBroadcast == "string")
 								server.destinations = [this.opts.udpBroadcast];
 							else if (Array.isArray(this.opts.udpBroadcast))
 								server.destinations = this.opts.udpBroadcast;
-							else
-								server.destinations = this.getBroadcastAddresses();
+							else server.destinations = this.getBroadcastAddresses();
 
-							this.logger.info("    Broadcast addresses:", server.destinations.join(", "));
-
+							this.logger.info(
+								"    Broadcast addresses:",
+								server.destinations.join(", ")
+							);
 						}
-					} catch(err) {
+					} catch (err) {
 						// In cluster it throw error
 						this.logger.debug("UDP multicast membership error. Message:", err.message);
 					}
@@ -134,8 +155,7 @@ class UdpServer extends EventEmitter {
 
 					resolve();
 				});
-
-			} catch(err) {
+			} catch (err) {
 				this.logger.warn("Unable to start UDP Discovery Server. Message:", err.message);
 				resolve();
 			}
@@ -161,10 +181,13 @@ class UdpServer extends EventEmitter {
 
 			server.destinations.forEach(host => {
 				// Send discover message
-				server.send(message, port, host, (err/*, bytes*/) => {
+				server.send(message, port, host, (err /*, bytes*/) => {
 					/* istanbul ignore next*/
 					if (err) {
-						this.logger.warn(`Discovery packet broadcast error to '${host}:${port}'. Error`, err);
+						this.logger.warn(
+							`Discovery packet broadcast error to '${host}:${port}'. Error`,
+							err
+						);
 						return;
 					}
 					this.logger.debug(`Discovery packet sent to '${host}:${port}'`);
@@ -193,8 +216,7 @@ class UdpServer extends EventEmitter {
 			}
 			if (parts[0] == this.namespace)
 				this.emit("message", parts[1], rinfo.address, parseInt(parts[2], 10));
-
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
 			this.logger.debug("UDP packet process error!", err, msg, rinfo);
 		}
@@ -212,7 +234,6 @@ class UdpServer extends EventEmitter {
 
 				if (this.opts.udpMaxDiscovery && this.counter >= this.opts.udpMaxDiscovery)
 					this.stopDiscovering();
-
 			}, (this.opts.udpPeriod || 30) * 1000);
 
 			this.discoverTimer.unref();
@@ -233,7 +254,6 @@ class UdpServer extends EventEmitter {
 
 			this.logger.info("UDP discovery stopped.");
 		}
-
 	}
 
 	/**

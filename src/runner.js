@@ -5,20 +5,30 @@
 
 "use strict";
 
-const ServiceBroker	= require("./service-broker");
-const utils			= require("./utils");
-const fs 			= require("fs");
-const path 			= require("path");
-const glob 			= require("glob").sync;
-const _ 			= require("lodash");
-const Args 			= require("args");
-const os			= require("os");
-const cluster		= require("cluster");
-const kleur			= require("kleur");
+const ServiceBroker = require("./service-broker");
+const utils = require("./utils");
+const fs = require("fs");
+const path = require("path");
+const glob = require("glob").sync;
+const _ = require("lodash");
+const Args = require("args");
+const os = require("os");
+const cluster = require("cluster");
+const kleur = require("kleur");
 
 const stopSignals = [
-	"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT",
-	"SIGBUS", "SIGFPE", "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGTERM"
+	"SIGHUP",
+	"SIGINT",
+	"SIGQUIT",
+	"SIGILL",
+	"SIGTRAP",
+	"SIGABRT",
+	"SIGBUS",
+	"SIGFPE",
+	"SIGUSR1",
+	"SIGSEGV",
+	"SIGUSR2",
+	"SIGTERM"
 ];
 
 /* eslint-disable no-console */
@@ -34,13 +44,11 @@ const logger = {
 	error(err) {
 		if (err instanceof Error)
 			console.error(kleur.grey("[Runner]"), kleur.red().bold(err.message), err);
-		else
-			console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
+		else console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
 	}
 };
 
 class MoleculerRunner {
-
 	constructor() {
 		this.watchFolders = [];
 
@@ -68,8 +76,7 @@ class MoleculerRunner {
 		-v, --version    Output the version number
 	*/
 	processFlags(procArgs) {
-		Args
-			.option("config", "Load the configuration from a file")
+		Args.option("config", "Load the configuration from a file")
 			.option("repl", "Start REPL mode", false)
 			.option(["H", "hot"], "Hot reload services if changed", false)
 			.option("silent", "Silent mode. No logger", false)
@@ -106,12 +113,12 @@ class MoleculerRunner {
 			try {
 				const dotenv = require("dotenv");
 
-				if (this.flags.envfile)
-					dotenv.config({ path: this.flags.envfile });
-				else
-					dotenv.config();
-			} catch(err) {
-				throw new Error("The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command.");
+				if (this.flags.envfile) dotenv.config({ path: this.flags.envfile });
+				else dotenv.config();
+			} catch (err) {
+				throw new Error(
+					"The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command."
+				);
 			}
 		}
 	}
@@ -145,9 +152,13 @@ class MoleculerRunner {
 		let filePath;
 		// Env vars have priority over the flags
 		if (process.env["MOLECULER_CONFIG"]) {
-			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"]) ? process.env["MOLECULER_CONFIG"] : path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
+			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"])
+				? process.env["MOLECULER_CONFIG"]
+				: path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
 		} else if (this.flags.config) {
-			filePath = path.isAbsolute(this.flags.config) ? this.flags.config : path.resolve(process.cwd(), this.flags.config);
+			filePath = path.isAbsolute(this.flags.config)
+				? this.flags.config
+				: path.resolve(process.cwd(), this.flags.config);
 		}
 		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {
 			filePath = path.resolve(process.cwd(), "moleculer.config.js");
@@ -168,14 +179,17 @@ class MoleculerRunner {
 					const content = require(filePath);
 					return Promise.resolve()
 						.then(() => {
-							if (utils.isFunction(content))
-								return content.call(this);
-							else
-								return content;
+							if (utils.isFunction(content)) return content.call(this);
+							else return content;
 						})
-						.then(res => this.configFile = res.default != null && res.__esModule ? res.default : res);
+						.then(
+							res =>
+								(this.configFile =
+									res.default != null && res.__esModule ? res.default : res)
+						);
 				}
-				default: return Promise.reject(new Error(`Not supported file extension: ${ext}`));
+				default:
+					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
 		}
 	}
@@ -193,7 +207,6 @@ class MoleculerRunner {
 
 	overwriteFromEnv(obj, prefix) {
 		Object.keys(obj).forEach(key => {
-
 			const envName = ((prefix ? prefix + "_" : "") + key).toUpperCase();
 
 			if (process.env[envName]) {
@@ -230,7 +243,11 @@ class MoleculerRunner {
 								.join("")
 						)
 						.join(".");
-					obj = utils.dotSet(obj, dotted, this.normalizeEnvValue(process.env[variable.key]));
+					obj = utils.dotSet(
+						obj,
+						dotted,
+						this.normalizeEnvValue(process.env[variable.key])
+					);
 				});
 		}
 
@@ -260,11 +277,9 @@ class MoleculerRunner {
 
 		this.config = this.overwriteFromEnv(this.config);
 
-		if (this.flags.silent)
-			this.config.logger = false;
+		if (this.flags.silent) this.config.logger = false;
 
-		if (this.flags.hot)
-			this.config.hotReload = true;
+		if (this.flags.hot) this.config.hotReload = true;
 
 		// console.log("Merged configuration", this.config);
 	}
@@ -278,7 +293,7 @@ class MoleculerRunner {
 	isDirectory(p) {
 		try {
 			return fs.lstatSync(p).isDirectory();
-		} catch(_) {
+		} catch (_) {
 			// ignore
 		}
 		return false;
@@ -293,7 +308,7 @@ class MoleculerRunner {
 	isServiceFile(p) {
 		try {
 			return !fs.lstatSync(p).isDirectory();
-		} catch(_) {
+		} catch (_) {
 			// ignore
 		}
 		return false;
@@ -321,12 +336,13 @@ class MoleculerRunner {
 		const fileMask = this.flags.mask || "**/*.service.js";
 
 		const serviceDir = process.env.SERVICEDIR || "";
-		const svcDir = path.isAbsolute(serviceDir) ? serviceDir : path.resolve(process.cwd(), serviceDir);
+		const svcDir = path.isAbsolute(serviceDir)
+			? serviceDir
+			: path.resolve(process.cwd(), serviceDir);
 
 		let patterns = this.servicePaths;
 
 		if (process.env.SERVICES || process.env.SERVICEDIR) {
-
 			if (this.isDirectory(svcDir) && !process.env.SERVICES) {
 				// Load all services from directory (from subfolders too)
 				this.broker.loadServices(svcDir, fileMask);
@@ -336,52 +352,63 @@ class MoleculerRunner {
 				}
 			} else if (process.env.SERVICES) {
 				// Load services from env list
-				patterns = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
+				patterns = Array.isArray(process.env.SERVICES)
+					? process.env.SERVICES
+					: process.env.SERVICES.split(",");
 			}
 		}
 
 		if (patterns.length > 0) {
 			let serviceFiles = [];
 
-			patterns.map(s => s.trim()).forEach(p => {
-				const skipping = p[0] == "!";
-				if (skipping)
-					p = p.slice(1);
+			patterns
+				.map(s => s.trim())
+				.forEach(p => {
+					const skipping = p[0] == "!";
+					if (skipping) p = p.slice(1);
 
-				if (p.startsWith("npm:")) {
-					// Load NPM module
-					this.loadNpmModule(p.slice(4));
-
-				} else {
-					let files;
-					const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
-					// Check is it a directory?
-					if (this.isDirectory(svcPath)) {
-						if (this.config.hotReload) {
-							this.watchFolders.push(svcPath);
-						}
-						files = glob(svcPath + "/" + fileMask, { absolute: true });
-						if (files.length == 0)
-							return this.broker.logger.warn(kleur.yellow().bold(`There is no service files in directory: '${svcPath}'`));
-					} else if (this.isServiceFile(svcPath)) {
-						files = [svcPath.replace(/\\/g, "/")];
-					} else if (this.isServiceFile(svcPath + ".service.js")) {
-						files = [svcPath.replace(/\\/g, "/") + ".service.js"];
+					if (p.startsWith("npm:")) {
+						// Load NPM module
+						this.loadNpmModule(p.slice(4));
 					} else {
-						// Load with glob
-						files = glob(p, { cwd: svcDir, absolute: true });
-						if (files.length == 0)
-							this.broker.logger.warn(kleur.yellow().bold(`There is no matched file for pattern: '${p}'`));
-					}
+						let files;
+						const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
+						// Check is it a directory?
+						if (this.isDirectory(svcPath)) {
+							if (this.config.hotReload) {
+								this.watchFolders.push(svcPath);
+							}
+							files = glob(svcPath + "/" + fileMask, { absolute: true });
+							if (files.length == 0)
+								return this.broker.logger.warn(
+									kleur
+										.yellow()
+										.bold(
+											`There is no service files in directory: '${svcPath}'`
+										)
+								);
+						} else if (this.isServiceFile(svcPath)) {
+							files = [svcPath.replace(/\\/g, "/")];
+						} else if (this.isServiceFile(svcPath + ".service.js")) {
+							files = [svcPath.replace(/\\/g, "/") + ".service.js"];
+						} else {
+							// Load with glob
+							files = glob(p, { cwd: svcDir, absolute: true });
+							if (files.length == 0)
+								this.broker.logger.warn(
+									kleur
+										.yellow()
+										.bold(`There is no matched file for pattern: '${p}'`)
+								);
+						}
 
-					if (files && files.length > 0) {
-						if (skipping)
-							serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
-						else
-							serviceFiles.push(...files);
+						if (files && files.length > 0) {
+							if (skipping)
+								serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
+							else serviceFiles.push(...files);
+						}
 					}
-				}
-			});
+				});
 
 			_.uniq(serviceFiles).forEach(f => this.broker.loadService(f));
 		}
@@ -393,7 +420,7 @@ class MoleculerRunner {
 	startWorkers(instances) {
 		let stopping = false;
 
-		cluster.on("exit", function(worker, code) {
+		cluster.on("exit", function (worker, code) {
 			if (!stopping) {
 				// only restart the worker if the exit was by an error
 				if (process.env.NODE_ENV === "production" && code !== 0) {
@@ -407,7 +434,8 @@ class MoleculerRunner {
 			}
 		});
 
-		const workerCount = Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
+		const workerCount =
+			Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
 
 		logger.info(`Starting ${workerCount} workers...`);
 
@@ -415,11 +443,11 @@ class MoleculerRunner {
 			cluster.fork();
 		}
 
-		stopSignals.forEach(function(signal) {
+		stopSignals.forEach(function (signal) {
 			process.on(signal, () => {
 				logger.info(`Got ${signal}, stopping workers...`);
 				stopping = true;
-				cluster.disconnect(function() {
+				cluster.disconnect(function () {
 					logger.info("All workers stopped, exiting.");
 					process.exit(0);
 				});
@@ -456,16 +484,13 @@ class MoleculerRunner {
 
 		this.loadServices();
 
-		if (this.watchFolders.length > 0)
-			this.broker.runner.folders = this.watchFolders;
+		if (this.watchFolders.length > 0) this.broker.runner.folders = this.watchFolders;
 
-		return this.broker.start()
-			.then(() => {
-				if (this.flags.repl && (!this.worker || this.worker.id === 1))
-					this.broker.repl();
+		return this.broker.start().then(() => {
+			if (this.flags.repl && (!this.worker || this.worker.id === 1)) this.broker.repl();
 
-				return this.broker;
-			});
+			return this.broker;
+		});
 	}
 
 	/**
@@ -485,7 +510,8 @@ class MoleculerRunner {
 
 	restartBroker() {
 		if (this.broker && this.broker.started) {
-			return this.broker.stop()
+			return this.broker
+				.stop()
 				.catch(err => {
 					logger.error("Error while stopping ServiceBroker", err);
 				})
@@ -506,9 +532,6 @@ class MoleculerRunner {
 				return this._run();
 			});
 	}
-
 }
 
-
 module.exports = MoleculerRunner;
-

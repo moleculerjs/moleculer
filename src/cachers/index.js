@@ -18,12 +18,10 @@ const Cachers = {
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Cachers).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Cachers[n];
+	if (n) return Cachers[n];
 }
 
 /**
@@ -39,23 +37,16 @@ function resolve(opt) {
 		return new Cachers.Memory();
 	} else if (isString(opt)) {
 		let CacherClass = getByName(opt);
-		if (CacherClass)
-			return new CacherClass();
+		if (CacherClass) return new CacherClass();
 
-		if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
-			CacherClass = Cachers.Redis;
+		if (opt.startsWith("redis://") || opt.startsWith("rediss://")) CacherClass = Cachers.Redis;
 
-		if (CacherClass)
-			return new CacherClass(opt);
-		else
-			throw new BrokerOptionsError(`Invalid cacher type '${opt}'.`, { type: opt });
-
+		if (CacherClass) return new CacherClass(opt);
+		else throw new BrokerOptionsError(`Invalid cacher type '${opt}'.`, { type: opt });
 	} else if (isObject(opt)) {
 		let CacherClass = getByName(opt.type || "Memory");
-		if (CacherClass)
-			return new CacherClass(opt.options);
-		else
-			throw new BrokerOptionsError(`Invalid cacher type '${opt.type}'.`, { type: opt.type });
+		if (CacherClass) return new CacherClass(opt.options);
+		else throw new BrokerOptionsError(`Invalid cacher type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return null;
@@ -66,4 +57,3 @@ function register(name, value) {
 }
 
 module.exports = Object.assign(Cachers, { resolve, register });
-

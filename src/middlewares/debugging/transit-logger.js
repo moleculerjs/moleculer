@@ -35,12 +35,24 @@ module.exports = function TransitLoggerMiddleware(opts) {
 	let targetFolder;
 
 	function saveToFile(filename, payload) {
-		const data = JSON.stringify(payload, payload instanceof Error ? Object.getOwnPropertyNames(payload) : null, 4);
-		fs.writeFile(path.join(targetFolder, filename), data, () => { /* Silent error */ });
+		const data = JSON.stringify(
+			payload,
+			payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
+			4
+		);
+		fs.writeFile(path.join(targetFolder, filename), data, () => {
+			/* Silent error */
+		});
 	}
 
-	const coloringSend = opts.colors && opts.colors.send ? opts.colors.send.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
-	const coloringReceive = opts.colors && opts.colors.receive ? opts.colors.receive.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
+	const coloringSend =
+		opts.colors && opts.colors.send
+			? opts.colors.send.split(".").reduce((a, b) => a[b] || a()[b], kleur)
+			: s => s;
+	const coloringReceive =
+		opts.colors && opts.colors.receive
+			? opts.colors.receive.split(".").reduce((a, b) => a[b] || a()[b], kleur)
+			: s => s;
 
 	let logFn;
 
@@ -69,14 +81,23 @@ module.exports = function TransitLoggerMiddleware(opts) {
 
 				// Logging to logger
 				if (logFn) {
-					logFn(coloringSend(`=> Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`));
+					logFn(
+						coloringSend(
+							`=> Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`
+						)
+					);
 					if (opts.logPacketData) {
 						logFn("=>", payload);
 					}
 				}
 
 				if (targetFolder) {
-					saveToFile(`${Date.now()}-send-${packet.type}-to-${packet.target || "all"}${opts.extension}`, payload);
+					saveToFile(
+						`${Date.now()}-send-${packet.type}-to-${packet.target || "all"}${
+							opts.extension
+						}`,
+						payload
+					);
 				}
 
 				return next(packet);
@@ -100,7 +121,10 @@ module.exports = function TransitLoggerMiddleware(opts) {
 				}
 
 				if (targetFolder) {
-					saveToFile(`${Date.now()}-receive-${cmd}-from-${payload.sender}${opts.extension}`, payload);
+					saveToFile(
+						`${Date.now()}-receive-${cmd}-from-${payload.sender}${opts.extension}`,
+						payload
+					);
 				}
 
 				return next(cmd, packet);

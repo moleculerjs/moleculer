@@ -1,15 +1,15 @@
-const ServiceBroker 			= require("../../../src/service-broker");
-const { MoleculerError }		= require("../../../src/errors");
-const Context 					= require("../../../src/context");
-const Middleware 				= require("../../../src/middlewares").Metrics;
-const { protectReject }			= require("../utils");
+const ServiceBroker = require("../../../src/service-broker");
+const { MoleculerError } = require("../../../src/errors");
+const Context = require("../../../src/context");
+const Middleware = require("../../../src/middlewares").Metrics;
+const { protectReject } = require("../utils");
 
 describe("Test MetricsMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, metrics: true });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const service = {
 		name: "posts",
-		fullName: "v2.posts",
+		fullName: "v2.posts"
 	};
 	const action = {
 		name: "posts.find",
@@ -64,11 +64,9 @@ describe("Test MetricsMiddleware", () => {
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
-
 	});
 
 	describe("Test localAction & remoteAction", () => {
-
 		it("should update local request metrics events if handler is resolved", () => {
 			handler.mockClear();
 			broker.metrics.increment.mockClear();
@@ -79,22 +77,69 @@ describe("Test MetricsMiddleware", () => {
 			const ctx = Context.create(broker, endpoint);
 			ctx.caller = "users.list";
 
-			return newHandler(ctx).catch(protectReject).then(res => {
-				expect(res).toBe("Result");
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toBe("Result");
 
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "v2.posts", type: "local", caller: "users.list" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "v2.posts", type: "local", caller: "users.list" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", level: 1, caller: "users.list" });
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "local",
+							caller: "users.list"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "local",
+							caller: "users.list"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						3,
+						"moleculer.request.levels",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							level: 1,
+							caller: "users.list"
+						}
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", type: "local", caller: "users.list" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.time",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "local",
+							caller: "users.list"
+						}
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledTimes(1);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "v2.posts",  type: "local", caller: "users.list" });
-			});
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "local",
+							caller: "users.list"
+						}
+					);
+				});
 		});
 
 		it("should update remote request metrics events if handler is resolved", () => {
@@ -107,22 +152,69 @@ describe("Test MetricsMiddleware", () => {
 			const ctx = Context.create(broker, endpoint);
 			ctx.caller = "users.list";
 
-			return newHandler(ctx).catch(protectReject).then(res => {
-				expect(res).toBe("Result");
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toBe("Result");
 
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "v2.posts",  type: "remote", caller: "users.list" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "v2.posts",  type: "remote", caller: "users.list" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts",  level: 1, caller: "users.list" });
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "remote",
+							caller: "users.list"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "remote",
+							caller: "users.list"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						3,
+						"moleculer.request.levels",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							level: 1,
+							caller: "users.list"
+						}
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", type: "remote", caller: "users.list" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.time",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "remote",
+							caller: "users.list"
+						}
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledTimes(1);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "v2.posts",  type: "remote", caller: "users.list" });
-			});
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "remote",
+							caller: "users.list"
+						}
+					);
+				});
 		});
 
 		it("should update local request metrics events if handler is rejected", () => {
@@ -137,31 +229,82 @@ describe("Test MetricsMiddleware", () => {
 			const ctx = Context.create(broker, endpoint);
 			ctx.caller = "users.list";
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
 
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "local" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "local" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", caller: "users.list", level: 1 });
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "local"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "local"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						3,
+						"moleculer.request.levels",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							level: 1
+						}
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "local" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.time",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "local"
+						}
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledTimes(1);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "local" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(4, "moleculer.request.error.total", {
-					action : "posts.find",
-					service: "v2.posts",
-					type: "local",
-					caller: "users.list",
-					errorName: "MoleculerError",
-					errorCode: 503,
-					errorType: "WENT_WRONG"
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "local"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						4,
+						"moleculer.request.error.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "local",
+							caller: "users.list",
+							errorName: "MoleculerError",
+							errorCode: 503,
+							errorType: "WENT_WRONG"
+						}
+					);
 				});
-			});
 		});
 
 		it("should update remote request metrics events if handler is rejected", () => {
@@ -176,33 +319,83 @@ describe("Test MetricsMiddleware", () => {
 			const ctx = Context.create(broker, endpoint);
 			ctx.caller = "users.list";
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
 
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "remote" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "remote" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", caller: "users.list", level: 1 });
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "remote"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "remote"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						3,
+						"moleculer.request.levels",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							level: 1
+						}
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "remote" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.time",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "remote"
+						}
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledTimes(1);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "remote" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(4, "moleculer.request.error.total", {
-					action : "posts.find",
-					service: "v2.posts",
-					type: "remote",
-					caller: "users.list",
-					errorName: "MoleculerError",
-					errorCode: 503,
-					errorType: "WENT_WRONG"
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.request.active",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							caller: "users.list",
+							type: "remote"
+						}
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						4,
+						"moleculer.request.error.total",
+						{
+							action: "posts.find",
+							service: "v2.posts",
+							type: "remote",
+							caller: "users.list",
+							errorName: "MoleculerError",
+							errorCode: 503,
+							errorType: "WENT_WRONG"
+						}
+					);
 				});
-			});
 		});
-
 	});
 
 	describe("Test localEvent", () => {
@@ -228,20 +421,38 @@ describe("Test MetricsMiddleware", () => {
 			ctx.eventGroup = "";
 			ctx.caller = "posts";
 
-			return newHandler(ctx).catch(protectReject).then(() => {
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(() => {
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.total",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.event.received.active",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.event.received.time", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.time",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
-				expect(handler).toHaveBeenCalledWith(ctx);
+					expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledWith(ctx);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
-			});
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.active",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
+				});
 		});
 
 		it("should update event handler metrics events if handler is rejected", () => {
@@ -259,27 +470,52 @@ describe("Test MetricsMiddleware", () => {
 			ctx.eventGroup = "";
 			ctx.caller = "posts";
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
 
-				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+					expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.total",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						2,
+						"moleculer.event.received.active",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
 
-				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.event.received.time", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
+					expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.timer).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.time",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
 
-				expect(handler).toHaveBeenCalledTimes(1);
+					expect(handler).toHaveBeenCalledTimes(1);
 
-				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.event.received.active", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
-				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.event.received.error.total", {
-					event : "user.created", service: "posts",  group: "users", caller: "posts",
-					errorName: "MoleculerError",
-					errorCode: 503,
-					errorType: "WENT_WRONG"
+					expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+					expect(broker.metrics.decrement).toHaveBeenNthCalledWith(
+						1,
+						"moleculer.event.received.active",
+						{ event: "user.created", service: "posts", group: "users", caller: "posts" }
+					);
+					expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+						3,
+						"moleculer.event.received.error.total",
+						{
+							event: "user.created",
+							service: "posts",
+							group: "users",
+							caller: "posts",
+							errorName: "MoleculerError",
+							errorCode: 503,
+							errorType: "WENT_WRONG"
+						}
+					);
 				});
-			});
 		});
 
 		it("should not wrap handler if metrics is disabled", () => {
@@ -321,7 +557,11 @@ describe("Test MetricsMiddleware", () => {
 			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.emit.total", { event : "user.created" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.event.emit.total",
+				{ event: "user.created" }
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
@@ -362,7 +602,11 @@ describe("Test MetricsMiddleware", () => {
 			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.broadcast.total", { event : "user.created" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.event.broadcast.total",
+				{ event: "user.created" }
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
@@ -403,7 +647,11 @@ describe("Test MetricsMiddleware", () => {
 			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.broadcast-local.total", { event : "user.created" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.event.broadcast-local.total",
+				{ event: "user.created" }
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
@@ -452,9 +700,23 @@ describe("Test MetricsMiddleware", () => {
 			newHandler.call(fakeTransit, packet);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transit.publish.total", { type: "REQUEST" });
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transit.requests.active", null, 3);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.transit.streams.send.active", null, 6);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.transit.publish.total",
+				{ type: "REQUEST" }
+			);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				2,
+				"moleculer.transit.requests.active",
+				null,
+				3
+			);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				3,
+				"moleculer.transit.streams.send.active",
+				null,
+				6
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith(packet);
@@ -495,7 +757,11 @@ describe("Test MetricsMiddleware", () => {
 			newHandler.call(fakeTransit, "RESPONSE", packet);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transit.receive.total", { type: "RESPONSE" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.transit.receive.total",
+				{ type: "RESPONSE" }
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("RESPONSE", packet);
@@ -537,8 +803,16 @@ describe("Test MetricsMiddleware", () => {
 			newHandler.call(fakeTransit, "MOL-TOPIC", data, meta);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transporter.packets.sent.total");
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transporter.packets.sent.bytes", null, 200);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.transporter.packets.sent.total"
+			);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				2,
+				"moleculer.transporter.packets.sent.bytes",
+				null,
+				200
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, meta);
@@ -581,8 +855,16 @@ describe("Test MetricsMiddleware", () => {
 			newHandler.call(fakeTransit, "MOL-TOPIC", data, s);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transporter.packets.received.total");
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transporter.packets.received.bytes", null, 200);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				1,
+				"moleculer.transporter.packets.received.total"
+			);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(
+				2,
+				"moleculer.transporter.packets.received.bytes",
+				null,
+				200
+			);
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, s);
@@ -660,5 +942,4 @@ describe("Test MetricsMiddleware", () => {
 		});
 	});
 	*/
-
 });

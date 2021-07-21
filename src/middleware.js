@@ -6,13 +6,12 @@
 
 "use strict";
 
-const _ 			= require("lodash");
-const Middlewares 	= require("./middlewares");
+const _ = require("lodash");
+const Middlewares = require("./middlewares");
 const { BrokerOptionsError } = require("./errors");
-const { isObject, isFunction, isString }	= require("./utils");
+const { isObject, isFunction, isString } = require("./utils");
 
 class MiddlewareHandler {
-
 	constructor(broker) {
 		this.broker = broker;
 
@@ -27,22 +26,25 @@ class MiddlewareHandler {
 		if (isString(mw)) {
 			const found = _.get(Middlewares, mw);
 			if (!found)
-				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, { type: mw });
+				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, {
+					type: mw
+				});
 			mw = found;
 		}
 
-		if (isFunction(mw))
-			mw = mw.call(this.broker, this.broker);
+		if (isFunction(mw)) mw = mw.call(this.broker, this.broker);
 
 		if (!isObject(mw))
-			throw new BrokerOptionsError(`Invalid middleware type '${typeof mw}'. Accepted only Object of Function.`, { type: typeof mw });
+			throw new BrokerOptionsError(
+				`Invalid middleware type '${typeof mw}'. Accepted only Object of Function.`,
+				{ type: typeof mw }
+			);
 
 		Object.keys(mw).forEach(key => {
 			if (isFunction(mw[key])) {
 				if (Array.isArray(this.registeredHooks[key]))
 					this.registeredHooks[key].push(mw[key]);
-				else
-					this.registeredHooks[key] = [mw[key]];
+				else this.registeredHooks[key] = [mw[key]];
 			}
 		});
 
@@ -79,8 +81,13 @@ class MiddlewareHandler {
 	 */
 	callHandlers(method, args, opts = {}) {
 		if (this.registeredHooks[method] && this.registeredHooks[method].length) {
-			const list = opts.reverse ? Array.from(this.registeredHooks[method]).reverse() : this.registeredHooks[method];
-			return list.reduce((p, fn) => p.then(() => fn.apply(this.broker, args)), this.broker.Promise.resolve());
+			const list = opts.reverse
+				? Array.from(this.registeredHooks[method]).reverse()
+				: this.registeredHooks[method];
+			return list.reduce(
+				(p, fn) => p.then(() => fn.apply(this.broker, args)),
+				this.broker.Promise.resolve()
+			);
 		}
 
 		return this.broker.Promise.resolve();
@@ -97,7 +104,9 @@ class MiddlewareHandler {
 	 */
 	callSyncHandlers(method, args, opts = {}) {
 		if (this.registeredHooks[method] && this.registeredHooks[method].length) {
-			const list = opts.reverse ? Array.from(this.registeredHooks[method]).reverse() : this.registeredHooks[method];
+			const list = opts.reverse
+				? Array.from(this.registeredHooks[method]).reverse()
+				: this.registeredHooks[method];
 			return list.map(fn => fn.apply(this.broker, args));
 		}
 		return;
@@ -125,13 +134,14 @@ class MiddlewareHandler {
 	 */
 	wrapMethod(method, handler, bindTo = this.broker, opts = {}) {
 		if (this.registeredHooks[method] && this.registeredHooks[method].length) {
-			const list = opts.reverse ? Array.from(this.registeredHooks[method]).reverse() : this.registeredHooks[method];
+			const list = opts.reverse
+				? Array.from(this.registeredHooks[method]).reverse()
+				: this.registeredHooks[method];
 			handler = list.reduce((next, fn) => fn.call(bindTo, next), handler.bind(bindTo));
 		}
 
 		return handler;
 	}
-
 }
 
 module.exports = MiddlewareHandler;

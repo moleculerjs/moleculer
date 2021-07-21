@@ -9,8 +9,7 @@ module.exports = {
 	logLevel: "info",
 	transporter: {
 		type: "TCP",
-		options: {
-		}
+		options: {}
 	},
 
 	started(broker) {
@@ -23,14 +22,21 @@ module.exports = {
 				};
 				let p = broker.call("worker.fibo", payload);
 				if (p.ctx)
-					broker.logger.info(`${reqCount}. Send request 'fibo(${payload.n})' to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`);
+					broker.logger.info(
+						`${reqCount}. Send request 'fibo(${payload.n})' to ${
+							p.ctx.nodeID ? p.ctx.nodeID : "some node"
+						} (queue: ${broker.transit.pendingRequests.size})...`
+					);
 
 				p.then(res => {
-					broker.logger.info(`${payload.c}. fibo(${payload.n}) = ${res} (from: ${p.ctx.nodeID})`);
+					broker.logger.info(
+						`${payload.c}. fibo(${payload.n}) = ${res} (from: ${p.ctx.nodeID})`
+					);
 				}).catch(err => {
-					broker.logger.warn(`${reqCount}. Request 'fibo(${payload.n})' ERROR! ${err.message}`);
+					broker.logger.warn(
+						`${reqCount}. Request 'fibo(${payload.n})' ERROR! ${err.message}`
+					);
 				});
-
 			}, 1000);
 		});
 	}

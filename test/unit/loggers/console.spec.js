@@ -13,9 +13,7 @@ const lolex = require("@sinonjs/fake-timers");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Console logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new ConsoleLogger();
 
@@ -50,7 +48,6 @@ describe("Test Console logger class", () => {
 				autoPadding: false
 			});
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -67,7 +64,10 @@ describe("Test Console logger class", () => {
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
 			expect(logger.getFormatter).toHaveBeenCalledTimes(1);
-			expect(logger.getFormatter).toHaveBeenCalledWith({ mod: "my-service", nodeID: "node-1" });
+			expect(logger.getFormatter).toHaveBeenCalledWith({
+				mod: "my-service",
+				nodeID: "node-1"
+			});
 
 			logHandler("fatal", ["message", { a: 5 }]);
 			expect(console.error).toHaveBeenCalledTimes(1);
@@ -107,7 +107,10 @@ describe("Test Console logger class", () => {
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
 			expect(logger.getFormatter).toHaveBeenCalledTimes(1);
-			expect(logger.getFormatter).toHaveBeenCalledWith({ mod: "my-service", nodeID: "node-1" });
+			expect(logger.getFormatter).toHaveBeenCalledWith({
+				mod: "my-service",
+				nodeID: "node-1"
+			});
 
 			console.error.mockClear();
 			logHandler("fatal", ["message", { a: 5 }]);
@@ -160,7 +163,5 @@ describe("Test Console logger class", () => {
 			expect(logHandler).toBeNull();
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
-
 	});
-
 });

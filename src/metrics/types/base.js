@@ -12,7 +12,6 @@
  * @class BaseMetric
  */
 class BaseMetric {
-
 	/**
 	 * Creates an instance of BaseMetric.
 	 *
@@ -104,20 +103,15 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	hashingLabels(labels) {
-		if (this.labelNames.length == 0 || labels == null || typeof labels !== "object")
-			return "";
+		if (this.labelNames.length == 0 || labels == null || typeof labels !== "object") return "";
 
 		const parts = [];
 		for (let i = 0; i < this.labelNames.length; i++) {
 			const v = labels[this.labelNames[i]];
-			if (typeof v == "number")
-				parts.push(v);
-			else if (typeof v === "string")
-				parts.push("\"" + v + "\"");
-			else if (typeof v === "boolean")
-				parts.push("" + v);
-			else
-				parts.push("");
+			if (typeof v == "number") parts.push(v);
+			else if (typeof v === "string") parts.push('"' + v + '"');
+			else if (typeof v === "boolean") parts.push("" + v);
+			else parts.push("");
 		}
 		return parts.join("|");
 	}
@@ -129,8 +123,7 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	snapshot() {
-		if (!this.dirty && this.lastSnapshot)
-			return this.lastSnapshot;
+		if (!this.dirty && this.lastSnapshot) return this.lastSnapshot;
 
 		this.lastSnapshot = this.generateSnapshot();
 		this.clearDirty();

@@ -4,7 +4,6 @@ const NodeCatalog = require("../../../src/registry/node-catalog");
 const ServiceBroker = require("../../../src/service-broker");
 
 describe("Test NodeCatalog constructor", () => {
-
 	it("test properties", () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -25,7 +24,6 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.localNode.available).toBe(true);
 		expect(catalog.nodes.size).toBe(1);
 	});
-
 });
 
 describe("Test NodeCatalog localNode", () => {
@@ -50,7 +48,6 @@ describe("Test NodeCatalog localNode", () => {
 		expect(node.metadata).toBe(metadata);
 		expect(catalog.nodes.get(broker.nodeID)).toBe(node);
 	});
-
 });
 
 describe("Test NodeCatalog.add & has & get", () => {
@@ -72,7 +69,6 @@ describe("Test NodeCatalog.add & has & get", () => {
 		expect(catalog.get("node-2")).toEqual({ a: 2 });
 		expect(catalog.get("node-1")).toEqual({ a: 1 });
 		expect(catalog.get(broker.nodeID)).toBe(catalog.localNode);
-
 	});
 });
 
@@ -105,7 +101,10 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, payload.services);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: false });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", {
+			node,
+			reconnected: false
+		});
 
 		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
@@ -182,7 +181,10 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, node.services);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: true });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", {
+			node,
+			reconnected: true
+		});
 
 		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
@@ -193,7 +195,7 @@ describe("Test NodeCatalog.disconnected", () => {
 	const catalog = new NodeCatalog(broker.registry, broker);
 	catalog.logger = {
 		info: jest.fn(),
-		warn: jest.fn(),
+		warn: jest.fn()
 	};
 	broker.registry.unregisterServicesByNode = jest.fn();
 	broker.broadcastLocal = jest.fn();
@@ -226,7 +228,10 @@ describe("Test NodeCatalog.disconnected", () => {
 		expect(node.disconnected).toHaveBeenCalledWith(false);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", { node, unexpected: false });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", {
+			node,
+			unexpected: false
+		});
 
 		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
@@ -257,7 +262,10 @@ describe("Test NodeCatalog.disconnected", () => {
 		expect(node.disconnected).toHaveBeenCalledWith(true);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", { node, unexpected: true });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", {
+			node,
+			unexpected: true
+		});
 
 		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
@@ -269,10 +277,11 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(catalog.logger.info).toHaveBeenCalledTimes(0);
 		expect(catalog.logger.warn).toHaveBeenCalledTimes(1);
-		expect(catalog.logger.warn).toHaveBeenCalledWith("Node 'node-11' disconnected unexpectedly.");
+		expect(catalog.logger.warn).toHaveBeenCalledWith(
+			"Node 'node-11' disconnected unexpectedly."
+		);
 	});
 });
-
 
 describe("Test NodeCatalog.list", () => {
 	const broker = new ServiceBroker({ logger: false, transporter: "fake", metadata: { a: 5 } });
@@ -290,88 +299,86 @@ describe("Test NodeCatalog.list", () => {
 		const res = catalog.list({});
 		expect(res).toEqual([
 			{
-				"available": true,
-				"client": catalog.localNode.client,
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": broker.nodeID,
-				"instanceID": broker.instanceID,
-				"ipList": catalog.localNode.ipList,
-				"hostname": catalog.localNode.hostname,
-				"port": null,
-				"lastHeartbeatTime": expect.any(Number),
-				"offlineSince": null,
-				"seq": 1,
-				"local": true,
-				"metadata": { a: 5 },
-				"udpAddress": null
+				available: true,
+				client: catalog.localNode.client,
+				config: {},
+				cpu: null,
+				cpuSeq: null,
+				id: broker.nodeID,
+				instanceID: broker.instanceID,
+				ipList: catalog.localNode.ipList,
+				hostname: catalog.localNode.hostname,
+				port: null,
+				lastHeartbeatTime: expect.any(Number),
+				offlineSince: null,
+				seq: 1,
+				local: true,
+				metadata: { a: 5 },
+				udpAddress: null
 			},
 			{
-				"available": true,
-				"client": {},
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": "node-10",
-				"instanceID": undefined,
-				"ipList": undefined,
-				"hostname": undefined,
-				"port": undefined,
-				"lastHeartbeatTime": expect.any(Number),
-				"offlineSince": null,
-				"seq": 1,
-				"local": false,
-				"metadata": undefined,
-				"udpAddress": null
+				available: true,
+				client: {},
+				config: {},
+				cpu: null,
+				cpuSeq: null,
+				id: "node-10",
+				instanceID: undefined,
+				ipList: undefined,
+				hostname: undefined,
+				port: undefined,
+				lastHeartbeatTime: expect.any(Number),
+				offlineSince: null,
+				seq: 1,
+				local: false,
+				metadata: undefined,
+				udpAddress: null
 			}
 		]);
-
 	});
 
 	it("should return node list with services", () => {
 		const res = catalog.list({ withServices: true });
 		expect(res).toEqual([
 			{
-				"available": true,
-				"client": catalog.localNode.client,
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": broker.nodeID,
-				"instanceID": broker.instanceID,
-				"ipList": catalog.localNode.ipList,
-				"hostname": catalog.localNode.hostname,
-				"port": null,
-				"lastHeartbeatTime": expect.any(Number),
-				"local": true,
-				"offlineSince": null,
-				"seq": 1,
-				"services": [],
-				"metadata": { a: 5 },
-				"udpAddress": null
+				available: true,
+				client: catalog.localNode.client,
+				config: {},
+				cpu: null,
+				cpuSeq: null,
+				id: broker.nodeID,
+				instanceID: broker.instanceID,
+				ipList: catalog.localNode.ipList,
+				hostname: catalog.localNode.hostname,
+				port: null,
+				lastHeartbeatTime: expect.any(Number),
+				local: true,
+				offlineSince: null,
+				seq: 1,
+				services: [],
+				metadata: { a: 5 },
+				udpAddress: null
 			},
 			{
-				"available": true,
-				"client": {},
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": "node-10",
-				"instanceID": undefined,
-				"ipList": undefined,
-				"hostname": undefined,
-				"port": undefined,
-				"lastHeartbeatTime": expect.any(Number),
-				"local": false,
-				"offlineSince": null,
-				"seq": 1,
-				"services": [],
-				"metadata": undefined,
-				"udpAddress": null
+				available: true,
+				client: {},
+				config: {},
+				cpu: null,
+				cpuSeq: null,
+				id: "node-10",
+				instanceID: undefined,
+				ipList: undefined,
+				hostname: undefined,
+				port: undefined,
+				lastHeartbeatTime: expect.any(Number),
+				local: false,
+				offlineSince: null,
+				seq: 1,
+				services: [],
+				metadata: undefined,
+				udpAddress: null
 			}
 		]);
-
 	});
 
 	it("should return node list with services", () => {
@@ -379,25 +386,24 @@ describe("Test NodeCatalog.list", () => {
 		const res = catalog.list({ onlyAvailable: true });
 		expect(res).toEqual([
 			{
-				"available": true,
-				"client": catalog.localNode.client,
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": broker.nodeID,
-				"instanceID": broker.instanceID,
-				"ipList": catalog.localNode.ipList,
-				"hostname": catalog.localNode.hostname,
-				"port": null,
-				"lastHeartbeatTime": expect.any(Number),
-				"local": true,
-				"offlineSince": null,
-				"seq": 1,
-				"metadata": { a: 5 },
-				"udpAddress": null
+				available: true,
+				client: catalog.localNode.client,
+				config: {},
+				cpu: null,
+				cpuSeq: null,
+				id: broker.nodeID,
+				instanceID: broker.instanceID,
+				ipList: catalog.localNode.ipList,
+				hostname: catalog.localNode.hostname,
+				port: null,
+				lastHeartbeatTime: expect.any(Number),
+				local: true,
+				offlineSince: null,
+				seq: 1,
+				metadata: { a: 5 },
+				udpAddress: null
 			}
 		]);
-
 	});
 });
 
@@ -415,10 +421,6 @@ describe("Test NodeCatalog.toArray", () => {
 
 	it("should return with node list array", () => {
 		const res = catalog.toArray();
-		expect(res).toEqual([
-			catalog.nodes.get("node-1"),
-			catalog.nodes.get("node-10"),
-		]);
-
+		expect(res).toEqual([catalog.nodes.get("node-1"), catalog.nodes.get("node-10")]);
 	});
 });

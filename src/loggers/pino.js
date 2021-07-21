@@ -19,7 +19,6 @@ const { isFunction } = require("../utils");
  * @extends {BaseLogger}
  */
 class PinoLogger extends BaseLogger {
-
 	/**
 	 * Creates an instance of PinoLogger.
 	 * @param {Object} opts
@@ -33,7 +32,7 @@ class PinoLogger extends BaseLogger {
 				// http://getpino.io/#/docs/api?id=options-object
 				options: null,
 				// http://getpino.io/#/docs/api?id=destination-sonicboom-writablestream-string
-				destination: null,
+				destination: null
 			}
 		});
 	}
@@ -50,10 +49,17 @@ class PinoLogger extends BaseLogger {
 			const Pino = require("pino");
 			this.pino = Pino(
 				this.opts.pino && this.opts.pino.options ? this.opts.pino.options : undefined,
-				this.opts.pino && this.opts.pino.destination ? this.opts.pino.destination : undefined);
-		} catch(err) {
+				this.opts.pino && this.opts.pino.destination
+					? this.opts.pino.destination
+					: undefined
+			);
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'pino' package is missing! Please install it with 'npm install pino --save' command!", err, true);
+			this.broker.fatal(
+				"The 'pino' package is missing! Please install it with 'npm install pino --save' command!",
+				err,
+				true
+			);
 		}
 	}
 
@@ -63,14 +69,14 @@ class PinoLogger extends BaseLogger {
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
-		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.pino.child({ level, ...bindings });
+		const logger = isFunction(this.opts.createLogger)
+			? this.opts.createLogger(level, bindings)
+			: this.pino.child({ level, ...bindings });
 
 		return (type, args) => logger[type](...args);
 	}
-
 }
 
 module.exports = PinoLogger;

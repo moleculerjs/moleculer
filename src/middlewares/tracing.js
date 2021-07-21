@@ -10,27 +10,26 @@ const _ = require("lodash");
 const { isFunction, isPlainObject } = require("../utils");
 
 module.exports = function TracingMiddleware(broker) {
-
 	const tracer = broker.tracer;
 
 	function tracingLocalActionMiddleware(handler, action) {
 		let opts = action.tracing;
-		if (opts === true || opts === false)
-			opts = { enabled: !!opts };
+		if (opts === true || opts === false) opts = { enabled: !!opts };
 		opts = _.defaultsDeep({}, opts, { enabled: true });
 
 		if (opts.enabled) {
 			return function tracingLocalActionMiddleware(ctx) {
-
 				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
 				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
 				const tags = {
 					callingLevel: ctx.level,
-					action: ctx.action ? {
-						name: ctx.action.name,
-						rawName: ctx.action.rawName
-					} : null,
+					action: ctx.action
+						? {
+								name: ctx.action.name,
+								rawName: ctx.action.rawName
+						  }
+						: null,
 					remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 					callerNodeID: ctx.nodeID,
 					nodeID: ctx.broker.nodeID,
@@ -38,7 +37,7 @@ module.exports = function TracingMiddleware(broker) {
 						timeout: ctx.options.timeout,
 						retries: ctx.options.retries
 					},
-					requestID: ctx.requestID,
+					requestID: ctx.requestID
 				};
 				const globalActionTags = tracer.opts.tags.action;
 				let actionTags;
@@ -54,12 +53,13 @@ module.exports = function TracingMiddleware(broker) {
 
 				if (isFunction(actionTags)) {
 					const res = actionTags.call(ctx.service, ctx);
-					if (res)
-						Object.assign(tags, res);
-
+					if (res) Object.assign(tags, res);
 				} else if (isPlainObject(actionTags)) {
 					if (actionTags.params === true)
-						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
+						tags.params =
+							ctx.params != null && isPlainObject(ctx.params)
+								? Object.assign({}, ctx.params)
+								: ctx.params;
 					else if (Array.isArray(actionTags.params))
 						tags.params = _.pick(ctx.params, actionTags.params);
 
@@ -71,7 +71,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				let spanName = `action '${ctx.action.name}'`;
 				if (opts.spanName) {
-					switch(typeof opts.spanName) {
+					switch (typeof opts.spanName) {
 						case "string":
 							spanName = opts.spanName;
 							break;
@@ -94,36 +94,38 @@ module.exports = function TracingMiddleware(broker) {
 				ctx.tracing = span.sampled;
 
 				// Call the handler
-				return handler(ctx).then(res => {
-					const tags = {
-						fromCache: ctx.cachedResult
-					};
+				return handler(ctx)
+					.then(res => {
+						const tags = {
+							fromCache: ctx.cachedResult
+						};
 
-					if (isFunction(actionTags)) {
-						const r = actionTags.call(ctx.service, ctx, res);
-						if (r)
-							Object.assign(tags, r);
+						if (isFunction(actionTags)) {
+							const r = actionTags.call(ctx.service, ctx, res);
+							if (r) Object.assign(tags, r);
+						} else if (isPlainObject(actionTags)) {
+							if (actionTags.response === true)
+								tags.response =
+									res != null && isPlainObject(res)
+										? Object.assign({}, res)
+										: res;
+							else if (Array.isArray(actionTags.response))
+								tags.response = _.pick(res, actionTags.response);
+						}
 
-					} else if (isPlainObject(actionTags)) {
-						if (actionTags.response === true)
-							tags.response = res != null && isPlainObject(res) ? Object.assign({}, res) : res;
-						else if (Array.isArray(actionTags.response))
-							tags.response = _.pick(res, actionTags.response);
-					}
+						span.addTags(tags);
+						ctx.finishSpan(span);
 
-					span.addTags(tags);
-					ctx.finishSpan(span);
+						//ctx.duration = span.duration;
 
-					//ctx.duration = span.duration;
+						return res;
+					})
+					.catch(err => {
+						span.setError(err);
+						ctx.finishSpan(span);
 
-					return res;
-				}).catch(err => {
-					span.setError(err);
-					ctx.finishSpan(span);
-
-					throw err;
-				});
-
+						throw err;
+					});
 			}.bind(this);
 		}
 
@@ -134,13 +136,11 @@ module.exports = function TracingMiddleware(broker) {
 		const service = event.service;
 
 		let opts = event.tracing;
-		if (opts === true || opts === false)
-			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true  });
+		if (opts === true || opts === false) opts = { enabled: !!opts };
+		opts = _.defaultsDeep({}, opts, { enabled: true });
 
 		if (opts.enabled) {
 			return function tracingLocalEventMiddleware(ctx) {
-
 				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
 				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
@@ -155,7 +155,7 @@ module.exports = function TracingMiddleware(broker) {
 					callingLevel: ctx.level,
 					remoteCall: ctx.nodeID !== broker.nodeID,
 					nodeID: broker.nodeID,
-					requestID: ctx.requestID,
+					requestID: ctx.requestID
 				};
 
 				const globalEventTags = tracer.opts.tags.event;
@@ -172,12 +172,13 @@ module.exports = function TracingMiddleware(broker) {
 
 				if (isFunction(eventTags)) {
 					const res = eventTags.call(service, ctx);
-					if (res)
-						Object.assign(tags, res);
-
+					if (res) Object.assign(tags, res);
 				} else if (isPlainObject(eventTags)) {
 					if (eventTags.params === true)
-						tags.params = ctx.params != null && isPlainObject(ctx.params) ? Object.assign({}, ctx.params) : ctx.params;
+						tags.params =
+							ctx.params != null && isPlainObject(ctx.params)
+								? Object.assign({}, ctx.params)
+								: ctx.params;
 					else if (Array.isArray(eventTags.params))
 						tags.params = _.pick(ctx.params, eventTags.params);
 
@@ -189,7 +190,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				let spanName = `event '${ctx.eventName}' in '${service.fullName}'`;
 				if (opts.spanName) {
-					switch(typeof opts.spanName) {
+					switch (typeof opts.spanName) {
 						case "string":
 							spanName = opts.spanName;
 							break;
@@ -212,14 +213,16 @@ module.exports = function TracingMiddleware(broker) {
 				ctx.tracing = span.sampled;
 
 				// Call the handler
-				return handler.apply(service, arguments).then(() => {
-					ctx.finishSpan(span);
-				}).catch(err => {
-					span.setError(err);
-					ctx.finishSpan(span);
-					throw err;
-				});
-
+				return handler
+					.apply(service, arguments)
+					.then(() => {
+						ctx.finishSpan(span);
+					})
+					.catch(err => {
+						span.setError(err);
+						ctx.finishSpan(span);
+						throw err;
+					});
 			}.bind(this);
 		}
 
@@ -244,8 +247,10 @@ module.exports = function TracingMiddleware(broker) {
 	return {
 		name: "Tracing",
 
-		localAction: broker.isTracingEnabled() && tracer.opts.actions ? tracingLocalActionMiddleware : null,
-		localEvent: broker.isTracingEnabled() && tracer.opts.events ? tracingLocalEventMiddleware : null,
+		localAction:
+			broker.isTracingEnabled() && tracer.opts.actions ? tracingLocalActionMiddleware : null,
+		localEvent:
+			broker.isTracingEnabled() && tracer.opts.events ? tracingLocalEventMiddleware : null
 		//remoteAction: wrapRemoteTracingMiddleware
 	};
 };

@@ -16,7 +16,7 @@ _.each(users, (user, i) => {
 	delete user.ip;
 });
 
-module.exports = function(broker) {
+module.exports = function (broker) {
 	return new Service(broker, {
 		name: "users",
 		version: 1,

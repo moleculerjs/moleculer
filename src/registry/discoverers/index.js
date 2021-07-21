@@ -18,12 +18,10 @@ const Discoverers = {
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Discoverers).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Discoverers[n];
+	if (n) return Discoverers[n];
 }
 
 /**
@@ -38,23 +36,20 @@ function resolve(opt) {
 		return opt;
 	} else if (isString(opt)) {
 		let DiscovererClass = getByName(opt);
-		if (DiscovererClass)
-			return new DiscovererClass();
+		if (DiscovererClass) return new DiscovererClass();
 
-		if (opt.startsWith("redis://"))
-			return new Discoverers.Redis(opt);
+		if (opt.startsWith("redis://")) return new Discoverers.Redis(opt);
 
-		if (opt.startsWith("etcd3://"))
-			return new Discoverers.Etcd3(opt);
+		if (opt.startsWith("etcd3://")) return new Discoverers.Etcd3(opt);
 
 		throw new BrokerOptionsError(`Invalid Discoverer type '${opt}'.`, { type: opt });
-
 	} else if (isObject(opt)) {
 		let DiscovererClass = getByName(opt.type || "Local");
-		if (DiscovererClass)
-			return new DiscovererClass(opt.options);
+		if (DiscovererClass) return new DiscovererClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid Discoverer type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid Discoverer type '${opt.type}'.`, {
+				type: opt.type
+			});
 	}
 
 	return new Discoverers.Local();

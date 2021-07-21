@@ -12,9 +12,9 @@ let natsPackage = require("nats/package.json");
 
 let Nats = require("nats");
 const NatsTransporter = require("../../../src/transporters/nats");
+let actual;
 
 describe("Test isLibLegacy function", () => {
-
 	it("Should return true", () => {
 		// Set package version to legacy
 		natsPackage.version = "1.x.x";
@@ -42,13 +42,12 @@ describe("Test isLibLegacy function", () => {
 	});
 });
 
-
 describe("Test Nats V1.x", () => {
 	beforeAll(() => {
 		Nats.connect = jest.fn(() => {
 			let onCallbacks = {};
 			return {
-				on: jest.fn((event, cb) => onCallbacks[event] = cb),
+				on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
 				close: jest.fn(),
 				subscribe: jest.fn(),
 				publish: jest.fn(),
@@ -59,7 +58,6 @@ describe("Test Nats V1.x", () => {
 	});
 
 	describe("Test NatsTransporter constructor", () => {
-
 		it("check constructor", () => {
 			let transporter = new NatsTransporter();
 			transporter.isLibLegacy = jest.fn(() => true);
@@ -73,14 +71,23 @@ describe("Test Nats V1.x", () => {
 		it("check constructor with string param", () => {
 			let transporter = new NatsTransporter("nats://localhost");
 			transporter.isLibLegacy = jest.fn(() => true);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
+			expect(transporter.opts).toEqual({
+				preserveBuffers: true,
+				maxReconnectAttempts: -1,
+				url: "nats://localhost"
+			});
 		});
 
 		it("check constructor with options", () => {
 			let opts = { host: "localhost", port: 1234 };
 			let transporter = new NatsTransporter(opts);
 			transporter.isLibLegacy = jest.fn(() => true);
-			expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true, maxReconnectAttempts: -1 });
+			expect(transporter.opts).toEqual({
+				host: "localhost",
+				port: 1234,
+				preserveBuffers: true,
+				maxReconnectAttempts: -1
+			});
 		});
 
 		it("check constructor with disabled preserveBuffers & maxReconnectAttempts", () => {
@@ -104,16 +111,37 @@ describe("Test Nats V1.x", () => {
 		});
 
 		it("check connect", () => {
-			let p = transporter.connect().catch(protectReject).then(() => {
-				expect(transporter.client).toBeDefined();
-				expect(transporter.client.on).toHaveBeenCalledTimes(6);
-				expect(transporter.client.on).toHaveBeenCalledWith("connect", expect.any(Function));
-				expect(transporter.client.on).toHaveBeenCalledWith("reconnect", expect.any(Function));
-				expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", expect.any(Function));
-				expect(transporter.client.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
-				expect(transporter.client.on).toHaveBeenCalledWith("error", expect.any(Function));
-				expect(transporter.client.on).toHaveBeenCalledWith("close", expect.any(Function));
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					expect(transporter.client).toBeDefined();
+					expect(transporter.client.on).toHaveBeenCalledTimes(6);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"connect",
+						expect.any(Function)
+					);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"reconnect",
+						expect.any(Function)
+					);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"reconnecting",
+						expect.any(Function)
+					);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"disconnect",
+						expect.any(Function)
+					);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"error",
+						expect.any(Function)
+					);
+					expect(transporter.client.on).toHaveBeenCalledWith(
+						"close",
+						expect.any(Function)
+					);
+				});
 
 			transporter._client.onCallbacks.connect();
 
@@ -122,10 +150,13 @@ describe("Test Nats V1.x", () => {
 
 		it("check onConnected after connect", () => {
 			transporter.onConnected = jest.fn(() => Promise.resolve());
-			let p = transporter.connect().catch(protectReject).then(() => {
-				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-				expect(transporter.onConnected).toHaveBeenCalledWith();
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+					expect(transporter.onConnected).toHaveBeenCalledWith();
+				});
 
 			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 
@@ -135,12 +166,15 @@ describe("Test Nats V1.x", () => {
 		it("check onConnected after reconnect", () => {
 			transporter.onConnected = jest.fn(() => Promise.resolve());
 
-			let p = transporter.connect().catch(protectReject).then(() => {
-				transporter.onConnected.mockClear();
-				transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
-				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-				expect(transporter.onConnected).toHaveBeenCalledWith(true);
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					transporter.onConnected.mockClear();
+					transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
+					expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+					expect(transporter.onConnected).toHaveBeenCalledWith(true);
+				});
 
 			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 
@@ -149,21 +183,22 @@ describe("Test Nats V1.x", () => {
 
 		it("check disconnect", () => {
 			const flushCB = jest.fn(cb => cb());
-			let p = transporter.connect().catch(protectReject).then(() => {
-				let cb = transporter.client.close;
-				transporter.client.flush = flushCB;
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					let cb = transporter.client.close;
+					transporter.client.flush = flushCB;
 
-				transporter.disconnect();
-				expect(transporter.client).toBeNull();
-				expect(cb).toHaveBeenCalledTimes(1);
-				expect(flushCB).toHaveBeenCalledTimes(1);
-
-			});
+					transporter.disconnect();
+					expect(transporter.client).toBeNull();
+					expect(cb).toHaveBeenCalledTimes(1);
+					expect(flushCB).toHaveBeenCalledTimes(1);
+				});
 
 			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 			return p;
 		});
-
 	});
 
 	describe("Test NatsTransporter subscribe & publish", () => {
@@ -172,7 +207,11 @@ describe("Test Nats V1.x", () => {
 		beforeEach(() => {
 			transporter = new NatsTransporter();
 			transporter.isLibLegacy = jest.fn(() => true);
-			transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
+			transporter.init(
+				new Transit(
+					new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })
+				)
+			);
 
 			let p = transporter.connect();
 			transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -181,18 +220,21 @@ describe("Test Nats V1.x", () => {
 
 		it("check subscribe", () => {
 			let subCb;
-			transporter.client.subscribe = jest.fn((name, cb) => subCb = cb);
+			transporter.client.subscribe = jest.fn((name, cb) => (subCb = cb));
 			transporter.incomingMessage = jest.fn();
 
 			transporter.subscribe("REQ", "node");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", expect.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith(
+				"MOL-TEST.REQ.node",
+				expect.any(Function)
+			);
 
 			// Test subscribe callback
-			subCb("{ sender: \"node1\" }");
+			subCb('{ sender: "node1" }');
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
+			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", '{ sender: "node1" }');
 		});
 
 		it("check subscribeBalancedRequest", () => {
@@ -206,17 +248,20 @@ describe("Test Nats V1.x", () => {
 			transporter.subscribeBalancedRequest("posts.find");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", { queue: "posts.find" }, expect.any(Function));
+			expect(transporter.client.subscribe).toHaveBeenCalledWith(
+				"MOL-TEST.REQB.posts.find",
+				{ queue: "posts.find" },
+				expect.any(Function)
+			);
 
 			// Test subscribe callback
-			subCb("{ sender: \"node1\" }");
+			subCb('{ sender: "node1" }');
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
+			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", '{ sender: "node1" }');
 			expect(transporter.subscriptions).toEqual([123]);
 		});
 
 		describe("Test subscribeBalancedEvent", () => {
-
 			it("check subscription & unsubscription", () => {
 				let subCb;
 				transporter.client.subscribe = jest.fn((name, opts, cb) => {
@@ -228,24 +273,34 @@ describe("Test Nats V1.x", () => {
 				transporter.subscribeBalancedEvent("user.created", "mail");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail" }, expect.any(Function));
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.mail.user.created",
+					{ queue: "mail" },
+					expect.any(Function)
+				);
 
 				// Test subscribe callback
-				subCb("{ sender: \"node1\" }");
+				subCb('{ sender: "node1" }');
 				expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-				expect(transporter.incomingMessage).toHaveBeenCalledWith("EVENT", "{ sender: \"node1\" }");
+				expect(transporter.incomingMessage).toHaveBeenCalledWith(
+					"EVENT",
+					'{ sender: "node1" }'
+				);
 				expect(transporter.subscriptions).toEqual([125]);
 
 				// Test unsubscribeFromBalancedCommands
 				transporter.client.unsubscribe = jest.fn();
 				transporter.client.flush = jest.fn(cb => cb());
 
-				return transporter.unsubscribeFromBalancedCommands().catch(protectReject).then(() => {
-					expect(transporter.subscriptions).toEqual([]);
-					expect(transporter.client.unsubscribe).toHaveBeenCalledTimes(1);
-					expect(transporter.client.unsubscribe).toHaveBeenCalledWith(125);
-					expect(transporter.client.flush).toHaveBeenCalledTimes(1);
-				});
+				return transporter
+					.unsubscribeFromBalancedCommands()
+					.catch(protectReject)
+					.then(() => {
+						expect(transporter.subscriptions).toEqual([]);
+						expect(transporter.client.unsubscribe).toHaveBeenCalledTimes(1);
+						expect(transporter.client.unsubscribe).toHaveBeenCalledWith(125);
+						expect(transporter.client.flush).toHaveBeenCalledTimes(1);
+					});
 			});
 
 			it("check with '*' wildchar topic", () => {
@@ -254,7 +309,11 @@ describe("Test Nats V1.x", () => {
 				transporter.subscribeBalancedEvent("user.*", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.*", { queue: "users" }, expect.any(Function));
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.*",
+					{ queue: "users" },
+					expect.any(Function)
+				);
 			});
 
 			it("check with '**' wildchar topic", () => {
@@ -263,7 +322,11 @@ describe("Test Nats V1.x", () => {
 				transporter.subscribeBalancedEvent("user.**", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, expect.any(Function));
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.>",
+					{ queue: "users" },
+					expect.any(Function)
+				);
 			});
 
 			it("check with '**' wildchar (as not last) topic", () => {
@@ -272,7 +335,11 @@ describe("Test Nats V1.x", () => {
 				transporter.subscribeBalancedEvent("user.**.changed", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users" }, expect.any(Function));
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.>",
+					{ queue: "users" },
+					expect.any(Function)
+				);
 			});
 		});
 
@@ -280,8 +347,10 @@ describe("Test Nats V1.x", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
 			transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 			const packet = new P.Packet(P.PACKET_INFO, "node2", {});
-			return transporter.publish(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publish(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.INFO.node2",
@@ -298,8 +367,10 @@ describe("Test Nats V1.x", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
 			transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 			const packet = new P.Packet(P.PACKET_INFO, null, {});
-			return transporter.publish(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publish(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.INFO",
@@ -320,8 +391,10 @@ describe("Test Nats V1.x", () => {
 				data: { id: 5 },
 				groups: ["mail"]
 			});
-			return transporter.publishBalancedEvent(packet, "mail")
-				.catch(protectReject).then(() => {
+			return transporter
+				.publishBalancedEvent(packet, "mail")
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.EVENTB.mail.user.created",
@@ -331,7 +404,6 @@ describe("Test Nats V1.x", () => {
 					expect(transporter.serialize).toHaveBeenCalledTimes(1);
 					expect(transporter.serialize).toHaveBeenCalledWith(packet);
 				});
-
 		});
 
 		it("check publishBalancedRequest", () => {
@@ -340,8 +412,10 @@ describe("Test Nats V1.x", () => {
 			const packet = new P.Packet(P.PACKET_REQUEST, null, {
 				action: "posts.find"
 			});
-			return transporter.publishBalancedRequest(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publishBalancedRequest(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.REQB.posts.find",
@@ -352,30 +426,27 @@ describe("Test Nats V1.x", () => {
 					expect(transporter.serialize).toHaveBeenCalledTimes(1);
 					expect(transporter.serialize).toHaveBeenCalledWith(packet);
 				});
-
 		});
 	});
-
 });
-
 
 describe("Tests Nats V2.x", () => {
 	beforeAll(() => {
 		Nats.connect = jest.fn(() => {
 			return Promise.resolve({
-				status: jest.fn(() => [Promise.resolve({ type: "Mock Type", data: "Mock Data" })].values()),
+				status: jest.fn(() =>
+					[Promise.resolve({ type: "Mock Type", data: "Mock Data" })].values()
+				),
 				closed: jest.fn(() => Promise.resolve()),
 				close: jest.fn(() => Promise.resolve()),
 				flush: jest.fn(() => Promise.resolve()),
 				subscribe: jest.fn(),
-				publish: jest.fn(),
+				publish: jest.fn()
 			});
 		});
 	});
 
-
 	describe("Test NatsTransporter constructor", () => {
-
 		it("check constructor", () => {
 			let transporter = new NatsTransporter();
 			transporter.isLibLegacy = jest.fn(() => false);
@@ -389,20 +460,35 @@ describe("Tests Nats V2.x", () => {
 		it("check constructor with string param", () => {
 			let transporter = new NatsTransporter("nats://localhost");
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
+			expect(transporter.opts).toEqual({
+				preserveBuffers: true,
+				maxReconnectAttempts: -1,
+				url: "nats://localhost"
+			});
 		});
 
 		it("check constructor with string param of multiple servers", () => {
-			let transporter = new NatsTransporter("nats://server1:4222,nats://server2:4222,nats://server3:4222");
+			let transporter = new NatsTransporter(
+				"nats://server1:4222,nats://server2:4222,nats://server3:4222"
+			);
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://server1:4222,nats://server2:4222,nats://server3:4222" });
+			expect(transporter.opts).toEqual({
+				preserveBuffers: true,
+				maxReconnectAttempts: -1,
+				url: "nats://server1:4222,nats://server2:4222,nats://server3:4222"
+			});
 		});
 
 		it("check constructor with options", () => {
 			let opts = { host: "localhost", port: 1234 };
 			let transporter = new NatsTransporter(opts);
 			transporter.isLibLegacy = jest.fn(() => false);
-			expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true, maxReconnectAttempts: -1 });
+			expect(transporter.opts).toEqual({
+				host: "localhost",
+				port: 1234,
+				preserveBuffers: true,
+				maxReconnectAttempts: -1
+			});
 		});
 
 		it("check constructor with disabled preserveBuffers & maxReconnectAttempts", () => {
@@ -420,44 +506,59 @@ describe("Tests Nats V2.x", () => {
 		let transporter;
 
 		beforeEach(() => {
-			transporter = new NatsTransporter("nats://server1:4222,nats://server2:4222,nats://server3:4222");
+			transporter = new NatsTransporter(
+				"nats://server1:4222,nats://server2:4222,nats://server3:4222"
+			);
 			transporter.isLibLegacy = jest.fn(() => false);
 			transporter.init(transit, msgHandler);
 		});
 
 		it("check connect options servers", () => {
-			let p = transporter.connect().catch(protectReject).then(() => {
-				expect(transporter.client).toBeDefined();
-				expect(transporter.client.status).toHaveBeenCalledTimes(1);
-				expect(transporter.client.closed).toHaveBeenCalledTimes(1);
-				expect(Nats.connect).toHaveBeenLastCalledWith({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://server1:4222,nats://server2:4222,nats://server3:4222", servers: ["server1:4222", "server2:4222", "server3:4222"] });
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					expect(transporter.client).toBeDefined();
+					expect(transporter.client.status).toHaveBeenCalledTimes(1);
+					expect(transporter.client.closed).toHaveBeenCalledTimes(1);
+					expect(Nats.connect).toHaveBeenLastCalledWith({
+						preserveBuffers: true,
+						maxReconnectAttempts: -1,
+						url: "nats://server1:4222,nats://server2:4222,nats://server3:4222",
+						servers: ["server1:4222", "server2:4222", "server3:4222"]
+					});
+				});
 
 			return p;
 		});
 
 		it("check connect", () => {
-			let p = transporter.connect().catch(protectReject).then(() => {
-				expect(transporter.client).toBeDefined();
-				expect(transporter.client.status).toHaveBeenCalledTimes(1);
-				expect(transporter.client.closed).toHaveBeenCalledTimes(1);
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					expect(transporter.client).toBeDefined();
+					expect(transporter.client.status).toHaveBeenCalledTimes(1);
+					expect(transporter.client.closed).toHaveBeenCalledTimes(1);
+				});
 
 			return p;
 		});
 
 		it("check onConnected after connect", () => {
 			transporter.onConnected = jest.fn(() => Promise.resolve());
-			let p = transporter.connect().catch(protectReject).then(() => {
-				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-				expect(transporter.onConnected).toHaveBeenCalledWith();
-			});
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+					expect(transporter.onConnected).toHaveBeenCalledWith();
+				});
 
 			// transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 
 			return p;
 		});
-
 
 		// it("check onConnected after reconnect", () => {
 		// 	transporter.onConnected = jest.fn(() => Promise.resolve());
@@ -475,20 +576,24 @@ describe("Tests Nats V2.x", () => {
 		// });
 
 		it("check disconnect", () => {
-			let p = transporter.connect().catch(protectReject).then(() => {
+			let p = transporter
+				.connect()
+				.catch(protectReject)
+				.then(() => {
+					const client = transporter.client;
 
-				const client = transporter.client;
-
-				transporter.disconnect().catch(protectReject).then(() => {
-					expect(client.flush).toHaveBeenCalledTimes(1);
-					expect(client.close).toHaveBeenCalledTimes(1);
-					expect(transporter.client).toBeNull();
+					transporter
+						.disconnect()
+						.catch(protectReject)
+						.then(() => {
+							expect(client.flush).toHaveBeenCalledTimes(1);
+							expect(client.close).toHaveBeenCalledTimes(1);
+							expect(transporter.client).toBeNull();
+						});
 				});
-			});
 
 			return p;
 		});
-
 	});
 
 	describe("Test NatsTransporter subscribe & publish", () => {
@@ -497,7 +602,11 @@ describe("Tests Nats V2.x", () => {
 		beforeEach(() => {
 			transporter = new NatsTransporter();
 			transporter.isLibLegacy = jest.fn(() => false);
-			transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
+			transporter.init(
+				new Transit(
+					new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })
+				)
+			);
 
 			let p = transporter.connect();
 			// transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -506,18 +615,23 @@ describe("Tests Nats V2.x", () => {
 
 		it("check subscribe", () => {
 			let subCb;
-			transporter.client.subscribe = jest.fn((name, { callback: cb }) => subCb = cb);
+			transporter.client.subscribe = jest.fn((name, { callback: cb }) => (subCb = cb));
 			transporter.incomingMessage = jest.fn();
 
 			transporter.subscribe("REQ", "node");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", { callback: expect.any(Function) });
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", {
+				callback: expect.any(Function)
+			});
 
 			// Test subscribe callback
-			subCb(null, { data: "{ sender: \"node1\" }" });
+			subCb(null, { data: '{ sender: "node1" }' });
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", Buffer.from("{ sender: \"node1\" }"));
+			expect(transporter.incomingMessage).toHaveBeenCalledWith(
+				"REQ",
+				Buffer.from('{ sender: "node1" }')
+			);
 		});
 
 		it("check subscribeBalancedRequest", () => {
@@ -531,17 +645,22 @@ describe("Tests Nats V2.x", () => {
 			transporter.subscribeBalancedRequest("posts.find");
 
 			expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", { queue: "posts.find", callback: expect.any(Function) });
+			expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", {
+				queue: "posts.find",
+				callback: expect.any(Function)
+			});
 
 			// Test subscribe callback
-			subCb(null, { data: "{ sender: \"node1\" }" });
+			subCb(null, { data: '{ sender: "node1" }' });
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-			expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", Buffer.from("{ sender: \"node1\" }"));
+			expect(transporter.incomingMessage).toHaveBeenCalledWith(
+				"REQ",
+				Buffer.from('{ sender: "node1" }')
+			);
 			expect(transporter.subscriptions).toEqual([123]);
 		});
 
 		describe("Test subscribeBalancedEvent", () => {
-
 			it("check subscription & unsubscription", () => {
 				let subCb;
 				let subscriptionInstance = { unsubscribe: jest.fn() };
@@ -554,19 +673,28 @@ describe("Tests Nats V2.x", () => {
 				transporter.subscribeBalancedEvent("user.created", "mail");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail", callback: expect.any(Function) });
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.mail.user.created",
+					{ queue: "mail", callback: expect.any(Function) }
+				);
 
 				// Test subscribe callback
-				subCb(null, { data: "{ sender: \"node1\" }" });
+				subCb(null, { data: '{ sender: "node1" }' });
 				expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-				expect(transporter.incomingMessage).toHaveBeenCalledWith("EVENT", Buffer.from("{ sender: \"node1\" }"));
+				expect(transporter.incomingMessage).toHaveBeenCalledWith(
+					"EVENT",
+					Buffer.from('{ sender: "node1" }')
+				);
 				expect(transporter.subscriptions).toEqual([subscriptionInstance]);
 
-				return transporter.unsubscribeFromBalancedCommands().catch(protectReject).then(() => {
-					expect(transporter.subscriptions).toEqual([]);
-					expect(subscriptionInstance.unsubscribe).toHaveBeenCalledTimes(1);
-					expect(transporter.client.flush).toHaveBeenCalledTimes(1);
-				});
+				return transporter
+					.unsubscribeFromBalancedCommands()
+					.catch(protectReject)
+					.then(() => {
+						expect(transporter.subscriptions).toEqual([]);
+						expect(subscriptionInstance.unsubscribe).toHaveBeenCalledTimes(1);
+						expect(transporter.client.flush).toHaveBeenCalledTimes(1);
+					});
 			});
 
 			it("check with '*' wildchar topic", () => {
@@ -575,9 +703,11 @@ describe("Tests Nats V2.x", () => {
 				transporter.subscribeBalancedEvent("user.*", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.*", { queue: "users", callback: expect.any(Function) });
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.*",
+					{ queue: "users", callback: expect.any(Function) }
+				);
 			});
-
 
 			it("check with '**' wildchar topic", () => {
 				transporter.client.subscribe = jest.fn();
@@ -585,9 +715,11 @@ describe("Tests Nats V2.x", () => {
 				transporter.subscribeBalancedEvent("user.**", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users", callback: expect.any(Function) });
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.>",
+					{ queue: "users", callback: expect.any(Function) }
+				);
 			});
-
 
 			it("check with '**' wildchar (as not last) topic", () => {
 				transporter.client.subscribe = jest.fn();
@@ -595,18 +727,22 @@ describe("Tests Nats V2.x", () => {
 				transporter.subscribeBalancedEvent("user.**.changed", "users");
 
 				expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-				expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.users.user.>", { queue: "users", callback: expect.any(Function) });
+				expect(transporter.client.subscribe).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.users.user.>",
+					{ queue: "users", callback: expect.any(Function) }
+				);
 			});
 		});
-
 
 		it("check publish with target", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
 			// transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 			transporter.client.publish = jest.fn();
 			const packet = new P.Packet(P.PACKET_INFO, "node2", {});
-			return transporter.publish(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publish(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.INFO.node2",
@@ -618,14 +754,15 @@ describe("Tests Nats V2.x", () => {
 				});
 		});
 
-
 		it("check publish without target", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
 			// transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 			transporter.client.publish = jest.fn();
 			const packet = new P.Packet(P.PACKET_INFO, null, {});
-			return transporter.publish(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publish(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.INFO",
@@ -637,7 +774,6 @@ describe("Tests Nats V2.x", () => {
 				});
 		});
 
-
 		it("check publishBalancedEvent", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
 			// transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
@@ -647,8 +783,10 @@ describe("Tests Nats V2.x", () => {
 				data: { id: 5 },
 				groups: ["mail"]
 			});
-			return transporter.publishBalancedEvent(packet, "mail")
-				.catch(protectReject).then(() => {
+			return transporter
+				.publishBalancedEvent(packet, "mail")
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.EVENTB.mail.user.created",
@@ -657,9 +795,7 @@ describe("Tests Nats V2.x", () => {
 					expect(transporter.serialize).toHaveBeenCalledTimes(1);
 					expect(transporter.serialize).toHaveBeenCalledWith(packet);
 				});
-
 		});
-
 
 		it("check publishBalancedRequest", () => {
 			transporter.serialize = jest.fn(() => Buffer.from("json data"));
@@ -668,8 +804,10 @@ describe("Tests Nats V2.x", () => {
 			const packet = new P.Packet(P.PACKET_REQUEST, null, {
 				action: "posts.find"
 			});
-			return transporter.publishBalancedRequest(packet)
-				.catch(protectReject).then(() => {
+			return transporter
+				.publishBalancedRequest(packet)
+				.catch(protectReject)
+				.then(() => {
 					expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 					expect(transporter.client.publish).toHaveBeenCalledWith(
 						"MOL-TEST.REQB.posts.find",
@@ -679,7 +817,6 @@ describe("Tests Nats V2.x", () => {
 					expect(transporter.serialize).toHaveBeenCalledTimes(1);
 					expect(transporter.serialize).toHaveBeenCalledWith(packet);
 				});
-
 		});
 	});
 });

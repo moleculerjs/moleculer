@@ -1,7 +1,6 @@
 const P = require("../../src/packets");
 
 describe("Test base Packet", () => {
-
 	it("create Packet without type", () => {
 		let packet = new P.Packet();
 		expect(packet).toBeDefined();
@@ -26,6 +25,4 @@ describe("Test base Packet", () => {
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.a).toBe(5);
 	});
-
 });
-

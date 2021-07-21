@@ -21,22 +21,29 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "event", type: "string" },
-			{ name: "data", type: [ "null", "bytes"], default: null },
+			{ name: "data", type: ["null", "bytes"], default: null },
 			{ name: "dataType", type: "int" },
-			{ name: "groups", type: [ "null", {
-				type: "array",
-				items: "string"
-			}], default: null },
+			{
+				name: "groups",
+				type: [
+					"null",
+					{
+						type: "array",
+						items: "string"
+					}
+				],
+				default: null
+			},
 			{ name: "broadcast", type: "boolean" },
 			{ name: "meta", type: "string" },
 			{ name: "level", type: "int" },
-			{ name: "tracing", type: [ "null", "boolean"], default: null },
-			{ name: "parentID", type: [ "null", "string"], default: null },
-			{ name: "requestID", type: [ "null", "string"], default: null },
-			{ name: "stream", type: [ "null", "boolean"], default: null },
-			{ name: "seq", type: [ "null", "int"], default: null },
-			{ name: "caller", type: [ "null", "string"], default: null },
-			{ name: "needAck", type: [ "null", "boolean"], default: null },
+			{ name: "tracing", type: ["null", "boolean"], default: null },
+			{ name: "parentID", type: ["null", "string"], default: null },
+			{ name: "requestID", type: ["null", "string"], default: null },
+			{ name: "stream", type: ["null", "boolean"], default: null },
+			{ name: "seq", type: ["null", "int"], default: null },
+			{ name: "caller", type: ["null", "string"], default: null },
+			{ name: "needAck", type: ["null", "boolean"], default: null }
 		]
 	});
 
@@ -51,14 +58,14 @@ function createSchemas() {
 			{ name: "params", type: ["null", "bytes"], default: null },
 			{ name: "paramsType", type: "int" },
 			{ name: "meta", type: "string" },
-			{ name: "timeout", type: [ "null", "double"], default: null },
+			{ name: "timeout", type: ["null", "double"], default: null },
 			{ name: "level", type: "int" },
-			{ name: "tracing", type: [ "null", "boolean"], default: null },
-			{ name: "parentID", type: [ "null", "string"], default: null },
-			{ name: "requestID", type: [ "null", "string"], default: null },
-			{ name: "stream", type: [ "null", "boolean"], default: null },
-			{ name: "seq", type: [ "null", "int"], default: null },
-			{ name: "caller", type: [ "null", "string"], default: null },
+			{ name: "tracing", type: ["null", "boolean"], default: null },
+			{ name: "parentID", type: ["null", "string"], default: null },
+			{ name: "requestID", type: ["null", "string"], default: null },
+			{ name: "stream", type: ["null", "boolean"], default: null },
+			{ name: "seq", type: ["null", "int"], default: null },
+			{ name: "caller", type: ["null", "string"], default: null }
 		]
 	});
 
@@ -70,12 +77,12 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
-			{ name: "data", type: [ "null", "bytes"], default: null },
+			{ name: "data", type: ["null", "bytes"], default: null },
 			{ name: "dataType", type: "int" },
-			{ name: "error", type: [ "null", "string"], default: null },
+			{ name: "error", type: ["null", "string"], default: null },
 			{ name: "meta", type: "string" },
-			{ name: "stream", type: [ "null", "boolean"], default: null },
-			{ name: "seq", type: [ "null", "int"], default: null }
+			{ name: "stream", type: ["null", "boolean"], default: null },
+			{ name: "seq", type: ["null", "int"], default: null }
 		]
 	});
 
@@ -96,19 +103,25 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "services", type: "string" },
 			{ name: "config", type: "string" },
-			{ name: "ipList", type: {
-				type: "array",
-				items: "string"
-			} },
+			{
+				name: "ipList",
+				type: {
+					type: "array",
+					items: "string"
+				}
+			},
 			{ name: "hostname", type: "string" },
-			{ name: "client", type: {
-				type: "record",
-				fields: [
-					{ name: "type", type: "string" },
-					{ name: "version", type: "string" },
-					{ name: "langVersion", type: "string" }
-				]
-			} },
+			{
+				name: "client",
+				type: {
+					type: "record",
+					fields: [
+						{ name: "type", type: "string" },
+						{ name: "version", type: "string" },
+						{ name: "langVersion", type: "string" }
+					]
+				}
+			},
 			{ name: "seq", type: "int" },
 			{ name: "instanceID", type: "string" },
 			{ name: "metadata", type: "string" }
@@ -141,7 +154,7 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "time", type: "long" },
-			{ name: "id", type: [ "null", "string"], default: null }
+			{ name: "id", type: ["null", "string"], default: null }
 		]
 	});
 
@@ -153,7 +166,7 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "time", type: "long" },
 			{ name: "arrived", type: "long" },
-			{ name: "id", type: [ "null", "string"], default: null }
+			{ name: "id", type: ["null", "string"], default: null }
 		]
 	});
 
@@ -174,8 +187,8 @@ function createSchemas() {
 		fields: [
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
-			{ name: "online", type: [ "null", "string"], default: null },
-			{ name: "offline", type: [ "null", "string"], default: null },
+			{ name: "online", type: ["null", "string"], default: null },
+			{ name: "offline", type: ["null", "string"], default: null }
 		]
 	});
 
@@ -185,8 +198,8 @@ function createSchemas() {
 		fields: [
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
-			{ name: "online", type: [ "null", "string"], default: null },
-			{ name: "offline", type: [ "null", "string"], default: null },
+			{ name: "online", type: ["null", "string"], default: null },
+			{ name: "offline", type: ["null", "string"], default: null }
 		]
 	});
 
@@ -201,7 +214,6 @@ function createSchemas() {
  * @class AvroSerializer
  */
 class AvroSerializer extends BaseSerializer {
-
 	/**
 	 * Initialize Serializer
 	 *
@@ -214,9 +226,13 @@ class AvroSerializer extends BaseSerializer {
 
 		try {
 			require("avsc");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'avsc' package is missing! Please install it with 'npm install avsc --save' command!", err, true);
+			this.broker.fatal(
+				"The 'avsc' package is missing! Please install it with 'npm install avsc --save' command!",
+				err,
+				true
+			);
 		}
 
 		this.schemas = createSchemas(broker);

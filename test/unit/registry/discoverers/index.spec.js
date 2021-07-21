@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../../src/errors");
 const Discoverers = require("../../../../src/registry/discoverers");
 
 describe("Test Discoverers resolver", () => {
-
 	it("should resolve default Local discoverer", () => {
 		const discoverer = Discoverers.resolve();
 		expect(discoverer).toBeInstanceOf(Discoverers.Local);
@@ -79,7 +78,6 @@ describe("Test Discoverers resolver", () => {
 		expect(() => Discoverers.resolve({ type: "xyz" })).toThrowError(BrokerOptionsError);
 	});
 });
-
 
 describe("Test Discoverer register", () => {
 	class MyCustom {}

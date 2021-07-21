@@ -46,5 +46,4 @@ describe("Test health status methods", () => {
 		expect(res.time.iso).toBeDefined();
 		expect(res.time.utc).toBeDefined();
 	});
-
 });

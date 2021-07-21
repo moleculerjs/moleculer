@@ -11,16 +11,14 @@ describe("Test MsgPackSerializer constructor", () => {
 	});
 });
 
-
 describe("Test MsgPackSerializer", () => {
-
 	let serializer = new MsgPackSerializer();
 	serializer.init();
 
 	it("should serialize the event packet", () => {
 		const now = new Date();
 		const obj = {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -40,7 +38,5 @@ describe("Test MsgPackSerializer", () => {
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
-
 	});
-
 });

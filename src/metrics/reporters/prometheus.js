@@ -38,7 +38,6 @@ const { isFunction } = require("../../utils");
  *
  */
 class PrometheusReporter extends BaseReporter {
-
 	/**
 	 * Constructor of PrometheusReporters
 	 * @param {Object} opts
@@ -50,7 +49,7 @@ class PrometheusReporter extends BaseReporter {
 		this.opts = _.defaultsDeep(this.opts, {
 			port: 3030,
 			path: "/metrics",
-			defaultLabels: (registry) => ({
+			defaultLabels: registry => ({
 				namespace: registry.broker.namespace,
 				nodeID: registry.broker.nodeID
 			})
@@ -70,12 +69,18 @@ class PrometheusReporter extends BaseReporter {
 		this.server.listen(this.opts.port, err => {
 			if (err) {
 				/* istanbul ignore next */
-				return this.registry.broker.fatal(new MoleculerError("Prometheus metric reporter listening error: " + err.message));
+				return this.registry.broker.fatal(
+					new MoleculerError("Prometheus metric reporter listening error: " + err.message)
+				);
 			}
 
-			this.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
+			this.logger.info(
+				`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`
+			);
 		});
-		this.defaultLabels = isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
+		this.defaultLabels = isFunction(this.opts.defaultLabels)
+			? this.opts.defaultLabels.call(this, registry)
+			: this.opts.defaultLabels;
 	}
 
 	/**
@@ -110,7 +115,9 @@ class PrometheusReporter extends BaseReporter {
 					"Content-Type": "text/plain; version=0.0.4; charset=utf-8"
 				};
 
-				const compressing = req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip");
+				const compressing =
+					req.headers["accept-encoding"] &&
+					req.headers["accept-encoding"].includes("gzip");
 				if (compressing) {
 					resHeader["Content-Encoding"] = "gzip";
 					zlib.gzip(content, (err, buffer) => {
@@ -128,8 +135,7 @@ class PrometheusReporter extends BaseReporter {
 					res.writeHead(200, resHeader);
 					res.end(content);
 				}
-
-			} catch(err) {
+			} catch (err) {
 				this.logger.error("Unable to generate Prometheus response", err);
 				res.writeHead(500, http.STATUS_CODES[500], {});
 				res.end();
@@ -148,7 +154,7 @@ class PrometheusReporter extends BaseReporter {
 	generatePrometheusResponse() {
 		const content = [];
 
-		const val = value => value == null ? "NaN" : value;
+		const val = value => (value == null ? "NaN" : value);
 
 		this.registry.store.forEach(metric => {
 			// Filtering
@@ -157,12 +163,13 @@ class PrometheusReporter extends BaseReporter {
 			if (metric.name.startsWith("os.datetime")) return;
 
 			const metricName = this.formatMetricName(metric.name).replace(/[.-]/g, "_");
-			const metricDesc = metric.description ? metric.description : (metric.name + (metric.unit ? ` (${metric.unit})` : ""));
+			const metricDesc = metric.description
+				? metric.description
+				: metric.name + (metric.unit ? ` (${metric.unit})` : "");
 			const metricType = metric.type;
 
 			const snapshot = metric.snapshot();
-			if (snapshot.length == 0)
-				return;
+			if (snapshot.length == 0) return;
 
 			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
@@ -176,7 +183,6 @@ class PrometheusReporter extends BaseReporter {
 						if (item.rate) {
 							content.push(`${metricName}_rate${labelStr} ${val(item.rate)}`);
 						}
-
 					});
 					content.push("");
 
@@ -197,11 +203,12 @@ class PrometheusReporter extends BaseReporter {
 					content.push(`# HELP ${metricName} ${metricDesc}`);
 					content.push(`# TYPE ${metricName} ${metricType}`);
 					snapshot.forEach(item => {
-
 						if (item.buckets) {
 							Object.keys(item.buckets).forEach(le => {
 								const labelStr = this.labelsToStr(item.labels, { le });
-								content.push(`${metricName}_bucket${labelStr} ${val(item.buckets[le])}`);
+								content.push(
+									`${metricName}_bucket${labelStr} ${val(item.buckets[le])}`
+								);
 							});
 							// +Inf
 							const labelStr = this.labelsToStr(item.labels, { le: "+Inf" });
@@ -209,10 +216,11 @@ class PrometheusReporter extends BaseReporter {
 						}
 
 						if (item.quantiles) {
-
 							Object.keys(item.quantiles).forEach(key => {
 								const labelStr = this.labelsToStr(item.labels, { quantile: key });
-								content.push(`${metricName}${labelStr} ${val(item.quantiles[key])}`);
+								content.push(
+									`${metricName}${labelStr} ${val(item.quantiles[key])}`
+								);
 							});
 
 							// Add other calculated values
@@ -247,8 +255,7 @@ class PrometheusReporter extends BaseReporter {
 	 * @memberof PrometheusReporter
 	 */
 	escapeLabelValue(str) {
-		if (typeof str == "string")
-			return str.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+		if (typeof str == "string") return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 		return str;
 	}
 
@@ -261,14 +268,23 @@ class PrometheusReporter extends BaseReporter {
 	 * @memberof PrometheusReporter
 	 */
 	labelsToStr(itemLabels, extraLabels) {
-		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {}, extraLabels || {});
+		const labels = Object.assign(
+			{},
+			this.defaultLabels || {},
+			itemLabels || {},
+			extraLabels || {}
+		);
 		const keys = Object.keys(labels);
-		if (keys.length == 0)
-			return "";
+		if (keys.length == 0) return "";
 
-		return "{" + keys.map(key => `${this.formatLabelName(key)}="${this.escapeLabelValue(labels[key])}"`).join(",") + "}";
+		return (
+			"{" +
+			keys
+				.map(key => `${this.formatLabelName(key)}="${this.escapeLabelValue(labels[key])}"`)
+				.join(",") +
+			"}"
+		);
 	}
-
 }
 
 module.exports = PrometheusReporter;

@@ -41,11 +41,9 @@ class StatRequestStore {
 		this.dirty = true;
 		this.cycleCount++;
 		this.count++;
-		if (errCode)
-			this.errors[errCode] = (this.errors[errCode] || 0) + 1;
+		if (errCode) this.errors[errCode] = (this.errors[errCode] || 0) + 1;
 
-		if (latency != null)
-			this.lastTimeBucket.times.push(latency);
+		if (latency != null) this.lastTimeBucket.times.push(latency);
 	}
 
 	/**
@@ -62,8 +60,7 @@ class StatRequestStore {
 		};
 		this.timeBuckets.push(this.lastTimeBucket);
 
-		if (this.timeBuckets.length > this.maxBucketCount)
-			this.timeBuckets.shift();
+		if (this.timeBuckets.length > this.maxBucketCount) this.timeBuckets.shift();
 
 		this.firstBucketTime = this.timeBuckets[0].time;
 
@@ -84,17 +81,16 @@ class StatRequestStore {
 		let values = [];
 		this.timeBuckets.forEach((bucket, i) => {
 			totalCount = totalCount + bucket.times.length;
-			if (bucket.rps == null && i < this.timeBuckets.length - 1 ) {
+			if (bucket.rps == null && i < this.timeBuckets.length - 1) {
 				const endTime = this.timeBuckets[i + 1].time; // Next bucket start time
 				bucket.rps = bucket.times.length / ((endTime - bucket.time) / 1000);
 			}
-			if (bucket.rps != null)
-				values.push(bucket.rps);
+			if (bucket.rps != null) values.push(bucket.rps);
 		});
 
 		let current;
 		if (now - this.firstBucketTime > 0)
-			current = (totalCount / ((now - this.firstBucketTime) / 1000));
+			current = totalCount / ((now - this.firstBucketTime) / 1000);
 
 		return {
 			current,
@@ -150,8 +146,7 @@ class StatRequestStore {
 	 * @memberof StatRequestStore
 	 */
 	snapshot() {
-		if (!this.stat)
-			return this.calculate();
+		if (!this.stat) return this.calculate();
 
 		return this.stat;
 	}
@@ -163,7 +158,6 @@ class StatRequestStore {
  * @class RequestStatistics
  */
 class RequestStatistics {
-
 	/**
 	 * Creates an instance of RequestStatistics.
 	 *
@@ -201,7 +195,10 @@ class RequestStatistics {
 
 		if (actionName) {
 			if (!this.actions.has(actionName))
-				this.actions.set(actionName, new StatRequestStore(actionName, this.options.bucketCount));
+				this.actions.set(
+					actionName,
+					new StatRequestStore(actionName, this.options.bucketCount)
+				);
 			this.actions.get(actionName).append(latency, errCode);
 		}
 	}
@@ -230,7 +227,7 @@ class RequestStatistics {
 			actions: {}
 		};
 
-		this.actions.forEach((item, name) => snapshot.actions[name] = item.snapshot());
+		this.actions.forEach((item, name) => (snapshot.actions[name] = item.snapshot()));
 
 		return snapshot;
 	}
@@ -246,9 +243,12 @@ module.exports = {
 	events: {
 		"metrics.trace.span.finish"(payload) {
 			if (payload.error)
-				this.requests.append(payload.action.name, payload.duration, payload.error.code || 500);
-			else
-				this.requests.append(payload.action.name, payload.duration);
+				this.requests.append(
+					payload.action.name,
+					payload.duration,
+					payload.error.code || 500
+				);
+			else this.requests.append(payload.action.name, payload.duration);
 		}
 	},
 

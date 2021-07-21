@@ -8,13 +8,11 @@ const { extendExpect } = require("../utils");
 extendExpect(expect);
 
 describe("Test ShardStrategy", () => {
-
 	describe("Test constructor", () => {
 		const broker = new ServiceBroker({ logger: false });
 		jest.spyOn(broker.localBus, "on");
 
 		it("test with empty opts", () => {
-
 			let strategy = new ShardStrategy(broker.registry, broker);
 
 			expect(strategy.opts).toEqual({
@@ -56,11 +54,14 @@ describe("Test ShardStrategy", () => {
 		it("should set needRebuild = true if '$node.**' event received", () => {
 			broker.localBus.on.mockClear();
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(
+				{
+					opts: {
+						strategyOptions: {}
+					}
+				},
+				broker
+			);
 
 			strategy.needRebuild = false;
 
@@ -83,14 +84,12 @@ describe("Test ShardStrategy", () => {
 		};
 
 		it("should get null if shardKey is not defined", () => {
-
 			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			expect(strategy.getKeyFromContext(ctx)).toBeNull();
 		});
 
 		it("should get param value", () => {
-
 			let strategy = new ShardStrategy(broker.registry, broker, {
 				shardKey: "a.b"
 			});
@@ -99,7 +98,6 @@ describe("Test ShardStrategy", () => {
 		});
 
 		it("should get meta value", () => {
-
 			let strategy = new ShardStrategy(broker.registry, broker, {
 				shardKey: "#user.name"
 			});
@@ -265,7 +263,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "node-200" },
 				{ id: "node-300" },
 				{ id: "node-400" },
-				{ id: "node-500" },
+				{ id: "node-500" }
 			];
 
 			strategy.rebuild(list);
@@ -281,7 +279,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "node-100" },
 				{ id: "node-500" },
 				{ id: "node-300" },
-				{ id: "node-200" },
+				{ id: "node-200" }
 			];
 
 			strategy.rebuild(list);
@@ -304,7 +302,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "jupyter" },
 				{ id: "saturn" },
 				{ id: "uranus" },
-				{ id: "neptunus" },
+				{ id: "neptunus" }
 				// Poor little Pluto...
 			];
 
@@ -314,7 +312,6 @@ describe("Test ShardStrategy", () => {
 			expect(strategy.ring).toMatchSnapshot();
 			expect(strategy.needRebuild).toBe(false);
 		});
-
 	});
 
 	describe("Test select", () => {
@@ -333,7 +330,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "node-200" },
 				{ id: "node-300" },
 				{ id: "node-400" },
-				{ id: "node-500" },
+				{ id: "node-500" }
 			];
 
 			expect(strategy.select(list, ctx)).toBeAnyOf(list);
@@ -349,7 +346,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "node-200" },
 				{ id: "node-300" },
 				{ id: "node-400" },
-				{ id: "node-500" },
+				{ id: "node-500" }
 			];
 
 			expect(strategy.select(list, ctx)).toBeAnyOf(list);
@@ -375,7 +372,7 @@ describe("Test ShardStrategy", () => {
 				{ id: "node-200" },
 				{ id: "node-300" },
 				{ id: "node-400" },
-				{ id: "node-500" },
+				{ id: "node-500" }
 			];
 			strategy.getNodeIDByKey = jest.fn(() => "node-300");
 
@@ -403,7 +400,7 @@ describe("Test ShardStrategy", () => {
 			{ id: "node-200" },
 			{ id: "node-300" },
 			{ id: "node-400" },
-			{ id: "node-500" },
+			{ id: "node-500" }
 		];
 
 		strategy.rebuild(list);
@@ -429,7 +426,6 @@ describe("Test ShardStrategy", () => {
 			strategy.rebuild(list);
 			expect(strategy.cache.length).toBe(0);
 		});
-
 	});
 
 	describe("Test getNodeIDByKey by keys (moleculer-java compatibility check)", () => {
@@ -449,7 +445,7 @@ describe("Test ShardStrategy", () => {
 			{ id: "node5" },
 			{ id: "node6" },
 			{ id: "node7" },
-			{ id: "node8" },
+			{ id: "node8" }
 		];
 
 		strategy.rebuild(list);
@@ -462,54 +458,84 @@ describe("Test ShardStrategy", () => {
 			expect(strategy.getNodeIDByKey("152e8bdf1ae353")).toBe("node0");
 			expect(strategy.getNodeIDByKey("1c3e0fd4269a6c1c3e0fd426bc70")).toBe("node8");
 			expect(strategy.getNodeIDByKey("234d93c934316d234d93c9349ec3")).toBe("node0");
-			expect(strategy.getNodeIDByKey("2a5d17be439d5e2a5d17be43d7ae2a5d17be43f4dc")).toBe("node2");
+			expect(strategy.getNodeIDByKey("2a5d17be439d5e2a5d17be43d7ae2a5d17be43f4dc")).toBe(
+				"node2"
+			);
 			expect(strategy.getNodeIDByKey("316c9bb353eef0")).toBe("node5");
 			expect(strategy.getNodeIDByKey("387c1fa8667440387c1fa866c200")).toBe("node3");
 			expect(strategy.getNodeIDByKey("3f8ba39d79c0cb")).toBe("node3");
-			expect(strategy.getNodeIDByKey("469b27928e1156469b27928e6660469b27928f1c9a")).toBe("node1");
+			expect(strategy.getNodeIDByKey("469b27928e1156469b27928e6660469b27928f1c9a")).toBe(
+				"node1"
+			);
 			expect(strategy.getNodeIDByKey("4daaab87a576564daaab87a5e149")).toBe("node7");
 			expect(strategy.getNodeIDByKey("54ba2f7cbd0bf4")).toBe("node7");
 			expect(strategy.getNodeIDByKey("5bc9b371d70ac9")).toBe("node6");
-			expect(strategy.getNodeIDByKey("62d93766f16ac862d93766f1f2d862d93766f236e0")).toBe("node5");
+			expect(strategy.getNodeIDByKey("62d93766f16ac862d93766f1f2d862d93766f236e0")).toBe(
+				"node5"
+			);
 			expect(strategy.getNodeIDByKey("69e8bb5c0e0d11")).toBe("node6");
 			expect(strategy.getNodeIDByKey("70f83f512ad640")).toBe("node0");
 			expect(strategy.getNodeIDByKey("7807c3471b4ca7")).toBe("node0");
-			expect(strategy.getNodeIDByKey("7f17473c4a91fa7f17473c4b56c87f17473c4bae40")).toBe("node0");
+			expect(strategy.getNodeIDByKey("7f17473c4a91fa7f17473c4b56c87f17473c4bae40")).toBe(
+				"node0"
+			);
 			expect(strategy.getNodeIDByKey("8626cb317880998626cb3179c3d2")).toBe("node2");
-			expect(strategy.getNodeIDByKey("8d364f26a8e2408d364f26a98c548d364f26aa4eb4")).toBe("node4");
+			expect(strategy.getNodeIDByKey("8d364f26a8e2408d364f26a98c548d364f26aa4eb4")).toBe(
+				"node4"
+			);
 			expect(strategy.getNodeIDByKey("9445d31bd97a85")).toBe("node0");
 			expect(strategy.getNodeIDByKey("9b555711e7c24a")).toBe("node6");
 			expect(strategy.getNodeIDByKey("a264db0733382f")).toBe("node5");
 			expect(strategy.getNodeIDByKey("a9745efc715838")).toBe("node0");
 			expect(strategy.getNodeIDByKey("b083e2f1dd5c80")).toBe("node5");
-			expect(strategy.getNodeIDByKey("b79366e725e138b79366e726fd7eb79366e7279b6c")).toBe("node3");
+			expect(strategy.getNodeIDByKey("b79366e725e138b79366e726fd7eb79366e7279b6c")).toBe(
+				"node3"
+			);
 			expect(strategy.getNodeIDByKey("bea2eadc89a4cfbea2eadc8aecd1")).toBe("node7");
-			expect(strategy.getNodeIDByKey("c5b26ed1d43518c5b26ed1d54538c5b26ed1d5ef4c")).toBe("node6");
+			expect(strategy.getNodeIDByKey("c5b26ed1d43518c5b26ed1d54538c5b26ed1d5ef4c")).toBe(
+				"node6"
+			);
 			expect(strategy.getNodeIDByKey("ccc1f2c71e6b81ccc1f2c71f3ee3")).toBe("node3");
 			expect(strategy.getNodeIDByKey("d3d176bc67833cd3d176bc68825a")).toBe("node2");
 			expect(strategy.getNodeIDByKey("dae0fab1b4d1c5")).toBe("node0");
 			expect(strategy.getNodeIDByKey("e1f07ea6ffa3c0e1f07ea700dac0")).toBe("node8");
-			expect(strategy.getNodeIDByKey("e900029c4f1ebbe900029c50375ce900029c50ffcf")).toBe("node6");
+			expect(strategy.getNodeIDByKey("e900029c4f1ebbe900029c50375ce900029c50ffcf")).toBe(
+				"node6"
+			);
 			expect(strategy.getNodeIDByKey("f00f86919e3fd6")).toBe("node7");
 			expect(strategy.getNodeIDByKey("f71f0a86ec89cd")).toBe("node3");
 			expect(strategy.getNodeIDByKey("fe2e8e7c3dbb68fe2e8e7c3eed8c")).toBe("node6");
-			expect(strategy.getNodeIDByKey("1053e127193339c1053e1271946e411053e1271954f00")).toBe("node0");
+			expect(strategy.getNodeIDByKey("1053e127193339c1053e1271946e411053e1271954f00")).toBe(
+				"node0"
+			);
 			expect(strategy.getNodeIDByKey("10c4d9666e7c772")).toBe("node3");
-			expect(strategy.getNodeIDByKey("1135d1a5c3bd5851135d1a5c3d50b41135d1a5c3e0e38")).toBe("node4");
+			expect(strategy.getNodeIDByKey("1135d1a5c3bd5851135d1a5c3d50b41135d1a5c3e0e38")).toBe(
+				"node4"
+			);
 			expect(strategy.getNodeIDByKey("11a6c9e51948a78")).toBe("node3");
 			expect(strategy.getNodeIDByKey("1217c2246ec82d4")).toBe("node0");
 			expect(strategy.getNodeIDByKey("1288ba63c456230")).toBe("node3");
-			expect(strategy.getNodeIDByKey("12f9b2a31b8068212f9b2a31b9dca712f9b2a31baadc6")).toBe("node5");
-			expect(strategy.getNodeIDByKey("136aaae27154870136aaae27186a3c136aaae27194038")).toBe("node0");
+			expect(strategy.getNodeIDByKey("12f9b2a31b8068212f9b2a31b9dca712f9b2a31baadc6")).toBe(
+				"node5"
+			);
+			expect(strategy.getNodeIDByKey("136aaae27154870136aaae27186a3c136aaae27194038")).toBe(
+				"node0"
+			);
 			expect(strategy.getNodeIDByKey("13dba321c778255")).toBe("node8");
-			expect(strategy.getNodeIDByKey("144c9b611f41f52144c9b611f64e26144c9b611f76590")).toBe("node8");
-			expect(strategy.getNodeIDByKey("14bd93a0761790d14bd93a0764263914bd93a076c6705")).toBe("node6");
+			expect(strategy.getNodeIDByKey("144c9b611f41f52144c9b611f64e26144c9b611f76590")).toBe(
+				"node8"
+			);
+			expect(strategy.getNodeIDByKey("14bd93a0761790d14bd93a0764263914bd93a076c6705")).toBe(
+				"node6"
+			);
 			expect(strategy.getNodeIDByKey("152e8bdfcd94d30")).toBe("node7");
 			expect(strategy.getNodeIDByKey("159f841f244a9f6")).toBe("node4");
 			expect(strategy.getNodeIDByKey("16107c5e7b215d016107c5e7b4387e")).toBe("node6");
 			expect(strategy.getNodeIDByKey("1681749dd18e1c41681749dd1ad16c")).toBe("node8");
 			expect(strategy.getNodeIDByKey("16f26cdd2881dbc")).toBe("node6");
-			expect(strategy.getNodeIDByKey("1763651c7f5a32b1763651c7f7e6db1763651c7f8e867")).toBe("node6");
+			expect(strategy.getNodeIDByKey("1763651c7f5a32b1763651c7f7e6db1763651c7f8e867")).toBe(
+				"node6"
+			);
 			expect(strategy.getNodeIDByKey("17d45d5bd610116")).toBe("node8");
 			expect(strategy.getNodeIDByKey("1845559b2c9c1a61845559b2cbd82e")).toBe("node3");
 			expect(strategy.getNodeIDByKey("18b64dda839c760")).toBe("node3");
@@ -518,24 +544,38 @@ describe("Test ShardStrategy", () => {
 			expect(strategy.getNodeIDByKey("1a09369895e39651a0936989614e0f")).toBe("node6");
 			expect(strategy.getNodeIDByKey("1a7a2ed7edbc45c")).toBe("node4");
 			expect(strategy.getNodeIDByKey("1aeb271744e63fe1aeb2717450b4d6")).toBe("node6");
-			expect(strategy.getNodeIDByKey("1b5c1f569c5aa321b5c1f569c7b9701b5c1f569c9320a")).toBe("node1");
+			expect(strategy.getNodeIDByKey("1b5c1f569c5aa321b5c1f569c7b9701b5c1f569c9320a")).toBe(
+				"node1"
+			);
 			expect(strategy.getNodeIDByKey("1bcd1795f447385")).toBe("node4");
 			expect(strategy.getNodeIDByKey("1c3e0fd54ba5800")).toBe("node2");
 			expect(strategy.getNodeIDByKey("1caf0814a3ae8ef1caf0814a3d60a7")).toBe("node6");
 			expect(strategy.getNodeIDByKey("1d200053fc7d8081d200053fca5978")).toBe("node7");
-			expect(strategy.getNodeIDByKey("1d90f8935427b6a1d90f89354506921d90f8935464c26")).toBe("node7");
-			expect(strategy.getNodeIDByKey("1e01f0d2ac4119c1e01f0d2ac653e01e01f0d2ac89624")).toBe("node7");
+			expect(strategy.getNodeIDByKey("1d90f8935427b6a1d90f89354506921d90f8935464c26")).toBe(
+				"node7"
+			);
+			expect(strategy.getNodeIDByKey("1e01f0d2ac4119c1e01f0d2ac653e01e01f0d2ac89624")).toBe(
+				"node7"
+			);
 			expect(strategy.getNodeIDByKey("1e72e9120455401")).toBe("node0");
 			expect(strategy.getNodeIDByKey("1ee3e1515f55c781ee3e1515f859d2")).toBe("node4");
-			expect(strategy.getNodeIDByKey("1f54d990b7d2a301f54d990b8493c61f54d990b8d56a7")).toBe("node1");
+			expect(strategy.getNodeIDByKey("1f54d990b7d2a301f54d990b8493c61f54d990b8d56a7")).toBe(
+				"node1"
+			);
 			expect(strategy.getNodeIDByKey("1fc5d1d01124910")).toBe("node7");
 			expect(strategy.getNodeIDByKey("2036ca0f695003c2036ca0f697c5b4")).toBe("node1");
 			expect(strategy.getNodeIDByKey("20a7c24ec18db46")).toBe("node3");
 			expect(strategy.getNodeIDByKey("2118ba8e1a1c3da2118ba8e1a49cc2")).toBe("node7");
-			expect(strategy.getNodeIDByKey("2189b2cd7a238bc2189b2cd7a5d4042189b2cd7a74554")).toBe("node7");
-			expect(strategy.getNodeIDByKey("21faab0cd32764f21faab0cd35056921faab0cd367b95")).toBe("node3");
+			expect(strategy.getNodeIDByKey("2189b2cd7a238bc2189b2cd7a5d4042189b2cd7a74554")).toBe(
+				"node7"
+			);
+			expect(strategy.getNodeIDByKey("21faab0cd32764f21faab0cd35056921faab0cd367b95")).toBe(
+				"node3"
+			);
 			expect(strategy.getNodeIDByKey("226ba34c2d7a6d4")).toBe("node7");
-			expect(strategy.getNodeIDByKey("22dc9b8b8874bfd22dc9b8b88a4bc522dc9b8b88d4b8d")).toBe("node8");
+			expect(strategy.getNodeIDByKey("22dc9b8b8874bfd22dc9b8b88a4bc522dc9b8b88d4b8d")).toBe(
+				"node8"
+			);
 			expect(strategy.getNodeIDByKey("234d93cae1bc1f0234d93cae1e6a40")).toBe("node6");
 			expect(strategy.getNodeIDByKey("23be8c0a3a59ed9")).toBe("node5");
 			expect(strategy.getNodeIDByKey("242f8449934c9f8")).toBe("node0");
@@ -545,20 +585,24 @@ describe("Test ShardStrategy", () => {
 			expect(strategy.getNodeIDByKey("25f36546fef728a")).toBe("node8");
 			expect(strategy.getNodeIDByKey("26645d865824b46")).toBe("node5");
 			expect(strategy.getNodeIDByKey("26d555c5b12da78")).toBe("node4");
-			expect(strategy.getNodeIDByKey("27464e050a463f027464e050a7c4e827464e050a97564")).toBe("node6");
+			expect(strategy.getNodeIDByKey("27464e050a463f027464e050a7c4e827464e050a97564")).toBe(
+				"node6"
+			);
 			expect(strategy.getNodeIDByKey("27b7464463dbd0e27b74644640bac2")).toBe("node2");
 			expect(strategy.getNodeIDByKey("28283e83bd531d2")).toBe("node8");
-			expect(strategy.getNodeIDByKey("289936c316b17c8289936c316e95e8289936c317054f8")).toBe("node2");
+			expect(strategy.getNodeIDByKey("289936c316b17c8289936c316e95e8289936c317054f8")).toBe(
+				"node2"
+			);
 			expect(strategy.getNodeIDByKey("290a2f02705f821")).toBe("node3");
 			expect(strategy.getNodeIDByKey("297b2741c9bb12c297b2741c9ed08a")).toBe("node7");
 			expect(strategy.getNodeIDByKey("29ec1f8123fe64e")).toBe("node4");
 			expect(strategy.getNodeIDByKey("2a5d17c07d98120")).toBe("node5");
 			expect(strategy.getNodeIDByKey("2ace0fffd7243b8")).toBe("node6");
 			expect(strategy.getNodeIDByKey("2b3f083f3145b18")).toBe("node6");
-			expect(strategy.getNodeIDByKey("2bb0007e8af96a82bb0007e8b358d02bb0007e8b5b229")).toBe("node0");
+			expect(strategy.getNodeIDByKey("2bb0007e8af96a82bb0007e8b358d02bb0007e8b5b229")).toBe(
+				"node0"
+			);
 			expect(strategy.getNodeIDByKey("2c20f8bde5af9902c20f8bde5ec570")).toBe("node0");
 		});
-
 	});
-
 });

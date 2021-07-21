@@ -1,4 +1,11 @@
-const { assert, createNode, executeScenarios, addScenario, getFileSHA, getStreamSHA } = require("../../utils");
+const {
+	assert,
+	createNode,
+	executeScenarios,
+	addScenario,
+	getFileSHA,
+	getStreamSHA
+} = require("../../utils");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
@@ -16,7 +23,7 @@ addScenario("call action", async () => {
 		c: true,
 		d: {
 			e: 123.45,
-			f: [1,2,3],
+			f: [1, 2, 3],
 			g: null
 		}
 	};
@@ -27,7 +34,7 @@ addScenario("call action", async () => {
 		c: false,
 		d: {
 			e: 56.78,
-			f: [1,2,3],
+			f: [1, 2, 3],
 			g: null
 		}
 	};
@@ -42,7 +49,7 @@ addScenario("call action", async () => {
 			c: true,
 			d: {
 				e: 123.45,
-				f: [1,2,3],
+				f: [1, 2, 3],
 				g: null
 			}
 		},
@@ -52,7 +59,7 @@ addScenario("call action", async () => {
 			c: false,
 			d: {
 				e: 56.78,
-				f: [1,2,3],
+				f: [1, 2, 3],
 				g: null
 			}
 		},
@@ -62,7 +69,7 @@ addScenario("call action", async () => {
 			c: true,
 			d: {
 				e: 122.34,
-				f: [1,2,3],
+				f: [1, 2, 3],
 				g: null
 			}
 		}
@@ -79,7 +86,7 @@ addScenario("emit event", async () => {
 		c: true,
 		d: {
 			e: 123.45,
-			f: [1,2,3],
+			f: [1, 2, 3],
 			g: null
 		}
 	};
@@ -90,7 +97,7 @@ addScenario("emit event", async () => {
 		c: false,
 		d: {
 			e: 56.78,
-			f: [1,2,3],
+			f: [1, 2, 3],
 			g: null
 		}
 	};
@@ -110,7 +117,7 @@ addScenario("emit event", async () => {
 			c: true,
 			d: {
 				e: 123.45,
-				f: [1,2,3],
+				f: [1, 2, 3],
 				g: null
 			}
 		},
@@ -120,7 +127,7 @@ addScenario("emit event", async () => {
 			c: false,
 			d: {
 				e: 56.78,
-				f: [1,2,3],
+				f: [1, 2, 3],
 				g: null
 			}
 		},

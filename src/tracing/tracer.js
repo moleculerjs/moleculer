@@ -17,7 +17,6 @@ const { isFunction } = require("../utils");
  * Moleculer Tracer class
  */
 class Tracer {
-
 	/**
 	 * Creates an instance of Tracer.
 	 *
@@ -29,8 +28,7 @@ class Tracer {
 		this.broker = broker;
 		this.logger = broker.getLogger("tracer");
 
-		if (opts === true || opts === false)
-			opts = { enabled: opts };
+		if (opts === true || opts === false) opts = { enabled: opts };
 
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
@@ -57,7 +55,7 @@ class Tracer {
 
 			tags: {
 				action: null,
-				event: null,
+				event: null
 			}
 		});
 
@@ -76,8 +74,7 @@ class Tracer {
 		//this.scope.enable();
 		//this._scopeEnabled = true;
 
-		if (this.opts.enabled)
-			this.logger.info("Tracing: Enabled");
+		if (this.opts.enabled) this.logger.info("Tracing: Enabled");
 	}
 
 	/**
@@ -85,12 +82,15 @@ class Tracer {
 	 */
 	init() {
 		if (this.opts.enabled) {
-
-			this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, this) : this.opts.defaultTags;
+			this.defaultTags = isFunction(this.opts.defaultTags)
+				? this.opts.defaultTags.call(this, this)
+				: this.opts.defaultTags;
 
 			// Create Exporter instances
 			if (this.opts.exporter) {
-				const exporters = Array.isArray(this.opts.exporter) ? this.opts.exporter : [this.opts.exporter];
+				const exporters = Array.isArray(this.opts.exporter)
+					? this.opts.exporter
+					: [this.opts.exporter];
 
 				this.exporter = _.compact(exporters).map(r => {
 					const exporter = Exporters.resolve(r);
@@ -98,10 +98,15 @@ class Tracer {
 					return exporter;
 				});
 
-				const exporterNames = this.exporter.map(exporter => this.broker.getConstructorName(exporter));
-				this.logger.info(`Tracing exporter${exporterNames.length > 1 ? "s": ""}: ${exporterNames.join(", ")}`);
+				const exporterNames = this.exporter.map(exporter =>
+					this.broker.getConstructorName(exporter)
+				);
+				this.logger.info(
+					`Tracing exporter${exporterNames.length > 1 ? "s" : ""}: ${exporterNames.join(
+						", "
+					)}`
+				);
 			}
-
 		}
 	}
 
@@ -158,19 +163,16 @@ class Tracer {
 	 */
 	shouldSample(span) {
 		if (this.opts.sampling.minPriority != null) {
-			if (span.priority < this.opts.sampling.minPriority)
-				return false;
+			if (span.priority < this.opts.sampling.minPriority) return false;
 		}
 
 		if (this.rateLimiter) {
 			return this.rateLimiter.check();
 		}
 
-		if (this.opts.sampling.rate == 0)
-			return false;
+		if (this.opts.sampling.rate == 0) return false;
 
-		if (this.opts.sampling.rate == 1)
-			return true;
+		if (this.opts.sampling.rate == 1) return true;
 
 		if (++this.sampleCounter * this.opts.sampling.rate >= 1.0) {
 			this.sampleCounter = 0;
@@ -197,10 +199,19 @@ class Tracer {
 			parentOpts.sampled = opts.parentSpan.sampled;
 		}
 
-		const span = new Span(this, name, Object.assign({
-			type: "custom",
-			defaultTags: this.defaultTags
-		}, parentOpts, opts, { parentSpan: undefined }));
+		const span = new Span(
+			this,
+			name,
+			Object.assign(
+				{
+					type: "custom",
+					defaultTags: this.defaultTags
+				},
+				parentOpts,
+				opts,
+				{ parentSpan: undefined }
+			)
+		);
 
 		span.start();
 
@@ -296,8 +307,7 @@ class Tracer {
 	spanStarted(span) {
 		//this.setCurrentSpan(span);
 
-		if (span.sampled)
-			this.invokeExporter("spanStarted", [span]);
+		if (span.sampled) this.invokeExporter("spanStarted", [span]);
 	}
 
 	/**
@@ -309,8 +319,7 @@ class Tracer {
 	spanFinished(span) {
 		//this.removeCurrentSpan(span);
 
-		if (span.sampled)
-			this.invokeExporter("spanFinished", [span]);
+		if (span.sampled) this.invokeExporter("spanFinished", [span]);
 	}
 }
 

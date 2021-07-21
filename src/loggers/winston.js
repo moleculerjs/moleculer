@@ -19,7 +19,6 @@ const { isFunction } = require("../utils");
  * @extends {BaseLogger}
  */
 class WinstonLogger extends BaseLogger {
-
 	/**
 	 * Creates an instance of WinstonLogger.
 	 * @param {Object} opts
@@ -30,7 +29,7 @@ class WinstonLogger extends BaseLogger {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			winston: {
-				level: "silly",
+				level: "silly"
 			}
 		});
 	}
@@ -45,9 +44,13 @@ class WinstonLogger extends BaseLogger {
 
 		try {
 			this.winston = require("winston").createLogger(this.opts.winston);
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'winston' package is missing! Please install it with 'npm install winston --save' command!", err, true);
+			this.broker.fatal(
+				"The 'winston' package is missing! Please install it with 'npm install winston --save' command!",
+				err,
+				true
+			);
 		}
 	}
 
@@ -57,28 +60,33 @@ class WinstonLogger extends BaseLogger {
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		const levelIdx = BaseLogger.LEVELS.indexOf(level);
 
-		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.winston.child({ level, ...bindings });
+		const logger = isFunction(this.opts.createLogger)
+			? this.opts.createLogger(level, bindings)
+			: this.winston.child({ level, ...bindings });
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);
 			if (typeIdx > levelIdx) return;
 
-			switch(type) {
-				case "info": return logger.info(...args);
+			switch (type) {
+				case "info":
+					return logger.info(...args);
 				case "fatal":
-				case "error": return logger.error(...args);
-				case "warn": return logger.warn(...args);
-				case "debug": return logger.debug(...args);
-				case "trace": return logger.log("silly", ...args);
+				case "error":
+					return logger.error(...args);
+				case "warn":
+					return logger.warn(...args);
+				case "debug":
+					return logger.debug(...args);
+				case "trace":
+					return logger.log("silly", ...args);
 				default: {
 					/* istanbul ignore next*/
-					if (logger[type])
-						return logger[type](...args);
+					if (logger[type]) return logger[type](...args);
 
 					/* istanbul ignore next*/
 					return logger.info(...args);

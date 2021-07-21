@@ -1,8 +1,8 @@
-const ServiceBroker 			= require("../../../src/service-broker");
-const { MoleculerError }		= require("../../../src/errors");
-const Context 					= require("../../../src/context");
-const Middleware 				= require("../../../src/middlewares").ErrorHandler;
-const { protectReject } 		= require("../utils");
+const ServiceBroker = require("../../../src/service-broker");
+const { MoleculerError } = require("../../../src/errors");
+const Context = require("../../../src/context");
+const Middleware = require("../../../src/middlewares").ErrorHandler;
+const { protectReject } = require("../utils");
 
 describe("Test ErrorHandlerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, transporter: "Fake" });
@@ -61,7 +61,6 @@ describe("Test ErrorHandlerMiddleware", () => {
 	});
 
 	describe("Test with actions", () => {
-
 		it("should call broker errorHandler", () => {
 			broker.errorHandler.mockClear();
 			const error = new MoleculerError("Something wrong");
@@ -70,15 +69,21 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 			const ctx = Context.create(broker, actionEndpoint);
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(MoleculerError);
-				expect(err.name).toBe("MoleculerError");
-				expect(err.message).toBe("Something wrong");
-				expect(err.ctx).toBe(ctx);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBeInstanceOf(MoleculerError);
+					expect(err.name).toBe("MoleculerError");
+					expect(err.message).toBe("Something wrong");
+					expect(err.ctx).toBe(ctx);
 
-				expect(broker.errorHandler).toBeCalledTimes(1);
-				expect(broker.errorHandler).toBeCalledWith(err, { ctx, service: action.service, action });
-			});
+					expect(broker.errorHandler).toBeCalledTimes(1);
+					expect(broker.errorHandler).toBeCalledWith(err, {
+						ctx,
+						service: action.service,
+						action
+					});
+				});
 		});
 
 		it("should convert if not Error", () => {
@@ -88,16 +93,22 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 			const ctx = Context.create(broker, actionEndpoint);
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(Error);
-				expect(err).toBeInstanceOf(MoleculerError);
-				expect(err.name).toBe("MoleculerError");
-				expect(err.message).toBe("Something wrong");
-				expect(err.ctx).toBe(ctx);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBeInstanceOf(Error);
+					expect(err).toBeInstanceOf(MoleculerError);
+					expect(err.name).toBe("MoleculerError");
+					expect(err.message).toBe("Something wrong");
+					expect(err.ctx).toBe(ctx);
 
-				expect(broker.errorHandler).toBeCalledTimes(1);
-				expect(broker.errorHandler).toBeCalledWith(err, { ctx, service: action.service, action });
-			});
+					expect(broker.errorHandler).toBeCalledTimes(1);
+					expect(broker.errorHandler).toBeCalledWith(err, {
+						ctx,
+						service: action.service,
+						action
+					});
+				});
 		});
 
 		it("should remove pending request if remote call", () => {
@@ -110,19 +121,19 @@ describe("Test ErrorHandlerMiddleware", () => {
 			ctx.id = "123456";
 			ctx.nodeID = "server-2";
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
-				expect(err.ctx).toBe(ctx);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
+					expect(err.ctx).toBe(ctx);
 
-				expect(broker.transit.removePendingRequest).toHaveBeenCalledTimes(1);
-				expect(broker.transit.removePendingRequest).toHaveBeenCalledWith("123456");
-			});
+					expect(broker.transit.removePendingRequest).toHaveBeenCalledTimes(1);
+					expect(broker.transit.removePendingRequest).toHaveBeenCalledWith("123456");
+				});
 		});
-
 	});
 
 	describe("Test with events", () => {
-
 		it("should call broker errorHandler", () => {
 			broker.errorHandler.mockClear();
 			const error = new MoleculerError("Something wrong");
@@ -131,11 +142,17 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 			const ctx = Context.create(broker, eventEndpoint);
 
-			return newHandler(ctx).catch(protectReject).then(() => {
-				expect(error.ctx).toBe(ctx);
-				expect(broker.errorHandler).toBeCalledTimes(1);
-				expect(broker.errorHandler).toBeCalledWith(error, { ctx, service: action.service, event });
-			});
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(() => {
+					expect(error.ctx).toBe(ctx);
+					expect(broker.errorHandler).toBeCalledTimes(1);
+					expect(broker.errorHandler).toBeCalledWith(error, {
+						ctx,
+						service: action.service,
+						event
+					});
+				});
 		});
 
 		it("should convert if not Error", () => {
@@ -145,18 +162,24 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const newHandler = mw.localEvent.call(broker, handler, action);
 			const ctx = Context.create(broker, eventEndpoint);
 
-			return newHandler(ctx).catch(protectReject).then(() => {
-				const err = broker.errorHandler.mock.calls[0][0];
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(() => {
+					const err = broker.errorHandler.mock.calls[0][0];
 
-				expect(err).toBeInstanceOf(Error);
-				expect(err).toBeInstanceOf(MoleculerError);
-				expect(err.name).toBe("MoleculerError");
-				expect(err.message).toBe("Something wrong");
-				expect(err.ctx).toBe(ctx);
+					expect(err).toBeInstanceOf(Error);
+					expect(err).toBeInstanceOf(MoleculerError);
+					expect(err.name).toBe("MoleculerError");
+					expect(err.message).toBe("Something wrong");
+					expect(err.ctx).toBe(ctx);
 
-				expect(broker.errorHandler).toBeCalledTimes(1);
-				expect(broker.errorHandler).toBeCalledWith(err, { ctx, service: action.service, event });
-			});
+					expect(broker.errorHandler).toBeCalledTimes(1);
+					expect(broker.errorHandler).toBeCalledWith(err, {
+						ctx,
+						service: action.service,
+						event
+					});
+				});
 		});
 
 		it("should logging if throw further", () => {
@@ -171,17 +194,17 @@ describe("Test ErrorHandlerMiddleware", () => {
 
 			jest.spyOn(broker.logger, "error");
 
-			return newHandler(ctx).catch(protectReject).then(() => {
-				const err = broker.errorHandler.mock.calls[0][0];
+			return newHandler(ctx)
+				.catch(protectReject)
+				.then(() => {
+					const err = broker.errorHandler.mock.calls[0][0];
 
-				expect(err).toBe(error);
-				expect(err.ctx).toBe(ctx);
+					expect(err).toBe(error);
+					expect(err.ctx).toBe(ctx);
 
-				expect(broker.logger.error).toHaveBeenCalledTimes(1);
-				expect(broker.logger.error).toHaveBeenCalledWith(err);
-			});
+					expect(broker.logger.error).toHaveBeenCalledTimes(1);
+					expect(broker.logger.error).toHaveBeenCalledWith(err);
+				});
 		});
-
 	});
-
 });

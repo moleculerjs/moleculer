@@ -29,10 +29,8 @@ module.exports = {
 			handler(ctx) {
 				let a = Number(ctx.params.a);
 				let b = Number(ctx.params.b);
-				if (b != 0 && !Number.isNaN(b))
-					return a / b;
-				else
-					throw new MoleculerError("Divide by zero!", 422, null, ctx.params);
+				if (b != 0 && !Number.isNaN(b)) return a / b;
+				else throw new MoleculerError("Divide by zero!", 422, null, ctx.params);
 			}
 		}
 	}

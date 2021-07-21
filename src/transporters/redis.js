@@ -6,8 +6,8 @@
 
 "use strict";
 
-const { MoleculerError } 	 = require("../errors");
-const Transporter 			 = require("./base");
+const { MoleculerError } = require("../errors");
+const Transporter = require("./base");
 const { BrokerOptionsError } = require("../errors");
 
 /**
@@ -17,7 +17,6 @@ const { BrokerOptionsError } = require("../errors");
  * @extends {Transporter}
  */
 class RedisTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of RedisTransporter.
 	 *
@@ -58,12 +57,11 @@ class RedisTransporter extends Transporter {
 				});
 
 				/* istanbul ignore next */
-				clientPub.on("error", (e) => {
+				clientPub.on("error", e => {
 					this.logger.error("Redis-pub error", e.message);
 					this.logger.debug(e);
 
-					if (!this.connected)
-						reject(e);
+					if (!this.connected) reject(e);
 				});
 
 				/* istanbul ignore next */
@@ -80,7 +78,7 @@ class RedisTransporter extends Transporter {
 			});
 
 			/* istanbul ignore next */
-			clientSub.on("error", (e) => {
+			clientSub.on("error", e => {
 				this.logger.error("Redis-sub error", e.message);
 				this.logger.debug(e);
 			});
@@ -90,7 +88,6 @@ class RedisTransporter extends Transporter {
 				this.connected = false;
 				this.logger.warn("Redis-sub client is disconnected.");
 			});
-
 		});
 	}
 
@@ -135,7 +132,8 @@ class RedisTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.clientPub) return this.broker.Promise.reject(new MoleculerError("Redis Client is not available"));
+		if (!this.clientPub)
+			return this.broker.Promise.reject(new MoleculerError("Redis Client is not available"));
 
 		this.clientPub.publish(topic, data);
 		return this.broker.Promise.resolve();
@@ -154,9 +152,13 @@ class RedisTransporter extends Transporter {
 		try {
 			Redis = require("ioredis");
 			Redis.Promise = this.broker.Promise;
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+			this.broker.fatal(
+				"The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.",
+				err,
+				true
+			);
 		}
 		if (opts && opts.cluster) {
 			if (!opts.cluster.nodes || opts.cluster.nodes.length === 0) {
@@ -170,7 +172,6 @@ class RedisTransporter extends Transporter {
 		}
 		return client;
 	}
-
 }
 
 module.exports = RedisTransporter;

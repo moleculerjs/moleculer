@@ -16,17 +16,15 @@ const Reporters = {
 	Event: require("./event"),
 	Datadog: require("./datadog"),
 	Prometheus: require("./prometheus"),
-	StatsD: require("./statsd"),
+	StatsD: require("./statsd")
 };
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Reporters).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Reporters[n];
+	if (n) return Reporters[n];
 }
 
 /**
@@ -41,15 +39,14 @@ function resolve(opt) {
 		return opt;
 	} else if (isString(opt)) {
 		let ReporterClass = getByName(opt);
-		if (ReporterClass)
-			return new ReporterClass();
-
+		if (ReporterClass) return new ReporterClass();
 	} else if (isObject(opt)) {
 		let ReporterClass = getByName(opt.type);
-		if (ReporterClass)
-			return new ReporterClass(opt.options);
+		if (ReporterClass) return new ReporterClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid metric reporter type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid metric reporter type '${opt.type}'.`, {
+				type: opt.type
+			});
 	}
 
 	throw new BrokerOptionsError(`Invalid metric reporter type '${opt}'.`, { type: opt });
@@ -60,4 +57,3 @@ function register(name, value) {
 }
 
 module.exports = Object.assign(Reporters, { resolve, register });
-

@@ -36,7 +36,6 @@ const BaseStrategy = require("./base");
  * @class CpuUsageStrategy
  */
 class CpuUsageStrategy extends BaseStrategy {
-
 	constructor(registry, broker, opts) {
 		super(registry, broker, opts);
 
@@ -63,9 +62,7 @@ class CpuUsageStrategy extends BaseStrategy {
 
 			// Check CPU usage of endpoint
 			if (cpu != null) {
-
-				if (cpu < this.opts.lowCpuUsage)
-					return ep;
+				if (cpu < this.opts.lowCpuUsage) return ep;
 
 				if (!minEp || cpu < minEp.node.cpu) {
 					minEp = ep;

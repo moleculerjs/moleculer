@@ -7,36 +7,34 @@ let ServiceBroker = require("../../src/service-broker");
 
 let bench = benchmark.createSuite("Emit event");
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
 	bench.ref("Emit event without subscribers", () => {
-		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
+		return broker.emit("event", ["param1", { a: 1, b: "Teszt" }, 500]);
 	});
-
 })();
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
 	broker.createService({
 		name: "handler",
 		events: {
-			"event"(p) {
+			event(p) {
 				return p;
 			}
 		}
 	});
 
 	bench.add("Emit simple event to 1 subscribers", () => {
-		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
+		return broker.emit("event", ["param1", { a: 1, b: "Teszt" }, 500]);
 	});
-
 })();
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
@@ -44,19 +42,18 @@ let bench = benchmark.createSuite("Emit event");
 		broker.createService({
 			name: `handler-${i}`,
 			events: {
-				"event"(p) {
+				event(p) {
 					return p;
 				}
 			}
 		});
 
 	bench.add("Emit simple event to 20 subscribers", () => {
-		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
+		return broker.emit("event", ["param1", { a: 1, b: "Teszt" }, 500]);
 	});
-
 })();
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
@@ -71,12 +68,11 @@ let bench = benchmark.createSuite("Emit event");
 		});
 
 	bench.add("Emit wildcard event to 20 subscribers", () => {
-		return broker.emit("event.target", ["param1", { a: 1, b: "Teszt"}, 500]);
+		return broker.emit("event.target", ["param1", { a: 1, b: "Teszt" }, 500]);
 	});
-
 })();
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
@@ -93,10 +89,9 @@ let bench = benchmark.createSuite("Emit event");
 	bench.add("Emit multi-wildcard event to 20 subscribers without params", () => {
 		return broker.emit("event.target.name");
 	});
-
 })();
 
-(function() {
+(function () {
 	// Create broker
 	let broker = new ServiceBroker({ logger: false });
 
@@ -111,9 +106,8 @@ let bench = benchmark.createSuite("Emit event");
 		});
 
 	bench.add("Emit multi-wildcard event to 20 subscribers with params", () => {
-		return broker.emit("event.target.name", ["param1", { a: 1, b: "Teszt"}, 500]);
+		return broker.emit("event.target.name", ["param1", { a: 1, b: "Teszt" }, 500]);
 	});
-
 })();
 
 bench.run();

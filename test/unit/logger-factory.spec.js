@@ -14,7 +14,6 @@ class MyCustomAppender extends Loggers.Base {
 jest.spyOn(MyCustomAppender.prototype, "getLogHandler");
 
 describe("Test LoggerFactory", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor", () => {
@@ -203,7 +202,6 @@ describe("Test LoggerFactory", () => {
 
 			expect(mockInit).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -283,9 +281,9 @@ describe("Test LoggerFactory", () => {
 			const handler2 = jest.fn();
 
 			loggerFactory.appenders = [
-				{ getLogHandler: jest.fn(bindings => handler1 ) },
-				{ getLogHandler: jest.fn(bindings => null ) },
-				{ getLogHandler: jest.fn(bindings => handler2 ) }
+				{ getLogHandler: jest.fn(bindings => handler1) },
+				{ getLogHandler: jest.fn(bindings => null) },
+				{ getLogHandler: jest.fn(bindings => handler2) }
 			];
 
 			const bindings = { mod: "posts", nodeID: "node-1" };
@@ -294,7 +292,11 @@ describe("Test LoggerFactory", () => {
 			logger.info("message", { a: 5 });
 
 			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledTimes(1);
-			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledWith("newLogEntry", ["info", ["message", { a: 5 }], bindings], {});
+			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledWith(
+				"newLogEntry",
+				["info", ["message", { a: 5 }], bindings],
+				{}
+			);
 
 			expect(handler1).toHaveBeenCalledTimes(1);
 			expect(handler1).toHaveBeenCalledWith("info", ["message", { a: 5 }]);
@@ -326,9 +328,13 @@ describe("Test LoggerFactory", () => {
 			expect(loggerFactory.getBindingsKey()).toBe("");
 			expect(loggerFactory.getBindingsKey({})).toBe("||");
 			expect(loggerFactory.getBindingsKey({ mod: "service" })).toBe("||service");
-			expect(loggerFactory.getBindingsKey({ mod: "service", ns: "namespace", nodeID: "node-123" })).toBe("node-123|namespace|service");
+			expect(
+				loggerFactory.getBindingsKey({
+					mod: "service",
+					ns: "namespace",
+					nodeID: "node-123"
+				})
+			).toBe("node-123|namespace|service");
 		});
 	});
-
 });
-

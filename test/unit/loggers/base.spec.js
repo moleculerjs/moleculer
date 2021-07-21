@@ -7,15 +7,13 @@ const LoggerFactory = require("../../../src/logger-factory");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Bunyan logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new BaseLogger();
 
 			expect(logger.opts).toEqual({
 				level: "info",
-				createLogger: null,
+				createLogger: null
 			});
 		});
 
@@ -32,7 +30,6 @@ describe("Test Bunyan logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -46,7 +43,6 @@ describe("Test Bunyan logger class", () => {
 			expect(logger.loggerFactory).toBe(loggerFactory);
 			expect(logger.broker).toBe(broker);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -58,11 +54,9 @@ describe("Test Bunyan logger class", () => {
 
 			await logger.stop();
 		});
-
 	});
 
 	describe("Test getLogLevel method", () => {
-
 		it("should find the correct log level if logLevel is string", () => {
 			const logger = new BaseLogger({
 				level: "info"
@@ -76,9 +70,9 @@ describe("Test Bunyan logger class", () => {
 			const logger = new BaseLogger({
 				level: {
 					"MY-*": "warn",
-					"CACHER": false,
+					CACHER: false,
 					"**": "trace",
-					"BROKER": "debug",
+					BROKER: "debug"
 				}
 			});
 
@@ -90,11 +84,9 @@ describe("Test Bunyan logger class", () => {
 			expect(logger.getLogLevel("cacher")).toBe(false);
 			expect(logger.getLogLevel("transporter")).toBe("trace");
 		});
-
 	});
 
 	describe("Test getLogHandler abstract method", () => {
-
 		it("should return null", () => {
 			const logger = new BaseLogger({
 				level: "info"
@@ -102,15 +94,11 @@ describe("Test Bunyan logger class", () => {
 
 			expect(logger.getLogHandler()).toBeNull();
 		});
-
 	});
 
 	describe("Test LEVELS static property", () => {
-
 		it("should contain log levels", () => {
 			expect(BaseLogger.LEVELS).toEqual(["fatal", "error", "warn", "info", "debug", "trace"]);
 		});
-
 	});
-
 });

@@ -19,7 +19,7 @@ broker.createService({
 						c: true,
 						d: {
 							e: 122.34,
-							f: [1,2,3],
+							f: [1, 2, 3],
 							g: null
 						}
 					}

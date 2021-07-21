@@ -1,8 +1,8 @@
-const ServiceBroker 			= require("../../../src/service-broker");
-const { MoleculerError }		= require("../../../src/errors");
-const Context 					= require("../../../src/context");
-const Middleware 				= require("../../../src/middlewares").Fallback;
-const { protectReject } 		= require("../utils");
+const ServiceBroker = require("../../../src/service-broker");
+const { MoleculerError } = require("../../../src/errors");
+const Context = require("../../../src/context");
+const Middleware = require("../../../src/middlewares").Fallback;
+const { protectReject } = require("../utils");
 
 describe("Test FallbackMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, transporter: "Fake" });
@@ -43,7 +43,13 @@ describe("Test FallbackMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["service", "action"], "description": "Number of fallbacked requests", rate: true });
+		expect(broker.metrics.register).toHaveBeenCalledWith({
+			type: "counter",
+			name: "moleculer.request.fallback.total",
+			labelNames: ["service", "action"],
+			description: "Number of fallbacked requests",
+			rate: true
+		});
 	});
 
 	it("should call fallback Function and return", () => {
@@ -55,17 +61,21 @@ describe("Test FallbackMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint);
 
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("Fallback response");
+		return newHandler(ctx)
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("Fallback response");
 
-			expect(action.fallback).toHaveBeenCalledTimes(1);
-			expect(action.fallback).toHaveBeenCalledWith(ctx, error);
+				expect(action.fallback).toHaveBeenCalledTimes(1);
+				expect(action.fallback).toHaveBeenCalledWith(ctx, error);
 
-			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
-		});
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.increment).toHaveBeenCalledWith(
+					"moleculer.request.fallback.total",
+					{ service: "posts", action: "posts.find" }
+				);
+			});
 	});
-
 
 	it("should call fallback Function and return", () => {
 		broker.metrics.increment.mockClear();
@@ -76,15 +86,20 @@ describe("Test FallbackMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint);
 
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("Fallback response from method");
+		return newHandler(ctx)
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("Fallback response from method");
 
-			expect(action.service.someFallbackMethod).toHaveBeenCalledTimes(1);
-			expect(action.service.someFallbackMethod).toHaveBeenCalledWith(ctx, error);
+				expect(action.service.someFallbackMethod).toHaveBeenCalledTimes(1);
+				expect(action.service.someFallbackMethod).toHaveBeenCalledWith(ctx, error);
 
-			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
-		});
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.increment).toHaveBeenCalledWith(
+					"moleculer.request.fallback.total",
+					{ service: "posts", action: "posts.find" }
+				);
+			});
 	});
 
 	it("should return fallbackResponse (native type)", () => {
@@ -98,12 +113,17 @@ describe("Test FallbackMiddleware", () => {
 			fallbackResponse: "fallback response"
 		});
 
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("fallback response");
+		return newHandler(ctx)
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("fallback response");
 
-			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
-		});
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.increment).toHaveBeenCalledWith(
+					"moleculer.request.fallback.total",
+					{ action: "posts.find" }
+				);
+			});
 	});
 
 	it("should return fallbackResponse (function)", () => {
@@ -116,14 +136,18 @@ describe("Test FallbackMiddleware", () => {
 		const ctx = Context.create(broker, endpoint, null, { fallbackResponse });
 		expect(ctx.options.fallbackResponse).toBe(fallbackResponse);
 
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("fallback response");
-			expect(fallbackResponse).toHaveBeenCalledTimes(1);
-			expect(fallbackResponse).toHaveBeenCalledWith(ctx, error);
+		return newHandler(ctx)
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("fallback response");
+				expect(fallbackResponse).toHaveBeenCalledTimes(1);
+				expect(fallbackResponse).toHaveBeenCalledWith(ctx, error);
 
-
-			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
-		});
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.increment).toHaveBeenCalledWith(
+					"moleculer.request.fallback.total",
+					{ action: "posts.find" }
+				);
+			});
 	});
 });

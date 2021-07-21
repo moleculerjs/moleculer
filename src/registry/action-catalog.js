@@ -17,7 +17,6 @@ const ActionEndpoint = require("./endpoint-action");
  * @class ActionCatalog
  */
 class ActionCatalog {
-
 	/**
 	 * Creates an instance of ActionCatalog.
 	 *
@@ -48,10 +47,22 @@ class ActionCatalog {
 	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
-			const strategyFactory = action.strategy ? (Strategies.resolve(action.strategy) || this.StrategyFactory) : this.StrategyFactory;
-			const strategyOptions = action.strategyOptions ? action.strategyOptions : this.registry.opts.strategyOptions;
+			const strategyFactory = action.strategy
+				? Strategies.resolve(action.strategy) || this.StrategyFactory
+				: this.StrategyFactory;
+			const strategyOptions = action.strategyOptions
+				? action.strategyOptions
+				: this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, strategyFactory, strategyOptions);
+			list = new EndpointList(
+				this.registry,
+				this.broker,
+				action.name,
+				null,
+				this.EndpointFactory,
+				strategyFactory,
+				strategyOptions
+			);
 			this.actions.set(action.name, list);
 		}
 
@@ -80,8 +91,7 @@ class ActionCatalog {
 	 */
 	isAvailable(actionName) {
 		const list = this.actions.get(actionName);
-		if (list)
-			return list.hasAvailable();
+		if (list) return list.hasAvailable();
 
 		return false;
 	}
@@ -107,8 +117,7 @@ class ActionCatalog {
 	 */
 	remove(actionName, nodeID) {
 		const list = this.actions.get(actionName);
-		if (list)
-			list.removeByNodeID(nodeID);
+		if (list) list.removeByNodeID(nodeID);
 	}
 
 	/**
@@ -119,18 +128,20 @@ class ActionCatalog {
 	 *
 	 * @memberof ActionCatalog
 	 */
-	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
+	list({
+		onlyLocal = false,
+		onlyAvailable = false,
+		skipInternal = false,
+		withEndpoints = false
+	}) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
-			if (skipInternal && /^\$/.test(key))
-				return;
+			if (skipInternal && /^\$/.test(key)) return;
 
-			if (onlyLocal && !list.hasLocal())
-				return;
+			if (onlyLocal && !list.hasLocal()) return;
 
-			if (onlyAvailable && !list.hasAvailable())
-				return;
+			if (onlyAvailable && !list.hasAvailable()) return;
 
 			let item = {
 				name: key,
@@ -141,8 +152,7 @@ class ActionCatalog {
 
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
-				if (ep)
-					item.action = _.omit(ep.action, ["handler", "remoteHandler", "service"]);
+				if (ep) item.action = _.omit(ep.action, ["handler", "remoteHandler", "service"]);
 			}
 			if (item.action && item.action.protected === true) return;
 
@@ -152,7 +162,7 @@ class ActionCatalog {
 						return {
 							nodeID: ep.node.id,
 							state: ep.state,
-							available: ep.node.available,
+							available: ep.node.available
 						};
 					});
 				}

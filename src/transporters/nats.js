@@ -6,11 +6,8 @@
 
 "use strict";
 
-const Transporter 	= require("./base");
-const {
-	PACKET_REQUEST,
-	PACKET_EVENT,
-} = require("../packets");
+const Transporter = require("./base");
+const { PACKET_REQUEST, PACKET_EVENT } = require("../packets");
 
 /**
  * Transporter for NATS
@@ -21,7 +18,6 @@ const {
  * @extends {Transporter}
  */
 class NatsTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of NatsTransporter.
 	 *
@@ -30,20 +26,16 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { url: opts };
+		if (typeof opts == "string") opts = { url: opts };
 
 		super(opts);
 
-		if (!this.opts)
-			this.opts = {};
+		if (!this.opts) this.opts = {};
 
 		// Use the 'preserveBuffers' option as true as default
-		if (this.opts.preserveBuffers !== false)
-			this.opts.preserveBuffers = true;
+		if (this.opts.preserveBuffers !== false) this.opts.preserveBuffers = true;
 
-		if (this.opts.maxReconnectAttempts == null)
-			this.opts.maxReconnectAttempts = -1;
+		if (this.opts.maxReconnectAttempts == null) this.opts.maxReconnectAttempts = -1;
 
 		this.hasBuiltInBalancer = true;
 		this.client = null;
@@ -62,7 +54,7 @@ class NatsTransporter extends Transporter {
 			const installedVersion = pkg.version;
 			this.logger.info("NATS lib version:", installedVersion);
 			return installedVersion.split(".")[0] == 1;
-		} catch(err) {
+		} catch (err) {
 			this.logger.warn("Unable to detect NATS library version.", err.message);
 		}
 	}
@@ -91,9 +83,13 @@ class NatsTransporter extends Transporter {
 		let Nats;
 		try {
 			Nats = require("nats");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command.", err, true);
+			this.broker.fatal(
+				"The 'nats' package is missing! Please install it with 'npm install nats --save' command.",
+				err,
+				true
+			);
 		}
 
 		if (this.useLegacy) {
@@ -131,8 +127,7 @@ class NatsTransporter extends Transporter {
 					this.logger.error("NATS error.", e.message);
 					this.logger.debug(e);
 
-					if (!client.connected)
-						reject(e);
+					if (!client.connected) reject(e);
 				});
 
 				/* istanbul ignore next */
@@ -144,29 +139,34 @@ class NatsTransporter extends Transporter {
 			});
 		} else {
 			// NATS v2
-			if(this.opts.url) this.opts.servers = this.opts.url.split(",").map(server => new URL(server).host);
-			return Nats.connect(this.opts).then(client => {
-				this.client = client;
+			if (this.opts.url)
+				this.opts.servers = this.opts.url.split(",").map(server => new URL(server).host);
+			return Nats.connect(this.opts)
+				.then(client => {
+					this.client = client;
 
-				this.logger.info("NATS client v2 is connected.");
+					this.logger.info("NATS client v2 is connected.");
 
-				(async () => {
-					for await (const s of this.client.status()) {
-						this.logger.debug(`NATS client ${s.type}: ${s.data}`);
+					(async () => {
+						for await (const s of this.client.status()) {
+							this.logger.debug(`NATS client ${s.type}: ${s.data}`);
+						}
+					})().then();
+
+					client.closed().then(() => {
+						this.connected = false;
+						this.logger.info("NATS connection closed.");
+					});
+
+					return this.onConnected();
+				})
+				.catch(
+					/* istanbul ignore next */ err => {
+						this.logger.error("NATS error.", err.message);
+						this.logger.debug(err);
+						throw err;
 					}
-				})().then();
-
-				client.closed().then(() => {
-					this.connected = false;
-					this.logger.info("NATS connection closed.");
-				});
-
-				return this.onConnected();
-			}).catch(/* istanbul ignore next */ err => {
-				this.logger.error("NATS error.", err.message);
-				this.logger.debug(err);
-				throw err;
-			});
+				);
 		}
 	}
 
@@ -184,9 +184,10 @@ class NatsTransporter extends Transporter {
 				});
 			} else {
 				// NATS v2
-				return this.client.flush()
+				return this.client
+					.flush()
 					.then(() => this.client.close())
-					.then(() => this.client = null);
+					.then(() => (this.client = null));
 			}
 		}
 	}
@@ -205,9 +206,11 @@ class NatsTransporter extends Transporter {
 		if (this.useLegacy) {
 			this.client.subscribe(t, msg => this.receive(cmd, msg));
 		} else {
-			this.client.subscribe(t, { callback: (err, msg) => {
-				this.receive(cmd, Buffer.from(msg.data));
-			} });
+			this.client.subscribe(t, {
+				callback: (err, msg) => {
+					this.receive(cmd, Buffer.from(msg.data));
+				}
+			});
 		}
 
 		return this.broker.Promise.resolve();
@@ -224,9 +227,16 @@ class NatsTransporter extends Transporter {
 		const queue = action;
 
 		if (this.useLegacy)
-			this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.receive(PACKET_REQUEST, msg)));
+			this.subscriptions.push(
+				this.client.subscribe(topic, { queue }, msg => this.receive(PACKET_REQUEST, msg))
+			);
 		else
-			this.subscriptions.push(this.client.subscribe(topic, { queue, callback: (err, msg) => this.receive(PACKET_REQUEST, Buffer.from(msg.data)) }));
+			this.subscriptions.push(
+				this.client.subscribe(topic, {
+					queue,
+					callback: (err, msg) => this.receive(PACKET_REQUEST, Buffer.from(msg.data))
+				})
+			);
 	}
 
 	/**
@@ -240,9 +250,18 @@ class NatsTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*.*$/g, ">");
 
 		if (this.useLegacy)
-			this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.receive(PACKET_EVENT, msg)));
+			this.subscriptions.push(
+				this.client.subscribe(topic, { queue: group }, msg =>
+					this.receive(PACKET_EVENT, msg)
+				)
+			);
 		else
-			this.subscriptions.push(this.client.subscribe(topic, { queue: group, callback: (err, msg) => this.receive(PACKET_EVENT, Buffer.from(msg.data)) }));
+			this.subscriptions.push(
+				this.client.subscribe(topic, {
+					queue: group,
+					callback: (err, msg) => this.receive(PACKET_EVENT, Buffer.from(msg.data))
+				})
+			);
 	}
 
 	/**

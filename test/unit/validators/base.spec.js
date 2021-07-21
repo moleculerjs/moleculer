@@ -5,7 +5,6 @@ const ServiceBroker = require("../../../src/service-broker");
 const { ValidationError } = require("../../../src/errors");
 
 describe("Test BaseValidator constructor", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor without opts", () => {
@@ -29,11 +28,9 @@ describe("Test BaseValidator constructor", () => {
 			useNewCustomCheckerFunction: true
 		});
 	});
-
 });
 
 describe("Test BaseValidator 'init' method", () => {
-
 	it("should set broker", () => {
 		const broker = new ServiceBroker({ logger: false });
 
@@ -59,7 +56,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(mw).toEqual({
 				name: "Validator",
 				localAction: expect.any(Function),
-				localEvent: expect.any(Function),
+				localEvent: expect.any(Function)
 			});
 		});
 
@@ -82,7 +79,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockAction.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ id: "number", name: "string" });
 
 			// Create fake context
 			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" } };
@@ -90,7 +87,10 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } }
+				);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -118,7 +118,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			return wrapped(ctx).catch(err => {
 				expect(err).toBeInstanceOf(ValidationError);
 				expect(err.data).toEqual([
-					{ "action": "posts.find", "field": "any", "nodeID": undefined, "type": "required" }
+					{ action: "posts.find", field: "any", nodeID: undefined, type: "required" }
 				]);
 				expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			});
@@ -134,7 +134,6 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(typeof wrapped).toBe("function");
 			expect(wrapped).toBe(mockAction.handler);
 		});
-
 	});
 
 	describe("Test middleware localAction with async", () => {
@@ -165,7 +164,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockAction.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "$$async": true, "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ $$async: true, id: "number", name: "string" });
 
 			// Create fake context
 			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" } };
@@ -173,7 +172,10 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } }
+				);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -201,14 +203,12 @@ describe("Test BaseValidator 'middleware' method", () => {
 			return wrapped(ctx).catch(err => {
 				expect(err).toBeInstanceOf(ValidationError);
 				expect(err.data).toEqual([
-					{ "action": "posts.find", "field": "any", "nodeID": undefined, "type": "required" }
+					{ action: "posts.find", field: "any", nodeID: undefined, type: "required" }
 				]);
 				expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			});
 		});
-
 	});
-
 
 	describe("Test middleware localAction with custom paramName", () => {
 		const v = new BaseValidator({ paramName: "paramValidation" });
@@ -235,15 +235,18 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockAction.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ id: "number", name: "string" });
 
 			// Create fake context
-			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" }  };
+			const ctx = { params: { id: 5, name: "John" }, action: { name: "users.create" } };
 
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, action: { name: "users.create" }  } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, action: { name: "users.create" } } }
+				);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -262,7 +265,6 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(typeof wrapped).toBe("function");
 			expect(wrapped).toBe(mockAction.handler);
 		});
-
 	});
 
 	describe("Test middleware localEvent", () => {
@@ -276,7 +278,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(mw).toEqual({
 				name: "Validator",
 				localAction: expect.any(Function),
-				localEvent: expect.any(Function),
+				localEvent: expect.any(Function)
 			});
 		});
 
@@ -299,7 +301,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockEvent.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ id: "number", name: "string" });
 
 			// Create fake context
 			const ctx = { params: { id: 5, name: "John" }, event: mockEvent };
@@ -307,7 +309,10 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, event: mockEvent } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, event: mockEvent } }
+				);
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -349,7 +354,6 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(typeof wrapped).toBe("function");
 			expect(wrapped).toBe(mockEvent.handler);
 		});
-
 	});
 
 	describe("Test middleware localEvent", () => {
@@ -380,7 +384,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockEvent.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "$$async": true, "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ $$async: true, id: "number", name: "string" });
 
 			// Create fake context
 			const ctx = { params: { id: 5, name: "John" }, event: mockEvent };
@@ -388,7 +392,10 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, event: mockEvent } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, event: mockEvent } }
+				);
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -419,7 +426,6 @@ describe("Test BaseValidator 'middleware' method", () => {
 				expect(mockEvent.handler).toHaveBeenCalledTimes(0);
 			});
 		});
-
 	});
 
 	describe("Test middleware localEvent with custom paramName", () => {
@@ -447,7 +453,7 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(wrapped).not.toBe(mockEvent.handler);
 
 			expect(v.compile).toHaveBeenCalledTimes(1);
-			expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
+			expect(v.compile).toHaveBeenCalledWith({ id: "number", name: "string" });
 
 			// Create fake context
 			const ctx = { params: { id: 5, name: "John" }, event: mockEvent };
@@ -455,11 +461,13 @@ describe("Test BaseValidator 'middleware' method", () => {
 			// Call wrapped function
 			return wrapped(ctx).then(() => {
 				expect(checkGood).toHaveBeenCalledTimes(1);
-				expect(checkGood).toHaveBeenCalledWith({ id: 5, name: "John" }, { meta: { params: { id: 5, name: "John" }, event: mockEvent } });
+				expect(checkGood).toHaveBeenCalledWith(
+					{ id: 5, name: "John" },
+					{ meta: { params: { id: 5, name: "John" }, event: mockEvent } }
+				);
 				expect(mockEvent.handler).toHaveBeenCalledTimes(1);
 			});
 		});
-
 
 		it("should call handler because the params is NOT exist", () => {
 			const mockEvent = {
@@ -475,7 +483,5 @@ describe("Test BaseValidator 'middleware' method", () => {
 			expect(typeof wrapped).toBe("function");
 			expect(wrapped).toBe(mockEvent.handler);
 		});
-
 	});
-
 });

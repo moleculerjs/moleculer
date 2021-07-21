@@ -17,7 +17,7 @@ describe("Moleculer memory leak test", () => {
 			actions: {
 				welcome: {
 					params: {
-						name: "string",
+						name: "string"
 					},
 					handler(ctx) {
 						return `Hello ${ctx.params.name}`;
@@ -55,12 +55,9 @@ describe("Moleculer memory leak test", () => {
 
 			for (let i = 0; i < COUNTER; i++) {
 				const p = paramsIsFunc ? params() : params;
-				if (type == "call")
-					await broker.call(actionName, p);
-				else if (type == "emit")
-					await broker.emit(actionName, p);
-				else
-					throw new Error("Unknow type: " + type);
+				if (type == "call") await broker.call(actionName, p);
+				else if (type == "emit") await broker.emit(actionName, p);
+				else throw new Error("Unknow type: " + type);
 			}
 
 			memwatch.gc();
@@ -77,6 +74,5 @@ describe("Moleculer memory leak test", () => {
 		it("should not leak when sending & receiving event", async () => {
 			await execute("emit", "user.created", { name: "John Doe" });
 		});
-
 	});
 });

@@ -16,7 +16,6 @@ const _ = require("lodash");
  * @extends {BaseReporter}
  */
 class EventReporter extends BaseReporter {
-
 	/**
 	 * Creates an instance of EventReporter.
 	 * @param {Object} opts
@@ -33,7 +32,7 @@ class EventReporter extends BaseReporter {
 
 			onlyChanges: false,
 
-			interval: 5,
+			interval: 5
 		});
 
 		this.lastChanges = new Set();
@@ -62,14 +61,12 @@ class EventReporter extends BaseReporter {
 	sendEvent() {
 		let list = this.registry.list({
 			includes: this.opts.includes,
-			excludes: this.opts.excludes,
+			excludes: this.opts.excludes
 		});
 
-		if (this.opts.onlyChanges)
-			list = list.filter(metric => this.lastChanges.has(metric.name));
+		if (this.opts.onlyChanges) list = list.filter(metric => this.lastChanges.has(metric.name));
 
-		if (list.length == 0)
-			return;
+		if (list.length == 0) return;
 
 		if (this.opts.broadcast) {
 			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) broadcast events.`);
@@ -81,7 +78,6 @@ class EventReporter extends BaseReporter {
 
 		this.lastChanges.clear();
 	}
-
 
 	/**
 	 * Some metric has been changed.

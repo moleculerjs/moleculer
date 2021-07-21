@@ -4,7 +4,6 @@ const LocalDiscoverer = require("../../../../src/registry/discoverers").Local;
 const ServiceBroker = require("../../../../src/service-broker");
 
 describe("Test LocalDiscoverer 'discoverNode' method", () => {
-
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new LocalDiscoverer();
@@ -31,7 +30,6 @@ describe("Test LocalDiscoverer 'discoverNode' method", () => {
 });
 
 describe("Test LocalDiscoverer 'discoverAllNodes' method", () => {
-
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new LocalDiscoverer();
@@ -58,7 +56,6 @@ describe("Test LocalDiscoverer 'discoverAllNodes' method", () => {
 });
 
 describe("Test LocalDiscoverer 'sendLocalNodeInfo' method", () => {
-
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new LocalDiscoverer();

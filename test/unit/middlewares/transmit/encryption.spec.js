@@ -24,14 +24,15 @@ describe("Test EncryptionMiddleware", () => {
 
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-		expect(next.mock.calls[0][1]).toEqual(Buffer.concat([encrypter.update("plaintext data"), encrypter.final()]));
+		expect(next.mock.calls[0][1]).toEqual(
+			Buffer.concat([encrypter.update("plaintext data"), encrypter.final()])
+		);
 	});
 
 	it("should encrypt the data with IV", () => {
 		const pass = crypto.randomBytes(32);
 		const iv = crypto.randomBytes(16);
 		const mw = Middleware(pass, "aes-256-ctr", iv);
-
 
 		const meta = {};
 		const next = jest.fn();
@@ -42,7 +43,9 @@ describe("Test EncryptionMiddleware", () => {
 
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
-		expect(next.mock.calls[0][1]).toEqual(Buffer.concat([encrypter.update("plaintext data"), encrypter.final()]));
+		expect(next.mock.calls[0][1]).toEqual(
+			Buffer.concat([encrypter.update("plaintext data"), encrypter.final()])
+		);
 	});
 
 	it("should decrypt data with IV", () => {
@@ -52,7 +55,10 @@ describe("Test EncryptionMiddleware", () => {
 		const next = jest.fn();
 		const receive = mw.transporterReceive.call(broker, next);
 		const encrypter = crypto.createCipher("aes-256-cbc", password);
-		const encryptedData = Buffer.concat([encrypter.update("plaintext data"), encrypter.final()]);
+		const encryptedData = Buffer.concat([
+			encrypter.update("plaintext data"),
+			encrypter.final()
+		]);
 
 		receive("topic", encryptedData, meta);
 		expect(next).toHaveBeenCalledTimes(1);
@@ -68,13 +74,13 @@ describe("Test EncryptionMiddleware", () => {
 		const next = jest.fn();
 		const receive = mw.transporterReceive.call(broker, next);
 		const encrypter = crypto.createCipheriv("aes-256-ctr", pass, iv);
-		const encryptedData = Buffer.concat([encrypter.update("plaintext data"), encrypter.final()]);
+		const encryptedData = Buffer.concat([
+			encrypter.update("plaintext data"),
+			encrypter.final()
+		]);
 
 		receive("topic", encryptedData, meta);
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(next).toHaveBeenCalledWith("topic", Buffer.from("plaintext data"), meta);
 	});
-
 });
-
-

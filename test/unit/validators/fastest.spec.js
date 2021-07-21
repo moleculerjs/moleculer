@@ -6,7 +6,6 @@ const { ValidationError } = require("../../../src/errors");
 const { protectReject } = require("../utils");
 
 describe("Test FastestValidator constructor", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor without opts", () => {
@@ -27,11 +26,9 @@ describe("Test FastestValidator constructor", () => {
 			useNewCustomCheckerFunction: true
 		});
 	});
-
 });
 
 describe("Test FastestValidator 'init' method", () => {
-
 	it("should set broker", () => {
 		const broker = new ServiceBroker({ logger: false });
 
@@ -44,7 +41,6 @@ describe("Test FastestValidator 'init' method", () => {
 });
 
 describe("Test Validator.compile", () => {
-
 	const v = new FastestValidator();
 	v.validator.compile = jest.fn(() => true);
 
@@ -53,11 +49,9 @@ describe("Test Validator.compile", () => {
 
 		expect(v.validator.compile).toHaveBeenCalledTimes(1);
 	});
-
 });
 
 describe("Test Validator.validate", () => {
-
 	const v = new FastestValidator();
 	v.validator.validate = jest.fn(() => true);
 
@@ -72,7 +66,6 @@ describe("Test Validator.validate", () => {
 		v.validator.validate = jest.fn(() => []);
 		expect(() => {
 			v.validate({}, {});
-
 		}).toThrow(ValidationError);
 	});
 });
@@ -88,7 +81,6 @@ describe("Test Validator.convertSchemaToMoleculer", () => {
 });
 
 describe("Test Validator with context", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	broker.createService({
 		name: "test",
@@ -106,7 +98,7 @@ describe("Test Validator with context", () => {
 								return [
 									{
 										type: "isTest",
-										actual: undefined,
+										actual: undefined
 									}
 								];
 							}
@@ -123,7 +115,8 @@ describe("Test Validator with context", () => {
 	afterAll(() => broker.stop());
 
 	it("should validate with meta", () => {
-		return broker.call("test.withCustomValidation", { c: "asd" }, { meta: { isTest: true } })
+		return broker
+			.call("test.withCustomValidation", { c: "asd" }, { meta: { isTest: true } })
 			.catch(protectReject)
 			.then(res => {
 				expect(res).toEqual(123);
@@ -131,16 +124,21 @@ describe("Test Validator with context", () => {
 	});
 
 	it("should throw ValidationError without meta", () => {
-		return broker.call("test.withCustomValidation", { c: "asd" }).then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(ValidationError);
-			expect(err.data).toEqual([{
-				action: "test.withCustomValidation",
-				actual: undefined,
-				field: "c",
-				message: "The 'meta.isTest' field is required.",
-				nodeID: broker.nodeID,
-				type: "isTest"
-			}]);
-		});
+		return broker
+			.call("test.withCustomValidation", { c: "asd" })
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(ValidationError);
+				expect(err.data).toEqual([
+					{
+						action: "test.withCustomValidation",
+						actual: undefined,
+						field: "c",
+						message: "The 'meta.isTest' field is required.",
+						nodeID: broker.nodeID,
+						type: "isTest"
+					}
+				]);
+			});
 	});
 });

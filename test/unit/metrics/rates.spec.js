@@ -13,10 +13,9 @@ const fakeMetricItem = {
 };
 
 describe("Test MetricRate class", () => {
-
 	let rate, clock;
 
-	beforeAll(() => clock = lolex.install({ now: 1234567899990 }));
+	beforeAll(() => (clock = lolex.install({ now: 1234567899990 })));
 	afterAll(() => clock.uninstall());
 
 	it("should create MetricRate", () => {
@@ -65,11 +64,9 @@ describe("Test MetricRate class", () => {
 		expect(rate.value).toBeNull();
 		expect(rate.rate).toBe(0);
 	});
-
 });
 
 describe("Test rate calculation", () => {
-
 	let clock, rate;
 	beforeAll(() => {
 		clock = lolex.install({ now: 1234567899990 });
@@ -133,6 +130,4 @@ describe("Test rate calculation", () => {
 
 		expect(fakeMetric.changed).toBeCalledTimes(13);
 	});
-
 });
-
