@@ -84,8 +84,11 @@ class Service {
 		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		if (!schema.name) {
-			/* eslint-disable-next-line */
-			console.error("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?", { schema });
+			/* eslint-disable-next-line no-console */
+			console.error(
+				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?",
+				{ schema }
+			);
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?",
 				{ schema }

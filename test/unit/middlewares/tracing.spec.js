@@ -152,7 +152,6 @@ describe("Test TracingMiddleware localAction", () => {
 
 			expect(res).toBe(result);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
 			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
@@ -314,9 +313,7 @@ describe("Test TracingMiddleware localAction", () => {
 
 			await newHandler(ctx);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 10;
-			/* eslint-disable-next-line */
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
@@ -1282,7 +1279,6 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			await newHandler(ctx);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
 			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);

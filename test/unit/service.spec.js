@@ -59,7 +59,7 @@ describe("Test Service class", () => {
 		it("should throw error if name is empty", () => {
 			Service.applyMixins.mockClear();
 			expect(() => {
-				/* eslint-disable-next-line */
+				/* eslint-disable-next-line no-console */
 				console.error = jest.fn();
 				svc.parseServiceSchema({});
 			}).toThrowError(
