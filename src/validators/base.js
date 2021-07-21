@@ -8,7 +8,6 @@
 
 const { ValidationError } = require("../errors");
 const _ = require("lodash");
-const { isPromise }	= require("../utils");
 
 class BaseValidator {
 

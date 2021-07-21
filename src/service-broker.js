@@ -336,7 +336,7 @@ class ServiceBroker {
 				if (utils.isPlainObject(mw))
 					this.middlewares.add(mw);
 				else
-					this.middlewares.add({ localAction: mw });
+					this.middlewares.add({ name: "Validator", localAction: mw });
 			}
 
 			// 2. Bulkhead
@@ -348,7 +348,7 @@ class ServiceBroker {
 				if (utils.isPlainObject(mw))
 					this.middlewares.add(mw);
 				else
-					this.middlewares.add({ localAction: mw });
+					this.middlewares.add({ name: "Cacher",  localAction: mw });
 			}
 
 			// 4. Context tracker
@@ -971,7 +971,7 @@ class ServiceBroker {
 					return {
 						name: serviceName,
 						available: this.registry.hasService(serviceName),
-					}
+					};
 				});
 
 				const availableServices = serviceStatuses.filter(s => s.available);
@@ -983,12 +983,12 @@ class ServiceBroker {
 
 				const unavailableServices = serviceStatuses.filter(s => !s.available);
 				logger.debug(format(
-					`%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...`,
+					"%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...",
 					availableServices.length,
-					availableServices.map(s => s.name).join(', '),
+					availableServices.map(s => s.name).join(", "),
 					serviceNames.length,
 					unavailableServices.length,
-					unavailableServices.map(s => s.name).join(', ')
+					unavailableServices.map(s => s.name).join(", ")
 				));
 
 				if (timeout && Date.now() - startTime > timeout)
