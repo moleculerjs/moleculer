@@ -1,4 +1,4 @@
-name: Benchmark test
+name: Linting
 
 on:
   push:
