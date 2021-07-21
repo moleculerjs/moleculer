@@ -135,7 +135,7 @@
     "mqtt": "^4.0.0",
     "msgpack5": "^5.0.0",
     "nats": "^1.0.0 || ^2.0.0",
-    "node-nats-streaming": "^0.0.51",
+    "node-nats-streaming": "^0.0.51 || ^0.3.0",
     "notepack.io": "2.0.0",
     "pino": "^6.0.0",
     "protobufjs": "^6.0.0",
