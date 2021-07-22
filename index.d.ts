@@ -562,7 +562,8 @@ declare namespace Moleculer {
 		call<T>(actionName: string): Promise<T>;
 		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: MCallCallingOptions): Promise<Array<T> | T>;
+		mcall<T>(def: Record<string, MCallDefinition>, opts?: MCallCallingOptions): Promise<Record<string, T>>;
+		mcall<T>(def: Array<MCallDefinition>, opts?: MCallCallingOptions): Promise<Array<T>>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
@@ -1089,7 +1090,8 @@ declare namespace Moleculer {
 		call<T>(actionName: string): Promise<T>;
 		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<MCallDefinition> | { [name: string]: MCallDefinition }, opts?: MCallCallingOptions): Promise<Array<T> | T>;
+		mcall<T>(def: Record<string, MCallDefinition>, opts?: MCallCallingOptions): Promise<Record<string, T>>;
+		mcall<T>(def: Array<MCallDefinition>, opts?: MCallCallingOptions): Promise<Array<T>>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
