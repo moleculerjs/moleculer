@@ -94,11 +94,14 @@ describe("Test Pino logger class", () => {
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
 			expect(logger.pino.child).toHaveBeenCalledTimes(1);
-			expect(logger.pino.child).toHaveBeenCalledWith({
-				level: "info",
-				mod: "my-service",
-				nodeID: "node-1"
-			});
+			expect(logger.pino.child).toHaveBeenCalledWith(
+				{},
+				{
+					level: "info",
+					mod: "my-service",
+					nodeID: "node-1"
+				}
+			);
 
 			logHandler("warn", ["message", { a: 5 }]);
 			expect(childFakeLogger.warn).toHaveBeenCalledTimes(1);
