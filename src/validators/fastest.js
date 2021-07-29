@@ -14,6 +14,9 @@ const _ = require("lodash");
 class FastestValidator extends BaseValidator {
 	constructor(opts) {
 		super(opts);
+		this.opts = _.defaultsDeep(opts, {
+			useNewCustomCheckerFunction: true
+		});
 		this.validator = new Validator(this.opts);
 	}
 
