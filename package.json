@@ -220,7 +220,10 @@
   },
   "types": "./index.d.ts",
   "tsd": {
-    "directory": "test/typescript/tsd"
+    "directory": "test/typescript/tsd",
+    "compilerOptions": {
+      "noImplicitThis": true
+    }
   },
   "jest": {
     "coverageDirectory": "../coverage",
