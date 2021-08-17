@@ -2,9 +2,7 @@
 
 let errors = require("../../src/errors");
 
-
 describe("Test Errors", () => {
-
 	it("test MoleculerError", () => {
 		let err = new errors.MoleculerError("Something went wrong!", 555, "ERR_TYPE", { a: 5 });
 		expect(err).toBeDefined();
@@ -19,7 +17,9 @@ describe("Test Errors", () => {
 	});
 
 	it("test MoleculerRetryableError", () => {
-		let err = new errors.MoleculerRetryableError("Something went wrong!", 555, "ERR_TYPE", { a: 5 });
+		let err = new errors.MoleculerRetryableError("Something went wrong!", 555, "ERR_TYPE", {
+			a: 5
+		});
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerError);
@@ -40,7 +40,9 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
 		expect(err).toBeInstanceOf(errors.BrokerDisconnectedError);
 		expect(err.name).toBe("BrokerDisconnectedError");
-		expect(err.message).toBe("The broker's transporter has disconnected. Please try again when a connection is reestablished.");
+		expect(err.message).toBe(
+			"The broker's transporter has disconnected. Please try again when a connection is reestablished."
+		);
 		expect(err.code).toBe(502);
 		expect(err.type).toBe("BAD_GATEWAY");
 		expect(err.data).toEqual(undefined);
@@ -48,7 +50,9 @@ describe("Test Errors", () => {
 	});
 
 	it("test MoleculerServerError", () => {
-		let err = new errors.MoleculerServerError("Something went wrong!", 555, "ERR_TYPE", { a: 5 });
+		let err = new errors.MoleculerServerError("Something went wrong!", 555, "ERR_TYPE", {
+			a: 5
+		});
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerError);
@@ -139,7 +143,9 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.RequestTimeoutError);
 		expect(err.code).toBe(504);
 		expect(err.name).toBe("RequestTimeoutError");
-		expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-2' node.");
+		expect(err.message).toBe(
+			"Request is timed out when call 'posts.find' action on 'server-2' node."
+		);
 		expect(err.type).toBe("REQUEST_TIMEOUT");
 		expect(err.data.nodeID).toBe("server-2");
 		expect(err.retryable).toBe(true);
@@ -153,7 +159,9 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.RequestSkippedError);
 		expect(err.code).toBe(514);
 		expect(err.name).toBe("RequestSkippedError");
-		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached on 'server-3' node.");
+		expect(err.message).toBe(
+			"Calling 'posts.find' is skipped because timeout reached on 'server-3' node."
+		);
 		expect(err.type).toBe("REQUEST_SKIPPED");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
@@ -168,7 +176,9 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.RequestRejectedError);
 		expect(err.code).toBe(503);
 		expect(err.name).toBe("RequestRejectedError");
-		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'server-3' node.");
+		expect(err.message).toBe(
+			"Request is rejected when call 'posts.find' action on 'server-3' node."
+		);
 		expect(err.type).toBe("REQUEST_REJECTED");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
@@ -176,14 +186,21 @@ describe("Test Errors", () => {
 	});
 
 	it("test QueueIsFullError", () => {
-		let err = new errors.QueueIsFullError({ action: "posts.find", nodeID: "server-3", size: 100, limit: 50 });
+		let err = new errors.QueueIsFullError({
+			action: "posts.find",
+			nodeID: "server-3",
+			size: 100,
+			limit: 50
+		});
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
 		expect(err).toBeInstanceOf(errors.QueueIsFullError);
 		expect(err.code).toBe(429);
 		expect(err.name).toBe("QueueIsFullError");
-		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'server-3' node is rejected.");
+		expect(err.message).toBe(
+			"Queue is full. Request 'posts.find' action on 'server-3' node is rejected."
+		);
 		expect(err.type).toBe("QUEUE_FULL");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
@@ -261,7 +278,11 @@ describe("Test Errors", () => {
 	});
 
 	it("test ProtocolVersionMismatchError", () => {
-		let err = new errors.ProtocolVersionMismatchError({ nodeID: "server-2", actual: "2", received: "1" });
+		let err = new errors.ProtocolVersionMismatchError({
+			nodeID: "server-2",
+			actual: "2",
+			received: "1"
+		});
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.ProtocolVersionMismatchError);
@@ -286,11 +307,9 @@ describe("Test Errors", () => {
 		expect(err.data).toEqual({ type: "INFO", payload });
 		expect(err.retryable).toBe(false);
 	});
-
 });
 
 describe("Test Errors.recreateError", () => {
-
 	it("should recreate MoleculerError", () => {
 		let err = errors.recreateError({
 			name: "MoleculerError",
@@ -411,7 +430,9 @@ describe("Test Errors.recreateError", () => {
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(errors.RequestTimeoutError);
 		expect(err.name).toBe("RequestTimeoutError");
-		expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'node-2' node.");
+		expect(err.message).toBe(
+			"Request is timed out when call 'posts.find' action on 'node-2' node."
+		);
 		expect(err.code).toBe(504);
 		expect(err.type).toBe("REQUEST_TIMEOUT");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
@@ -425,7 +446,9 @@ describe("Test Errors.recreateError", () => {
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(errors.RequestSkippedError);
 		expect(err.name).toBe("RequestSkippedError");
-		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached on 'node-2' node.");
+		expect(err.message).toBe(
+			"Calling 'posts.find' is skipped because timeout reached on 'node-2' node."
+		);
 		expect(err.code).toBe(514);
 		expect(err.type).toBe("REQUEST_SKIPPED");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
@@ -439,7 +462,9 @@ describe("Test Errors.recreateError", () => {
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(errors.RequestRejectedError);
 		expect(err.name).toBe("RequestRejectedError");
-		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'node-2' node.");
+		expect(err.message).toBe(
+			"Request is rejected when call 'posts.find' action on 'node-2' node."
+		);
 		expect(err.code).toBe(503);
 		expect(err.type).toBe("REQUEST_REJECTED");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
@@ -453,7 +478,9 @@ describe("Test Errors.recreateError", () => {
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(errors.QueueIsFullError);
 		expect(err.name).toBe("QueueIsFullError");
-		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'node-2' node is rejected.");
+		expect(err.message).toBe(
+			"Queue is full. Request 'posts.find' action on 'node-2' node is rejected."
+		);
 		expect(err.code).toBe(429);
 		expect(err.type).toBe("QUEUE_FULL");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
@@ -551,5 +578,4 @@ describe("Test Errors.recreateError", () => {
 		});
 		expect(err).toBeUndefined();
 	});
-
 });

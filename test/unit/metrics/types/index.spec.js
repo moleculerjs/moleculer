@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../../src/errors");
 const MetricTypes = require("../../../../src/metrics/types");
 
 describe("Test MetricTypes resolver", () => {
-
 	it("should throw error", () => {
 		expect(() => MetricTypes.resolve()).toThrowError(BrokerOptionsError);
 		expect(() => MetricTypes.resolve("xyz")).toThrowError(BrokerOptionsError);
@@ -14,7 +13,6 @@ describe("Test MetricTypes resolver", () => {
 		expect(MetricTypes.resolve("histogram")).toBe(MetricTypes.Histogram);
 		expect(MetricTypes.resolve("info")).toBe(MetricTypes.Info);
 	});
-
 });
 
 describe("Test MetricTypes register", () => {

@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../src/errors");
 const Strategies = require("../../../src/strategies");
 
 describe("Test Strategies resolver", () => {
-
 	it("should resolve null from undefined", () => {
 		let Strategy = Strategies.resolve();
 		expect(Strategy).toBe(Strategies.RoundRobin);
@@ -38,9 +37,7 @@ describe("Test Strategies resolver", () => {
 			Strategies.resolve({ type: "xyz" });
 		}).toThrowError(BrokerOptionsError);
 	});
-
 });
-
 
 describe("Test Strategies register", () => {
 	class MyCustom {}

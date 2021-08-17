@@ -16,7 +16,7 @@ function createBroker(opts = {}) {
 }
 
 const bench1 = benchmark.createSuite("Local call");
-(function() {
+(function () {
 	const broker = createBroker();
 	bench1.ref("broker.call (normal)", done => {
 		return broker.call("users.empty").then(done);
@@ -25,20 +25,19 @@ const bench1 = benchmark.createSuite("Local call");
 	bench1.add("broker.call (with params)", done => {
 		return broker.call("math.add", { a: 4, b: 2 }).then(done);
 	});
-
 })();
 
 // ----------------------------------------------------------------
 const bench2 = benchmark.createSuite("Call with middlewares");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench2.ref("No middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({
 		internalMiddlewares: false
 	});
@@ -47,7 +46,7 @@ const bench2 = benchmark.createSuite("Call with middlewares");
 	});
 })();
 
-(function() {
+(function () {
 	const mw1 = {
 		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
@@ -64,14 +63,14 @@ const bench2 = benchmark.createSuite("Call with middlewares");
 // ----------------------------------------------------------------
 const bench3 = benchmark.createSuite("Call with metrics");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench3.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ metrics: true });
 	bench3.add("With metrics", done => {
 		return broker.call("users.empty").then(done);
@@ -81,14 +80,14 @@ const bench3 = benchmark.createSuite("Call with metrics");
 // ----------------------------------------------------------------
 const bench4 = benchmark.createSuite("Call with tracing");
 
-(function() {
+(function () {
 	const broker = createBroker();
 	bench4.ref("No tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
-(function() {
+(function () {
 	const broker = createBroker({ tracing: true });
 	bench4.add("With tracing", done => {
 		return broker.call("users.empty").then(done);
@@ -98,8 +97,7 @@ const bench4 = benchmark.createSuite("Call with tracing");
 // ----------------------------------------------------------------
 const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 
-(function() {
-
+(function () {
 	const Transporter = require("../../src/transporters/fake");
 	const Serializer = require("../../src/serializers/json");
 
@@ -143,8 +141,8 @@ const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 // ----------------------------------------------------------------
 
 let bench6 = benchmark.createSuite("Context tracking");
-(function() {
-	let broker = createBroker( { trackContext: true });
+(function () {
+	let broker = createBroker({ trackContext: true });
 	bench6.ref("broker.call (without tracking)", done => {
 		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: false }).then(done);
 	});
@@ -152,7 +150,6 @@ let bench6 = benchmark.createSuite("Context tracking");
 	bench6.add("broker.call (with tracking)", done => {
 		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: true }).then(done);
 	});
-
 })();
 
 module.exports = Promise.resolve()

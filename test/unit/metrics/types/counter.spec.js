@@ -3,7 +3,6 @@
 const CounterMetric = require("../../../../src/metrics/types/counter");
 
 describe("Test Base Metric class", () => {
-
 	const registry = {
 		changed: jest.fn(),
 		opts: {
@@ -12,13 +11,15 @@ describe("Test Base Metric class", () => {
 	};
 
 	describe("Test Constructor", () => {
-
 		it("should create with base options", () => {
 			registry.changed.mockClear();
-			const item = new CounterMetric({
-				type: "counter",
-				name: "test.counter"
-			}, registry);
+			const item = new CounterMetric(
+				{
+					type: "counter",
+					name: "test.counter"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("counter");
@@ -29,7 +30,6 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test increment method", () => {
-
 		const item = new CounterMetric({ type: "counter", name: "test.counter" }, registry);
 		jest.spyOn(item, "set");
 
@@ -53,7 +53,6 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test decrement method", () => {
-
 		const item = new CounterMetric({ type: "counter", name: "test.counter" }, registry);
 
 		it("should throw error", () => {
@@ -62,8 +61,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test set, reset & resetAll method", () => {
-
-		const item = new CounterMetric({ type: "counter", name: "test.counter", labelNames: ["a"] }, registry);
+		const item = new CounterMetric(
+			{ type: "counter", name: "test.counter", labelNames: ["a"] },
+			registry
+		);
 		jest.spyOn(item, "changed");
 
 		it("should store a value", () => {
@@ -143,8 +144,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test generateSnapshot method", () => {
-
-		const item = new CounterMetric({ type: "counter", name: "test.counter", labelNames: ["a"] }, registry);
+		const item = new CounterMetric(
+			{ type: "counter", name: "test.counter", labelNames: ["a"] },
+			registry
+		);
 
 		item.set(3, null, 1111);
 		item.set(4, { a: 1 }, 2222);
@@ -154,7 +157,5 @@ describe("Test Base Metric class", () => {
 		it("should generate a snapshot", () => {
 			expect(item.generateSnapshot()).toMatchSnapshot();
 		});
-
 	});
-
 });

@@ -3,7 +3,6 @@
 let Node = require("../../../src/registry/node");
 
 describe("Test Node", () => {
-
 	it("should create a new Node", () => {
 		let node = new Node("node-1");
 
@@ -148,5 +147,4 @@ describe("Test Node", () => {
 		expect(node.offlineSince).toBeDefined();
 		expect(node.seq).toBe(6);
 	});
-
 });

@@ -7,7 +7,6 @@ const BaseSerializer = require("./base");
  * @class JSONSerializer
  */
 class NotepackSerializer extends BaseSerializer {
-
 	/**
 	 * Initialize Serializer
 	 *
@@ -20,34 +19,38 @@ class NotepackSerializer extends BaseSerializer {
 
 		try {
 			this.codec = require("notepack.io");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'notepack.io' package is missing! Please install it with 'npm install notepack.io --save' command!", err, true);
+			this.broker.fatal(
+				"The 'notepack.io' package is missing! Please install it with 'npm install notepack.io --save' command!",
+				err,
+				true
+			);
 		}
 	}
 
 	/**
-   * Serializer a JS object to Buffer
-   *
-   * @param {Object} obj
-   * @param {String} type of packet
-   * @returns {Buffer}
-   *
-   * @memberof Serializer
-   */
+	 * Serializer a JS object to Buffer
+	 *
+	 * @param {Object} obj
+	 * @param {String} type of packet
+	 * @returns {Buffer}
+	 *
+	 * @memberof Serializer
+	 */
 	serialize(obj) {
 		return this.codec.encode(obj);
 	}
 
 	/**
-   * Deserialize Buffer to JS object
-   *
-   * @param {Buffer} buf
-   * @param {String} type of packet
-   * @returns {Object}
-   *
-   * @memberof Serializer
-   */
+	 * Deserialize Buffer to JS object
+	 *
+	 * @param {Buffer} buf
+	 * @param {String} type of packet
+	 * @returns {Object}
+	 *
+	 * @memberof Serializer
+	 */
 	deserialize(buf) {
 		return this.codec.decode(buf);
 	}

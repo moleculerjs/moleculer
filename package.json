@@ -12,9 +12,9 @@
     "deps": "npm-check -u",
     "postdeps": "npm run lint:lock && npm test",
     "dev": "nodemon dev/index.js",
-    "lint": "eslint --ext=.js src test/unit test/integration",
+    "lint": "eslint --ext=.js benchmark bin examples src test",
+    "lint:fix": "eslint --fix --ext=.js benchmark bin examples src test",
     "lint:lock": "lockfile-lint --path package-lock.json --type npm --validate-https --allowed-hosts npm",
-    "lint:fix": "eslint --fix --ext=.js src test/unit test/integration",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "memleak": "node benchmark/memleak-test.js",
@@ -69,7 +69,9 @@
     "debug": "^4.3.2",
     "dotenv": "^10.0.0",
     "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-security": "^1.4.0",
     "etcd3": "^1.1.0",
@@ -94,6 +96,7 @@
     "notepack.io": "^2.3.0",
     "npm-check": "^5.9.2",
     "pino": "^6.13.0",
+    "prettier": "^2.3.2",
     "protobufjs": "^6.11.2",
     "redlock": "^4.2.0",
     "rhea-promise": "^2.1.0",
@@ -217,7 +220,10 @@
   },
   "types": "./index.d.ts",
   "tsd": {
-    "directory": "test/typescript/tsd"
+    "directory": "test/typescript/tsd",
+    "compilerOptions": {
+      "noImplicitThis": true
+    }
   },
   "jest": {
     "coverageDirectory": "../coverage",

@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console, no-unused-vars */
 
 "use strict";
 
@@ -15,8 +15,8 @@ const asyncLocalStorage = new AsyncLocalStorage();
 
 const AsyncLocalStorageMiddleware = {
 	localAction(handler) {
-		return (ctx) => asyncLocalStorage.run(ctx, () => handler(ctx));
-	},
+		return ctx => asyncLocalStorage.run(ctx, () => handler(ctx));
+	}
 };
 /*
 const async_hooks = require("async_hooks");
@@ -42,7 +42,7 @@ function createBrokers(Transporter, opts) {
 			//AsyncLocalStorageMiddleware
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		],
+		]
 		//Promise
 	});
 
@@ -55,7 +55,7 @@ function createBrokers(Transporter, opts) {
 			//AsyncLocalStorageMiddleware
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		],
+		]
 		//Promise
 	});
 
@@ -65,36 +65,34 @@ function createBrokers(Transporter, opts) {
 			reply(ctx) {
 				return ctx.params;
 			},
-			big(ctx) {
+			big() {
 				return someData;
 			}
 		}
 	});
 
-	return b1.Promise.all([
-		b1.start(),
-		b2.start(),
-	]).then(() => [b1, b2]);
+	return b1.Promise.all([b1.start(), b2.start()]).then(() => [b1, b2]);
 }
 
 createBrokers(Transporters.Fake).then(([b1, b2]) => {
-
 	let count = 0;
 	function doRequest() {
 		count++;
-		return b1.call("echo.reply", { a: count }).then(res => {
-			if (count % 10000) {
-				// Fast cycle
-				doRequest();
-			} else {
-				// Slow cycle
-				setImmediate(() => doRequest());
-			}
-			return res;
-
-		}).catch(err => {
-			throw err;
-		});
+		return b1
+			.call("echo.reply", { a: count })
+			.then(res => {
+				if (count % 10000) {
+					// Fast cycle
+					doRequest();
+				} else {
+					// Slow cycle
+					setImmediate(() => doRequest());
+				}
+				return res;
+			})
+			.catch(err => {
+				throw err;
+			});
 	}
 
 	setTimeout(() => {
@@ -108,11 +106,8 @@ createBrokers(Transporters.Fake).then(([b1, b2]) => {
 		}, 1000);
 
 		b1.waitForServices(["echo"]).then(() => doRequest());
-
 	}, 1000);
-
 });
-
 
 /*
 Local calls
@@ -120,7 +115,7 @@ Local calls
 
 No async:  			1 523 904 req/s
 AsyncLocalStorage: 	  185 005 req/s
-Async hooks:		  108 803 req/s
+Async hooks:		  108 803 req/s
 
 
 Remote calls

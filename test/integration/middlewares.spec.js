@@ -3,7 +3,6 @@ const utils = require("../../src/utils");
 const { protectReject } = require("../unit/utils");
 
 describe("Test middleware system", () => {
-
 	describe("Test with sync & async middlewares", () => {
 		let flow = [];
 		let mw1Sync = {
@@ -27,17 +26,24 @@ describe("Test middleware system", () => {
 							flow.push("B2P");
 							resolve();
 						}, 10);
-					}).then(() => {
-						return handler(ctx);
-					}).then(res => {
-						flow.push("A2");
-						return res;
-					});
+					})
+						.then(() => {
+							return handler(ctx);
+						})
+						.then(res => {
+							flow.push("A2");
+							return res;
+						});
 				};
 			}
 		};
 
-		let broker = new ServiceBroker({ logger: false, validator: false, internalMiddlewares: false, middlewares: [mw2Async, null, mw1Sync] });
+		let broker = new ServiceBroker({
+			logger: false,
+			validator: false,
+			internalMiddlewares: false,
+			middlewares: [mw2Async, null, mw1Sync]
+		});
 
 		let master = jest.fn(() => {
 			flow.push("MASTER");
@@ -111,7 +117,12 @@ describe("Test middleware system", () => {
 			return { user: "icebob" };
 		});
 
-		let broker = new ServiceBroker({ logger: false, validator: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
+		let broker = new ServiceBroker({
+			logger: false,
+			validator: false,
+			internalMiddlewares: false,
+			middlewares: [mw3, mw2, mw1]
+		});
 
 		broker.createService({
 			name: "test",
@@ -183,7 +194,12 @@ describe("Test middleware system", () => {
 			return { user: "icebob" };
 		});
 
-		let broker = new ServiceBroker({ logger: false, validator: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
+		let broker = new ServiceBroker({
+			logger: false,
+			validator: false,
+			internalMiddlewares: false,
+			middlewares: [mw3, mw2, mw1]
+		});
 
 		broker.createService({
 			name: "test",
@@ -240,7 +256,11 @@ describe("Test middleware system", () => {
 			});
 		});
 
-		let broker = new ServiceBroker({ logger: false, validator: false, middlewares: [mw2, mw1] });
+		let broker = new ServiceBroker({
+			logger: false,
+			validator: false,
+			middlewares: [mw2, mw1]
+		});
 
 		broker.createService({
 			name: "test",
@@ -261,12 +281,9 @@ describe("Test middleware system", () => {
 			});
 		});
 	});
-
 });
 
-
 describe("Test middleware v2 system", () => {
-
 	const FLOW = [];
 	let broker, svc;
 
@@ -305,7 +322,7 @@ describe("Test middleware v2 system", () => {
 			// Wrap local event handlers
 			localEvent(next, event) {
 				expect(event).toBeDefined();
-				return (ctx) => {
+				return ctx => {
 					FLOW.push(`${mwName}-localEvent-${ctx.eventName}-${ctx.params.name}`);
 					return next(ctx);
 				};
@@ -329,7 +346,7 @@ describe("Test middleware v2 system", () => {
 
 			// Wrap broker.registerLocalService method
 			registerLocalService(next) {
-				return (svc) => {
+				return svc => {
 					FLOW.push(`${mwName}-registerLocalService-${svc.name}`);
 					return next(svc);
 				};
@@ -337,7 +354,7 @@ describe("Test middleware v2 system", () => {
 
 			// Wrap broker.destroyService method
 			destroyService(next) {
-				return (svc) => {
+				return svc => {
 					FLOW.push(`${mwName}-destroyService-${svc.name}`);
 					return next(svc);
 				};
@@ -356,7 +373,7 @@ describe("Test middleware v2 system", () => {
 
 			// Wrap broker.mcall method
 			mcall(next) {
-				return (def) => {
+				return def => {
 					FLOW.push(`${mwName}-mcall-${def[0].action}-before-${def[0].params.name}`);
 					return next(def).then(res => {
 						FLOW.push(`${mwName}-mcall-${def[0].action}-after-${def[0].params.name}`);
@@ -494,17 +511,21 @@ describe("Test middleware v2 system", () => {
 					return next(cmd, data, s);
 				};
 			}
-
 		};
 	}
 
 	const mw1 = createMW("mw1");
 	const mw2 = createMW("mw2");
 
-	beforeEach(() => FLOW.length = 0);
+	beforeEach(() => (FLOW.length = 0));
 
 	it("should call 'created' ", () => {
-		broker = new ServiceBroker({ nodeID: "mw2-test", logger: false, internalMiddlewares: false, middlewares: [mw1, mw2] });
+		broker = new ServiceBroker({
+			nodeID: "mw2-test",
+			logger: false,
+			internalMiddlewares: false,
+			middlewares: [mw1, mw2]
+		});
 
 		expect(FLOW).toEqual([
 			"mw2-createService-$node",
@@ -517,7 +538,7 @@ describe("Test middleware v2 system", () => {
 			"mw2-serviceCreated-$node",
 
 			"mw1-created",
-			"mw2-created",
+			"mw2-created"
 		]);
 	});
 
@@ -555,78 +576,85 @@ describe("Test middleware v2 system", () => {
 	});
 
 	it("should call 'starting', 'started', 'serviceStarting' & serviceStarted' ", () => {
-		return broker.start().catch(protectReject).then(() => {
-			expect(FLOW).toEqual([
-				"mw1-starting",
-				"mw2-starting",
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"mw1-starting",
+					"mw2-starting",
 
-				"mw1-serviceStarting-$node",
-				"mw1-serviceStarting-greeter",
-				"mw2-serviceStarting-$node",
-				"mw2-serviceStarting-greeter",
+					"mw1-serviceStarting-$node",
+					"mw1-serviceStarting-greeter",
+					"mw2-serviceStarting-$node",
+					"mw2-serviceStarting-greeter",
 
-				"mw2-registerLocalService-$node",
-				"mw1-registerLocalService-$node",
-				"mw2-registerLocalService-greeter",
-				"mw1-registerLocalService-greeter",
+					"mw2-registerLocalService-$node",
+					"mw1-registerLocalService-$node",
+					"mw2-registerLocalService-greeter",
+					"mw1-registerLocalService-greeter",
 
-				"mw1-serviceStarted-$node",
-				"mw1-serviceStarted-greeter",
-				"mw2-serviceStarted-$node",
-				"mw2-serviceStarted-greeter",
+					"mw1-serviceStarted-$node",
+					"mw1-serviceStarted-greeter",
+					"mw2-serviceStarted-$node",
+					"mw2-serviceStarted-greeter",
 
-				"mw1-started",
-				"mw2-started"
-			]);
-		});
+					"mw1-started",
+					"mw2-started"
+				]);
+			});
 	});
 
 	it("should call 'call' & 'localAction' ", () => {
-		return broker.call("greeter.hello", { name: "John" }).catch(protectReject).then(res => {
-			expect(res).toBe("Hello John!");
-			expect(FLOW).toEqual([
-				"mw2-call-greeter.hello-before-John",
-				"mw1-call-greeter.hello-before-John",
+		return broker
+			.call("greeter.hello", { name: "John" })
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("Hello John!");
+				expect(FLOW).toEqual([
+					"mw2-call-greeter.hello-before-John",
+					"mw1-call-greeter.hello-before-John",
 
-				"mw2-localAction-before-John",
-				"mw1-localAction-before-John",
+					"mw2-localAction-before-John",
+					"mw1-localAction-before-John",
 
-				"svc-greeter.hello-John",
+					"svc-greeter.hello-John",
 
-				"mw1-localAction-after-John",
-				"mw2-localAction-after-John",
+					"mw1-localAction-after-John",
+					"mw2-localAction-after-John",
 
-				"mw1-call-greeter.hello-after-John",
-				"mw2-call-greeter.hello-after-John"
-			]);
-		});
+					"mw1-call-greeter.hello-after-John",
+					"mw2-call-greeter.hello-after-John"
+				]);
+			});
 	});
 
 	it("should call 'mcall' & 'localAction' ", () => {
-		return broker.mcall([
-			{ action: "greeter.hello", params: { name: "John" } }
-		]).catch(protectReject).then(res => {
-			expect(res).toEqual(["Hello John!"]);
-			expect(FLOW).toEqual([
-				"mw2-mcall-greeter.hello-before-John",
-				"mw1-mcall-greeter.hello-before-John",
-				"mw2-call-greeter.hello-before-John",
-				"mw1-call-greeter.hello-before-John",
+		return broker
+			.mcall([{ action: "greeter.hello", params: { name: "John" } }])
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toEqual(["Hello John!"]);
+				expect(FLOW).toEqual([
+					"mw2-mcall-greeter.hello-before-John",
+					"mw1-mcall-greeter.hello-before-John",
+					"mw2-call-greeter.hello-before-John",
+					"mw1-call-greeter.hello-before-John",
 
-				"mw2-localAction-before-John",
-				"mw1-localAction-before-John",
+					"mw2-localAction-before-John",
+					"mw1-localAction-before-John",
 
-				"svc-greeter.hello-John",
+					"svc-greeter.hello-John",
 
-				"mw1-localAction-after-John",
-				"mw2-localAction-after-John",
+					"mw1-localAction-after-John",
+					"mw2-localAction-after-John",
 
-				"mw1-call-greeter.hello-after-John",
-				"mw2-call-greeter.hello-after-John",
-				"mw1-mcall-greeter.hello-after-John",
-				"mw2-mcall-greeter.hello-after-John"
-			]);
-		});
+					"mw1-call-greeter.hello-after-John",
+					"mw2-call-greeter.hello-after-John",
+					"mw1-mcall-greeter.hello-after-John",
+					"mw2-mcall-greeter.hello-after-John"
+				]);
+			});
 	});
 
 	it("should call 'emit' & 'localEvent' ", () => {
@@ -674,51 +702,74 @@ describe("Test middleware v2 system", () => {
 	it("should call method & 'localMethod' ", () => {
 		const res = svc.uppercase("John");
 		expect(res).toBe("JOHN");
-		expect(FLOW).toEqual([
-			"mw2-localMethod-uppercase-John",
-			"mw1-localMethod-uppercase-John"
-		]);
+		expect(FLOW).toEqual(["mw2-localMethod-uppercase-John", "mw1-localMethod-uppercase-John"]);
 	});
 
 	it("should call 'destroyService', 'serviceStopping', 'serviceStopped' ", () => {
-		return broker.destroyService(broker.getLocalService("greeter")).catch(protectReject).then(() => {
-			expect(FLOW).toEqual([
-				"mw2-destroyService-greeter",
-				"mw1-destroyService-greeter",
+		return broker
+			.destroyService(broker.getLocalService("greeter"))
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"mw2-destroyService-greeter",
+					"mw1-destroyService-greeter",
 
-				"mw2-serviceStopping-greeter",
-				"mw1-serviceStopping-greeter",
+					"mw2-serviceStopping-greeter",
+					"mw1-serviceStopping-greeter",
 
-				"mw2-serviceStopped-greeter",
-				"mw1-serviceStopped-greeter"
-			]);
-		});
+					"mw2-serviceStopped-greeter",
+					"mw1-serviceStopped-greeter"
+				]);
+			});
 	});
 
 	it("should call 'stopping', 'stopped' ", () => {
-		return broker.stop().catch(protectReject).then(() => {
-			expect(FLOW).toEqual([
-				"mw2-stopping",
-				"mw1-stopping",
+		return broker
+			.stop()
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"mw2-stopping",
+					"mw1-stopping",
 
-				"mw2-serviceStopping-$node",
-				"mw1-serviceStopping-$node",
+					"mw2-serviceStopping-$node",
+					"mw1-serviceStopping-$node",
 
-				"mw2-serviceStopped-$node",
-				"mw1-serviceStopped-$node",
+					"mw2-serviceStopped-$node",
+					"mw1-serviceStopped-$node",
 
-				"mw2-stopped",
-				"mw1-stopped"
-			]);
-		});
+					"mw2-stopped",
+					"mw1-stopped"
+				]);
+			});
 	});
 
 	it("--- create broker with transporter", () => {
-		mw1.created = null; mw1.starting = null; mw1.started = null; mw1.stopping = null; mw1.stopped = null;
-		mw2.created = null; mw2.starting = null; mw2.started = null; mw2.stopping = null; mw2.stopped = null;
+		mw1.created = null;
+		mw1.starting = null;
+		mw1.started = null;
+		mw1.stopping = null;
+		mw1.stopped = null;
+		mw2.created = null;
+		mw2.starting = null;
+		mw2.started = null;
+		mw2.stopping = null;
+		mw2.stopped = null;
 
-		broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake", internalMiddlewares: false, middlewares: [mw1, mw2] });
-		const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "Fake", internalMiddlewares: false, middlewares: [mw1, mw2] });
+		broker = new ServiceBroker({
+			logger: false,
+			nodeID: "node-1",
+			transporter: "Fake",
+			internalMiddlewares: false,
+			middlewares: [mw1, mw2]
+		});
+		const broker2 = new ServiceBroker({
+			logger: false,
+			nodeID: "node-2",
+			transporter: "Fake",
+			internalMiddlewares: false,
+			middlewares: [mw1, mw2]
+		});
 		broker2.createService({
 			name: "greeter",
 			actions: {
@@ -729,7 +780,9 @@ describe("Test middleware v2 system", () => {
 			}
 		});
 
-		return Promise.all([broker.start(), broker2.start()]).delay(500)/*.catch(protectReject).then(() => {
+		return Promise.all([broker.start(), broker2.start()]).delay(
+			500
+		) /*.catch(protectReject).then(() => {
 			expect(FLOW).toEqual([
 
 			]);
@@ -737,84 +790,89 @@ describe("Test middleware v2 system", () => {
 	});
 
 	it("should call 'remoteAction' ", () => {
-		return broker.call("greeter.hello", { name: "John" }).catch(protectReject).then(res => {
-			expect(res).toBe("Hello John!");
-			expect(FLOW).toEqual([
-				"mw2-call-greeter.hello-before-John",
-				"mw1-call-greeter.hello-before-John",
+		return broker
+			.call("greeter.hello", { name: "John" })
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toBe("Hello John!");
+				expect(FLOW).toEqual([
+					"mw2-call-greeter.hello-before-John",
+					"mw1-call-greeter.hello-before-John",
 
-				"mw2-remoteAction-before-John",
-				"mw1-remoteAction-before-John",
+					"mw2-remoteAction-before-John",
+					"mw1-remoteAction-before-John",
 
-				"mw2-publish-REQ",
-				"mw1-publish-REQ",
+					"mw2-publish-REQ",
+					"mw1-publish-REQ",
 
-				"mw2-transporterSend-MOL.REQ.node-2",
-				"mw1-transporterSend-MOL.REQ.node-2",
+					"mw2-transporterSend-MOL.REQ.node-2",
+					"mw1-transporterSend-MOL.REQ.node-2",
 
-				"mw1-transporterReceive-REQ",
-				"mw2-transporterReceive-REQ",
+					"mw1-transporterReceive-REQ",
+					"mw2-transporterReceive-REQ",
 
-				"mw2-transitMessageHandler-REQ",
-				"mw1-transitMessageHandler-REQ",
+					"mw2-transitMessageHandler-REQ",
+					"mw1-transitMessageHandler-REQ",
 
-				"mw2-localAction-before-John",
-				"mw1-localAction-before-John",
+					"mw2-localAction-before-John",
+					"mw1-localAction-before-John",
 
-				"svc-greeter.hello-John",
+					"svc-greeter.hello-John",
 
-				"mw1-localAction-after-John",
-				"mw2-localAction-after-John",
+					"mw1-localAction-after-John",
+					"mw2-localAction-after-John",
 
-				"mw2-publish-RES",
-				"mw1-publish-RES",
+					"mw2-publish-RES",
+					"mw1-publish-RES",
 
-				"mw2-transporterSend-MOL.RES.node-1",
-				"mw1-transporterSend-MOL.RES.node-1",
+					"mw2-transporterSend-MOL.RES.node-1",
+					"mw1-transporterSend-MOL.RES.node-1",
 
-				"mw1-transporterReceive-RES",
-				"mw2-transporterReceive-RES",
+					"mw1-transporterReceive-RES",
+					"mw2-transporterReceive-RES",
 
-				"mw2-transitMessageHandler-RES",
-				"mw1-transitMessageHandler-RES",
+					"mw2-transitMessageHandler-RES",
+					"mw1-transitMessageHandler-RES",
 
-				"mw1-remoteAction-after-John",
-				"mw2-remoteAction-after-John",
+					"mw1-remoteAction-after-John",
+					"mw2-remoteAction-after-John",
 
-				"mw1-call-greeter.hello-after-John",
-				"mw2-call-greeter.hello-after-John"
-			]);
-		});
+					"mw1-call-greeter.hello-after-John",
+					"mw2-call-greeter.hello-after-John"
+				]);
+			});
 	});
 
 	it("should call 'transitPublish', 'transporterSend', 'transporterReceive', 'transporterSend' ", () => {
-		return broker.ping().catch(protectReject).then(() => {
-			expect(FLOW).toEqual([
-				"mw2-publish-PING",
-				"mw1-publish-PING",
+		return broker
+			.ping()
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"mw2-publish-PING",
+					"mw1-publish-PING",
 
-				"mw2-transporterSend-MOL.PING.node-2",
-				"mw1-transporterSend-MOL.PING.node-2",
+					"mw2-transporterSend-MOL.PING.node-2",
+					"mw1-transporterSend-MOL.PING.node-2",
 
-				"mw1-transporterReceive-PING",
-				"mw2-transporterReceive-PING",
+					"mw1-transporterReceive-PING",
+					"mw2-transporterReceive-PING",
 
-				"mw2-transitMessageHandler-PING",
-				"mw1-transitMessageHandler-PING",
+					"mw2-transitMessageHandler-PING",
+					"mw1-transitMessageHandler-PING",
 
-				"mw2-publish-PONG",
-				"mw1-publish-PONG",
+					"mw2-publish-PONG",
+					"mw1-publish-PONG",
 
-				"mw2-transporterSend-MOL.PONG.node-1",
-				"mw1-transporterSend-MOL.PONG.node-1",
+					"mw2-transporterSend-MOL.PONG.node-1",
+					"mw1-transporterSend-MOL.PONG.node-1",
 
-				"mw1-transporterReceive-PONG",
-				"mw2-transporterReceive-PONG",
+					"mw1-transporterReceive-PONG",
+					"mw2-transporterReceive-PONG",
 
-				"mw2-transitMessageHandler-PONG",
-				"mw1-transitMessageHandler-PONG"
-			]);
-		});
+					"mw2-transitMessageHandler-PONG",
+					"mw1-transitMessageHandler-PONG"
+				]);
+			});
 	});
-
 });

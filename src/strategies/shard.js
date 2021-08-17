@@ -20,7 +20,6 @@ const { isFunction } = require("../utils");
  * @class ShardStrategy
  */
 class ShardStrategy extends BaseStrategy {
-
 	constructor(registry, broker, opts) {
 		super(registry, broker, opts);
 
@@ -39,7 +38,7 @@ class ShardStrategy extends BaseStrategy {
 		this.needRebuild = true;
 		this.ring = [];
 
-		broker.localBus.on("$node.**", () => this.needRebuild = true);
+		broker.localBus.on("$node.**", () => (this.needRebuild = true));
 	}
 
 	/**
@@ -50,13 +49,11 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	getKeyFromContext(ctx) {
-		if (!this.opts.shardKey)  return null;
+		if (!this.opts.shardKey) return null;
 
-		if (isFunction(this.opts.shardKey))
-			return this.opts.shardKey.call(this, ctx);
+		if (isFunction(this.opts.shardKey)) return this.opts.shardKey.call(this, ctx);
 
-		if (this.opts.shardKey.startsWith("#"))
-			return _.get(ctx.meta, this.opts.shardKey.slice(1));
+		if (this.opts.shardKey.startsWith("#")) return _.get(ctx.meta, this.opts.shardKey.slice(1));
 
 		return _.get(ctx.params, this.opts.shardKey);
 	}
@@ -72,12 +69,10 @@ class ShardStrategy extends BaseStrategy {
 	select(list, ctx) {
 		let key = this.getKeyFromContext(ctx);
 		if (key != null) {
-			if (this.needRebuild)
-				this.rebuild(list);
+			if (this.needRebuild) this.rebuild(list);
 
 			const nodeID = this.getNodeIDByKey(key);
-			if (nodeID)
-				return list.find(ep => ep.id == nodeID);
+			if (nodeID) return list.find(ep => ep.id == nodeID);
 		}
 
 		// Return a random item (no key)
@@ -101,7 +96,7 @@ class ShardStrategy extends BaseStrategy {
 
 		let found;
 		const ringLen = this.ring.length;
-		for(let i = 0; i < ringLen; i++) {
+		for (let i = 0; i < ringLen; i++) {
 			if (hashNum <= this.ring[i].key) {
 				found = this.ring[i];
 				break;
@@ -109,8 +104,7 @@ class ShardStrategy extends BaseStrategy {
 		}
 
 		if (found) {
-			if (this.cache)
-				this.cache.set(key, found.nodeID);
+			if (this.cache) this.cache.set(key, found.nodeID);
 			return found.nodeID;
 		}
 		return null;
@@ -125,7 +119,7 @@ class ShardStrategy extends BaseStrategy {
 	 */
 	getHash(key) {
 		const hash = crypto.createHash("md5").update(key).digest("hex");
-		const hashNum = parseInt(hash.substring(0,8), 16);
+		const hashNum = parseInt(hash.substring(0, 8), 16);
 		return this.opts.ringSize ? hashNum % this.opts.ringSize : hashNum;
 	}
 
@@ -139,9 +133,7 @@ class ShardStrategy extends BaseStrategy {
 		this.cache.reset();
 		this.ring = [];
 
-		const arr = list
-			.map(ep => ep.id)
-			.sort();
+		const arr = list.map(ep => ep.id).sort();
 
 		const total = arr.length * this.opts.vnodes;
 		const ringSize = this.opts.ringSize ? this.opts.ringSize : Math.pow(2, 32);
@@ -162,7 +154,6 @@ class ShardStrategy extends BaseStrategy {
 
 		this.needRebuild = false;
 	}
-
 }
 
 module.exports = ShardStrategy;

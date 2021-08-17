@@ -7,13 +7,12 @@
 "use strict";
 
 module.exports = {
-
 	// --- METRIC TYPES ---
 
-	TYPE_COUNTER:  	"counter",
-	TYPE_GAUGE:  	"gauge",
+	TYPE_COUNTER: "counter",
+	TYPE_GAUGE: "gauge",
 	TYPE_HISTOGRAM: "histogram",
-	TYPE_INFO:  	"info",
+	TYPE_INFO: "info",
 
 	// --- METRICREGISTRY METRICS ---
 
@@ -38,13 +37,15 @@ module.exports = {
 	PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL: "process.memory.heap.space.size.physical", // bytes
 
 	PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL: "process.memory.heap.stat.heap.size.total", // bytes
-	PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL: "process.memory.heap.stat.executable.size.total", // bytes
+	PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL:
+		"process.memory.heap.stat.executable.size.total", // bytes
 	PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL: "process.memory.heap.stat.physical.size.total", // bytes
 	PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL: "process.memory.heap.stat.available.size.total", // bytes
 	PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE: "process.memory.heap.stat.used.heap.size", // bytes
 	PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT: "process.memory.heap.stat.heap.size.limit", // bytes
 	PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY: "process.memory.heap.stat.mallocated.memory", // bytes
-	PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY: "process.memory.heap.stat.peak.mallocated.memory", // bytes
+	PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY:
+		"process.memory.heap.stat.peak.mallocated.memory", // bytes
 	PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE: "process.memory.heap.stat.zap.garbage",
 
 	PROCESS_UPTIME: "process.uptime", // seconds
@@ -253,5 +254,5 @@ module.exports = {
 	UNIT_PACKET: "packet",
 	UNIT_MESSAGE: "message",
 	UNIT_STREAM: "stream",
-	UNIT_EVENT: "event",
+	UNIT_EVENT: "event"
 };

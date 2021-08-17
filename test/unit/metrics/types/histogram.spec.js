@@ -13,7 +13,6 @@ MetricRate.mockImplementation(() => ({
 }));
 
 describe("Test Base Metric class", () => {
-
 	const registry = {
 		changed: jest.fn(),
 		opts: {
@@ -26,13 +25,15 @@ describe("Test Base Metric class", () => {
 	};
 
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			registry.changed.mockClear();
-			const item = new HistogramMetric({
-				type: "histogram",
-				name: "test.histogram"
-			}, registry);
+			const item = new HistogramMetric(
+				{
+					type: "histogram",
+					name: "test.histogram"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("histogram");
@@ -46,108 +47,126 @@ describe("Test Base Metric class", () => {
 		});
 
 		describe("Test with buckets", () => {
-
 			it("should create with default buckets", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					buckets: true
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						buckets: true
+					},
+					registry
+				);
 
 				expect(item.buckets).toEqual([0.1, 0.2, 0.5, 1, 2, 5, 10]);
 			});
 
 			it("should create with custom buckets", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					buckets: [13, 3, 7, 9, 1]
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						buckets: [13, 3, 7, 9, 1]
+					},
+					registry
+				);
 
 				expect(item.buckets).toEqual([1, 3, 7, 9, 13]);
 			});
 
 			it("should create with linearBuckets", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					linearBuckets: {
-						start: 1,
-						width: 4,
-						count: 5
-					}
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						linearBuckets: {
+							start: 1,
+							width: 4,
+							count: 5
+						}
+					},
+					registry
+				);
 
 				expect(item.buckets).toEqual([1, 5, 9, 13, 17]);
 			});
 
 			it("should create with exponentialBuckets", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					exponentialBuckets: {
-						start: 1,
-						factor: 2.5,
-						count: 4
-					}
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						exponentialBuckets: {
+							start: 1,
+							factor: 2.5,
+							count: 4
+						}
+					},
+					registry
+				);
 
 				expect(item.buckets).toEqual([1, 2.5, 6.25, 15.625]);
 			});
-
 		});
 
 		describe("Test with quantiles", () => {
-
 			it("should create with default quantiles", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					quantiles: true,
-					maxAgeSeconds: 60,
-					ageBuckets: 10
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						quantiles: true,
+						maxAgeSeconds: 60,
+						ageBuckets: 10
+					},
+					registry
+				);
 
 				expect(item.quantiles).toEqual([0.1, 0.2, 0.5, 0.9, 0.99]);
 			});
 
 			it("should create with custom quantiles", () => {
 				registry.changed.mockClear();
-				const item = new HistogramMetric({
-					type: "histogram",
-					name: "test.histogram",
-					quantiles: [0.9, 0.6, 0.4, 0.2, 0.15],
-					maxAgeSeconds: 30,
-					ageBuckets: 5
-				}, registry);
+				const item = new HistogramMetric(
+					{
+						type: "histogram",
+						name: "test.histogram",
+						quantiles: [0.9, 0.6, 0.4, 0.2, 0.15],
+						maxAgeSeconds: 30,
+						ageBuckets: 5
+					},
+					registry
+				);
 
 				expect(item.quantiles).toEqual([0.15, 0.2, 0.4, 0.6, 0.9]);
 			});
-
 		});
 
 		it("should create with rates", () => {
 			registry.changed.mockClear();
-			const item = new HistogramMetric({
-				type: "histogram",
-				name: "test.histogram",
-				rate: true
-			}, registry);
+			const item = new HistogramMetric(
+				{
+					type: "histogram",
+					name: "test.histogram",
+					rate: true
+				},
+				registry
+			);
 
 			expect(item.rate).toBe(true);
 		});
 	});
 
 	describe("Test observe method", () => {
-
 		describe("Test without buckets & quantiles", () => {
-
-			const item = new HistogramMetric({ type: "histogram", name: "test.histogram" }, registry);
+			const item = new HistogramMetric(
+				{ type: "histogram", name: "test.histogram" },
+				registry
+			);
 			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
@@ -181,12 +200,13 @@ describe("Test Base Metric class", () => {
 				expect(item.changed).toBeCalledTimes(1);
 				expect(item.changed).toBeCalledWith(250, null, now);
 			});
-
 		});
 
 		describe("Test with buckets", () => {
-
-			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", buckets: [1, 2, 5, 10, 20, 50] }, registry);
+			const item = new HistogramMetric(
+				{ type: "histogram", name: "test.histogram", buckets: [1, 2, 5, 10, 20, 50] },
+				registry
+			);
 			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
@@ -200,18 +220,17 @@ describe("Test Base Metric class", () => {
 					lastValue: 2,
 					timestamp: now,
 					bucketValues: {
-						"1": 0,
-						"2": 1,
-						"5": 1,
-						"10": 1,
-						"20": 1,
-						"50": 1,
+						1: 0,
+						2: 1,
+						5: 1,
+						10: 1,
+						20: 1,
+						50: 1
 					}
 				});
 
 				expect(item.changed).toBeCalledTimes(1);
 				expect(item.changed).toBeCalledWith(2, null, now);
-
 			});
 
 			it("should sum values", () => {
@@ -225,24 +244,25 @@ describe("Test Base Metric class", () => {
 					lastValue: 13,
 					timestamp: now,
 					bucketValues: {
-						"1": 0,
-						"2": 1,
-						"5": 1,
-						"10": 1,
-						"20": 2,
-						"50": 2,
+						1: 0,
+						2: 1,
+						5: 1,
+						10: 1,
+						20: 2,
+						50: 2
 					}
 				});
 
 				expect(item.changed).toBeCalledTimes(1);
 				expect(item.changed).toBeCalledWith(13, null, now);
 			});
-
 		});
 
 		describe("Test with quantiles", () => {
-
-			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", quantiles: [0.1, 0.5, 0.9] }, registry);
+			const item = new HistogramMetric(
+				{ type: "histogram", name: "test.histogram", quantiles: [0.1, 0.5, 0.9] },
+				registry
+			);
 			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
@@ -278,12 +298,13 @@ describe("Test Base Metric class", () => {
 				expect(item.changed).toBeCalledTimes(1);
 				expect(item.changed).toBeCalledWith(13, null, now);
 			});
-
 		});
 
 		describe("Test with rate", () => {
-
-			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", rate: true }, registry);
+			const item = new HistogramMetric(
+				{ type: "histogram", name: "test.histogram", rate: true },
+				registry
+			);
 			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
@@ -333,42 +354,44 @@ describe("Test Base Metric class", () => {
 				expect(item.changed).toBeCalledTimes(1);
 				expect(item.changed).toBeCalledWith(250, null, now);
 			});
-
 		});
-
 	});
 
 	describe("Test createBucketValues method", () => {
-
-		const item = new HistogramMetric({ type: "histogram", name: "test.histogram", buckets: [1, 2, 5, 8, 10, 20] }, registry);
+		const item = new HistogramMetric(
+			{ type: "histogram", name: "test.histogram", buckets: [1, 2, 5, 8, 10, 20] },
+			registry
+		);
 
 		it("should generate bucket object", () => {
 			expect(item.createBucketValues()).toEqual({
-				"1": 0,
-				"2": 0,
-				"5": 0,
-				"8": 0,
-				"10": 0,
-				"20": 0,
+				1: 0,
+				2: 0,
+				5: 0,
+				8: 0,
+				10: 0,
+				20: 0
 			});
 		});
 	});
 
 	describe("Test generateSnapshot & generateItemSnapshot methods", () => {
-
-		const item = new HistogramMetric({
-			type: "histogram",
-			name: "test.histogram",
-			labelNames: ["a"],
-			buckets: [1, 2, 5, 8, 10, 20],
-			quantiles: [0.1, 0.5, 0.9],
-			rate: true
-		}, registry);
+		const item = new HistogramMetric(
+			{
+				type: "histogram",
+				name: "test.histogram",
+				labelNames: ["a"],
+				buckets: [1, 2, 5, 8, 10, 20],
+				quantiles: [0.1, 0.5, 0.9],
+				rate: true
+			},
+			registry
+		);
 
 		it("should generate snapshot", () => {
 			const now = 1558295472783;
-			item.observe(2, null, now +  1);
-			item.observe(8, null, now +  5);
+			item.observe(2, null, now + 1);
+			item.observe(8, null, now + 5);
 			item.observe(3, null, now + 10);
 			item.observe(6, null, now + 15);
 			item.observe(5, null, now + 20);
@@ -383,14 +406,16 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test resetItem method", () => {
-
-		const item = new HistogramMetric({
-			type: "histogram",
-			name: "test.histogram",
-			labelNames: ["a"],
-			buckets: [1, 2, 5, 10, 20],
-			quantiles: [0.1, 0.5, 0.9]
-		}, registry);
+		const item = new HistogramMetric(
+			{
+				type: "histogram",
+				name: "test.histogram",
+				labelNames: ["a"],
+				buckets: [1, 2, 5, 10, 20],
+				quantiles: [0.1, 0.5, 0.9]
+			},
+			registry
+		);
 
 		it("should initialize a value item", () => {
 			expect(item.resetItem({}, 123456)).toEqual({
@@ -399,11 +424,11 @@ describe("Test Base Metric class", () => {
 				lastValue: null,
 				timestamp: 123456,
 				bucketValues: {
-					"1": 0,
-					"2": 0,
-					"5": 0,
-					"10": 0,
-					"20": 0,
+					1: 0,
+					2: 0,
+					5: 0,
+					10: 0,
+					20: 0
 				},
 				quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 			});
@@ -411,14 +436,16 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test reset & resetAll method", () => {
-
-		const item = new HistogramMetric({
-			type: "histogram",
-			name: "test.histogram",
-			labelNames: ["a"],
-			buckets: [1, 2, 5, 10, 20],
-			quantiles: [0.1, 0.5, 0.9]
-		}, registry);
+		const item = new HistogramMetric(
+			{
+				type: "histogram",
+				name: "test.histogram",
+				labelNames: ["a"],
+				buckets: [1, 2, 5, 10, 20],
+				quantiles: [0.1, 0.5, 0.9]
+			},
+			registry
+		);
 
 		jest.spyOn(item, "changed");
 
@@ -426,8 +453,8 @@ describe("Test Base Metric class", () => {
 			expect(item.values.size).toBe(0);
 
 			const now = 1558295472783;
-			item.observe(2, null, now +  1);
-			item.observe(8, null, now +  5);
+			item.observe(2, null, now + 1);
+			item.observe(8, null, now + 5);
 			item.observe(3, null, now + 10);
 			item.observe(6, null, now + 15);
 			item.observe(5, null, now + 20);
@@ -450,11 +477,11 @@ describe("Test Base Metric class", () => {
 				lastValue: null,
 				timestamp: 23456,
 				bucketValues: {
-					"1": 0,
-					"2": 0,
-					"5": 0,
-					"10": 0,
-					"20": 0,
+					1: 0,
+					2: 0,
+					5: 0,
+					10: 0,
+					20: 0
 				},
 				quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 			});
@@ -475,11 +502,11 @@ describe("Test Base Metric class", () => {
 				lastValue: null,
 				timestamp: 34567,
 				bucketValues: {
-					"1": 0,
-					"2": 0,
-					"5": 0,
-					"10": 0,
-					"20": 0,
+					1: 0,
+					2: 0,
+					5: 0,
+					10: 0,
+					20: 0
 				},
 				quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 			});
@@ -490,11 +517,11 @@ describe("Test Base Metric class", () => {
 				lastValue: null,
 				timestamp: 34567,
 				bucketValues: {
-					"1": 0,
-					"2": 0,
-					"5": 0,
-					"10": 0,
-					"20": 0,
+					1: 0,
+					2: 0,
+					5: 0,
+					10: 0,
+					20: 0
 				},
 				quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 			});
@@ -505,27 +532,27 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test generateLinearBuckets & generateExponentialBuckets method", () => {
-
 		it("should linear generate bucket", () => {
 			expect(HistogramMetric.generateLinearBuckets(1, 1, 1)).toEqual([1]);
 			expect(HistogramMetric.generateLinearBuckets(1, 1, 0)).toEqual([]);
 			expect(HistogramMetric.generateLinearBuckets(0, 5, 3)).toEqual([0, 5, 10]);
-			expect(HistogramMetric.generateLinearBuckets(1, 2, 10)).toEqual([1,3,5,7,9,11,13,15,17,19]);
+			expect(HistogramMetric.generateLinearBuckets(1, 2, 10)).toEqual([
+				1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+			]);
 		});
 
 		it("should exponential generate bucket", () => {
 			expect(HistogramMetric.generateExponentialBuckets(1, 1, 1)).toEqual([1]);
 			expect(HistogramMetric.generateExponentialBuckets(1, 1, 0)).toEqual([]);
 			expect(HistogramMetric.generateExponentialBuckets(1, 5, 3)).toEqual([1, 5, 25]);
-			expect(HistogramMetric.generateExponentialBuckets(1, 2, 10)).toEqual([1,2,4,8,16,32,64,128,256,512]);
+			expect(HistogramMetric.generateExponentialBuckets(1, 2, 10)).toEqual([
+				1, 2, 4, 8, 16, 32, 64, 128, 256, 512
+			]);
 		});
-
 	});
-
 });
 
 describe("Test Bucket class", () => {
-
 	const bucket = new HistogramMetric.Bucket();
 
 	it("should create variables", () => {
@@ -546,7 +573,6 @@ describe("Test Bucket class", () => {
 		expect(bucket.count).toBe(0);
 		expect(bucket.samples).toEqual([]);
 	});
-
 });
 
 describe("Test TimeWindowQuantiles class", () => {
@@ -556,7 +582,7 @@ describe("Test TimeWindowQuantiles class", () => {
 
 	let item, clock, snapshot;
 
-	beforeAll(() => clock = lolex.install());
+	beforeAll(() => (clock = lolex.install()));
 	afterAll(() => clock.uninstall());
 
 	it("should create variables", () => {
@@ -605,7 +631,6 @@ describe("Test TimeWindowQuantiles class", () => {
 		item.add(0);
 
 		expect(item.ringBuckets[1].samples).toEqual([2, 6, 0]);
-
 	});
 
 	it("should increase bucket index", () => {
@@ -640,5 +665,4 @@ describe("Test TimeWindowQuantiles class", () => {
 
 		expect(item.clearDirty).toBeCalledTimes(0);
 	});
-
 });

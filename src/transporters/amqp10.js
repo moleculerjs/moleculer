@@ -51,9 +51,10 @@ class Amqp10Transporter extends Transporter {
 		super(opts);
 
 		/* istanbul ignore next*/
-		if (!this.opts) this.opts = {
-			url: "amqp10://guest:guest@localhost:5672"
-		};
+		if (!this.opts)
+			this.opts = {
+				url: "amqp10://guest:guest@localhost:5672"
+			};
 
 		// Number of requests a broker will handle concurrently
 		if (typeof this.opts.prefetch !== "number") this.opts.prefetch = 1;
@@ -79,7 +80,7 @@ class Amqp10Transporter extends Transporter {
 		this.session = null;
 	}
 
-	_getQueueOptions(packetType, balancedQueue) {
+	_getQueueOptions(packetType /*, balancedQueue*/) {
 		let packetOptions = {};
 		switch (packetType) {
 			// Requests and responses don't expire.
@@ -126,7 +127,8 @@ class Amqp10Transporter extends Transporter {
 				if (this.opts.eventTimeToLive) messageOptions.ttl = this.opts.eventTimeToLive;
 				break;
 			case PACKET_HEARTBEAT:
-				if (this.opts.heartbeatTimeToLive) messageOptions.ttl = this.opts.heartbeatTimeToLive;
+				if (this.opts.heartbeatTimeToLive)
+					messageOptions.ttl = this.opts.heartbeatTimeToLive;
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
@@ -220,7 +222,10 @@ class Amqp10Transporter extends Transporter {
 			this.logger.info("AMQP10 disconnected.");
 			this.connected = false;
 			if (e) {
-				this.logger.error("AMQP10 connection error.", (this.connection && this.connection.error) || "");
+				this.logger.error(
+					"AMQP10 connection error.",
+					(this.connection && this.connection.error) || ""
+				);
 				errorCallback && errorCallback(e);
 			}
 		});
@@ -240,7 +245,10 @@ class Amqp10Transporter extends Transporter {
 				});
 			})
 			.catch(e => {
-				this.logger.error("AMQP10 connection error.", (this.connection && this.connection.error) || "");
+				this.logger.error(
+					"AMQP10 connection error.",
+					(this.connection && this.connection.error) || ""
+				);
 				this.logger.info("AMQP10 is disconnected.");
 				this.connected = false;
 				errorCallback && errorCallback(e);
@@ -427,7 +435,11 @@ class Amqp10Transporter extends Transporter {
 		let topic = this.getTopicName(packet.type, packet.target);
 
 		const data = this.serialize(packet);
-		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(packet.type));
+		const message = Object.assign(
+			{ body: data },
+			this.opts.messageOptions,
+			this._getMessageOptions(packet.type)
+		);
 		const awaitableSenderOptions = {
 			target: {
 				address: packet.target ? topic : `${this.opts.topicPrefix}${topic}`
@@ -462,7 +474,11 @@ class Amqp10Transporter extends Transporter {
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 		const data = this.serialize(packet);
-		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(PACKET_EVENT, true));
+		const message = Object.assign(
+			{ body: data },
+			this.opts.messageOptions,
+			this._getMessageOptions(PACKET_EVENT, true)
+		);
 		const awaitableSenderOptions = {
 			target: {
 				address: queue
@@ -497,7 +513,11 @@ class Amqp10Transporter extends Transporter {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 
 		const data = this.serialize(packet);
-		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(PACKET_REQUEST, true));
+		const message = Object.assign(
+			{ body: data },
+			this.opts.messageOptions,
+			this._getMessageOptions(PACKET_REQUEST, true)
+		);
 		const awaitableSenderOptions = {
 			target: {
 				address: queue

@@ -50,11 +50,23 @@ broker.createService({
 
 broker.start();
 
-console.log("Server started. nodeID: ", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
+console.log(
+	"Server started. nodeID: ",
+	broker.nodeID,
+	" TRANSPORTER:",
+	transporter,
+	" PID:",
+	process.pid
+);
 
 setInterval(() => {
 	if (count > 0) {
-		console.log(broker.nodeID, ":", padStart(Number(count.toFixed(0)).toLocaleString(), 8), "req/s");
+		console.log(
+			broker.nodeID,
+			":",
+			padStart(Number(count.toFixed(0)).toLocaleString(), 8),
+			"req/s"
+		);
 		count = 0;
 	}
 }, 1000);

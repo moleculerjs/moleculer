@@ -6,14 +6,13 @@
 
 "use strict";
 
-const BaseSerializer  	= require("./base");
+const BaseSerializer = require("./base");
 /**
  * JSON serializer for Moleculer
  *
  * @class JSONSerializer
  */
 class JSONSerializer extends BaseSerializer {
-
 	/**
 	 * Creates an instance of JSONSerializer.
 	 *

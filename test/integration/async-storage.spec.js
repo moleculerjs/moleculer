@@ -1,7 +1,6 @@
 const AsyncStorage = require("../../src/async-storage");
 
 describe("Test Async Storage class", () => {
-
 	it("should set broker & create store", () => {
 		const broker = {};
 		const storage = new AsyncStorage(broker);
@@ -31,6 +30,4 @@ describe("Test Async Storage class", () => {
 			});
 			*/
 	});
-
 });
-

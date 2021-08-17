@@ -77,9 +77,21 @@ describe("Test Registry constructor", () => {
 		expect(broker.metrics.set).toHaveBeenCalledTimes(5);
 
 		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.registry.nodes.total", 1);
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.registry.nodes.online.total", 1);
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(3, "moleculer.registry.services.total", 0);
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(4, "moleculer.registry.actions.total", 0);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(
+			2,
+			"moleculer.registry.nodes.online.total",
+			1
+		);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(
+			3,
+			"moleculer.registry.services.total",
+			0
+		);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(
+			4,
+			"moleculer.registry.actions.total",
+			0
+		);
 		expect(broker.metrics.set).toHaveBeenNthCalledWith(5, "moleculer.registry.events.total", 0);
 	});
 });
@@ -96,7 +108,6 @@ describe("Test Registry.init", () => {
 		expect(registry.discoverer.init).toBeCalledTimes(1);
 		await registry.stop();
 	});
-
 });
 
 describe("Test Registry.stop", () => {
@@ -111,11 +122,9 @@ describe("Test Registry.stop", () => {
 
 		expect(registry.discoverer.stop).toBeCalledTimes(1);
 	});
-
 });
 
 describe("Test Registry.registerLocalService", () => {
-
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let registry = broker.registry;
 	let seq = registry.nodes.localNode.seq;
@@ -145,10 +154,18 @@ describe("Test Registry.registerLocalService", () => {
 		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, svc, true);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(1);
-		expect(registry.registerActions).toHaveBeenCalledWith(registry.nodes.localNode, service, svc.actions);
+		expect(registry.registerActions).toHaveBeenCalledWith(
+			registry.nodes.localNode,
+			service,
+			svc.actions
+		);
 
 		expect(registry.registerEvents).toHaveBeenCalledTimes(1);
-		expect(registry.registerEvents).toHaveBeenCalledWith(registry.nodes.localNode, service, svc.events);
+		expect(registry.registerEvents).toHaveBeenCalledWith(
+			registry.nodes.localNode,
+			service,
+			svc.events
+		);
 
 		expect(registry.nodes.localNode.seq).toBe(seq);
 
@@ -177,33 +194,39 @@ describe("Test Registry.registerLocalService", () => {
 			metadata: {}
 		};
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
-			registry.regenerateLocalRawInfo.mockClear();
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+				registry.regenerateLocalRawInfo.mockClear();
 
-			registry.registerLocalService(svc);
+				registry.registerLocalService(svc);
 
-			expect(registry.services.add).toHaveBeenCalledTimes(1);
-			expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, svc, true);
+				expect(registry.services.add).toHaveBeenCalledTimes(1);
+				expect(registry.services.add).toHaveBeenCalledWith(
+					registry.nodes.localNode,
+					svc,
+					true
+				);
 
-			expect(registry.registerActions).toHaveBeenCalledTimes(0);
+				expect(registry.registerActions).toHaveBeenCalledTimes(0);
 
-			expect(registry.registerEvents).toHaveBeenCalledTimes(0);
+				expect(registry.registerEvents).toHaveBeenCalledTimes(0);
 
-			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
 
-			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
-			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
+				expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+				expect(broker.servicesChanged).toHaveBeenCalledWith(true);
 
-			expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
-		});
+				expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
+			});
 	});
 });
 
 describe("Test Registry.registerServices", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -363,11 +386,9 @@ describe("Test Registry.registerServices", () => {
 
 		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
-
 });
 
 describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 	let seq = registry.nodes.localNode.seq;
@@ -413,11 +434,9 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 		expect(registry.services.removeAllByNodeID).toHaveBeenCalledTimes(1);
 		expect(registry.services.removeAllByNodeID).toHaveBeenCalledWith("node-2");
 	});
-
 });
 
 describe("Test Registry.registerActions", () => {
-
 	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	let registry = broker.registry;
 
@@ -433,20 +452,28 @@ describe("Test Registry.registerActions", () => {
 	it("should call actions add & service addAction methods", () => {
 		registry.registerActions(node, service, {
 			"users.find": { name: "users.find", handler: jest.fn() },
-			"users.save": { name: "users.save", handler: jest.fn() },
+			"users.save": { name: "users.save", handler: jest.fn() }
 		});
 
 		expect(registry.actions.add).toHaveBeenCalledTimes(2);
-		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { "name": "users.find" });
-		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { "name": "users.save" });
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { name: "users.find" });
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { name: "users.save" });
 
 		expect(service.addAction).toHaveBeenCalledTimes(2);
-		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.find" });
-		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.save" });
+		expect(service.addAction).toHaveBeenCalledWith({ name: "users.find" });
+		expect(service.addAction).toHaveBeenCalledWith({ name: "users.save" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", expect.any(Function), { "name": "users.find", handler: expect.any(Function), service });
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", expect.any(Function), { "name": "users.save", handler: expect.any(Function), service });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith(
+			"remoteAction",
+			expect.any(Function),
+			{ name: "users.find", handler: expect.any(Function), service }
+		);
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith(
+			"remoteAction",
+			expect.any(Function),
+			{ name: "users.save", handler: expect.any(Function), service }
+		);
 	});
 
 	it("should not call actions add & service addAction methods if has visibility", () => {
@@ -457,12 +484,18 @@ describe("Test Registry.registerActions", () => {
 
 		registry.registerActions(node, service, {
 			"users.find": { name: "users.find", handler: jest.fn() },
-			"users.save": { name: "users.save", handler: jest.fn() },
+			"users.save": { name: "users.save", handler: jest.fn() }
 		});
 
 		expect(registry.checkActionVisibility).toHaveBeenCalledTimes(2);
-		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.save", handler: expect.any(Function) }, node);
-		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.find", handler: expect.any(Function) }, node);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith(
+			{ name: "users.save", handler: expect.any(Function) },
+			node
+		);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith(
+			{ name: "users.find", handler: expect.any(Function) },
+			node
+		);
 
 		expect(registry.actions.add).toHaveBeenCalledTimes(0);
 		expect(service.addAction).toHaveBeenCalledTimes(0);
@@ -471,7 +504,6 @@ describe("Test Registry.registerActions", () => {
 });
 
 describe("Test Registry.checkActionVisibility", () => {
-
 	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	let registry = broker.registry;
 
@@ -481,28 +513,43 @@ describe("Test Registry.checkActionVisibility", () => {
 	});
 
 	it("check if set visibility to 'published'", () => {
-		expect(registry.checkActionVisibility({ visibility: "published" }, { local: true })).toBe(true);
-		expect(registry.checkActionVisibility({ visibility: "published" }, { local: false })).toBe(true);
+		expect(registry.checkActionVisibility({ visibility: "published" }, { local: true })).toBe(
+			true
+		);
+		expect(registry.checkActionVisibility({ visibility: "published" }, { local: false })).toBe(
+			true
+		);
 	});
 
 	it("check if set visibility to 'public'", () => {
-		expect(registry.checkActionVisibility({ visibility: "public" }, { local: true })).toBe(true);
-		expect(registry.checkActionVisibility({ visibility: "public" }, { local: false })).toBe(true);
+		expect(registry.checkActionVisibility({ visibility: "public" }, { local: true })).toBe(
+			true
+		);
+		expect(registry.checkActionVisibility({ visibility: "public" }, { local: false })).toBe(
+			true
+		);
 	});
 
 	it("check if set visibility to 'protected'", () => {
-		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: true })).toBe(true);
-		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: false })).toBe(false);
+		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: true })).toBe(
+			true
+		);
+		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: false })).toBe(
+			false
+		);
 	});
 
 	it("check if set visibility to 'private'", () => {
-		expect(registry.checkActionVisibility({ visibility: "private" }, { local: true })).toBe(false);
-		expect(registry.checkActionVisibility({ visibility: "private" }, { local: false })).toBe(false);
+		expect(registry.checkActionVisibility({ visibility: "private" }, { local: true })).toBe(
+			false
+		);
+		expect(registry.checkActionVisibility({ visibility: "private" }, { local: false })).toBe(
+			false
+		);
 	});
 });
 
 describe("Test Registry.unregisterAction", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -514,11 +561,9 @@ describe("Test Registry.unregisterAction", () => {
 		expect(registry.actions.remove).toHaveBeenCalledTimes(1);
 		expect(registry.actions.remove).toHaveBeenCalledWith("posts.find", "node-11");
 	});
-
 });
 
 describe("Test Registry.registerEvents", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -533,25 +578,32 @@ describe("Test Registry.registerEvents", () => {
 	it("should call events add & service addEvent methods", () => {
 		registry.registerEvents(node, service, {
 			"user.created": { name: "user.created", handler: jest.fn() },
-			"user.removed": { name: "user.removed", handler: jest.fn() },
+			"user.removed": { name: "user.removed", handler: jest.fn() }
 		});
 
 		expect(registry.events.add).toHaveBeenCalledTimes(2);
-		expect(registry.events.add).toHaveBeenCalledWith(node, service, { "name": "user.created" });
-		expect(registry.events.add).toHaveBeenCalledWith(node, service, { "name": "user.removed" });
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, { name: "user.created" });
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, { name: "user.removed" });
 
 		expect(service.addEvent).toHaveBeenCalledTimes(2);
-		expect(service.addEvent).toHaveBeenCalledWith({ "name": "user.created" });
-		expect(service.addEvent).toHaveBeenCalledWith({ "name": "user.removed" });
+		expect(service.addEvent).toHaveBeenCalledWith({ name: "user.created" });
+		expect(service.addEvent).toHaveBeenCalledWith({ name: "user.removed" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", expect.any(Function), { "name": "user.created" });
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", expect.any(Function), { "name": "user.removed" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith(
+			"localEvent",
+			expect.any(Function),
+			{ name: "user.created" }
+		);
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith(
+			"localEvent",
+			expect.any(Function),
+			{ name: "user.removed" }
+		);
 	});
 });
 
 describe("Test Registry.unregisterEvent", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -563,7 +615,6 @@ describe("Test Registry.unregisterEvent", () => {
 		expect(registry.events.remove).toHaveBeenCalledTimes(1);
 		expect(registry.events.remove).toHaveBeenCalledWith("posts.find", "node-11");
 	});
-
 });
 
 describe("Test Registry.regenerateLocalRawInfo", () => {
@@ -589,15 +640,15 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 	it("should not call registry getLocalNodeServices if broker is not started", () => {
 		broker.started = false;
 		expect(registry.regenerateLocalRawInfo()).toEqual({
-			"client": localNode.client,
-			"config": {},
-			"hostname": localNode.hostname,
-			"ipList": localNode.ipList,
-			"instanceID": localNode.instanceID,
-			"metadata": localNode.metadata,
-			"port": null,
-			"seq": 1,
-			"services": []
+			client: localNode.client,
+			config: {},
+			hostname: localNode.hostname,
+			ipList: localNode.ipList,
+			instanceID: localNode.instanceID,
+			metadata: localNode.metadata,
+			port: null,
+			seq: 1,
+			services: []
 		});
 
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(0);
@@ -606,15 +657,15 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 	it("should increment seq", () => {
 		broker.started = false;
 		expect(registry.regenerateLocalRawInfo(true)).toEqual({
-			"client": localNode.client,
-			"config": {},
-			"hostname": localNode.hostname,
-			"ipList": localNode.ipList,
-			"instanceID": localNode.instanceID,
-			"metadata": localNode.metadata,
-			"port": null,
-			"seq": 2,
-			"services": []
+			client: localNode.client,
+			config: {},
+			hostname: localNode.hostname,
+			ipList: localNode.ipList,
+			instanceID: localNode.instanceID,
+			metadata: localNode.metadata,
+			port: null,
+			seq: 2,
+			services: []
 		});
 
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(0);
@@ -623,27 +674,29 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 	it("should call registry getLocalNodeServices and return with local rawInfo", () => {
 		broker.started = true;
 		expect(registry.regenerateLocalRawInfo()).toEqual({
-			"client": localNode.client,
-			"config": {},
-			"hostname": localNode.hostname,
-			"instanceID": localNode.instanceID,
-			"metadata": localNode.metadata,
-			"ipList": localNode.ipList,
-			"port": null,
-			"seq": 2,
-			"services": [{
-				name: "svc1",
-				prop: {},
-			}, {
-				name: "svc2",
-				prop: {}
-			}]
+			client: localNode.client,
+			config: {},
+			hostname: localNode.hostname,
+			instanceID: localNode.instanceID,
+			metadata: localNode.metadata,
+			ipList: localNode.ipList,
+			port: null,
+			seq: 2,
+			services: [
+				{
+					name: "svc1",
+					prop: {}
+				},
+				{
+					name: "svc2",
+					prop: {}
+				}
+			]
 		});
 
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(1);
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledWith();
 	});
-
 });
 
 describe("Test Registry.getLocalNodeInfo", () => {
@@ -678,7 +731,6 @@ describe("Test Registry.getLocalNodeInfo", () => {
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
 	});
-
 });
 
 describe("Test Registry.getNodeInfo", () => {
@@ -738,7 +790,6 @@ describe("Test Registry.processNodeInfo", () => {
 		expect(registry.nodes.processNodeInfo).toHaveBeenCalledWith(payload);
 	});
 });
-
 
 describe("Test Registry.getNodeList", () => {
 	let broker = new ServiceBroker({ logger: false });
@@ -804,10 +855,7 @@ describe("Test Registry.getNodeRawList", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
-	registry.nodes.toArray = jest.fn(() => [
-		{ rawInfo: { a: 5 } },
-		{ rawInfo: { b: 10 } },
-	]);
+	registry.nodes.toArray = jest.fn(() => [{ rawInfo: { a: 5 } }, { rawInfo: { b: 10 } }]);
 
 	it("should call registry.events.list method", () => {
 		expect(registry.getNodeRawList()).toEqual([{ a: 5 }, { b: 10 }]);

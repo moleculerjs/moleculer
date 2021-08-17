@@ -10,7 +10,6 @@ const Serializers = require("../../../../src/serializers");
 const P = require("../../../../src/packets");
 
 describe("Test RedisDiscoverer constructor", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -30,7 +29,7 @@ describe("Test RedisDiscoverer constructor", () => {
 			serializer: "JSON",
 			fullCheck: 10,
 			scanLength: 100,
-			monitor: false,
+			monitor: false
 		});
 
 		expect(discoverer.idx).toBeDefined(); // random number
@@ -87,7 +86,6 @@ describe("Test RedisDiscoverer constructor", () => {
 
 		expect(discoverer.reconnecting).toBe(false);
 	});
-
 });
 
 describe("Test RedisDiscoverer 'init' method", () => {
@@ -193,7 +191,7 @@ describe("Test RedisDiscoverer 'init' method", () => {
 
 		Redis.mockClear();
 		const redisCallbacks = {};
-		Redis.prototype.on = jest.fn((name, cb) => redisCallbacks[name] = cb);
+		Redis.prototype.on = jest.fn((name, cb) => (redisCallbacks[name] = cb));
 
 		it("should register callbacks", () => {
 			Redis.prototype.on.mockClear();
@@ -245,11 +243,9 @@ describe("Test RedisDiscoverer 'init' method", () => {
 			expect(discoverer.lastBeatSeq).toBe(0);
 		});
 	});
-
 });
 
 describe("Test RedisDiscoverer 'stop' method", () => {
-
 	it("should call client quit", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -279,7 +275,6 @@ describe("Test RedisDiscoverer 'stop' method", () => {
 });
 
 describe("Test RedisDiscoverer 'registerMoleculerMetrics' method", () => {
-
 	it("should register metrics", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -292,8 +287,19 @@ describe("Test RedisDiscoverer 'registerMoleculerMetrics' method", () => {
 		await discoverer.registerMoleculerMetrics();
 		// ---- ˇ ASSERTS ˇ ---
 		expect(broker.metrics.register).toBeCalledTimes(2);
-		expect(broker.metrics.register).toBeCalledWith({ name: "moleculer.discoverer.redis.collect.total", rate: true, type: "counter", description: "Number of Service Registry fetching from Redis",  });
-		expect(broker.metrics.register).toBeCalledWith({ name: "moleculer.discoverer.redis.collect.time", quantiles: true, type: "histogram", unit: "millisecond", description: "Time of Service Registry fetching from Redis" });
+		expect(broker.metrics.register).toBeCalledWith({
+			name: "moleculer.discoverer.redis.collect.total",
+			rate: true,
+			type: "counter",
+			description: "Number of Service Registry fetching from Redis"
+		});
+		expect(broker.metrics.register).toBeCalledWith({
+			name: "moleculer.discoverer.redis.collect.time",
+			quantiles: true,
+			type: "histogram",
+			unit: "millisecond",
+			description: "Time of Service Registry fetching from Redis"
+		});
 	});
 });
 
@@ -334,7 +340,7 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 	const fakePipeline = {
 		del: jest.fn(() => fakePipeline),
 		setex: jest.fn(() => fakePipeline),
-		exec: jest.fn(() => Promise.resolve()),
+		exec: jest.fn(() => Promise.resolve())
 	};
 
 	beforeAll(() => {
@@ -363,7 +369,13 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 		expect(fakePipeline.del).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|0");
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(fakePipeline.setex).toBeCalledTimes(1);
-		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
+		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, {
+			cpu: null,
+			instanceID: "1234567890",
+			sender: "node-99",
+			seq: 1,
+			ver: "4"
+		});
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
 		expect(discoverer.lastBeatSeq).toBe(1);
@@ -397,7 +409,13 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 		expect(fakePipeline.del).toBeCalledTimes(0);
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(fakePipeline.setex).toBeCalledTimes(1);
-		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, { cpu: null, instanceID: "1234567890", sender: "node-99", seq: 1, ver: "4" });
+		expect(fakePipeline.setex).toBeCalledWith("MOL-DSCVR-BEAT:node-99|12345678|1", 30, {
+			cpu: null,
+			instanceID: "1234567890",
+			sender: "node-99",
+			seq: 1,
+			ver: "4"
+		});
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
 		expect(discoverer.lastBeatSeq).toBe(1);
@@ -418,9 +436,9 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 	const discoverer = new RedisDiscoverer();
 	const fakeStreamCB = {};
 	const fakeStream = {
-		on: jest.fn((name, cb) => fakeStreamCB[name] = cb),
+		on: jest.fn((name, cb) => (fakeStreamCB[name] = cb)),
 		pause: jest.fn(),
-		resume: jest.fn(),
+		resume: jest.fn()
 	};
 
 	beforeAll(() => {
@@ -454,10 +472,16 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 		await p;
 		// ---- ˇ ASSERTS ˇ ---
 		expect(broker.registry.nodes.list).toBeCalledTimes(1);
-		expect(broker.registry.nodes.list).toBeCalledWith({ onlyAvailable: true, withServices: false });
+		expect(broker.registry.nodes.list).toBeCalledWith({
+			onlyAvailable: true,
+			withServices: false
+		});
 
 		expect(discoverer.client.scanStream).toBeCalledTimes(1);
-		expect(discoverer.client.scanStream).toBeCalledWith({ match: "MOL-DSCVR-BEAT:*", count: 100 });
+		expect(discoverer.client.scanStream).toBeCalledWith({
+			match: "MOL-DSCVR-BEAT:*",
+			count: 100
+		});
 
 		expect(fakeStream.on).toBeCalledTimes(3);
 		expect(fakeStream.on).toBeCalledWith("data", expect.any(Function));
@@ -471,7 +495,11 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 
 	it("should disconnect previous nodes", async () => {
 		discoverer.opts.scanLength = 50;
-		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-99" }]);
+		broker.registry.nodes.list = jest.fn(() => [
+			{ id: "node-1" },
+			{ id: "node-2" },
+			{ id: "node-99" }
+		]);
 		// ---- ^ SETUP ^ ---
 		const p = discoverer.collectOnlineNodes();
 		fakeStreamCB.end();
@@ -479,10 +507,16 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 		await p;
 		// ---- ˇ ASSERTS ˇ ---
 		expect(broker.registry.nodes.list).toBeCalledTimes(1);
-		expect(broker.registry.nodes.list).toBeCalledWith({ onlyAvailable: true, withServices: false });
+		expect(broker.registry.nodes.list).toBeCalledWith({
+			onlyAvailable: true,
+			withServices: false
+		});
 
 		expect(discoverer.client.scanStream).toBeCalledTimes(1);
-		expect(discoverer.client.scanStream).toBeCalledWith({ match: "MOL-DSCVR-BEAT:*", count: 50 });
+		expect(discoverer.client.scanStream).toBeCalledWith({
+			match: "MOL-DSCVR-BEAT:*",
+			count: 50
+		});
 
 		expect(fakeStream.on).toBeCalledTimes(3);
 		expect(fakeStream.on).toBeCalledWith("data", expect.any(Function));
@@ -498,12 +532,19 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 
 	it("should add new nodes (full check)", async () => {
 		discoverer.opts.fullCheck = 1;
-		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
-		discoverer.client.mgetBuffer = jest.fn(() => Promise.resolve([
-			{ instanceID: "111", sender: "node-1", seq: 1 },
-			{ instanceID: "222", sender: "node-2", seq: 2 },
-			{ instanceID: "999", sender: "node-99", seq: 9 }
-		]));
+		broker.registry.nodes.list = jest.fn(() => [
+			{ id: "node-1" },
+			{ id: "node-2" },
+			{ id: "node-3" },
+			{ id: "node-99" }
+		]);
+		discoverer.client.mgetBuffer = jest.fn(() =>
+			Promise.resolve([
+				{ instanceID: "111", sender: "node-1", seq: 1 },
+				{ instanceID: "222", sender: "node-2", seq: 2 },
+				{ instanceID: "999", sender: "node-99", seq: 9 }
+			])
+		);
 		// ---- ^ SETUP ^ ---
 		const p = discoverer.collectOnlineNodes();
 
@@ -514,11 +555,23 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 		await p;
 		// ---- ˇ ASSERTS ˇ ---
 		expect(discoverer.client.mgetBuffer).toBeCalledTimes(1);
-		expect(discoverer.client.mgetBuffer).toBeCalledWith("MOL-DSCVR-BEAT:node-1|111|1", "MOL-DSCVR-BEAT:node-2|222|2", "MOL-DSCVR-BEAT:node-99|999|9");
+		expect(discoverer.client.mgetBuffer).toBeCalledWith(
+			"MOL-DSCVR-BEAT:node-1|111|1",
+			"MOL-DSCVR-BEAT:node-2|222|2",
+			"MOL-DSCVR-BEAT:node-99|999|9"
+		);
 
 		expect(discoverer.heartbeatReceived).toBeCalledTimes(2);
-		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", { instanceID: "111", sender: "node-1", seq: 1 });
-		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", { instanceID: "222", sender: "node-2", seq: 2 });
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", {
+			instanceID: "111",
+			sender: "node-1",
+			seq: 1
+		});
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", {
+			instanceID: "222",
+			sender: "node-2",
+			seq: 2
+		});
 
 		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(1);
 		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-3", true);
@@ -526,7 +579,12 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 
 	it("should add new nodes (fast check)", async () => {
 		discoverer.opts.fullCheck = 0;
-		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
+		broker.registry.nodes.list = jest.fn(() => [
+			{ id: "node-1" },
+			{ id: "node-2" },
+			{ id: "node-3" },
+			{ id: "node-99" }
+		]);
 		// ---- ^ SETUP ^ ---
 		const p = discoverer.collectOnlineNodes();
 
@@ -538,15 +596,28 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 		// ---- ˇ ASSERTS ˇ ---
 		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
 		expect(discoverer.heartbeatReceived).toBeCalledTimes(2);
-		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", { instanceID: "111", sender: "node-1", seq: 1 });
-		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", { instanceID: "222", sender: "node-2", seq: 2 });
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-1", {
+			instanceID: "111",
+			sender: "node-1",
+			seq: 1
+		});
+		expect(discoverer.heartbeatReceived).toBeCalledWith("node-2", {
+			instanceID: "222",
+			sender: "node-2",
+			seq: 2
+		});
 
 		expect(discoverer.remoteNodeDisconnected).toBeCalledTimes(1);
 		expect(discoverer.remoteNodeDisconnected).toBeCalledWith("node-3", true);
 	});
 
 	it("should stop on error", async () => {
-		broker.registry.nodes.list = jest.fn(() => [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-99" }]);
+		broker.registry.nodes.list = jest.fn(() => [
+			{ id: "node-1" },
+			{ id: "node-2" },
+			{ id: "node-3" },
+			{ id: "node-99" }
+		]);
 		// ---- ^ SETUP ^ ---
 		const p = discoverer.collectOnlineNodes();
 
@@ -556,7 +627,7 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 		// ---- ˇ ASSERTS ˇ ---
 		try {
 			await p;
-		} catch(e) {
+		} catch (e) {
 			expect(e).toBe(err);
 		}
 		expect(discoverer.client.mgetBuffer).toBeCalledTimes(0);
@@ -565,7 +636,6 @@ describe("Test RedisDiscoverer 'collectOnlineNodes' method", () => {
 
 		expect.assertions(4);
 	});
-
 });
 
 describe("Test RedisDiscoverer 'discoverNode' method", () => {
@@ -605,7 +675,9 @@ describe("Test RedisDiscoverer 'discoverNode' method", () => {
 
 	it("should handle if data is invalid", async () => {
 		discoverer.logger.warn.mockClear();
-		discoverer.serializer.deserialize = jest.fn(() => { throw new Error("Unexpected token"); });
+		discoverer.serializer.deserialize = jest.fn(() => {
+			throw new Error("Unexpected token");
+		});
 		discoverer.client.getBuffer.mockClear();
 		discoverer.processRemoteNodeInfo.mockClear();
 		// ---- ^ SETUP ^ ---
@@ -642,7 +714,6 @@ describe("Test RedisDiscoverer 'discoverNode' method", () => {
 });
 
 describe("Test RedisDiscoverer 'discoverAllNodes' method", () => {
-
 	it("should call collectOnlineNodes", async () => {
 		const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 		const discoverer = new RedisDiscoverer();
@@ -691,7 +762,11 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(broker.getLocalNodeInfo).toBeCalledTimes(1);
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(discoverer.client.setex).toBeCalledTimes(1);
-		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, { a: 5, sender: "node-99", ver: "4" });
+		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
+			a: 5,
+			sender: "node-99",
+			ver: "4"
+		});
 
 		expect(discoverer.lastInfoSeq).toBe(1);
 
@@ -708,7 +783,11 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(broker.getLocalNodeInfo).toBeCalledTimes(1);
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(discoverer.client.setex).toBeCalledTimes(1);
-		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, { a: 5, sender: "node-99", ver: "4" });
+		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
+			a: 5,
+			sender: "node-99",
+			ver: "4"
+		});
 
 		expect(discoverer.lastInfoSeq).toBe(1);
 
@@ -727,7 +806,11 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(broker.getLocalNodeInfo).toBeCalledTimes(1);
 		expect(discoverer.serializer.serialize).toBeCalledTimes(1);
 		expect(discoverer.client.setex).toBeCalledTimes(1);
-		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, { a: 5, sender: "node-99", ver: "4" });
+		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
+			a: 5,
+			sender: "node-99",
+			ver: "4"
+		});
 
 		expect(broker.transit.tx.makeBalancedSubscriptions).toBeCalledTimes(1);
 
@@ -756,7 +839,6 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 });
 
 describe("Test RedisDiscoverer 'localNodeDisconnected' method", () => {
-
 	it("should call localNodeDisconnected & del & scanClean", async () => {
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-99" });
 		broker.instanceID = "1234567890";
@@ -787,9 +869,9 @@ describe("Test RedisDiscoverer 'scanClean' method", () => {
 	const discoverer = new RedisDiscoverer({ scanLength: 50 });
 	const fakeStreamCB = {};
 	const fakeStream = {
-		on: jest.fn((name, cb) => fakeStreamCB[name] = cb),
+		on: jest.fn((name, cb) => (fakeStreamCB[name] = cb)),
 		pause: jest.fn(),
-		resume: jest.fn(),
+		resume: jest.fn()
 	};
 
 	beforeAll(() => {
@@ -864,10 +946,9 @@ describe("Test RedisDiscoverer 'scanClean' method", () => {
 
 		try {
 			await p;
-		} catch(e) {
+		} catch (e) {
 			expect(e).toBe(err);
 		}
 		expect.assertions(12);
 	});
 });
-

@@ -1,8 +1,8 @@
 "use strict";
 
-const _ 						= require("lodash");
-const BaseTraceExporter 		= require("./base");
-const { isObject, isFunction }	= require("../../utils");
+const _ = require("lodash");
+const BaseTraceExporter = require("./base");
+const { isObject, isFunction } = require("../../utils");
 
 /**
  * Event Trace Exporter. It sends same trace events as in Moleculer <= v0.13.
@@ -10,7 +10,6 @@ const { isObject, isFunction }	= require("../../utils");
  * @class EventLegacyTraceExporter
  */
 class EventLegacyTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of EventLegacyTraceExporter.
 	 * @param {Object?} opts
@@ -19,8 +18,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	constructor(opts) {
 		super(opts);
 
-		this.opts = _.defaultsDeep(this.opts, {
-		});
+		this.opts = _.defaultsDeep(this.opts, {});
 	}
 
 	/**
@@ -41,7 +39,11 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	spanStarted(span) {
-		if (span.tags.eventName == "metrics.trace.span.start" || span.tags.eventName == "metrics.trace.span.finish") return;
+		if (
+			span.tags.eventName == "metrics.trace.span.start" ||
+			span.tags.eventName == "metrics.trace.span.finish"
+		)
+			return;
 
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.start", payload);
@@ -54,7 +56,11 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @memberof EventLegacyTraceExporter
 	 */
 	spanFinished(span) {
-		if (span.tags.eventName == "metrics.trace.span.start" || span.tags.eventName == "metrics.trace.span.finish") return;
+		if (
+			span.tags.eventName == "metrics.trace.span.start" ||
+			span.tags.eventName == "metrics.trace.span.finish"
+		)
+			return;
 
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.finish", payload);
@@ -76,18 +82,15 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		};
 
 		// Process extra metrics
-		if (span.opts.ctx)
-			this.processExtraMetrics(span.opts.ctx, payload);
+		if (span.opts.ctx) this.processExtraMetrics(span.opts.ctx, payload);
 
 		payload.action = span.tags.action;
 		payload.service = span.service;
 
-		if (span.parentID)
-			payload.parent = span.parentID;
+		if (span.parentID) payload.parent = span.parentID;
 
 		payload.nodeID = this.broker.nodeID;
-		if (payload.remoteCall)
-			payload.callerNodeID = span.tags.callerNodeID;
+		if (payload.remoteCall) payload.callerNodeID = span.tags.callerNodeID;
 
 		if (span.finishTime) {
 			payload.endTime = span.finishTime;
@@ -139,8 +142,6 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 			this.assignExtraMetrics(ctx, "meta", payload);
 		}
 	}
-
-
 }
 
 module.exports = EventLegacyTraceExporter;

@@ -18,7 +18,6 @@ const MetricRate = require("../rates");
  * @extends {BaseMetric}
  */
 class GaugeMetric extends BaseMetric {
-
 	/**
 	 * Creates an instance of GaugeMetric.
 	 * @param {Object} opts
@@ -41,8 +40,7 @@ class GaugeMetric extends BaseMetric {
 	 * @memberof GaugeMetric
 	 */
 	increment(labels, value, timestamp) {
-		if (value == null)
-			value = 1;
+		if (value == null) value = 1;
 
 		const item = this.get(labels);
 		return this.set((item ? item.value : 0) + value, labels, timestamp);
@@ -58,8 +56,7 @@ class GaugeMetric extends BaseMetric {
 	 * @memberof GaugeMetric
 	 */
 	decrement(labels, value, timestamp) {
-		if (value == null)
-			value = 1;
+		if (value == null) value = 1;
 
 		const item = this.get(labels);
 		return this.set((item ? item.value : 0) - value, labels, timestamp);
@@ -82,8 +79,7 @@ class GaugeMetric extends BaseMetric {
 				item.value = value;
 				item.timestamp = timestamp == null ? Date.now() : timestamp;
 
-				if (item.rate)
-					item.rate.update(value);
+				if (item.rate) item.rate.update(value);
 
 				this.changed(value, labels, timestamp);
 			}
@@ -91,7 +87,7 @@ class GaugeMetric extends BaseMetric {
 			item = {
 				value,
 				labels: pick(labels, this.labelNames),
-				timestamp: timestamp == null ? Date.now() : timestamp,
+				timestamp: timestamp == null ? Date.now() : timestamp
 			};
 			this.values.set(hash, item);
 
@@ -148,8 +144,7 @@ class GaugeMetric extends BaseMetric {
 				timestamp: item.timestamp
 			};
 
-			if (item.rate)
-				res.rate = item.rate.rate;
+			if (item.rate) res.rate = item.rate.rate;
 
 			return res;
 		});

@@ -1,15 +1,14 @@
-const utils						= require("../../../../src/utils");
+const utils = require("../../../../src/utils");
 utils.makeDirs = jest.fn();
 
-const fs						= require("fs");
+const fs = require("fs");
 fs.writeFile = jest.fn();
 
-const ServiceBroker 			= require("../../../../src/service-broker");
-const Middleware 				= require("../../../../src/middlewares").Debugging.TransitLogger;
-const path						= require("path");
+const ServiceBroker = require("../../../../src/service-broker");
+const Middleware = require("../../../../src/middlewares").Debugging.TransitLogger;
+const path = require("path");
 
 describe("Test ActionLogger", () => {
-
 	function createMW(opts) {
 		const broker = new ServiceBroker({ logger: false, nodeID: "server-1" });
 		const mw = Middleware(opts);
@@ -18,7 +17,11 @@ describe("Test ActionLogger", () => {
 	}
 
 	function stringify(payload) {
-		return JSON.stringify(payload, payload instanceof Error ? Object.getOwnPropertyNames(payload) : null, 4);
+		return JSON.stringify(
+			payload,
+			payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
+			4
+		);
 	}
 
 	it("should register hooks", () => {
@@ -33,7 +36,6 @@ describe("Test ActionLogger", () => {
 	};
 
 	describe("Test logging published packets", () => {
-
 		it("should log published packet", async () => {
 			logger.info.mockClear();
 			const mw = createMW({ logger, colors: false });
@@ -82,7 +84,13 @@ describe("Test ActionLogger", () => {
 		it("should log published packet to file", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const mw = createMW({ logger, colors: false, folder: "./logs", extension: ".log", logParams: true });
+			const mw = createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
 
 			expect(utils.makeDirs).toBeCalledTimes(1);
 			expect(utils.makeDirs).toBeCalledWith(path.join("logs", "server-1"));
@@ -95,9 +103,13 @@ describe("Test ActionLogger", () => {
 			expect(next).toBeCalledWith(packet);
 
 			expect(fs.writeFile).toBeCalledTimes(1);
-			expect(fs.writeFile).toHaveBeenNthCalledWith(1, path.join("logs", "server-1", "123456-send-REQUEST-to-server-2.log"), stringify({ a: 5 }), expect.any(Function));
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-send-REQUEST-to-server-2.log"),
+				stringify({ a: 5 }),
+				expect.any(Function)
+			);
 		});
-
 	});
 
 	describe("Test logging received packets", () => {
@@ -114,7 +126,10 @@ describe("Test ActionLogger", () => {
 			expect(next).toBeCalledWith("RESPONSE", packet);
 
 			expect(logger.info).toBeCalledTimes(1);
-			expect(logger.info).toHaveBeenNthCalledWith(1, "<= Receive RESPONSE packet from 'server-2'");
+			expect(logger.info).toHaveBeenNthCalledWith(
+				1,
+				"<= Receive RESPONSE packet from 'server-2'"
+			);
 		});
 
 		it("should log received packet with payload", async () => {
@@ -128,7 +143,10 @@ describe("Test ActionLogger", () => {
 			expect(next).toBeCalledWith("RESPONSE", packet);
 
 			expect(logger.info).toBeCalledTimes(2);
-			expect(logger.info).toHaveBeenNthCalledWith(1, "<= Receive RESPONSE packet from 'server-2'");
+			expect(logger.info).toHaveBeenNthCalledWith(
+				1,
+				"<= Receive RESPONSE packet from 'server-2'"
+			);
 			expect(logger.info).toHaveBeenNthCalledWith(2, "<=", packet.payload);
 		});
 
@@ -148,7 +166,13 @@ describe("Test ActionLogger", () => {
 		it("should log received packet to file", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const mw = createMW({ logger, colors: false, folder: "./logs", extension: ".log", logParams: true });
+			const mw = createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
 
 			const next = jest.fn();
 			mw.transitMessageHandler(next)("RESPONSE", packet);
@@ -157,9 +181,12 @@ describe("Test ActionLogger", () => {
 			expect(next).toBeCalledWith("RESPONSE", packet);
 
 			expect(fs.writeFile).toBeCalledTimes(1);
-			expect(fs.writeFile).toHaveBeenNthCalledWith(1, path.join("logs", "server-1", "123456-receive-RESPONSE-from-server-2.log"), stringify(packet.payload), expect.any(Function));
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-receive-RESPONSE-from-server-2.log"),
+				stringify(packet.payload),
+				expect.any(Function)
+			);
 		});
-
 	});
-
 });

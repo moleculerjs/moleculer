@@ -1,4 +1,4 @@
-const utils	= require("../../../../src/utils");
+const utils = require("../../../../src/utils");
 utils.makeDirs = jest.fn();
 
 const { BrokerOptionsError } = require("../../../../src/errors");
@@ -7,7 +7,6 @@ const MetricReporters = require("../../../../src/metrics/reporters");
 process.env.DATADOG_API_KEY = "datadog-api-key";
 
 describe("Test MetricReporters resolver", () => {
-
 	it("should throw error", () => {
 		expect(() => MetricReporters.resolve()).toThrowError(BrokerOptionsError);
 		expect(() => MetricReporters.resolve({})).toThrowError(BrokerOptionsError);
@@ -86,7 +85,6 @@ describe("Test MetricReporters resolver", () => {
 		expect(reporter).toBeInstanceOf(MetricReporters.StatsD);
 		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
 	});
-
 });
 
 describe("Test Reporter register", () => {

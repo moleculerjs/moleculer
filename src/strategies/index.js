@@ -20,12 +20,10 @@ const Strategies = {
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Strategies).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Strategies[n];
+	if (n) return Strategies[n];
 }
 
 /**
@@ -40,26 +38,22 @@ function resolve(opt) {
 		return opt;
 	} else if (isString(opt)) {
 		let StrategyClass = getByName(opt);
-		if (StrategyClass)
-			return StrategyClass;
-		else
-			throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
-
+		if (StrategyClass) return StrategyClass;
+		else throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
 	} else if (isObject(opt)) {
 		let StrategyClass = getByName(opt.type || "RoundRobin");
-		if (StrategyClass)
-			return StrategyClass;
+		if (StrategyClass) return StrategyClass;
 		else
-			throw new BrokerOptionsError(`Invalid strategy type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid strategy type '${opt.type}'.`, {
+				type: opt.type
+			});
 	}
 
 	return Strategies.RoundRobin;
 }
-
 
 function register(name, value) {
 	Strategies[name] = value;
 }
 
 module.exports = Object.assign(Strategies, { resolve, register });
-

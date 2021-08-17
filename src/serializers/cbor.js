@@ -45,9 +45,13 @@ class CborSerializer extends BaseSerializer {
 		try {
 			const Cbor = require("cbor-x");
 			this.encoder = new Cbor.Encoder(this.opts);
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'cbor-x' package is missing! Please install it with 'npm install cbor-x --save' command!", err, true);
+			this.broker.fatal(
+				"The 'cbor-x' package is missing! Please install it with 'npm install cbor-x --save' command!",
+				err,
+				true
+			);
 		}
 	}
 

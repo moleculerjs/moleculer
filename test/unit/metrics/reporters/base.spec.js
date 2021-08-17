@@ -3,9 +3,7 @@
 const BaseReporter = require("../../../../src/metrics/reporters/base");
 
 describe("Test Base Reporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new BaseReporter();
 
@@ -17,7 +15,7 @@ describe("Test Base Reporter class", () => {
 				metricNameSuffix: null,
 
 				metricNameFormatter: null,
-				labelNameFormatter: null,
+				labelNameFormatter: null
 			});
 		});
 
@@ -28,7 +26,7 @@ describe("Test Base Reporter class", () => {
 				includes: "moleculer.**",
 				excludes: ["moleculer.circuit-breaker.**", "moleculer.custom.**"],
 				metricNameFormatter: () => {},
-				labelNameFormatter: () => {},
+				labelNameFormatter: () => {}
 			});
 
 			expect(reporter.opts).toEqual({
@@ -37,14 +35,12 @@ describe("Test Base Reporter class", () => {
 				includes: ["moleculer.**"],
 				excludes: ["moleculer.circuit-breaker.**", "moleculer.custom.**"],
 				metricNameFormatter: expect.any(Function),
-				labelNameFormatter: expect.any(Function),
+				labelNameFormatter: expect.any(Function)
 			});
 		});
-
 	});
 
 	describe("Test init & stop methods", () => {
-
 		it("init - should set internal variables", () => {
 			const fakeBroker = {};
 			const fakeRegistry = { broker: fakeBroker, logger: {} };
@@ -63,7 +59,6 @@ describe("Test Base Reporter class", () => {
 	});
 
 	describe("Test matchMetricName method", () => {
-
 		it("should match included metrics", () => {
 			const reporter = new BaseReporter({
 				includes: "moleculer.broker.**"
@@ -77,10 +72,7 @@ describe("Test Base Reporter class", () => {
 
 		it("should not match excluded metrics", () => {
 			const reporter = new BaseReporter({
-				excludes: [
-					"moleculer.broker.**",
-					"process.eventloop.**"
-				]
+				excludes: ["moleculer.broker.**", "process.eventloop.**"]
 			});
 
 			expect(reporter.matchMetricName("moleculer.node.type")).toBe(true);
@@ -92,13 +84,8 @@ describe("Test Base Reporter class", () => {
 
 		it("should match included & excluded metrics", () => {
 			const reporter = new BaseReporter({
-				includes: [
-					"moleculer.**.total"
-				],
-				excludes: [
-					"moleculer.broker.**",
-					"moleculer.request.**"
-				]
+				includes: ["moleculer.**.total"],
+				excludes: ["moleculer.broker.**", "moleculer.request.**"]
 			});
 
 			expect(reporter.matchMetricName("moleculer.registry.nodes.total")).toBe(true);
@@ -110,11 +97,9 @@ describe("Test Base Reporter class", () => {
 			expect(reporter.matchMetricName("moleculer.cacher.get.time")).toBe(false);
 			expect(reporter.matchMetricName("os.cpu.info.times.sys")).toBe(false);
 		});
-
 	});
 
 	describe("Test formatMetricName method", () => {
-
 		it("should not format metric name", () => {
 			const reporter = new BaseReporter({});
 
@@ -128,7 +113,9 @@ describe("Test Base Reporter class", () => {
 				metricNameSuffix: ".value"
 			});
 
-			expect(reporter.formatMetricName("moleculer.node.type")).toBe("mol:moleculer.node.type.value");
+			expect(reporter.formatMetricName("moleculer.node.type")).toBe(
+				"mol:moleculer.node.type.value"
+			);
 			expect(reporter.formatMetricName("")).toBe("mol:.value");
 		});
 
@@ -139,14 +126,14 @@ describe("Test Base Reporter class", () => {
 				metricNameFormatter: name => name.toUpperCase().replace(/[.:]/g, "_")
 			});
 
-			expect(reporter.formatMetricName("moleculer.node.type")).toBe("MOL_MOLECULER_NODE_TYPE_VALUE");
+			expect(reporter.formatMetricName("moleculer.node.type")).toBe(
+				"MOL_MOLECULER_NODE_TYPE_VALUE"
+			);
 			expect(reporter.formatMetricName("")).toBe("MOL__VALUE");
 		});
-
 	});
 
 	describe("Test formatLabelName method", () => {
-
 		it("should not format label name", () => {
 			const reporter = new BaseReporter();
 
@@ -162,6 +149,5 @@ describe("Test Base Reporter class", () => {
 			expect(reporter.formatLabelName("action.name")).toBe("ACTION_NAME");
 			expect(reporter.formatLabelName("")).toBe("");
 		});
-
 	});
 });

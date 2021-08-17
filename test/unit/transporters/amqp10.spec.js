@@ -14,7 +14,9 @@ rhea.Connection.prototype._connection = {
 	setMaxListeners: jest.fn()
 };
 rhea.Connection.prototype.createReceiver = jest.fn(() => Promise.resolve(new rhea.Receiver()));
-rhea.Connection.prototype.createAwaitableSender = jest.fn(() => Promise.resolve(new rhea.AwaitableSender()));
+rhea.Connection.prototype.createAwaitableSender = jest.fn(() =>
+	Promise.resolve(new rhea.AwaitableSender())
+);
 
 rhea.Connection.prototype.createSession = jest.fn(() => Promise.resolve(new rhea.Session()));
 rhea.Session.prototype._session = {
@@ -97,7 +99,9 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 			.then(() => {
 				expect(transporter.connection).toBeNull();
 				expect(transporter.connected).toEqual(false);
-				rhea.Connection.prototype.open = jest.fn(() => Promise.resolve(new rhea.Connection()));
+				rhea.Connection.prototype.open = jest.fn(() =>
+					Promise.resolve(new rhea.Connection())
+				);
 			});
 	});
 
@@ -143,7 +147,12 @@ describe("Test AmqpTransporter message handler", () => {
 	let broker;
 
 	beforeEach(() => {
-		broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node", internalServices: false });
+		broker = new ServiceBroker({
+			logger: false,
+			namespace: "TEST",
+			nodeID: "node",
+			internalServices: false
+		});
 		msgHandler = jest.fn();
 		transporter = new Amqp10Transporter({ url: "amqp10://localhost" });
 		transporter.init(new Transit(broker), msgHandler);
@@ -215,7 +224,12 @@ describe("Test AmqpTransporter subscribe", () => {
 	beforeEach(() => {
 		if (transporter) transporter.disconnect();
 
-		broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node", internalServices: false });
+		broker = new ServiceBroker({
+			logger: false,
+			namespace: "TEST",
+			nodeID: "node",
+			internalServices: false
+		});
 		msgHandler = jest.fn();
 		transporter = new Amqp10Transporter({ url: "amqp10://localhost" });
 		transporter.init(new Transit(broker), msgHandler);
@@ -235,7 +249,10 @@ describe("Test AmqpTransporter subscribe", () => {
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(10);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[9][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -258,7 +275,10 @@ describe("Test AmqpTransporter subscribe", () => {
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(12);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[11][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -281,7 +301,10 @@ describe("Test AmqpTransporter subscribe", () => {
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(14);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[13][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -304,7 +327,10 @@ describe("Test AmqpTransporter subscribe", () => {
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(16);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[15][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -327,7 +353,10 @@ describe("Test AmqpTransporter subscribe", () => {
 					);
 
 					expect(transporter.receivers[0].on).toHaveBeenCalledTimes(18 + i * 2);
-					expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+					expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+						"message",
+						expect.any(Function)
+					);
 
 					const consumeCb = transporter.receivers[0].on.mock.calls[17 + i * 2][1];
 					const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -350,7 +379,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(26);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[25][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -368,11 +400,16 @@ describe("Test AmqpTransporter subscribe", () => {
 			.then(() => {
 				expect(transporter.connection.createReceiver).toHaveBeenCalledTimes(1);
 				expect(transporter.connection.createReceiver).toHaveBeenCalledWith(
-					expect.objectContaining({ source: { address: "MOL-TEST.EVENTB.posts.cache.clear" } })
+					expect.objectContaining({
+						source: { address: "MOL-TEST.EVENTB.posts.cache.clear" }
+					})
 				);
 
 				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(28);
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
+				expect(transporter.receivers[0].on).toHaveBeenCalledWith(
+					"message",
+					expect.any(Function)
+				);
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[27][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -391,7 +428,10 @@ describe("Test AmqpTransporter publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new Amqp10Transporter({ url: "amqp10://localhost" });
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })),
+			msgHandler
+		);
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		return transporter.connect();
 	});
@@ -402,14 +442,20 @@ describe("Test AmqpTransporter publish", () => {
 			.publish(packet)
 			.catch(protectReject)
 			.then(() => {
-				return transporter.connection.createAwaitableSender.mock.results[0].value.then(sender => {
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(1);
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
-						expect.objectContaining({ target: { address: "MOL-TEST.INFO.node2" } })
-					);
-					expect(sender.send).toHaveBeenCalledTimes(1);
-					expect(sender.send).toHaveBeenCalledWith(expect.objectContaining({ body: Buffer.from("json data") }));
-				});
+				return transporter.connection.createAwaitableSender.mock.results[0].value.then(
+					sender => {
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(
+							1
+						);
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
+							expect.objectContaining({ target: { address: "MOL-TEST.INFO.node2" } })
+						);
+						expect(sender.send).toHaveBeenCalledTimes(1);
+						expect(sender.send).toHaveBeenCalledWith(
+							expect.objectContaining({ body: Buffer.from("json data") })
+						);
+					}
+				);
 			});
 	});
 
@@ -419,14 +465,22 @@ describe("Test AmqpTransporter publish", () => {
 			.publish(packet)
 			.catch(protectReject)
 			.then(() => {
-				return transporter.connection.createAwaitableSender.mock.results[0].value.then(sender => {
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(1);
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
-						expect.objectContaining({ target: { address: "topic://MOL-TEST.INFO" } })
-					);
-					expect(sender.send).toHaveBeenCalledTimes(1);
-					expect(sender.send).toHaveBeenCalledWith(expect.objectContaining({ body: Buffer.from("json data") }));
-				});
+				return transporter.connection.createAwaitableSender.mock.results[0].value.then(
+					sender => {
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(
+							1
+						);
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
+							expect.objectContaining({
+								target: { address: "topic://MOL-TEST.INFO" }
+							})
+						);
+						expect(sender.send).toHaveBeenCalledTimes(1);
+						expect(sender.send).toHaveBeenCalledWith(
+							expect.objectContaining({ body: Buffer.from("json data") })
+						);
+					}
+				);
 			});
 	});
 
@@ -440,16 +494,24 @@ describe("Test AmqpTransporter publish", () => {
 			.publishBalancedEvent(packet, "mail")
 			.catch(protectReject)
 			.then(() => {
-				return transporter.connection.createAwaitableSender.mock.results[0].value.then(sender => {
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(1);
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
-						expect.objectContaining({ target: { address: "MOL-TEST.EVENTB.mail.user.created" } })
-					);
-					expect(sender.send).toHaveBeenCalledTimes(1);
-					expect(sender.send).toHaveBeenCalledWith(expect.objectContaining({ body: Buffer.from("json data") }));
-					expect(transporter.serialize).toHaveBeenCalledTimes(1);
-					expect(transporter.serialize).toHaveBeenCalledWith(packet);
-				});
+				return transporter.connection.createAwaitableSender.mock.results[0].value.then(
+					sender => {
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(
+							1
+						);
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
+							expect.objectContaining({
+								target: { address: "MOL-TEST.EVENTB.mail.user.created" }
+							})
+						);
+						expect(sender.send).toHaveBeenCalledTimes(1);
+						expect(sender.send).toHaveBeenCalledWith(
+							expect.objectContaining({ body: Buffer.from("json data") })
+						);
+						expect(transporter.serialize).toHaveBeenCalledTimes(1);
+						expect(transporter.serialize).toHaveBeenCalledWith(packet);
+					}
+				);
 			});
 	});
 
@@ -461,16 +523,24 @@ describe("Test AmqpTransporter publish", () => {
 			.publishBalancedRequest(packet)
 			.catch(protectReject)
 			.then(() => {
-				return transporter.connection.createAwaitableSender.mock.results[0].value.then(sender => {
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(1);
-					expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
-						expect.objectContaining({ target: { address: "MOL-TEST.REQB.posts.find" } })
-					);
-					expect(sender.send).toHaveBeenCalledTimes(1);
-					expect(sender.send).toHaveBeenCalledWith(expect.objectContaining({ body: Buffer.from("json data") }));
-					expect(transporter.serialize).toHaveBeenCalledTimes(1);
-					expect(transporter.serialize).toHaveBeenCalledWith(packet);
-				});
+				return transporter.connection.createAwaitableSender.mock.results[0].value.then(
+					sender => {
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledTimes(
+							1
+						);
+						expect(transporter.connection.createAwaitableSender).toHaveBeenCalledWith(
+							expect.objectContaining({
+								target: { address: "MOL-TEST.REQB.posts.find" }
+							})
+						);
+						expect(sender.send).toHaveBeenCalledTimes(1);
+						expect(sender.send).toHaveBeenCalledWith(
+							expect.objectContaining({ body: Buffer.from("json data") })
+						);
+						expect(transporter.serialize).toHaveBeenCalledTimes(1);
+						expect(transporter.serialize).toHaveBeenCalledWith(packet);
+					}
+				);
 			});
 	});
 });

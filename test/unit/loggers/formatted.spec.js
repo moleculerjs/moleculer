@@ -13,9 +13,7 @@ const lolex = require("@sinonjs/fake-timers");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Formatted logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new FormattedLogger();
 
@@ -48,7 +46,6 @@ describe("Test Formatted logger class", () => {
 				autoPadding: false
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -61,15 +58,14 @@ describe("Test Formatted logger class", () => {
 
 			expect(logger.objectPrinter).toBeInstanceOf(Function);
 			expect(logger.levelColorStr).toEqual({
-				"debug": "DEBUG",
-				"error": "ERROR",
-				"fatal": "FATAL",
-				"info": "INFO ",
-				"trace": "TRACE",
-				"warn": "WARN ",
+				debug: "DEBUG",
+				error: "ERROR",
+				fatal: "FATAL",
+				info: "INFO ",
+				trace: "TRACE",
+				warn: "WARN "
 			});
 			expect(logger.opts.moduleColors).toBe(false);
-
 		});
 
 		it("should init the logger with custom options", () => {
@@ -83,13 +79,18 @@ describe("Test Formatted logger class", () => {
 
 			expect(logger.objectPrinter).toBe(objectPrinter);
 			expect(logger.opts.moduleColors).toEqual([
-				"yellow", "bold.yellow",
-				"cyan", "bold.cyan",
-				"green", "bold.green",
-				"magenta", "bold.magenta",
-				"blue", "bold.blue"]);
+				"yellow",
+				"bold.yellow",
+				"cyan",
+				"bold.cyan",
+				"green",
+				"bold.green",
+				"magenta",
+				"bold.magenta",
+				"blue",
+				"bold.blue"
+			]);
 		});
-
 	});
 
 	describe("Test render method", () => {
@@ -100,14 +101,15 @@ describe("Test Formatted logger class", () => {
 
 			logger.init(loggerFactory);
 
-			expect(logger.render("[{timestamp}] {level} {nodeID}/{mod}: {msg}", {
-				timestamp: "2019-09-07",
-				level: "INFO",
-				mod: "broker",
-				nodeID: "server-1",
-				msg: "Message"
-			})).toBe("[2019-09-07] INFO server-1/broker: Message");
-
+			expect(
+				logger.render("[{timestamp}] {level} {nodeID}/{mod}: {msg}", {
+					timestamp: "2019-09-07",
+					level: "INFO",
+					mod: "broker",
+					nodeID: "server-1",
+					msg: "Message"
+				})
+			).toBe("[2019-09-07] INFO server-1/broker: Message");
 		});
 	});
 
@@ -141,7 +143,9 @@ describe("Test Formatted logger class", () => {
 		});
 
 		it("should return a custom color for module name", () => {
-			const logger = new FormattedLogger({ moduleColors: ["magenta", "green", "red", "blue"] });
+			const logger = new FormattedLogger({
+				moduleColors: ["magenta", "green", "red", "blue"]
+			});
 
 			logger.init(loggerFactory);
 
@@ -152,7 +156,6 @@ describe("Test Formatted logger class", () => {
 			expect(logger.getNextColor("broker")).toBe("blue");
 			expect(logger.getNextColor("my-service")).toBe("magenta");
 		});
-
 	});
 
 	describe("Test getFormatter method", () => {
@@ -174,7 +177,13 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[2009-02-13T23:31:39.990Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"[2009-02-13T23:31:39.990Z]",
+					"DEBUG",
+					"node-1/MY-SERVICE:",
+					"message",
+					"{ a: 5 }"
+				]);
 			});
 
 			it("should create simple formatter", () => {
@@ -182,7 +191,12 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["DEBUG", "-", "message", "{ a: 5 }"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"DEBUG",
+					"-",
+					"message",
+					"{ a: 5 }"
+				]);
 			});
 
 			it("should create short formatter", () => {
@@ -190,7 +204,13 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[23:31:39.990Z]", "DEBUG", "MY-SERVICE:", "message", "{ a: 5 }"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"[23:31:39.990Z]",
+					"DEBUG",
+					"MY-SERVICE:",
+					"message",
+					"{ a: 5 }"
+				]);
 			});
 
 			it("should create json formatter", () => {
@@ -198,7 +218,9 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["{\"ts\":1234567899990,\"level\":\"debug\",\"msg\":\"message { a: 5 }\",\"mod\":\"my-service\",\"nodeID\":\"node-1\"}"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					'{"ts":1234567899990,"level":"debug","msg":"message { a: 5 }","mod":"my-service","nodeID":"node-1"}'
+				]);
 			});
 
 			it("should create jsonext formatter", () => {
@@ -206,12 +228,19 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["{\"time\":\"2009-02-13T23:31:39.990Z\",\"level\":\"debug\",\"message\":\"message { a: 5 }\",\"mod\":\"my-service\",\"nodeID\":\"node-1\"}"]);
-				expect(formatter("debug", [{ a: 5 }, "message"])).toEqual(["{\"time\":\"2009-02-13T23:31:39.990Z\",\"level\":\"debug\",\"message\":\"message\",\"mod\":\"my-service\",\"nodeID\":\"node-1\",\"a\":5}"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					'{"time":"2009-02-13T23:31:39.990Z","level":"debug","message":"message { a: 5 }","mod":"my-service","nodeID":"node-1"}'
+				]);
+				expect(formatter("debug", [{ a: 5 }, "message"])).toEqual([
+					'{"time":"2009-02-13T23:31:39.990Z","level":"debug","message":"message","mod":"my-service","nodeID":"node-1","a":5}'
+				]);
 			});
 
 			it("should create a custom template formatter", () => {
-				const logger = new FormattedLogger({ level: "trace", formatter: "[{time}] {level} <{nodeID}:{mod}> -> {msg}" });
+				const logger = new FormattedLogger({
+					level: "trace",
+					formatter: "[{time}] {level} <{nodeID}:{mod}> -> {msg}"
+				});
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
@@ -228,9 +257,13 @@ describe("Test Formatted logger class", () => {
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
 				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["message", { a: 5 }]);
 				expect(myFormatter).toHaveBeenCalledTimes(1);
-				expect(myFormatter).toHaveBeenCalledWith("debug", ["message", { a: 5 }], { mod: "my-service", nodeID: "node-1" }, { printArgs: expect.any(Function) });
+				expect(myFormatter).toHaveBeenCalledWith(
+					"debug",
+					["message", { a: 5 }],
+					{ mod: "my-service", nodeID: "node-1" },
+					{ printArgs: expect.any(Function) }
+				);
 			});
-
 		});
 
 		describe("Test getFormatter method with autoPadding", () => {
@@ -239,32 +272,68 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[2009-02-13T23:31:39.990Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"[2009-02-13T23:31:39.990Z]",
+					"DEBUG",
+					"node-1/MY-SERVICE:",
+					"message",
+					"{ a: 5 }"
+				]);
 
 				const formatter2 = logger.getFormatter({ mod: "short", nodeID: "n-2" });
-				expect(formatter2("debug", ["message2"])).toEqual(["[2009-02-13T23:31:39.990Z]", "DEBUG", "n-2/SHORT        :", "message2"]);
+				expect(formatter2("debug", ["message2"])).toEqual([
+					"[2009-02-13T23:31:39.990Z]",
+					"DEBUG",
+					"n-2/SHORT        :",
+					"message2"
+				]);
 			});
 
 			it("should create short formatter", () => {
-				const logger = new FormattedLogger({ level: "trace", formatter: "short", autoPadding: true });
+				const logger = new FormattedLogger({
+					level: "trace",
+					formatter: "short",
+					autoPadding: true
+				});
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[23:31:39.990Z]", "DEBUG", "MY-SERVICE:", "message", "{ a: 5 }"]);
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"[23:31:39.990Z]",
+					"DEBUG",
+					"MY-SERVICE:",
+					"message",
+					"{ a: 5 }"
+				]);
 
 				const formatter2 = logger.getFormatter({ mod: "short", nodeID: "n-2" });
-				expect(formatter2("debug", ["message2"])).toEqual(["[23:31:39.990Z]", "DEBUG", "SHORT     :", "message2"]);
+				expect(formatter2("debug", ["message2"])).toEqual([
+					"[23:31:39.990Z]",
+					"DEBUG",
+					"SHORT     :",
+					"message2"
+				]);
 			});
 		});
 
 		describe("Test getFormatter objectPrinter", () => {
-
 			it("should use the default objectPrinter", () => {
 				const logger = new FormattedLogger({});
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])).toEqual(["[2009-02-13T23:31:39.990Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }", "[ 'John', 'Doe' ]", true, 123]);
+				expect(
+					formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])
+				).toEqual([
+					"[2009-02-13T23:31:39.990Z]",
+					"DEBUG",
+					"node-1/MY-SERVICE:",
+					"message",
+					"{ a: 5 }",
+					"[ 'John', 'Doe' ]",
+					true,
+					123
+				]);
 			});
 
 			it("should use a custom objectPrinter", () => {
@@ -273,14 +342,23 @@ describe("Test Formatted logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])).toEqual(["[2009-02-13T23:31:39.990Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "printed", "printed", true, 123]);
+				expect(
+					formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])
+				).toEqual([
+					"[2009-02-13T23:31:39.990Z]",
+					"DEBUG",
+					"node-1/MY-SERVICE:",
+					"message",
+					"printed",
+					"printed",
+					true,
+					123
+				]);
 
 				expect(objectPrinter).toHaveBeenCalledTimes(2);
 				expect(objectPrinter).toHaveBeenCalledWith({ a: 5 });
 				expect(objectPrinter).toHaveBeenCalledWith(["John", "Doe"]);
 			});
 		});
-
 	});
-
 });

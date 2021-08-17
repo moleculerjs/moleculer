@@ -18,7 +18,6 @@ const { MoleculerServerError } = require("../errors");
  * @class ProtoBufSerializer
  */
 class ProtoBufSerializer extends BaseSerializer {
-
 	/**
 	 * Initialize Serializer
 	 *
@@ -31,28 +30,44 @@ class ProtoBufSerializer extends BaseSerializer {
 
 		try {
 			require("protobufjs/minimal");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'protobufjs' package is missing! Please install it with 'npm install protobufjs --save' command!", err, true);
+			this.broker.fatal(
+				"The 'protobufjs' package is missing! Please install it with 'npm install protobufjs --save' command!",
+				err,
+				true
+			);
 		}
 
 		this.packets = require("./proto/packets.proto.js").packets;
 	}
 
 	getPacketFromType(type) {
-		switch(type) {
-			case P.PACKET_EVENT: return this.packets.PacketEvent;
-			case P.PACKET_REQUEST: return this.packets.PacketRequest;
-			case P.PACKET_RESPONSE: return this.packets.PacketResponse;
-			case P.PACKET_DISCOVER: return this.packets.PacketDiscover;
-			case P.PACKET_INFO: return this.packets.PacketInfo;
-			case P.PACKET_DISCONNECT: return this.packets.PacketDisconnect;
-			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
-			case P.PACKET_PING: return this.packets.PacketPing;
-			case P.PACKET_PONG: return this.packets.PacketPong;
-			case P.PACKET_GOSSIP_HELLO: return this.packets.PacketGossipHello;
-			case P.PACKET_GOSSIP_REQ: return this.packets.PacketGossipRequest;
-			case P.PACKET_GOSSIP_RES: return this.packets.PacketGossipResponse;
+		switch (type) {
+			case P.PACKET_EVENT:
+				return this.packets.PacketEvent;
+			case P.PACKET_REQUEST:
+				return this.packets.PacketRequest;
+			case P.PACKET_RESPONSE:
+				return this.packets.PacketResponse;
+			case P.PACKET_DISCOVER:
+				return this.packets.PacketDiscover;
+			case P.PACKET_INFO:
+				return this.packets.PacketInfo;
+			case P.PACKET_DISCONNECT:
+				return this.packets.PacketDisconnect;
+			case P.PACKET_HEARTBEAT:
+				return this.packets.PacketHeartbeat;
+			case P.PACKET_PING:
+				return this.packets.PacketPing;
+			case P.PACKET_PONG:
+				return this.packets.PacketPong;
+			case P.PACKET_GOSSIP_HELLO:
+				return this.packets.PacketGossipHello;
+			case P.PACKET_GOSSIP_REQ:
+				return this.packets.PacketGossipRequest;
+			case P.PACKET_GOSSIP_RES:
+				return this.packets.PacketGossipResponse;
 		}
 	}
 

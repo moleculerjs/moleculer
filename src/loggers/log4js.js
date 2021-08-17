@@ -19,7 +19,6 @@ const { isFunction } = require("../utils");
  * @extends {BaseLogger}
  */
 class Log4jsLogger extends BaseLogger {
-
 	/**
 	 * Creates an instance of Log4jsLogger.
 	 * @param {Object} opts
@@ -28,8 +27,7 @@ class Log4jsLogger extends BaseLogger {
 	constructor(opts) {
 		super(opts);
 
-		this.opts = _.defaultsDeep(this.opts, {
-		});
+		this.opts = _.defaultsDeep(this.opts, {});
 	}
 
 	/**
@@ -45,9 +43,13 @@ class Log4jsLogger extends BaseLogger {
 			if (this.opts.log4js) {
 				this.log4js.configure(this.opts.log4js);
 			}
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'log4js' package is missing! Please install it with 'npm install log4js --save' command!", err, true);
+			this.broker.fatal(
+				"The 'log4js' package is missing! Please install it with 'npm install log4js --save' command!",
+				err,
+				true
+			);
 		}
 	}
 
@@ -68,12 +70,10 @@ class Log4jsLogger extends BaseLogger {
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		let logger;
-		if (isFunction(this.opts.createLogger))
-			logger = this.opts.createLogger(level, bindings);
+		if (isFunction(this.opts.createLogger)) logger = this.opts.createLogger(level, bindings);
 		else {
 			logger = this.log4js.getLogger(bindings.mod.toUpperCase());
 			logger.level = level;

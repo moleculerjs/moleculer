@@ -33,8 +33,7 @@ class RateLimiter {
 		this.lastTime = now;
 
 		this.balance += elapsedTime * this.opts.tracesPerSecond;
-		if (this.balance > this.maxBalance)
-			this.balance = this.maxBalance;
+		if (this.balance > this.maxBalance) this.balance = this.maxBalance;
 
 		if (this.balance >= cost) {
 			this.balance -= cost;

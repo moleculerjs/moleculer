@@ -8,8 +8,8 @@
 
 "use strict";
 
-const FormattedLogger 	= require("./formatted");
-const kleur 			= require("kleur");
+const FormattedLogger = require("./formatted");
+const kleur = require("kleur");
 
 /**
  * Console logger for Moleculer
@@ -18,7 +18,6 @@ const kleur 			= require("kleur");
  * @extends {FormattedLogger}
  */
 class ConsoleLogger extends FormattedLogger {
-
 	/**
 	 * Creates an instance of ConsoleLogger.
 	 * @param {Object} opts
@@ -33,8 +32,7 @@ class ConsoleLogger extends FormattedLogger {
 	init(loggerFactory) {
 		super.init(loggerFactory);
 
-		if (!this.opts.colors)
-			kleur.enabled = false;
+		if (!this.opts.colors) kleur.enabled = false;
 	}
 
 	/**
@@ -43,8 +41,7 @@ class ConsoleLogger extends FormattedLogger {
 	 */
 	getLogHandler(bindings) {
 		const level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
 		const formatter = this.getFormatter(bindings);
@@ -54,15 +51,17 @@ class ConsoleLogger extends FormattedLogger {
 			if (typeIdx > levelIdx) return;
 
 			const pargs = formatter(type, args);
-			switch(type) {
+			switch (type) {
 				case "fatal":
-				case "error": return console.error(...pargs);
-				case "warn": return console.warn(...pargs);
-				default: return console.log(...pargs);
+				case "error":
+					return console.error(...pargs);
+				case "warn":
+					return console.warn(...pargs);
+				default:
+					return console.log(...pargs);
 			}
 		};
 	}
-
 }
 
 module.exports = ConsoleLogger;

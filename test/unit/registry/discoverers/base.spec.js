@@ -4,7 +4,6 @@ const BaseDiscoverer = require("../../../../src/registry/discoverers").Base;
 const ServiceBroker = require("../../../../src/service-broker");
 
 describe("Test BaseDiscoverer constructor", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -52,11 +51,9 @@ describe("Test BaseDiscoverer constructor", () => {
 
 		expect(discoverer.localNode).toBeNull();
 	});
-
 });
 
 describe("Test BaseDiscoverer 'init' method", () => {
-
 	it("init without opts & transit", () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -90,7 +87,12 @@ describe("Test BaseDiscoverer 'init' method", () => {
 	});
 
 	it("init with opts & transit", () => {
-		const broker = new ServiceBroker({ logger: false, transporter: "Fake", heartbeatInterval: 10, heartbeatTimeout: 50 });
+		const broker = new ServiceBroker({
+			logger: false,
+			transporter: "Fake",
+			heartbeatInterval: 10,
+			heartbeatTimeout: 50
+		});
 		const registry = broker.registry;
 
 		const discoverer = new BaseDiscoverer({
@@ -99,7 +101,7 @@ describe("Test BaseDiscoverer 'init' method", () => {
 		});
 
 		const eventsCB = {};
-		broker.localBus.on = jest.fn((name, cb) => eventsCB[name] = cb);
+		broker.localBus.on = jest.fn((name, cb) => (eventsCB[name] = cb));
 		discoverer.startHeartbeatTimers = jest.fn();
 		discoverer.stopHeartbeatTimers = jest.fn();
 
@@ -118,7 +120,10 @@ describe("Test BaseDiscoverer 'init' method", () => {
 
 		expect(broker.localBus.on).toBeCalledTimes(2);
 		expect(broker.localBus.on).toBeCalledWith("$transporter.connected", expect.any(Function));
-		expect(broker.localBus.on).toBeCalledWith("$transporter.disconnected", expect.any(Function));
+		expect(broker.localBus.on).toBeCalledWith(
+			"$transporter.disconnected",
+			expect.any(Function)
+		);
 
 		// Test event handlers
 		expect(discoverer.startHeartbeatTimers).toBeCalledTimes(0);
@@ -132,7 +137,6 @@ describe("Test BaseDiscoverer 'init' method", () => {
 });
 
 describe("Test BaseDiscoverer 'stop' method", () => {
-
 	it("should stop timers", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -148,7 +152,6 @@ describe("Test BaseDiscoverer 'stop' method", () => {
 		expect(discoverer.stopHeartbeatTimers).toBeCalledWith();
 	});
 
-
 	it("should do nothing if no init", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;
@@ -160,7 +163,6 @@ describe("Test BaseDiscoverer 'stop' method", () => {
 });
 
 describe("Test BaseDiscoverer 'startHeartbeatTimers' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -192,12 +194,10 @@ describe("Test BaseDiscoverer 'startHeartbeatTimers' method", () => {
 		expect(discoverer.checkOfflineNodes).toBeCalledTimes(0);
 		jest.advanceTimersByTime(30000);
 		expect(discoverer.checkOfflineNodes).toBeCalledTimes(1);
-
 	});
 });
 
 describe("Test BaseDiscoverer 'stopHeartbeatTimers' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -233,7 +233,6 @@ describe("Test BaseDiscoverer 'stopHeartbeatTimers' method", () => {
 });
 
 describe("Test BaseDiscoverer 'disableHeartbeat' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -253,7 +252,6 @@ describe("Test BaseDiscoverer 'disableHeartbeat' method", () => {
 });
 
 describe("Test BaseDiscoverer 'beat' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -263,7 +261,6 @@ describe("Test BaseDiscoverer 'beat' method", () => {
 	afterAll(() => discoverer.stop());
 
 	it("should update local node & call sendHeartbeat", async () => {
-
 		discoverer.sendHeartbeat = jest.fn();
 		discoverer.localNode.updateLocalInfo = jest.fn(() => Promise.resolve());
 
@@ -278,7 +275,6 @@ describe("Test BaseDiscoverer 'beat' method", () => {
 });
 
 describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -287,7 +283,6 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 	const node = { id: "node-10", local: false, available: true };
 	registry.nodes.toArray = jest.fn(() => [node]);
 	registry.nodes.disconnected = jest.fn();
-
 
 	beforeAll(() => {
 		discoverer.init(registry);
@@ -370,11 +365,9 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		expect(registry.nodes.disconnected).toBeCalledTimes(0);
 		expect(discoverer.logger.warn).toBeCalledTimes(0);
 	});
-
 });
 
 describe("Test BaseDiscoverer 'checkOfflineNodes' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -465,11 +458,9 @@ describe("Test BaseDiscoverer 'checkOfflineNodes' method", () => {
 		expect(registry.nodes.delete).toBeCalledTimes(0);
 		expect(discoverer.logger.warn).toBeCalledTimes(0);
 	});
-
 });
 
 describe("Test BaseDiscoverer 'heartbeatReceived' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -560,7 +551,6 @@ describe("Test BaseDiscoverer 'heartbeatReceived' method", () => {
 		expect(node.heartbeat).toBeCalledWith({ seq: 2, instanceID: "iid-1" });
 	});
 
-
 	it("should call heartbeat if no instanceID in payload", async () => {
 		discoverer.discoverNode.mockClear();
 		registry.nodes.get.mockClear();
@@ -586,9 +576,7 @@ describe("Test BaseDiscoverer 'heartbeatReceived' method", () => {
 	});
 });
 
-
 describe("Test BaseDiscoverer 'processRemoteNodeInfo' method", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 	const registry = broker.registry;
 
@@ -609,7 +597,6 @@ describe("Test BaseDiscoverer 'processRemoteNodeInfo' method", () => {
 });
 
 describe("Test BaseDiscoverer 'sendHeartbeat' method", () => {
-
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new BaseDiscoverer();
@@ -636,7 +623,6 @@ describe("Test BaseDiscoverer 'sendHeartbeat' method", () => {
 });
 
 describe("Test BaseDiscoverer 'localNodeReady' method", () => {
-
 	it("should call sendLocalNodeInfo", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new BaseDiscoverer();
@@ -654,7 +640,6 @@ describe("Test BaseDiscoverer 'localNodeReady' method", () => {
 });
 
 describe("Test BaseDiscoverer 'localNodeDisconnected' method", () => {
-
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const discoverer = new BaseDiscoverer();
@@ -681,7 +666,6 @@ describe("Test BaseDiscoverer 'localNodeDisconnected' method", () => {
 });
 
 describe("Test BaseDiscoverer 'remoteNodeDisconnected' method", () => {
-
 	it("should call sendLocalNodeInfo", async () => {
 		const broker = new ServiceBroker({ logger: false });
 		const registry = broker.registry;

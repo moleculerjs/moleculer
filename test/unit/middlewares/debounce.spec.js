@@ -26,10 +26,9 @@ describe("Test DebounceMiddleware", () => {
 	});
 
 	describe("Test localEvent", () => {
-
 		let clock;
 
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should not wrap handler if debounce is not set", () => {
@@ -47,7 +46,6 @@ describe("Test DebounceMiddleware", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 			expect(newHandler).not.toBe(handler);
 		});
-
 
 		it("should invoke when event not received in 5 seconds", () => {
 			event.debounce = 5000;
@@ -76,9 +74,6 @@ describe("Test DebounceMiddleware", () => {
 			clock.tick(5000);
 			newHandler(ctx);
 			expect(event.handler).toBeCalledTimes(1);
-
 		});
-
 	});
-
 });

@@ -4,9 +4,7 @@ const BaseExporter = require("../../../../src/tracing/exporters/base");
 const { MoleculerRetryableError } = require("../../../../src/errors");
 
 describe("Test Base Reporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const exporter = new BaseExporter();
 
@@ -24,11 +22,9 @@ describe("Test Base Reporter class", () => {
 				a: 5
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
-
 		it("should set tracer & logger", () => {
 			const fakeTracer = {
 				broker: { Promise },
@@ -40,7 +36,6 @@ describe("Test Base Reporter class", () => {
 			expect(exporter.tracer).toBe(fakeTracer);
 			expect(exporter.logger).toBe(fakeTracer.logger);
 		});
-
 	});
 
 	describe("Test flattenTags method", () => {
@@ -57,7 +52,7 @@ describe("Test Base Reporter class", () => {
 				d: "d",
 				e: {
 					f: true,
-					g: 100,
+					g: 100
 				},
 				h: null,
 				i: undefined
@@ -96,7 +91,6 @@ describe("Test Base Reporter class", () => {
 				"myObj.c.h": null
 			});
 		});
-
 	});
 
 	describe("Test errorToObject method", () => {
@@ -136,7 +130,5 @@ describe("Test Base Reporter class", () => {
 				}
 			});
 		});
-
 	});
-
 });

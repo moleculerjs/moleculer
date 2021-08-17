@@ -1,9 +1,9 @@
 "use strict";
 
-const _ 						= require("lodash");
-const r 						= _.repeat;
-const kleur 					= require("kleur");
-const { humanize, isFunction }  = require("../../utils");
+const _ = require("lodash");
+const r = _.repeat;
+const kleur = require("kleur");
+const { humanize, isFunction } = require("../../utils");
 
 const BaseTraceExporter = require("./base");
 
@@ -13,7 +13,6 @@ const BaseTraceExporter = require("./base");
  * @class ConsoleTraceExporter
  */
 class ConsoleTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of ConsoleTraceExporter.
 	 * @param {Object?} opts
@@ -29,8 +28,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			gaugeWidth: 40
 		});
 
-		if (!this.opts.colors)
-			kleur.enabled = false;
+		if (!this.opts.colors) kleur.enabled = false;
 
 		this.spans = {};
 	}
@@ -68,8 +66,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		if (span.parentID) {
 			const parentItem = this.spans[span.parentID];
-			if (parentItem)
-				parentItem.children.push(span.id);
+			if (parentItem) parentItem.children.push(span.id);
 		}
 	}
 
@@ -125,8 +122,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const len = str.length;
 
 		let left;
-		if (len <= space)
-			left = str + r(" ", space - len);
+		if (len <= space) left = str + r(" ", space - len);
 		else {
 			left = str.slice(0, Math.max(space - 3, 0));
 			left += r(".", Math.min(3, space));
@@ -137,8 +133,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 	drawGauge(gstart, gstop) {
 		const gw = this.opts.gaugeWidth;
-		const p1 = Math.floor(gw * gstart / 100);
-		const p2 = Math.max(Math.floor(gw * gstop / 100) - p1, 1);
+		const p1 = Math.floor((gw * gstart) / 100);
+		const p2 = Math.max(Math.floor((gw * gstop) / 100) - p1, 1);
 		const p3 = Math.max(gw - (p1 + p2), 0);
 
 		return [
@@ -153,26 +149,19 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	getCaption(span) {
 		let caption = span.name;
 
-		if (span.tags.fromCache)
-			caption += " *";
-		if (span.tags.remoteCall)
-			caption += " »";
-		if (span.error)
-			caption += " ×";
+		if (span.tags.fromCache) caption += " *";
+		if (span.tags.remoteCall) caption += " »";
+		if (span.error) caption += " ×";
 
 		return caption;
 	}
 
 	getColor(span) {
 		let c = kleur.bold;
-		if (span.tags.fromCache)
-			c = c().yellow;
-		if (span.tags.remoteCall)
-			c = c().cyan;
-		if (span.duration == null)
-			c = c().grey;
-		if (span.error)
-			c = c().red;
+		if (span.tags.fromCache) c = c().yellow;
+		if (span.tags.remoteCall) c = c().cyan;
+		if (span.duration == null) c = c().grey;
+		if (span.error) c = c().red;
 
 		return c;
 	}
@@ -184,8 +173,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			item.level = level;
 			item.parents = parents || [];
 			total++;
-			if (level > depth)
-				depth = level;
+			if (level > depth) depth = level;
 
 			if (item.children.length > 0) {
 				item.children.forEach((spanID, idx) => {
@@ -204,12 +192,13 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 	getSpanIndent(spanItem) {
 		if (spanItem.level > 1) {
-			let s = spanItem.parents.map((item, idx) => {
-				if (idx > 0)
-					return item.last ? "  " : "│ ";
+			let s = spanItem.parents
+				.map((item, idx) => {
+					if (idx > 0) return item.last ? "  " : "│ ";
 
-				return "";
-			}).join("");
+					return "";
+				})
+				.join("");
 
 			s += spanItem.last ? "└─" : "├─";
 
@@ -235,20 +224,25 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const time = span.duration == null ? "?" : humanize(span.duration);
 		const indent = this.getSpanIndent(spanItem);
 		const caption = this.getCaption(span);
-		const info = kleur.grey(indent) + this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) + " " + time;
+		const info =
+			kleur.grey(indent) +
+			this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) +
+			" " +
+			time;
 
 		const startTime = span.startTime || mainSpan.startTime;
 		const finishTime = span.finishTime || mainSpan.finishTime;
 
-		let gstart = (startTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime) * 100;
-		let gstop = (finishTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime) * 100;
+		let gstart =
+			((startTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) * 100;
+		let gstop =
+			((finishTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) * 100;
 
 		if (Number.isNaN(gstart) && Number.isNaN(gstop)) {
 			gstart = 0;
 			gstop = 100;
 		}
-		if (gstop > 100)
-			gstop = 100;
+		if (gstop > 100) gstop = 100;
 
 		const c = this.getColor(span);
 		this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
@@ -269,7 +263,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 */
 	printRequest(id) {
 		const main = this.spans[id];
-		if (!main) return ; // Async span
+		if (!main) return; // Async span
 
 		const margin = 2 * 2;
 		const w = this.opts.width - margin;
@@ -278,8 +272,25 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		const { total, depth } = this.getTraceInfo(main);
 
-		const truncatedID = this.getAlignedTexts(id, w - "ID: ".length - "Depth: ".length - (""+depth).length - "Total: ".length - (""+total).length - 2);
-		const line = kleur.grey("ID: ") + kleur.bold(truncatedID) + " " + kleur.grey("Depth: ") + kleur.bold(depth) + " " + kleur.grey("Total: ") + kleur.bold(total);
+		const truncatedID = this.getAlignedTexts(
+			id,
+			w -
+				"ID: ".length -
+				"Depth: ".length -
+				("" + depth).length -
+				"Total: ".length -
+				("" + total).length -
+				2
+		);
+		const line =
+			kleur.grey("ID: ") +
+			kleur.bold(truncatedID) +
+			" " +
+			kleur.grey("Depth: ") +
+			kleur.bold(depth) +
+			" " +
+			kleur.grey("Total: ") +
+			kleur.bold(total);
 		this.drawLine(line);
 
 		this.drawHorizonalLine();

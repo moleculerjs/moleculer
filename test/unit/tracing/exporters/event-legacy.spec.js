@@ -7,15 +7,12 @@ const { MoleculerRetryableError } = require("../../../../src/errors");
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 
 describe("Test Event Legacy tracing exporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const exporter = new EventLegacyTraceExporter();
 
 			expect(exporter.opts).toEqual({});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -27,9 +24,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 			exporter.init(fakeTracer);
 
 			expect(exporter.broker).toBe(broker);
-
 		});
-
 	});
 
 	describe("Test spanStarted method", () => {
@@ -50,7 +45,9 @@ describe("Test Event Legacy tracing exporter class", () => {
 			expect(exporter.generateMetricPayload).toHaveBeenCalledWith(span1);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", { converted: true });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
+				converted: true
+			});
 		});
 
 		it("should skip tracing events", () => {
@@ -68,7 +65,6 @@ describe("Test Event Legacy tracing exporter class", () => {
 			expect(exporter.generateMetricPayload).toHaveBeenCalledTimes(0);
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test spanFinished method", () => {
@@ -89,7 +85,9 @@ describe("Test Event Legacy tracing exporter class", () => {
 			expect(exporter.generateMetricPayload).toHaveBeenCalledWith(span1);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", { converted: true });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
+				converted: true
+			});
 		});
 
 		it("should skip tracing events", () => {
@@ -107,11 +105,14 @@ describe("Test Event Legacy tracing exporter class", () => {
 			expect(exporter.generateMetricPayload).toHaveBeenCalledTimes(0);
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test generateMetricPayload", () => {
-		const fakeTracer = { broker, logger: broker.logger, opts: { errorFields: ["name", "message", "code" ] } };
+		const fakeTracer = {
+			broker,
+			logger: broker.logger,
+			opts: { errorFields: ["name", "message", "code"] }
+		};
 		const exporter = new EventLegacyTraceExporter();
 		exporter.init(fakeTracer);
 		exporter.processExtraMetrics = jest.fn();
@@ -156,7 +157,9 @@ describe("Test Event Legacy tracing exporter class", () => {
 		});
 
 		it("should convert errored span to legacy payload", () => {
-			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", { a: 5 });
+			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", {
+				a: 5
+			});
 
 			const span = {
 				name: "Test Span",
@@ -242,7 +245,6 @@ describe("Test Event Legacy tracing exporter class", () => {
 			expect(exporter.processExtraMetrics).toHaveBeenCalledTimes(1);
 			expect(exporter.processExtraMetrics).toHaveBeenCalledWith(ctx, payload);
 		});
-
 	});
 
 	describe("Test processExtraMetrics", () => {
@@ -266,9 +268,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 		it("should call assignExtraMetrics", () => {
 			const ctx = {
 				action: {
-					metrics: {
-
-					}
+					metrics: {}
 				}
 			};
 
@@ -366,7 +366,5 @@ describe("Test Event Legacy tracing exporter class", () => {
 				}
 			});
 		});
-
-
 	});
 });

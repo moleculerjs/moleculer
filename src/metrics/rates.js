@@ -17,7 +17,6 @@ function getAlpha(min) {
 */
 
 class MetricRate {
-
 	constructor(metric, item, min) {
 		this.metric = metric;
 		this.item = item;
@@ -48,7 +47,7 @@ class MetricRate {
 		this.lastValue = this.value;
 
 		// Calculate the current requests/minute
-		const oneMinRate = diff / elapsedSec * SECONDS_PER_MINUTE;
+		const oneMinRate = (diff / elapsedSec) * SECONDS_PER_MINUTE;
 
 		// Weighted calculation
 		let rate = this.rate + (oneMinRate - this.rate) * 0.5;
@@ -60,8 +59,7 @@ class MetricRate {
 
 		this.rate = rate;
 
-		if (changed)
-			this.metric.changed(this.item.value, this.item.labels, now);
+		if (changed) this.metric.changed(this.item.value, this.item.labels, now);
 	}
 
 	reset() {
@@ -70,6 +68,5 @@ class MetricRate {
 
 		this.rate = 0;
 	}
-
 }
 module.exports = MetricRate;

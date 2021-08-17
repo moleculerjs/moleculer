@@ -7,9 +7,7 @@ const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
 describe("Test EventReporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new EventReporter();
 
@@ -27,7 +25,7 @@ describe("Test EventReporter class", () => {
 				broadcast: false,
 				groups: null,
 				onlyChanges: false,
-				interval: 5,
+				interval: 5
 			});
 
 			expect(reporter.lastChanges).toBeInstanceOf(Set);
@@ -46,7 +44,7 @@ describe("Test EventReporter class", () => {
 				broadcast: true,
 				groups: ["payments"],
 				onlyChanges: true,
-				interval: 10,
+				interval: 10
 			});
 
 			expect(reporter.opts).toEqual({
@@ -61,15 +59,14 @@ describe("Test EventReporter class", () => {
 				broadcast: true,
 				groups: ["payments"],
 				onlyChanges: true,
-				interval: 10,
+				interval: 10
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should start timer", () => {
@@ -107,12 +104,11 @@ describe("Test EventReporter class", () => {
 
 			expect(reporter.sendEvent).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test sendEvent method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
@@ -122,7 +118,6 @@ describe("Test EventReporter class", () => {
 		broker.emit = jest.fn();
 
 		it("should call broker emit with changes", () => {
-
 			const reporter = new EventReporter({
 				interval: 0,
 				onlyChanges: false,
@@ -132,17 +127,36 @@ describe("Test EventReporter class", () => {
 			reporter.init(registry);
 
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -156,11 +170,12 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.broadcast).toHaveBeenCalledTimes(0);
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("$metrics.snapshot", expect.any(Array), { groups: ["mail", "stat"] });
+			expect(broker.emit).toHaveBeenCalledWith("$metrics.snapshot", expect.any(Array), {
+				groups: ["mail", "stat"]
+			});
 
 			expect(broker.emit.mock.calls[0][1]).toMatchSnapshot();
 		});
-
 	});
 
 	describe("Test sendEvent method with onlyChanges", () => {
@@ -197,17 +212,36 @@ describe("Test EventReporter class", () => {
 			broker.emit.mockClear();
 
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -221,10 +255,11 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: null });
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), {
+				groups: null
+			});
 
 			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
-
 		});
 
 		it("should send changes only", () => {
@@ -239,7 +274,9 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: null });
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), {
+				groups: null
+			});
 
 			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
 			expect(reporter.lastChanges.size).toBe(0);
@@ -258,9 +295,9 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: ["mail", "stat"] });
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), {
+				groups: ["mail", "stat"]
+			});
 		});
-
 	});
-
 });

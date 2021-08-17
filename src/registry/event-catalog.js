@@ -6,10 +6,10 @@
 
 "use strict";
 
-const _ 			= require("lodash");
-const utils			= require("../utils");
-const Strategies 	= require("../strategies");
-const EndpointList 	= require("./endpoint-list");
+const _ = require("lodash");
+const utils = require("../utils");
+const Strategies = require("../strategies");
+const EndpointList = require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
 /**
@@ -18,7 +18,6 @@ const EventEndpoint = require("./endpoint-event");
  * @class EventCatalog
  */
 class EventCatalog {
-
 	/**
 	 * Creates an instance of EventCatalog.
 	 *
@@ -52,10 +51,22 @@ class EventCatalog {
 		const groupName = event.group || service.name;
 		let list = this.get(eventName, groupName);
 		if (!list) {
-			const strategyFactory = event.strategy ? (Strategies.resolve(event.strategy) || this.StrategyFactory) : this.StrategyFactory;
-			const strategyOptions = event.strategyOptions ? event.strategyOptions : this.registry.opts.strategyOptions;
+			const strategyFactory = event.strategy
+				? Strategies.resolve(event.strategy) || this.StrategyFactory
+				: this.StrategyFactory;
+			const strategyOptions = event.strategyOptions
+				? event.strategyOptions
+				: this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, strategyFactory, strategyOptions);
+			list = new EndpointList(
+				this.registry,
+				this.broker,
+				eventName,
+				groupName,
+				this.EndpointFactory,
+				strategyFactory,
+				strategyOptions
+			);
 			this.events.push(list);
 		}
 
@@ -92,8 +103,7 @@ class EventCatalog {
 			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
 				// Use built-in balancer, get the next endpoint
 				const ep = list.next();
-				if (ep && ep.isAvailable)
-					res.push([ep, list.group]);
+				if (ep && ep.isAvailable) res.push([ep, list.group]);
 			}
 		});
 
@@ -108,7 +118,9 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
-		return _.uniq(this.events.filter(list => utils.match(eventName, list.name)).map(item => item.group));
+		return _.uniq(
+			this.events.filter(list => utils.match(eventName, list.name)).map(item => item.group)
+		);
 	}
 
 	/**
@@ -123,10 +135,13 @@ class EventCatalog {
 		const res = [];
 		this.events.forEach(list => {
 			if (!utils.match(eventName, list.name)) return;
-			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
+			if (
+				groupNames == null ||
+				groupNames.length == 0 ||
+				groupNames.indexOf(list.group) !== -1
+			) {
 				list.endpoints.forEach(ep => {
-					if (ep.isAvailable)
-						res.push(ep);
+					if (ep.isAvailable) res.push(ep);
 				});
 			}
 		});
@@ -154,7 +169,11 @@ class EventCatalog {
 
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
-			if (ctx.eventGroups == null || ctx.eventGroups.length == 0 || ctx.eventGroups.indexOf(list.group) !== -1) {
+			if (
+				ctx.eventGroups == null ||
+				ctx.eventGroups.length == 0 ||
+				ctx.eventGroups.indexOf(list.group) !== -1
+			) {
 				if (isBroadcast) {
 					list.endpoints.forEach(ep => {
 						if (ep.local && ep.event.handler) {
@@ -209,8 +228,7 @@ class EventCatalog {
 	 */
 	remove(eventName, nodeID) {
 		this.events.forEach(list => {
-			if (list.name == eventName)
-				list.removeByNodeID(nodeID);
+			if (list.name == eventName) list.removeByNodeID(nodeID);
 		});
 	}
 
@@ -222,19 +240,21 @@ class EventCatalog {
 	 *
 	 * @memberof EventCatalog
 	 */
-	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
+	list({
+		onlyLocal = false,
+		onlyAvailable = false,
+		skipInternal = false,
+		withEndpoints = false
+	}) {
 		let res = [];
 
 		this.events.forEach(list => {
 			/* istanbul ignore next */
-			if (skipInternal && /^\$/.test(list.name))
-				return;
+			if (skipInternal && /^\$/.test(list.name)) return;
 
-			if (onlyLocal && !list.hasLocal())
-				return;
+			if (onlyLocal && !list.hasLocal()) return;
 
-			if (onlyAvailable && !list.hasAvailable())
-				return;
+			if (onlyAvailable && !list.hasAvailable()) return;
 
 			let item = {
 				name: list.name,
@@ -247,8 +267,7 @@ class EventCatalog {
 
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
-				if (ep)
-					item.event = _.omit(ep.event, ["handler", "remoteHandler", "service"]);
+				if (ep) item.event = _.omit(ep.event, ["handler", "remoteHandler", "service"]);
 			}
 
 			if (withEndpoints) {
@@ -257,7 +276,7 @@ class EventCatalog {
 						return {
 							nodeID: ep.node.id,
 							state: ep.state,
-							available: ep.node.available,
+							available: ep.node.available
 						};
 					});
 				}

@@ -52,14 +52,27 @@ describe("Test Cacher resolver with valid instances", () => {
 		let options = { ttl: 100 };
 		cacher = Cachers.resolve({ type: "Redis", options });
 		expect(cacher).toBeInstanceOf(Cachers.Redis);
-		expect(cacher.opts).toEqual({ prefix: null, keygen: null, maxParamsLength: null, ttl: 100, pingInterval: null });
+		expect(cacher.opts).toEqual({
+			prefix: null,
+			keygen: null,
+			maxParamsLength: null,
+			ttl: 100,
+			pingInterval: null
+		});
 	});
 
 	it("should resolve RedisCacher from obj with Redis type", () => {
 		let options = { ttl: 80, redis: { db: 3 } };
 		cacher = Cachers.resolve({ type: "redis", options });
 		expect(cacher).toBeInstanceOf(Cachers.Redis);
-		expect(cacher.opts).toEqual({ prefix: null, keygen: null, maxParamsLength: null, ttl: 80, pingInterval: null, redis: { db: 3 } });
+		expect(cacher.opts).toEqual({
+			prefix: null,
+			keygen: null,
+			maxParamsLength: null,
+			ttl: 80,
+			pingInterval: null,
+			redis: { db: 3 }
+		});
 	});
 
 	it("should resolve RedisCacher from connection string", () => {

@@ -19,7 +19,6 @@ const { isFunction } = require("../../utils");
  * @extends {BaseReporter}
  */
 class ConsoleReporter extends BaseReporter {
-
 	/**
 	 * Creates an instance of ConsoleReporter.
 	 * @param {Object} opts
@@ -32,11 +31,10 @@ class ConsoleReporter extends BaseReporter {
 			interval: 5,
 			logger: null,
 			colors: true,
-			onlyChanges: true,
+			onlyChanges: true
 		});
 
-		if (!this.opts.colors)
-			kleur.enabled = false;
+		if (!this.opts.colors) kleur.enabled = false;
 
 		this.lastChanges = new Set();
 	}
@@ -64,10 +62,20 @@ class ConsoleReporter extends BaseReporter {
 	 */
 	labelsToStr(labels) {
 		const keys = Object.keys(labels);
-		if (keys.length == 0)
-			return kleur.gray("{}");
+		if (keys.length == 0) return kleur.gray("{}");
 
-		return kleur.gray("{") + keys.map(key => `${kleur.gray(this.formatLabelName(key))}: ${kleur.magenta("" + labels[key])}`).join(", ") + kleur.gray("}");
+		return (
+			kleur.gray("{") +
+			keys
+				.map(
+					key =>
+						`${kleur.gray(this.formatLabelName(key))}: ${kleur.magenta(
+							"" + labels[key]
+						)}`
+				)
+				.join(", ") +
+			kleur.gray("}")
+		);
 	}
 
 	/**
@@ -78,31 +86,40 @@ class ConsoleReporter extends BaseReporter {
 	print() {
 		let list = this.registry.list({
 			includes: this.opts.includes,
-			excludes: this.opts.excludes,
+			excludes: this.opts.excludes
 		});
 
-		if (this.opts.onlyChanges)
-			list = list.filter(metric => this.lastChanges.has(metric.name));
+		if (this.opts.onlyChanges) list = list.filter(metric => this.lastChanges.has(metric.name));
 
-		if (list.length == 0)
-			return;
+		if (list.length == 0) return;
 
-		this.log(kleur.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`));
+		this.log(
+			kleur.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`)
+		);
 
 		list.forEach(metric => {
-			this.log(kleur.cyan().bold(this.formatMetricName(metric.name)) + " " + kleur.gray("(" + metric.type + ")"));
+			this.log(
+				kleur.cyan().bold(this.formatMetricName(metric.name)) +
+					" " +
+					kleur.gray("(" + metric.type + ")")
+			);
 			if (metric.values.size == 0) {
 				this.log(kleur.gray("  <no values>"));
 			} else {
-				const unit = metric.unit ? kleur.gray(this.registry.pluralizeUnit(metric.unit)) : "";
+				const unit = metric.unit
+					? kleur.gray(this.registry.pluralizeUnit(metric.unit))
+					: "";
 				metric.values.forEach(item => {
 					let val;
 					const labelStr = this.labelsToStr(item.labels);
-					switch(metric.type) {
+					switch (metric.type) {
 						case METRIC.TYPE_COUNTER:
 						case METRIC.TYPE_GAUGE:
 						case METRIC.TYPE_INFO:
-							val = item.value === "" ? kleur.grey("<empty string>") : kleur.green().bold(item.value);
+							val =
+								item.value === ""
+									? kleur.grey("<empty string>")
+									: kleur.green().bold(item.value);
 							if (item.rate != null) {
 								/*const s = [];
 								Object.keys(item.rates).forEach(b => {
@@ -112,7 +129,12 @@ class ConsoleReporter extends BaseReporter {
 								val = kleur.green().bold(`Value: ${val} | ` + s.join(" | "));
 								*/
 
-								val = val + kleur.grey(" | Rate: ") + (item.rate != null ? kleur.green().bold(item.rate.toFixed(2)) : "-");
+								val =
+									val +
+									kleur.grey(" | Rate: ") +
+									(item.rate != null
+										? kleur.green().bold(item.rate.toFixed(2))
+										: "-");
 							}
 
 							break;
@@ -122,19 +144,31 @@ class ConsoleReporter extends BaseReporter {
 
 							if (item.buckets) {
 								Object.keys(item.buckets).forEach(b => {
-									s.push(`${b}: ${item.buckets[b] != null ? item.buckets[b] : "-"}`);
+									s.push(
+										`${b}: ${item.buckets[b] != null ? item.buckets[b] : "-"}`
+									);
 								});
 							}
 
 							if (item.quantiles) {
 								s.push(`Min: ${item.min != null ? item.min.toFixed(2) : "-"}`);
 								s.push(`Mean: ${item.mean != null ? item.mean.toFixed(2) : "-"}`);
-								s.push(`Var: ${item.variance != null ? item.variance.toFixed(2) : "-"}`);
-								s.push(`StdDev: ${item.stdDev != null ? item.stdDev.toFixed(2) : "-"}`);
+								s.push(
+									`Var: ${item.variance != null ? item.variance.toFixed(2) : "-"}`
+								);
+								s.push(
+									`StdDev: ${item.stdDev != null ? item.stdDev.toFixed(2) : "-"}`
+								);
 								s.push(`Max: ${item.max != null ? item.max.toFixed(2) : "-"}`);
 
 								Object.keys(item.quantiles).forEach(key => {
-									s.push(`${key}: ${item.quantiles[key] != null ? item.quantiles[key].toFixed(2) : "-"}`);
+									s.push(
+										`${key}: ${
+											item.quantiles[key] != null
+												? item.quantiles[key].toFixed(2)
+												: "-"
+										}`
+									);
 								});
 							}
 
@@ -151,7 +185,9 @@ class ConsoleReporter extends BaseReporter {
 			this.log("");
 		});
 
-		this.log(kleur.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
+		this.log(
+			kleur.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`)
+		);
 
 		this.lastChanges.clear();
 	}

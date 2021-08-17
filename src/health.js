@@ -25,9 +25,9 @@ const getCpuInfo = () => {
 		load1: load[0],
 		load5: load[1],
 		load15: load[2],
-		cores: Array.isArray(cpus) ? os.cpus().length : null,
+		cores: Array.isArray(cpus) ? os.cpus().length : null
 	};
-	cpu.utilization = Math.min(Math.floor(load[0] * 100 / cpu.cores), 100);
+	cpu.utilization = Math.min(Math.floor((load[0] * 100) / cpu.cores), 100);
 
 	return cpu;
 };
@@ -37,7 +37,7 @@ const getMemoryInfo = () => {
 		free: os.freemem(),
 		total: os.totalmem()
 	};
-	mem.percent = (mem.free * 100 / mem.total);
+	mem.percent = (mem.free * 100) / mem.total;
 
 	return mem;
 };
@@ -73,7 +73,7 @@ const getProcessInfo = () => {
 
 const getNetworkInterfacesInfo = () => {
 	return {
-		ip:  getIpList()
+		ip: getIpList()
 	};
 };
 

@@ -1,7 +1,6 @@
 const ServiceBroker = require("../../src/service-broker");
 
 describe("Test Service dependencies", () => {
-
 	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 	const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "fake" });
 
@@ -32,10 +31,12 @@ describe("Test Service dependencies", () => {
 	});
 
 	it("should call main started if broker2.starts", () => {
-		return broker2.start().delay(1000).then(() => {
-			expect(startedMain).toHaveBeenCalledTimes(1);
-			expect(startedMath).toHaveBeenCalledTimes(1);
-		});
+		return broker2
+			.start()
+			.delay(1000)
+			.then(() => {
+				expect(startedMain).toHaveBeenCalledTimes(1);
+				expect(startedMath).toHaveBeenCalledTimes(1);
+			});
 	});
-
 });

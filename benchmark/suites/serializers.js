@@ -15,8 +15,9 @@ const benchmark = new Benchmarkify("Serializers benchmark").printHeader();
 let dataFiles = ["10", "1k", "50k", "100k", "buf-10240", "buf-102400"];
 
 function runTest(dataName) {
-
-	let payload = !dataName.startsWith("buf-") ? JSON.parse(getDataFile(dataName + ".json")) : crypto.randomBytes(parseInt(dataName.substr(4)));
+	let payload = !dataName.startsWith("buf-")
+		? JSON.parse(getDataFile(dataName + ".json"))
+		: crypto.randomBytes(parseInt(dataName.substr(4)));
 
 	const broker = new ServiceBroker({ logger: false });
 
@@ -39,7 +40,7 @@ function runTest(dataName) {
 	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
 
 	const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-		ver:"4",
+		ver: "4",
 		sender: "node-100",
 		id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 		event: "user.created",
@@ -52,7 +53,7 @@ function runTest(dataName) {
 
 	bench1.ref("JSON", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -96,7 +97,7 @@ function runTest(dataName) {
 
 	bench1.add("Avro", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -111,7 +112,7 @@ function runTest(dataName) {
 
 	bench1.add("MsgPack", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -126,7 +127,7 @@ function runTest(dataName) {
 
 	bench1.add("ProtoBuf", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -141,7 +142,7 @@ function runTest(dataName) {
 
 	bench1.add("Thrift", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -156,7 +157,7 @@ function runTest(dataName) {
 
 	bench1.add("Notepack", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -171,7 +172,7 @@ function runTest(dataName) {
 
 	bench1.add("CBOR", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"4",
+			ver: "4",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -186,18 +187,27 @@ function runTest(dataName) {
 
 	console.log("JSON length:", JsonSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log("Avro length:", AvroSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
-	console.log("MsgPack length:", MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
-	console.log("ProtoBuf length:", protoBufSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
-	console.log("Thrift length:", thriftSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
-	console.log("Notepack length:", notepackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log(
+		"MsgPack length:",
+		MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length
+	);
+	console.log(
+		"ProtoBuf length:",
+		protoBufSer.serialize(_.cloneDeep(packet.payload), packet.type).length
+	);
+	console.log(
+		"Thrift length:",
+		thriftSer.serialize(_.cloneDeep(packet.payload), packet.type).length
+	);
+	console.log(
+		"Notepack length:",
+		notepackSer.serialize(_.cloneDeep(packet.payload), packet.type).length
+	);
 	console.log("CBOR length:", cborSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 
-	return bench1.run()
-		.then(() => {
-			if (dataFiles.length > 0)
-				return runTest(dataFiles.shift());
-		});
-
+	return bench1.run().then(() => {
+		if (dataFiles.length > 0) return runTest(dataFiles.shift());
+	});
 }
 
 runTest(dataFiles.shift());

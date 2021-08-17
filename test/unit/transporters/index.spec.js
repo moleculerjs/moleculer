@@ -2,14 +2,12 @@ const { BrokerOptionsError } = require("../../../src/errors");
 const Transporters = require("../../../src/transporters");
 
 describe("Test Transporter resolver", () => {
-
 	it("should resolve null from undefined", () => {
 		let trans = Transporters.resolve();
 		expect(trans).toBeNull();
 	});
 
 	describe("Resolve NATS transporter", () => {
-
 		it("should resolve NATSTransporter from connection string", () => {
 			let trans = Transporters.resolve("nats://localhost:4222");
 			expect(trans).toBeInstanceOf(Transporters.NATS);
@@ -24,12 +22,15 @@ describe("Test Transporter resolver", () => {
 			let options = { url: "nats://localhost:4222" };
 			let trans = Transporters.resolve({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({ "maxReconnectAttempts": -1, "preserveBuffers": true, "url": "nats://localhost:4222" });
+			expect(trans.opts).toEqual({
+				maxReconnectAttempts: -1,
+				preserveBuffers: true,
+				url: "nats://localhost:4222"
+			});
 		});
 	});
 
 	describe("Resolve MQTT transporter", () => {
-
 		it("should resolve MQTTTransporter from connection string", () => {
 			let trans = Transporters.resolve("mqtt://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
@@ -54,7 +55,6 @@ describe("Test Transporter resolver", () => {
 	});
 
 	describe("Resolve Redis transporter", () => {
-
 		it("should resolve RedisTransporter from connection string", () => {
 			let trans = Transporters.resolve("redis://localhost");
 			expect(trans).toBeInstanceOf(Transporters.Redis);
@@ -79,7 +79,6 @@ describe("Test Transporter resolver", () => {
 	});
 
 	describe("Resolve AMQP transporter", () => {
-
 		it("should resolve AMQPTransporter from class name", () => {
 			let trans = Transporters.resolve("amqp");
 			expect(trans).toBeInstanceOf(Transporters.AMQP);
@@ -114,7 +113,6 @@ describe("Test Transporter resolver", () => {
 	});
 
 	describe("Resolve Kafka transporter", () => {
-
 		it("should resolve KafkaTransporter from connection string", () => {
 			let trans = Transporters.resolve("kafka");
 			expect(trans).toBeInstanceOf(Transporters.Kafka);
@@ -124,16 +122,16 @@ describe("Test Transporter resolver", () => {
 			let trans = Transporters.resolve("kafka://localhost:2181");
 			expect(trans).toBeInstanceOf(Transporters.Kafka);
 			expect(trans.opts).toEqual({
-				"host": "localhost:2181",
-				"client": {
-					"kafkaHost": "localhost:2181",
+				host: "localhost:2181",
+				client: {
+					kafkaHost: "localhost:2181"
 				},
-				"consumer": {},
-				"customPartitioner": undefined,
-				"producer": {},
-				"publish": {
-					"attributes": 0,
-					"partition": 0
+				consumer: {},
+				customPartitioner: undefined,
+				producer: {},
+				publish: {
+					attributes: 0,
+					partition: 0
 				}
 			});
 		});
@@ -148,23 +146,22 @@ describe("Test Transporter resolver", () => {
 			let trans = Transporters.resolve({ type: "Kafka", options });
 			expect(trans).toBeInstanceOf(Transporters.Kafka);
 			expect(trans.opts).toEqual({
-				"host": "localhost:2181",
-				"client": {
-					"kafkaHost": "localhost:2181",
+				host: "localhost:2181",
+				client: {
+					kafkaHost: "localhost:2181"
 				},
-				"consumer": {},
-				"customPartitioner": undefined,
-				"producer": {},
-				"publish": {
-					"attributes": 0,
-					"partition": 2
+				consumer: {},
+				customPartitioner: undefined,
+				producer: {},
+				publish: {
+					attributes: 0,
+					partition: 2
 				}
 			});
 		});
 	});
 
 	describe("Resolve NATS Streaming transporter", () => {
-
 		it("should resolve NatsStreamingTransporter from connection string", () => {
 			let trans = Transporters.resolve("stan://localhost:4222");
 			expect(trans).toBeInstanceOf(Transporters.STAN);
@@ -180,15 +177,14 @@ describe("Test Transporter resolver", () => {
 			let trans = Transporters.resolve({ type: "STAN", options });
 			expect(trans).toBeInstanceOf(Transporters.STAN);
 			expect(trans.opts).toEqual({
-				"clusterID": "test-cluster",
-				"preserveBuffers": true,
-				"url": "stan://localhost:4222"
+				clusterID: "test-cluster",
+				preserveBuffers: true,
+				url: "stan://localhost:4222"
 			});
 		});
 	});
 
 	describe("Resolve TCP transporter", () => {
-
 		it("should resolve TcpTransporter from connection string", () => {
 			let trans = Transporters.resolve("tcp://192.168.0.100:6000");
 			expect(trans).toBeInstanceOf(Transporters.TCP);
@@ -210,21 +206,21 @@ describe("Test Transporter resolver", () => {
 			let trans = Transporters.resolve({ type: "TCP", options });
 			expect(trans).toBeInstanceOf(Transporters.TCP);
 			expect(trans.opts).toEqual({
-				"gossipPeriod": 2,
-				"maxConnections": 32,
-				"maxPacketSize": 1048576,
-				"port": 1234,
-				"udpBindAddress": "192.168.0.100",
-				"udpBroadcast": true,
-				"udpDiscovery": true,
-				"udpMaxDiscovery": 0,
-				"udpMulticast": "239.0.0.0",
-				"udpMulticastTTL": 1,
-				"udpPeriod": 5,
-				"udpPort": 4445,
-				"udpReuseAddr": true,
-				"urls": null,
-				"useHostname": true
+				gossipPeriod: 2,
+				maxConnections: 32,
+				maxPacketSize: 1048576,
+				port: 1234,
+				udpBindAddress: "192.168.0.100",
+				udpBroadcast: true,
+				udpDiscovery: true,
+				udpMaxDiscovery: 0,
+				udpMulticast: "239.0.0.0",
+				udpMulticastTTL: 1,
+				udpPeriod: 5,
+				udpPort: 4445,
+				udpReuseAddr: true,
+				urls: null,
+				useHostname: true
 			});
 		});
 
@@ -237,9 +233,7 @@ describe("Test Transporter resolver", () => {
 				Transporters.resolve({ type: "xyz" });
 			}).toThrowError(BrokerOptionsError);
 		});
-
 	});
-
 });
 
 describe("Test Transporters register", () => {

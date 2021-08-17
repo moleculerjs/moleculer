@@ -19,7 +19,6 @@ const { isFunction } = require("../utils");
  * @extends {BaseLogger}
  */
 class DebugLogger extends BaseLogger {
-
 	/**
 	 * Creates an instance of DebugLogger.
 	 * @param {Object} opts
@@ -41,9 +40,13 @@ class DebugLogger extends BaseLogger {
 
 		try {
 			this.debug = require("debug")("moleculer");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'debug' package is missing! Please install it with 'npm install debug --save' command!", err, true);
+			this.broker.fatal(
+				"The 'debug' package is missing! Please install it with 'npm install debug --save' command!",
+				err,
+				true
+			);
 		}
 	}
 
@@ -54,12 +57,13 @@ class DebugLogger extends BaseLogger {
 	getLogHandler(bindings) {
 		const mod = bindings ? bindings.mod : null;
 		const level = this.getLogLevel(mod);
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		const levelIdx = BaseLogger.LEVELS.indexOf(level);
 
-		const logger = isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.debug.extend(mod);
+		const logger = isFunction(this.opts.createLogger)
+			? this.opts.createLogger(level, bindings)
+			: this.debug.extend(mod);
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);

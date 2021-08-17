@@ -6,11 +6,11 @@
 
 "use strict";
 
-const _ 			= require("lodash");
-const utils			= require("../utils");
-const BaseCacher  	= require("./base");
-const LRU 			= require("lru-cache");
-const { METRIC }	= require("../metrics");
+const _ = require("lodash");
+const utils = require("../utils");
+const BaseCacher = require("./base");
+const LRU = require("lru-cache");
+const { METRIC } = require("../metrics");
 
 const Lock = require("../lock");
 /**
@@ -19,7 +19,6 @@ const Lock = require("../lock");
  * @class MemoryLRUCacher
  */
 class MemoryLRUCacher extends BaseCacher {
-
 	/**
 	 * Creates an instance of MemoryLRUCacher.
 	 *
@@ -63,7 +62,7 @@ class MemoryLRUCacher extends BaseCacher {
 			// Clear all entries after transporter connected. Maybe we missed some "cache.clear" events.
 			return this.clean();
 		});
-		if(this.opts.lock && this.opts.lock.enabled !== false && this.opts.lock.staleTime){
+		if (this.opts.lock && this.opts.lock.enabled !== false && this.opts.lock.staleTime) {
 			/* istanbul ignore next */
 			this.logger.warn("setting lock.staleTime with MemoryLRUCacher is not supported.");
 		}
@@ -121,8 +120,7 @@ class MemoryLRUCacher extends BaseCacher {
 		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
 
-		if (ttl == null)
-			ttl = this.opts.ttl;
+		if (ttl == null) ttl = this.opts.ttl;
 
 		this.cache.set(key, data, ttl ? ttl * 1000 : null);
 
@@ -186,9 +184,9 @@ class MemoryLRUCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
-	getWithTTL(key){
+	getWithTTL(key) {
 		// There are no way to get the ttl of LRU cache :(
-		return this.get(key).then(data=>{
+		return this.get(key).then(data => {
 			return { data, ttl: null };
 		});
 	}
@@ -204,8 +202,8 @@ class MemoryLRUCacher extends BaseCacher {
 	 */
 
 	lock(key, ttl) {
-		return this._lock.acquire(key, ttl).then(()=> {
-			return ()=>this._lock.release(key);
+		return this._lock.acquire(key, ttl).then(() => {
+			return () => this._lock.release(key);
 		});
 	}
 
@@ -219,14 +217,13 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 	tryLock(key, ttl) {
-		if(this._lock.isLocked(key)){
+		if (this._lock.isLocked(key)) {
 			return this.broker.Promise.reject(new Error("Locked."));
 		}
-		return this._lock.acquire(key, ttl).then(()=> {
-			return ()=>this._lock.release(key);
+		return this._lock.acquire(key, ttl).then(() => {
+			return () => this._lock.release(key);
 		});
 	}
-
 
 	/**
 	 * Check & remove the expired cache items
@@ -237,18 +234,19 @@ class MemoryLRUCacher extends BaseCacher {
 		this.cache.prune();
 	}
 
-
 	/**
 	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
 	 *
 	 * @returns Promise<Array<Object>>
 	 */
 	getCacheKeys() {
-		return Promise.resolve(this.cache.keys().map(key => {
-			return {
-				key
-			};
-		}));
+		return Promise.resolve(
+			this.cache.keys().map(key => {
+				return {
+					key
+				};
+			})
+		);
 	}
 }
 

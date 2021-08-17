@@ -6,11 +6,8 @@
 
 "use strict";
 
-const Transporter 		= require("./base");
-const {
-	PACKET_REQUEST,
-	PACKET_EVENT,
-} = require("../packets");
+const Transporter = require("./base");
+const { PACKET_REQUEST, PACKET_EVENT } = require("../packets");
 
 /**
  * Transporter for NATS Streaming server
@@ -21,7 +18,6 @@ const {
  * @extends {Transporter}
  */
 class StanTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of StanTransporter.
 	 *
@@ -30,20 +26,17 @@ class StanTransporter extends Transporter {
 	 * @memberof StanTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { url: opts.replace("stan://", "nats://") };
+		if (typeof opts == "string") opts = { url: opts.replace("stan://", "nats://") };
 
 		super(opts);
 
 		// Use the 'preserveBuffers' option as true as default
 		if (!this.opts || this.opts.preserveBuffers !== false) {
-			if (!this.opts)
-				this.opts = {};
+			if (!this.opts) this.opts = {};
 
 			this.opts.preserveBuffers = true;
 		}
-		if (!this.opts.clusterID)
-			this.opts.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
+		if (!this.opts.clusterID) this.opts.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
 
 		this.hasBuiltInBalancer = true;
 		this.client = null;
@@ -61,9 +54,13 @@ class StanTransporter extends Transporter {
 			let Stan;
 			try {
 				Stan = require("node-nats-streaming");
-			} catch(err) {
+			} catch (err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'node-nats-streaming' package is missing! Please install it with 'npm install node-nats-streaming --save' command.", err, true);
+				this.broker.fatal(
+					"The 'node-nats-streaming' package is missing! Please install it with 'npm install node-nats-streaming --save' command.",
+					err,
+					true
+				);
 			}
 			const client = Stan.connect(this.opts.clusterID, this.nodeID, this.opts);
 			this._client = client; // For tests
@@ -99,8 +96,7 @@ class StanTransporter extends Transporter {
 				this.logger.error("NATS error.", e.message);
 				this.logger.debug(e);
 
-				if (!client.connected)
-					reject(e);
+				if (!client.connected) reject(e);
 			});
 
 			/* istanbul ignore next */
@@ -152,7 +148,10 @@ class StanTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const queue = action;
 
-		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_REQUEST + "B");
+		const opts = this.client
+			.subscriptionOptions()
+			.setDeliverAllAvailable()
+			.setDurableName(PACKET_REQUEST + "B");
 		const subscription = this.client.subscribe(topic, queue, opts);
 
 		subscription.on("message", msg => this.receive(PACKET_REQUEST, msg.getRawData()));
@@ -169,7 +168,10 @@ class StanTransporter extends Transporter {
 	subscribeBalancedEvent(event, group) {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 
-		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_EVENT + "B");
+		const opts = this.client
+			.subscriptionOptions()
+			.setDeliverAllAvailable()
+			.setDurableName(PACKET_EVENT + "B");
 		const subscription = this.client.subscribe(topic, group, opts);
 
 		subscription.on("message", msg => this.receive(PACKET_EVENT, msg.getRawData()));
@@ -208,7 +210,6 @@ class StanTransporter extends Transporter {
 			this.client.publish(topic, data, resolve);
 		});
 	}
-
 }
 
 module.exports = StanTransporter;

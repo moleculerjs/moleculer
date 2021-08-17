@@ -12,7 +12,6 @@
  * @class BaseStrategy
  */
 class BaseStrategy {
-
 	/**
 	 * Constructor
 	 *
@@ -38,7 +37,6 @@ class BaseStrategy {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
-
 }
 
 module.exports = BaseStrategy;

@@ -50,7 +50,7 @@ describe("Test ContextTrackerMiddleware", () => {
 
 	it("should not track if tracking is false in calling options", () => {
 		let resolve;
-		const handler = jest.fn(() => new Promise(r => resolve = r));
+		const handler = jest.fn(() => new Promise(r => (resolve = r)));
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint, null, { tracking: false });
@@ -68,7 +68,7 @@ describe("Test ContextTrackerMiddleware", () => {
 
 	it("should tracking", () => {
 		let resolve;
-		const handler = jest.fn(() => new Promise(r => resolve = r));
+		const handler = jest.fn(() => new Promise(r => (resolve = r)));
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint);
@@ -85,7 +85,7 @@ describe("Test ContextTrackerMiddleware", () => {
 
 	it("should remove from list if handler is rejected", () => {
 		let reject;
-		const handler = jest.fn(() => new Promise((_,r) => reject = r));
+		const handler = jest.fn(() => new Promise((_, r) => (reject = r)));
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		let err = new Error("Some error");
@@ -104,7 +104,6 @@ describe("Test ContextTrackerMiddleware", () => {
 	});
 });
 
-
 describe("Test Service stopping with delayed shutdown", () => {
 	const FLOW = [];
 
@@ -118,15 +117,13 @@ describe("Test Service stopping with delayed shutdown", () => {
 		stopped: () => FLOW.push("broker-stop")
 	});
 
-
 	const schema = {
 		name: "delayed",
 
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(80)
-					.then(() => FLOW.push("end"));
+				return this.Promise.delay(80).then(() => FLOW.push("end"));
 			}
 		},
 
@@ -136,7 +133,8 @@ describe("Test Service stopping with delayed shutdown", () => {
 
 	it("should called stopped", () => {
 		const service = broker.createService(schema);
-		return broker.start()
+		return broker
+			.start()
 			.then(() => {
 				broker.call("delayed.test", {});
 				return service.Promise.delay(10);
@@ -170,7 +168,6 @@ describe("Test Service stopping with delayed shutdown & event", () => {
 		stopped: () => FLOW.push("broker-stop")
 	});
 
-
 	const schema = {
 		name: "delayed",
 
@@ -188,7 +185,8 @@ describe("Test Service stopping with delayed shutdown & event", () => {
 
 	it("should called stopped", () => {
 		const service = broker.createService(schema);
-		return broker.start()
+		return broker
+			.start()
 			.then(() => {
 				broker.emit("test");
 				return service.Promise.delay(10);
@@ -222,7 +220,6 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 		stopped: () => FLOW.push("broker-stop")
 	});
 
-
 	const schema = {
 		name: "delayed",
 		settings: {
@@ -232,8 +229,7 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(2000)
-					.then(() => FLOW.push("end"));
+				return this.Promise.delay(2000).then(() => FLOW.push("end"));
 			}
 		},
 
@@ -243,7 +239,8 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 
 	it("should called stopped", () => {
 		const service = broker.createService(schema);
-		return broker.start()
+		return broker
+			.start()
 			.then(() => {
 				broker.call("delayed.test", {});
 				return service.Promise.delay(10);
@@ -295,8 +292,7 @@ describe.skip("Test broker delayed shutdown with remote calls", () => {
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(250)
-					.then(() => FLOW.push("end"));
+				return this.Promise.delay(250).then(() => FLOW.push("end"));
 			}
 		},
 
@@ -323,7 +319,7 @@ describe.skip("Test broker delayed shutdown with remote calls", () => {
 					"end",
 					"service-stop",
 					"broker2-stop",
-					"broker1-stop",
+					"broker1-stop"
 				]);
 			});
 	});
@@ -394,7 +390,7 @@ describe.skip("Test broker delayed throw GraceFulTimeoutError with remote calls"
 					"start",
 					"broker1-stop",
 					"service-stop",
-					"broker2-stop",
+					"broker2-stop"
 				]);
 			});
 	});

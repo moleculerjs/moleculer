@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../../src/errors");
 const TracingExporters = require("../../../../src/tracing/exporters");
 
 describe("Test TracingExporters resolver", () => {
-
 	it("should throw error", () => {
 		expect(() => TracingExporters.resolve()).toThrowError(BrokerOptionsError);
 		expect(() => TracingExporters.resolve({})).toThrowError(BrokerOptionsError);
@@ -81,7 +80,6 @@ describe("Test TracingExporters resolver", () => {
 		expect(reporter).toBeInstanceOf(TracingExporters.Zipkin);
 		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
 	});
-
 });
 
 describe("Test TracingExporters register", () => {

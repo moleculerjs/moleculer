@@ -14,9 +14,7 @@ Log4js.getLogger = jest.fn(() => childFakeLogger);
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Log4js logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new Log4jsLogger();
 
@@ -39,7 +37,6 @@ describe("Test Log4js logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -69,7 +66,6 @@ describe("Test Log4js logger class", () => {
 			expect(Log4js.configure).toHaveBeenCalledTimes(1);
 			expect(Log4js.configure).toHaveBeenCalledWith({ a: 5 });
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -88,7 +84,6 @@ describe("Test Log4js logger class", () => {
 
 			expect(logger.log4js.shutdown).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -160,7 +155,5 @@ describe("Test Log4js logger class", () => {
 			expect(logHandler).toBeNull();
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
-
 	});
-
 });

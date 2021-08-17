@@ -6,7 +6,7 @@
 
 "use strict";
 
-const FormattedLogger 	= require("./formatted");
+const FormattedLogger = require("./formatted");
 const _ = require("lodash");
 
 const fs = require("fs");
@@ -24,7 +24,6 @@ const appendFile = util.promisify(fs.appendFile);
  * @extends {FormattedLogger}
  */
 class FileLogger extends FormattedLogger {
-
 	/**
 	 * Creates an instance of FileLogger.
 	 * @param {Object} opts
@@ -56,10 +55,12 @@ class FileLogger extends FormattedLogger {
 	init(loggerFactory) {
 		super.init(loggerFactory);
 
-		this.logFolder = path.resolve(this.render(this.opts.folder, {
-			nodeID: this.broker.nodeID,
-			namespace: this.broker.namespace,
-		}));
+		this.logFolder = path.resolve(
+			this.render(this.opts.folder, {
+				nodeID: this.broker.nodeID,
+				namespace: this.broker.namespace
+			})
+		);
 
 		makeDirs(this.logFolder);
 
@@ -127,11 +128,14 @@ class FileLogger extends FormattedLogger {
 		//const date = `${now.getFullYear()}-${_.padStart(now.getMonth() + 1, 2, "0")}-${_.padStart(now.getDate(), 2, "0")}`;
 		const date = now.toISOString().substr(0, 10);
 
-		return path.join(this.logFolder, this.render(this.opts.filename, {
-			date,
-			nodeID: this.broker.nodeID,
-			namespace: this.broker.namespace,
-		}));
+		return path.join(
+			this.logFolder,
+			this.render(this.opts.filename, {
+				date,
+				nodeID: this.broker.nodeID,
+				namespace: this.broker.namespace
+			})
+		);
 	}
 
 	/**
@@ -164,8 +168,7 @@ class FileLogger extends FormattedLogger {
 	 */
 	getLogHandler(bindings) {
 		const level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
+		if (!level) return null;
 
 		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
 		const formatter = this.getFormatter(bindings);
@@ -202,7 +205,7 @@ class FileLogger extends FormattedLogger {
 
 			const buf = rows.join(this.opts.eol) + this.opts.eol;
 
-			return appendFile(filename, buf).catch((err) => {
+			return appendFile(filename, buf).catch(err => {
 				/* istanbul ignore next */
 				console.debug("Unable to write log file:", filename, err); // eslint-disable-line no-console
 			});
