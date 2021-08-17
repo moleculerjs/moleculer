@@ -1,0 +1,20 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Discord Notification
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      uses: Ilshidur/action-discord@master
+      with:
+        args: ":tada: **The {{ EVENT_PAYLOAD.repository.name }} {{ EVENT_PAYLOAD.release.tag_name }} has been released.**:tada:\nChangelog: {{EVENT_PAYLOAD.release.html_url}}"
