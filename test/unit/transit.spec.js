@@ -285,162 +285,167 @@ describe("Test Transit.messageHandler", () => {
 		transit = broker.transit;
 	});
 
-	it("should throw Error if msg not valid", () => {
+	it("should throw Error if msg not valid", async () => {
 		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
-		expect(transit.messageHandler("EVENT")).toBe(false);
+    const res = await transit.messageHandler("EVENT");
+		expect(res).toBe(false);
 	});
 
-	it("should throw Error if no version", () => {
-		expect(transit.messageHandler("EVENT", { payload: {} })).toBe(false);
+	it("should throw Error if no version", async () => {
+    const res = await transit.messageHandler("EVENT", { payload: {} });
+		expect(res).toBe(false);
 	});
 
-	it("should throw Error if version mismatch", () => {
-		expect(transit.messageHandler("EVENT", { payload: { ver: "1" } })).toBe(false);
+	it("should throw Error if version mismatch", async () => {
+    const res = await transit.messageHandler("EVENT", { payload: { ver: "1" } });
+		expect(res).toBe(false);
 	});
 
-	it("should not throw Error if version mismatch & disableVersionCheck is true", () => {
+	it("should not throw Error if version mismatch & disableVersionCheck is true", async () => {
 		transit.opts.disableVersionCheck = true;
-		expect(transit.messageHandler("EVENT", { payload: { ver: "1" } })).toBe(true);
+    const payload = { ver: "1", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", caller: null, level: 5, metrics: true, requestID: "123456", timeout: 567 };
+    const res = await transit.messageHandler("REQ", { payload });
+		expect(res).toBe(true);
 	});
 
-	it("should call broker.fatal if nodeID is same but instanceID is different", () => {
+	it("should call broker.fatal if nodeID is same but instanceID is different", async () => {
 		broker.fatal = jest.fn();
-		transit.messageHandler("INFO", { payload: { ver: "4", sender: "node1", instanceID: "abcdef" } });
+		await transit.messageHandler("INFO", { payload: { ver: "4", sender: "node1", instanceID: "abcdef" } });
 		expect(broker.fatal).toHaveBeenCalledTimes(1);
 	});
 
-	it("should skip own packets", () => {
+	it("should skip own packets", async () => {
 		broker.fatal = jest.fn();
-		const res = transit.messageHandler("INFO", { payload: { ver: "4", sender: "node1", instanceID: broker.instanceID } });
-		expect(res).toBeUndefined();
+		const res = await transit.messageHandler("INFO", { payload: { ver: "4", sender: "node1", instanceID: broker.instanceID } });
+		expect(res).toBe(false);
 		expect(broker.fatal).toHaveBeenCalledTimes(0);
 	});
 
-	it("should call requestHandler if topic is 'REQ' ", () => {
+	it("should call requestHandler if topic is 'REQ' ", async () => {
 		transit.requestHandler = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", caller: null, level: 5, metrics: true, requestID: "123456", timeout: 567 };
-		transit.messageHandler("REQ", { payload });
+		await transit.messageHandler("REQ", { payload });
 
 		expect(transit.requestHandler).toHaveBeenCalledTimes(1);
 		expect(transit.requestHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call requestHandler if topic is 'REQ' && sender is itself", () => {
+	it("should call requestHandler if topic is 'REQ' && sender is itself", async () => {
 		transit.requestHandler = jest.fn();
 
 		let payload = { ver: "4", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", caller: null, level: 5, metrics: true, requestID: "123456", timeout: 567 };
-		transit.messageHandler("REQ", { payload });
+		await transit.messageHandler("REQ", { payload });
 
 		expect(transit.requestHandler).toHaveBeenCalledTimes(1);
 		expect(transit.requestHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call responseHandler if topic is 'RES' ", () => {
+	it("should call responseHandler if topic is 'RES' ", async () => {
 		transit.responseHandler = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", id: "12345" };
-		transit.messageHandler("RES", { payload });
+		await transit.messageHandler("RES", { payload });
 
 		expect(transit.responseHandler).toHaveBeenCalledTimes(1);
 		expect(transit.responseHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call responseHandler if topic is 'RES' && sender is itself", () => {
+	it("should call responseHandler if topic is 'RES' && sender is itself", async () => {
 		transit.responseHandler = jest.fn();
 
 		let payload = { ver: "4", sender: broker.nodeID, id: "12345" };
-		transit.messageHandler("RES", { payload });
+		await transit.messageHandler("RES", { payload });
 
 		expect(transit.responseHandler).toHaveBeenCalledTimes(1);
 		expect(transit.responseHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call eventHandler if topic is 'EVENT' ", () => {
+	it("should call eventHandler if topic is 'EVENT' ", async () => {
 		transit.eventHandler = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", event: "user.created", data: "John Doe" };
-		transit.messageHandler("EVENT", { payload });
+		await transit.messageHandler("EVENT", { payload });
 
 		expect(transit.eventHandler).toHaveBeenCalledTimes(1);
 		expect(transit.eventHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call eventHandler if topic is 'EVENT' && sender is itself", () => {
+	it("should call eventHandler if topic is 'EVENT' && sender is itself", async () => {
 		transit.eventHandler = jest.fn();
 
 		let payload = { ver: "4", sender: broker.nodeID, event: "user.created", data: "John Doe" };
-		transit.messageHandler("EVENT", { payload });
+		await transit.messageHandler("EVENT", { payload });
 
 		expect(transit.eventHandler).toHaveBeenCalledTimes(1);
 		expect(transit.eventHandler).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call sendNodeInfo if topic is 'DISCOVER' ", () => {
+	it("should call sendNodeInfo if topic is 'DISCOVER' ", async () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 		transit.discoverer.sendLocalNodeInfo = jest.fn();
 
 		let payload = { ver: "4", sender: "remote" };
-		transit.messageHandler("DISCOVER", { payload });
+		await transit.messageHandler("DISCOVER", { payload });
 		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledWith("remote");
 	});
 
-	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
+	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", async () => {
 		transit.discoverer.processRemoteNodeInfo = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", services: [] };
-		transit.messageHandler("INFO", { payload });
+		await transit.messageHandler("INFO", { payload });
 
 		expect(transit.discoverer.processRemoteNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.discoverer.processRemoteNodeInfo).toHaveBeenCalledWith("remote", payload);
 	});
 
-	it("should call broker.registry.disconnected if topic is 'DISCONNECT' ", () => {
+	it("should call broker.registry.disconnected if topic is 'DISCONNECT' ", async () => {
 		transit.discoverer.remoteNodeDisconnected = jest.fn();
 
 		let payload = { ver: "4", sender: "remote" };
-		transit.messageHandler("DISCONNECT", { payload });
+		await transit.messageHandler("DISCONNECT", { payload });
 
 		expect(transit.discoverer.remoteNodeDisconnected).toHaveBeenCalledTimes(1);
 		expect(transit.discoverer.remoteNodeDisconnected).toHaveBeenCalledWith("remote", false);
 	});
 
-	it("should call broker.registry.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
+	it("should call broker.registry.nodeHeartbeat if topic is 'HEARTBEAT' ", async () => {
 		transit.discoverer.heartbeatReceived = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", cpu: 100 };
-		transit.messageHandler("HEARTBEAT", { payload });
+		await transit.messageHandler("HEARTBEAT", { payload });
 
 		expect(transit.discoverer.heartbeatReceived).toHaveBeenCalledTimes(1);
 		expect(transit.discoverer.heartbeatReceived).toHaveBeenCalledWith("remote", payload);
 	});
 
-	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", () => {
+	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", async () => {
 		transit.sendPong = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", time: 1234567 };
-		transit.messageHandler("PING", { payload });
+		await transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(1);
 		expect(transit.sendPong).toHaveBeenCalledWith(payload);
 	});
 
-	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", () => {
+	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", async () => {
 		transit.processPong = jest.fn();
 
 		let payload = { ver: "4", sender: "remote", time: 1234567, arrived: 7654321 };
-		transit.messageHandler("PONG", { payload });
+		await transit.messageHandler("PONG", { payload });
 
 		expect(transit.processPong).toHaveBeenCalledTimes(1);
 		expect(transit.processPong).toHaveBeenCalledWith(payload);
 	});
 
-	it("should skip processing if sender is itself", () => {
+	it("should skip processing if sender is itself", async () => {
 		transit.sendPong = jest.fn();
 
 		let payload = { ver: "4", sender: broker.nodeID, time: 1234567 };
-		transit.messageHandler("PING", { payload });
+		await transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(0);
 	});
