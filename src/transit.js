@@ -300,7 +300,7 @@ class Transit {
 				// Detect nodeID conflict
 				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
 					this.broker.fatal("ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped.");
-					return false;
+					return this.Promise.resolve(false);
 				}
 
 				// Skip own packets (if only built-in balancer disabled)
