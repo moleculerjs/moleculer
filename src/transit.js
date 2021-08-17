@@ -300,7 +300,7 @@ class Transit {
 				// Detect nodeID conflict
 				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
 					this.broker.fatal("ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped.");
-          return false;
+					return false;
 				}
 
 				// Skip own packets (if only built-in balancer disabled)
@@ -310,8 +310,7 @@ class Transit {
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
-				return this.requestHandler(payload)
-          .then(() => true);
+				return this.requestHandler(payload).then(() => true);
 			}
 
 			// Response
@@ -321,8 +320,7 @@ class Transit {
 
 			// Event
 			else if (cmd === P.PACKET_EVENT) {
-				return this.eventHandler(payload)
-          .then(() => true);
+				return this.eventHandler(payload).then(() => true);
 			}
 
 			// Discover
