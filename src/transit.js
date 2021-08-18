@@ -311,7 +311,7 @@ class Transit {
 	 *
 	 * @param {Array} topic
 	 * @param {String} msg
-	 * @returns {Boolean} If packet is processed return with `true`
+	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else 'false'
 	 *
 	 * @memberof Transit
 	 */
@@ -408,6 +408,7 @@ class Transit {
 	 * Handle incoming event
 	 *
 	 * @param {any} payload
+   * @returns {Promise<boolean>}
 	 * @memberof Transit
 	 */
 	eventHandler(payload) {
@@ -448,7 +449,7 @@ class Transit {
 	 * Handle incoming request
 	 *
 	 * @param {Object} payload
-	 *
+	 * @returns {Promise<any>}
 	 * @memberof Transit
 	 */
 	requestHandler(payload) {

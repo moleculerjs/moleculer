@@ -527,12 +527,12 @@ describe("Test Transit.eventHandler", () => {
 		transporter: new FakeTransporter()
 	});
 	const transit = broker.transit;
-	broker.emitLocalServices = jest.fn();
+	broker.emitLocalServices = jest.fn(() => Promise.resolve());
 
-	it("should not create packet if broker is not started yet", () => {
+	it("should not create packet if broker is not started yet", async () => {
 		broker.emitLocalServices.mockClear();
 		broker.started = false;
-		transit.eventHandler({
+		await transit.eventHandler({
 			id: "event-12345",
 			requestID: "event-req-12345",
 			parentID: "event-parent-67890",
@@ -546,10 +546,10 @@ describe("Test Transit.eventHandler", () => {
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(0);
 	});
 
-	it("should create packet", () => {
+	it("should create packet", async () => {
 		broker.emitLocalServices.mockClear();
 		broker.started = true;
-		transit.eventHandler({
+		await transit.eventHandler({
 			id: "event-12345",
 			requestID: "event-req-12345",
 			parentID: "event-parent-67890",
