@@ -408,7 +408,7 @@ class Transit {
 	 * Handle incoming event
 	 *
 	 * @param {any} payload
-   * @returns {Promise<boolean>}
+	 * @returns {Promise<boolean>}
 	 * @memberof Transit
 	 */
 	eventHandler(payload) {
