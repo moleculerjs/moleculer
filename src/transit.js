@@ -311,7 +311,7 @@ class Transit {
 	 *
 	 * @param {Array} topic
 	 * @param {String} msg
-	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else 'false'
+	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else `false`
 	 *
 	 * @memberof Transit
 	 */
