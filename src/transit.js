@@ -364,7 +364,7 @@ class Transit {
 
 			// Event
 			else if (cmd === P.PACKET_EVENT) {
-				return this.eventHandler(payload).then(() => true);
+				return this.eventHandler(payload);
 			}
 
 			// Discover
@@ -422,7 +422,7 @@ class Transit {
 				`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is stopped.`
 			);
 			// return false so the transporter knows this event wasn't handled.
-			return this.Promise.reject(false);
+			return this.Promise.resolve(false);
 		}
 
 		// Create caller context
@@ -440,7 +440,8 @@ class Transit {
 		ctx.caller = payload.caller;
 		ctx.nodeID = payload.sender;
 
-		return this.broker.emitLocalServices(ctx);
+		// ensure the eventHandler resolves true when the event was handled successfully
+		return this.broker.emitLocalServices(ctx).then(() => true);
 	}
 
 	/**
