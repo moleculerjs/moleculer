@@ -1641,7 +1641,7 @@ class ServiceBroker {
 	 * or from `broadcastLocal`
 	 *
 	 * @param {Context} ctx
-	 * @returns
+	 * @returns {Promise<any>}
 	 * @memberof ServiceBroker
 	 */
 	emitLocalServices(ctx) {

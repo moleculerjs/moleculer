@@ -311,7 +311,7 @@ class Transit {
 	 *
 	 * @param {Array} topic
 	 * @param {String} msg
-	 * @returns {Boolean} If packet is processed return with `true`
+	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else `false`
 	 *
 	 * @memberof Transit
 	 */
@@ -341,19 +341,20 @@ class Transit {
 			if (payload.sender === this.nodeID) {
 				// Detect nodeID conflict
 				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
-					return this.broker.fatal(
+					this.broker.fatal(
 						"ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped."
 					);
+					return this.Promise.resolve(false);
 				}
 
 				// Skip own packets (if only built-in balancer disabled)
 				if (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE)
-					return;
+					return this.Promise.resolve(false);
 			}
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
-				return this.requestHandler(payload);
+				return this.requestHandler(payload).then(() => true);
 			}
 
 			// Response
@@ -363,7 +364,7 @@ class Transit {
 
 			// Event
 			else if (cmd === P.PACKET_EVENT) {
-				this.eventHandler(payload);
+				return this.eventHandler(payload);
 			}
 
 			// Discover
@@ -396,17 +397,18 @@ class Transit {
 				this.processPong(payload);
 			}
 
-			return true;
+			return this.Promise.resolve(true);
 		} catch (err) {
 			this.logger.error(err, cmd, packet);
 		}
-		return false;
+		return this.Promise.resolve(false);
 	}
 
 	/**
 	 * Handle incoming event
 	 *
 	 * @param {any} payload
+	 * @returns {Promise<boolean>}
 	 * @memberof Transit
 	 */
 	eventHandler(payload) {
@@ -420,7 +422,8 @@ class Transit {
 			this.logger.warn(
 				`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is stopped.`
 			);
-			return;
+			// return false so the transporter knows this event wasn't handled.
+			return this.Promise.resolve(false);
 		}
 
 		// Create caller context
@@ -438,14 +441,15 @@ class Transit {
 		ctx.caller = payload.caller;
 		ctx.nodeID = payload.sender;
 
-		this.broker.emitLocalServices(ctx);
+		// ensure the eventHandler resolves true when the event was handled successfully
+		return this.broker.emitLocalServices(ctx).then(() => true);
 	}
 
 	/**
 	 * Handle incoming request
 	 *
 	 * @param {Object} payload
-	 *
+	 * @returns {Promise<any>}
 	 * @memberof Transit
 	 */
 	requestHandler(payload) {
