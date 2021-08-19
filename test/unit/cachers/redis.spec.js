@@ -18,6 +18,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
 		expect(cacher.opts.maxParamsLength).toBeNull();
+		expect(cacher.opts.connected).toBe(false);
 	});
 
 	it("should create a timer if set ttl option", () => {
@@ -48,6 +49,7 @@ describe("Test RedisCacher constructor", () => {
 			prefix: null,
 			pingInterval: null,
 			maxParamsLength: null,
+			connected: false,
 			redis: opts
 		});
 	});

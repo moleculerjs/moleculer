@@ -8,6 +8,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
+		expect(cacher.opts.connected).toBe(false);
 		expect(cacher.init).toBeDefined();
 		expect(cacher.close).toBeDefined();
 		expect(cacher.get).toBeDefined();
@@ -24,6 +25,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
 		expect(cacher.opts.maxParamsLength).toBeNull();
+		expect(cacher.opts.connected).toBe(false);
 	});
 
 	it("check constructor with options", () => {
@@ -33,6 +35,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
 		expect(cacher.opts.maxParamsLength).toBe(128);
+		expect(cacher.opts.connected).toBe(false);
 	});
 
 	it("check init", () => {
@@ -319,6 +322,8 @@ describe("Test middleware", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();
+	// Fake connection
+	cacher.opts.connected = true;
 	let broker = new ServiceBroker({
 		logger: false,
 		cacher
@@ -520,6 +525,9 @@ describe("Test middleware with lock enabled", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();
+	// Fake connection
+	cacher.opts.connected = true;
+
 	let broker = new ServiceBroker({
 		logger: false,
 		cacher

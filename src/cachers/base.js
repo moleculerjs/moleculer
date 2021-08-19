@@ -28,7 +28,8 @@ class Cacher {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
-			maxParamsLength: null
+			maxParamsLength: null,
+			connected: false
 		});
 	}
 
@@ -330,6 +331,15 @@ class Cacher {
 
 					// Disable caching with `ctx.meta.$cache = false`
 					if (ctx.meta["$cache"] === false) return handler(ctx);
+
+					// Cache is enabled but not in healthy state
+					// More info: https://github.com/moleculerjs/moleculer/issues/978
+					if (!this.opts.connected) {
+						this.logger.warn(
+							"Cacher is enabled but it is not connected at the moment... Calling the handler"
+						);
+						return handler(ctx);
+					}
 
 					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, opts.keys);
 					// Using lock

@@ -53,6 +53,8 @@ class MemoryCacher extends BaseCacher {
 	init(broker) {
 		super.init(broker);
 
+		this.opts.connected = true;
+
 		broker.localBus.on("$transporter.connected", () => {
 			// Clear all entries after transporter connected. Maybe we missed some "cache.clear" events.
 			return this.clean();
