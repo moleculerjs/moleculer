@@ -73,13 +73,15 @@ class RedisCacher extends BaseCacher {
 		}
 
 		this.client.on("connect", () => {
-			this.opts.connected = true;
+			this.connected = true;
 
 			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected.");
 		});
 
 		this.client.on("error", err => {
+			this.connected = false;
+
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -125,9 +127,13 @@ class RedisCacher extends BaseCacher {
 				this.client
 					.ping()
 					.then(() => {
+						this.connected = true;
+
 						this.logger.debug("Sent PING to Redis Server");
 					})
 					.catch(err => {
+						this.connected = false;
+
 						this.logger.error("Failed to send PING to Redis Server", err);
 					});
 			}, Number(this.opts.pingInterval));

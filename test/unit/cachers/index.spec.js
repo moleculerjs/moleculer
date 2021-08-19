@@ -34,7 +34,6 @@ describe("Test Cacher resolver with valid instances", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			maxParamsLength: null,
-			connected: false,
 			ttl: 100
 		});
 	});
@@ -46,7 +45,6 @@ describe("Test Cacher resolver with valid instances", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			maxParamsLength: null,
-			connected: false,
 			ttl: 100
 		});
 	});
@@ -58,7 +56,6 @@ describe("Test Cacher resolver with valid instances", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			maxParamsLength: null,
-			connected: false,
 			ttl: 100,
 			max: 1000
 		});
@@ -72,7 +69,6 @@ describe("Test Cacher resolver with valid instances", () => {
 			prefix: null,
 			keygen: null,
 			maxParamsLength: null,
-			connected: false,
 			ttl: 100,
 			pingInterval: null
 		});
@@ -86,7 +82,6 @@ describe("Test Cacher resolver with valid instances", () => {
 			prefix: null,
 			keygen: null,
 			maxParamsLength: null,
-			connected: false,
 			ttl: 80,
 			pingInterval: null,
 			redis: { db: 3 }

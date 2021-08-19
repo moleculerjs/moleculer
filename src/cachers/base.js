@@ -28,9 +28,11 @@ class Cacher {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
-			maxParamsLength: null,
-			connected: false
+			maxParamsLength: null
 		});
+
+		/** @type {boolean} Flag indicating the connection status */
+		this.connected = false;
 	}
 
 	/**
@@ -334,8 +336,8 @@ class Cacher {
 
 					// Cache is enabled but not in healthy state
 					// More info: https://github.com/moleculerjs/moleculer/issues/978
-					if (!this.opts.connected) {
-						this.logger.warn(
+					if (!this.connected) {
+						this.logger.debug(
 							"Cacher is enabled but it is not connected at the moment... Calling the handler"
 						);
 						return handler(ctx);
