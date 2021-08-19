@@ -17,7 +17,6 @@ const METRIC = require("../constants");
  * @extends {BaseMetric}
  */
 class InfoMetric extends BaseMetric {
-
 	/**
 	 * Creates an instance of InfoMetric.
 	 * @param {Object} opts

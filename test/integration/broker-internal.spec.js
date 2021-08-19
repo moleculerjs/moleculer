@@ -2,14 +2,13 @@ const ServiceBroker = require("../../src/service-broker");
 const { hostname } = require("os");
 
 describe("Test internal services", () => {
-
 	const broker = new ServiceBroker({
 		nodeID: "node-master",
 		logger: false,
 		transporter: null,
 		internalServices: true,
 		metrics: true,
-		metadata: { a: 5 },
+		metadata: { a: 5 }
 	});
 
 	broker.createService({
@@ -21,18 +20,18 @@ describe("Test internal services", () => {
 			scaling: true
 		},
 		actions: {
-			hello() { },
+			hello() {},
 			welcome: {
 				cache: true,
 				params: {
 					name: { type: "string" }
 				},
-				handler() { }
+				handler() {}
 			}
 		},
 		events: {
-			"say.hi"() { },
-			"say.hello"() { }
+			"say.hi"() {},
+			"say.hello"() {}
 		}
 	});
 
@@ -40,7 +39,7 @@ describe("Test internal services", () => {
 		name: "echo",
 		version: "alpha",
 		actions: {
-			reply() { }
+			reply() {}
 		}
 	});
 
@@ -59,453 +58,509 @@ describe("Test internal services", () => {
 		const localNode = broker.registry.nodes.localNode;
 
 		return broker.call("$node.list").then(res => {
-			expect(res).toEqual([{
-				"available": true,
-				"client": {
-					"langVersion": process.version,
-					"type": "nodejs",
-					"version": broker.MOLECULER_VERSION
-				},
-				"config": {},
-				"cpu": null,
-				"cpuSeq": null,
-				"id": "node-master",
-				"instanceID": localNode.instanceID,
-				"ipList": localNode.ipList,
-				"hostname": hostname(),
-				"lastHeartbeatTime": localNode.lastHeartbeatTime,
-				"offlineSince": null,
-				"port": null,
-				"seq": localNode.seq,
-				"local": true,
-				"metadata": { a: 5 },
-				"udpAddress": null
-			}]);
+			expect(res).toEqual([
+				{
+					available: true,
+					client: {
+						langVersion: process.version,
+						type: "nodejs",
+						version: broker.MOLECULER_VERSION
+					},
+					config: {},
+					cpu: null,
+					cpuSeq: null,
+					id: "node-master",
+					instanceID: localNode.instanceID,
+					ipList: localNode.ipList,
+					hostname: hostname(),
+					lastHeartbeatTime: localNode.lastHeartbeatTime,
+					offlineSince: null,
+					port: null,
+					seq: localNode.seq,
+					local: true,
+					metadata: { a: 5 },
+					udpAddress: null
+				}
+			]);
 		});
 	});
 
 	it("should return service list", () => {
 		return broker.call("$node.services").then(res => {
-			expect(res).toEqual([{
-				"name": "$node",
-				"nodes": ["node-master"],
-				"settings": {},
-				"metadata": {},
-				"version": undefined,
-				"fullName": "$node",
-				"local": true,
-				"available": true
-			}, {
-				"name": "greeter",
-				"nodes": ["node-master"],
-				"settings": {
-					"anonymous": "John"
+			expect(res).toEqual([
+				{
+					name: "$node",
+					nodes: ["node-master"],
+					settings: {},
+					metadata: {},
+					version: undefined,
+					fullName: "$node",
+					local: true,
+					available: true
 				},
-				"metadata": {
-					"scaling": true
+				{
+					name: "greeter",
+					nodes: ["node-master"],
+					settings: {
+						anonymous: "John"
+					},
+					metadata: {
+						scaling: true
+					},
+					version: undefined,
+					fullName: "greeter",
+					local: true,
+					available: true
 				},
-				"version": undefined,
-				"fullName": "greeter",
-				"local": true,
-				"available": true
-			}, {
-				"name": "echo",
-				"nodes": ["node-master"],
-				"settings": {},
-				"metadata": {},
-				"version": "alpha",
-				"fullName": "alpha.echo",
-				"local": true,
-				"available": true
-			}]);
+				{
+					name: "echo",
+					nodes: ["node-master"],
+					settings: {},
+					metadata: {},
+					version: "alpha",
+					fullName: "alpha.echo",
+					local: true,
+					available: true
+				}
+			]);
 		});
 	});
 
 	it("should return service list (skipInternal, withActions)", () => {
-		return broker.call("$node.services", { skipInternal: true, withActions: true }).then(res => {
-			expect(res).toEqual([{
-				"actions": {
-					"greeter.hello": {
-						"name": "greeter.hello",
-						"rawName": "hello",
-					},
-					"greeter.welcome": {
-						"cache": true,
-						"name": "greeter.welcome",
-						"rawName": "welcome",
-						"params": {
-							"name": {
-								"type": "string"
+		return broker
+			.call("$node.services", { skipInternal: true, withActions: true })
+			.then(res => {
+				expect(res).toEqual([
+					{
+						actions: {
+							"greeter.hello": {
+								name: "greeter.hello",
+								rawName: "hello"
+							},
+							"greeter.welcome": {
+								cache: true,
+								name: "greeter.welcome",
+								rawName: "welcome",
+								params: {
+									name: {
+										type: "string"
+									}
+								}
 							}
-						}
+						},
+						name: "greeter",
+						nodes: ["node-master"],
+						settings: {
+							anonymous: "John"
+						},
+						metadata: {
+							scaling: true
+						},
+						version: undefined,
+						fullName: "greeter",
+						local: true,
+						available: true
+					},
+					{
+						actions: {
+							"alpha.echo.reply": {
+								name: "alpha.echo.reply",
+								rawName: "reply"
+							}
+						},
+						name: "echo",
+						nodes: ["node-master"],
+						settings: {},
+						metadata: {},
+						version: "alpha",
+						fullName: "alpha.echo",
+						local: true,
+						available: true
 					}
-				},
-				"name": "greeter",
-				"nodes": ["node-master"],
-				"settings": {
-					"anonymous": "John"
-				},
-				"metadata": {
-					"scaling": true
-				},
-				"version": undefined,
-				"fullName": "greeter",
-				"local": true,
-				"available": true
-			}, {
-				"actions": {
-					"alpha.echo.reply": {
-						"name": "alpha.echo.reply",
-						"rawName": "reply",
-					}
-				},
-				"name": "echo",
-				"nodes": ["node-master"],
-				"settings": {},
-				"metadata": {},
-				"version": "alpha",
-				"fullName": "alpha.echo",
-				"local": true,
-				"available": true
-			}]);
-		});
+				]);
+			});
 	});
 
 	it("should return action list", () => {
 		return broker.call("$node.actions").then(res => {
-			expect(res).toEqual([{
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.list",
-					"rawName": "list",
-					"params": {
-						"onlyAvailable": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"withServices": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
+			expect(res).toEqual([
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.list",
+						rawName: "list",
+						params: {
+							onlyAvailable: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							withServices: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							}
 						}
-					}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.list"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.list"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.services",
-					"rawName": "services",
-					"params": {
-						"onlyLocal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"onlyAvailable": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"skipInternal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"withActions": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"withEvents": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"grouping": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": true
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.services",
+						rawName: "services",
+						params: {
+							onlyLocal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							onlyAvailable: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							skipInternal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							withActions: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							withEvents: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							grouping: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: true
+							}
 						}
-					}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.services"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.services"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.actions",
-					"rawName": "actions",
-					"params": {
-						"onlyLocal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"onlyAvailable": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"skipInternal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"withEndpoints": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.actions",
+						rawName: "actions",
+						params: {
+							onlyLocal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							onlyAvailable: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							skipInternal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							withEndpoints: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							}
 						}
-					}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.actions"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.actions"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.events",
-					"rawName": "events",
-					"params": {
-						"onlyLocal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"onlyAvailable": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"skipInternal": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
-						},
-						"withEndpoints": {
-							"optional": true,
-							"type": "boolean",
-							"convert": true,
-							"default": false
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.events",
+						rawName: "events",
+						params: {
+							onlyLocal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							onlyAvailable: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							skipInternal: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							},
+							withEndpoints: {
+								optional: true,
+								type: "boolean",
+								convert: true,
+								default: false
+							}
 						}
-					}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.events"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.events"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.health",
-					"rawName": "health",
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.health",
+						rawName: "health"
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.health"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.health"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.options",
-					"rawName": "options",
-					"params": {}
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.options",
+						rawName: "options",
+						params: {}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.options"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.options"
-			}, {
-				"action": {
-					"tracing": false,
-					"cache": false,
-					"name": "$node.metrics",
-					"rawName": "metrics",
-					"params": {
-						types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
-						includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
-						excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
-					}
-				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.metrics"
-			}, {
-				"action": {
-					"name": "greeter.hello",
-					"rawName": "hello",
-				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "greeter.hello"
-			}, {
-				"action": {
-					"cache": true,
-					"name": "greeter.welcome",
-					"rawName": "welcome",
-					"params": {
-						"name": {
-							"type": "string"
+				{
+					action: {
+						tracing: false,
+						cache: false,
+						name: "$node.metrics",
+						rawName: "metrics",
+						params: {
+							types: {
+								type: "multi",
+								optional: true,
+								rules: [{ type: "string" }, { type: "array", items: "string" }]
+							},
+							includes: {
+								type: "multi",
+								optional: true,
+								rules: [{ type: "string" }, { type: "array", items: "string" }]
+							},
+							excludes: {
+								type: "multi",
+								optional: true,
+								rules: [{ type: "string" }, { type: "array", items: "string" }]
+							}
 						}
-					}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "$node.metrics"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "greeter.welcome"
-			}, {
-				"action": {
-					"name": "alpha.echo.reply",
-					"rawName": "reply",
+				{
+					action: {
+						name: "greeter.hello",
+						rawName: "hello"
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "greeter.hello"
 				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "alpha.echo.reply"
-			}]);
+				{
+					action: {
+						cache: true,
+						name: "greeter.welcome",
+						rawName: "welcome",
+						params: {
+							name: {
+								type: "string"
+							}
+						}
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "greeter.welcome"
+				},
+				{
+					action: {
+						name: "alpha.echo.reply",
+						rawName: "reply"
+					},
+					available: true,
+					count: 1,
+					hasLocal: true,
+					name: "alpha.echo.reply"
+				}
+			]);
 		});
 	});
 
 	it("should return action list (skipInternal, withEndpoints)", () => {
-		return broker.call("$node.actions", { skipInternal: true, withEndpoints: true }).then(res => {
-			expect(res).toEqual([{
-				"action": {
-					"name": "greeter.hello",
-					"rawName": "hello",
-				},
-				"available": true,
-				"count": 1,
-				"endpoints": [{
-					"available": true,
-					"nodeID": "node-master",
-					"state": true
-				}],
-				"hasLocal": true,
-				"name": "greeter.hello"
-			}, {
-				"action": {
-					"cache": true,
-					"name": "greeter.welcome",
-					"rawName": "welcome",
-					"params": {
-						"name": {
-							"type": "string"
-						}
+		return broker
+			.call("$node.actions", { skipInternal: true, withEndpoints: true })
+			.then(res => {
+				expect(res).toEqual([
+					{
+						action: {
+							name: "greeter.hello",
+							rawName: "hello"
+						},
+						available: true,
+						count: 1,
+						endpoints: [
+							{
+								available: true,
+								nodeID: "node-master",
+								state: true
+							}
+						],
+						hasLocal: true,
+						name: "greeter.hello"
+					},
+					{
+						action: {
+							cache: true,
+							name: "greeter.welcome",
+							rawName: "welcome",
+							params: {
+								name: {
+									type: "string"
+								}
+							}
+						},
+						available: true,
+						count: 1,
+						endpoints: [
+							{
+								available: true,
+								nodeID: "node-master",
+								state: true
+							}
+						],
+						hasLocal: true,
+						name: "greeter.welcome"
+					},
+					{
+						action: {
+							name: "alpha.echo.reply",
+							rawName: "reply"
+						},
+						available: true,
+						count: 1,
+						endpoints: [
+							{
+								available: true,
+								nodeID: "node-master",
+								state: true
+							}
+						],
+						hasLocal: true,
+						name: "alpha.echo.reply"
 					}
-				},
-				"available": true,
-				"count": 1,
-				"endpoints": [{
-					"available": true,
-					"nodeID": "node-master",
-					"state": true
-				}],
-				"hasLocal": true,
-				"name": "greeter.welcome"
-			}, {
-				"action": {
-					"name": "alpha.echo.reply",
-					"rawName": "reply",
-				},
-				"available": true,
-				"count": 1,
-				"endpoints": [{
-					"available": true,
-					"nodeID": "node-master",
-					"state": true
-				}],
-				"hasLocal": true,
-				"name": "alpha.echo.reply"
-			}]);
-		});
+				]);
+			});
 	});
 
 	it("should return event list", () => {
 		return broker.call("$node.events").then(res => {
-			expect(res).toEqual([{
-				"available": true,
-				"count": 1,
-				"event": {
-					"name": "say.hi"
+			expect(res).toEqual([
+				{
+					available: true,
+					count: 1,
+					event: {
+						name: "say.hi"
+					},
+					group: "greeter",
+					hasLocal: true,
+					name: "say.hi"
 				},
-				"group": "greeter",
-				"hasLocal": true,
-				"name": "say.hi"
-			}, {
-				"available": true,
-				"count": 1,
-				"event": {
-					"name": "say.hello"
-				},
-				"group": "greeter",
-				"hasLocal": true,
-				"name": "say.hello"
-			}]);
+				{
+					available: true,
+					count: 1,
+					event: {
+						name: "say.hello"
+					},
+					group: "greeter",
+					hasLocal: true,
+					name: "say.hello"
+				}
+			]);
 		});
 	});
 
 	it("should return event list (withEndpoints)", () => {
 		return broker.call("$node.events", { withEndpoints: true }).then(res => {
-			expect(res).toEqual([{
-				"available": true,
-				"count": 1,
-				"endpoints": [{
-					"available": true,
-					"nodeID": "node-master",
-					"state": true
-				}],
-				"event": {
-					"name": "say.hi"
+			expect(res).toEqual([
+				{
+					available: true,
+					count: 1,
+					endpoints: [
+						{
+							available: true,
+							nodeID: "node-master",
+							state: true
+						}
+					],
+					event: {
+						name: "say.hi"
+					},
+					group: "greeter",
+					hasLocal: true,
+					name: "say.hi"
 				},
-				"group": "greeter",
-				"hasLocal": true,
-				"name": "say.hi"
-			}, {
-				"available": true,
-				"count": 1,
-				"endpoints": [{
-					"available": true,
-					"nodeID": "node-master",
-					"state": true
-				}],
-				"event": {
-					"name": "say.hello"
-				},
-				"group": "greeter",
-				"hasLocal": true,
-				"name": "say.hello"
-			}]);
+				{
+					available: true,
+					count: 1,
+					endpoints: [
+						{
+							available: true,
+							nodeID: "node-master",
+							state: true
+						}
+					],
+					event: {
+						name: "say.hello"
+					},
+					group: "greeter",
+					hasLocal: true,
+					name: "say.hello"
+				}
+			]);
 		});
 	});
 
@@ -548,73 +603,73 @@ describe("Test internal services", () => {
 	});
 
 	it("should return metrics", () => {
-		return broker.call("$node.metrics", {
-			includes: ["moleculer.broker.**"]
-		}).then(res => {
-			expect(res).toEqual([
-				{
-					"description": "Moleculer namespace",
-					"labelNames": [],
-					"name": "moleculer.broker.namespace",
-					"type": "info",
-					"unit": undefined,
-					"values": [
-						{
-							"key": "",
-							"labels": {},
-							"timestamp": expect.any(Number),
-							"value": ""
-						}
-					]
-				},
-				{
-					"description": "ServiceBroker started",
-					"labelNames": [],
-					"name": "moleculer.broker.started",
-					"type": "gauge",
-					"unit": undefined,
-					"values": [
-						{
-							"key": "",
-							"labels": {},
-							"timestamp": expect.any(Number),
-							"value": 1
-						}
-					]
-				},
-				{
-					"description": "Number of local services",
-					"labelNames": [],
-					"name": "moleculer.broker.local.services.total",
-					"type": "gauge",
-					"unit": undefined,
-					"values": [
-						{
-							"key": "",
-							"labels": {},
-							"timestamp": expect.any(Number),
-							"value": 3
-						}
-					]
-				},
-				{
-					"description": "Number of local middlewares",
-					"labelNames": [],
-					"name": "moleculer.broker.middlewares.total",
-					"type": "gauge",
-					"unit": undefined,
-					"values": [
-						{
-							"key": "",
-							"labels": {},
-							"timestamp": expect.any(Number),
-							"value": 13
-						}
-					]
-				}
-			]);
-		});
+		return broker
+			.call("$node.metrics", {
+				includes: ["moleculer.broker.**"]
+			})
+			.then(res => {
+				expect(res).toEqual([
+					{
+						description: "Moleculer namespace",
+						labelNames: [],
+						name: "moleculer.broker.namespace",
+						type: "info",
+						unit: undefined,
+						values: [
+							{
+								key: "",
+								labels: {},
+								timestamp: expect.any(Number),
+								value: ""
+							}
+						]
+					},
+					{
+						description: "ServiceBroker started",
+						labelNames: [],
+						name: "moleculer.broker.started",
+						type: "gauge",
+						unit: undefined,
+						values: [
+							{
+								key: "",
+								labels: {},
+								timestamp: expect.any(Number),
+								value: 1
+							}
+						]
+					},
+					{
+						description: "Number of local services",
+						labelNames: [],
+						name: "moleculer.broker.local.services.total",
+						type: "gauge",
+						unit: undefined,
+						values: [
+							{
+								key: "",
+								labels: {},
+								timestamp: expect.any(Number),
+								value: 3
+							}
+						]
+					},
+					{
+						description: "Number of local middlewares",
+						labelNames: [],
+						name: "moleculer.broker.middlewares.total",
+						type: "gauge",
+						unit: undefined,
+						values: [
+							{
+								key: "",
+								labels: {},
+								timestamp: expect.any(Number),
+								value: 13
+							}
+						]
+					}
+				]);
+			});
 	});
-
 });
-

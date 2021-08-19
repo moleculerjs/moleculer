@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../src/errors");
 const Serializers = require("../../../src/serializers");
 
 describe("Test Serializers resolver", () => {
-
 	it("should resolve null from undefined", () => {
 		let serializer = Serializers.resolve();
 		expect(serializer).toBeInstanceOf(Serializers.JSON);
@@ -32,7 +31,6 @@ describe("Test Serializers resolver", () => {
 			Serializers.resolve({ type: "xyz" });
 		}).toThrowError(BrokerOptionsError);
 	});
-
 });
 
 describe("Test Serializers register", () => {

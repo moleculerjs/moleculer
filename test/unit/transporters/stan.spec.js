@@ -12,7 +12,7 @@ Stan.connect = jest.fn(() => {
 	let callbacks = {};
 	//let subscriptions = {};
 	const c = {
-		on: jest.fn((event, cb) => callbacks[event] = cb),
+		on: jest.fn((event, cb) => (callbacks[event] = cb)),
 		close: jest.fn(),
 		/*subscribe: jest.fn((topic, opts) => {
 			return {
@@ -25,7 +25,7 @@ Stan.connect = jest.fn(() => {
 		setDeliverAllAvailable: jest.fn(() => c),
 		setDurableName: jest.fn(() => c),
 
-		callbacks,
+		callbacks
 		//subscriptions
 	};
 
@@ -34,9 +34,7 @@ Stan.connect = jest.fn(() => {
 
 const StanTransporter = require("../../../src/transporters/stan");
 
-
 describe("Test StanTransporter constructor", () => {
-
 	it("check constructor", () => {
 		let transporter = new StanTransporter();
 		expect(transporter).toBeDefined();
@@ -48,13 +46,22 @@ describe("Test StanTransporter constructor", () => {
 
 	it("check constructor with string param", () => {
 		let transporter = new StanTransporter("stan://localhost");
-		expect(transporter.opts).toEqual({ clusterID: "test-cluster", preserveBuffers: true, url: "nats://localhost" });
+		expect(transporter.opts).toEqual({
+			clusterID: "test-cluster",
+			preserveBuffers: true,
+			url: "nats://localhost"
+		});
 	});
 
 	it("check constructor with options", () => {
 		let opts = { host: "localhost", port: 1234 };
 		let transporter = new StanTransporter(opts);
-		expect(transporter.opts).toEqual({ clusterID: "test-cluster", host: "localhost", port: 1234, preserveBuffers: true } );
+		expect(transporter.opts).toEqual({
+			clusterID: "test-cluster",
+			host: "localhost",
+			port: 1234,
+			preserveBuffers: true
+		});
 	});
 
 	it("check constructor with disabled preserveBuffers", () => {
@@ -76,16 +83,28 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 	});
 
 	it("check connect", () => {
-		let p = transporter.connect().catch(protectReject).then(() => {
-			expect(transporter.client).toBeDefined();
-			expect(transporter.client.on).toHaveBeenCalledTimes(6);
-			expect(transporter.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(transporter.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-		});
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.client).toBeDefined();
+				expect(transporter.client.on).toHaveBeenCalledTimes(6);
+				expect(transporter.client.on).toHaveBeenCalledWith("connect", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith(
+					"reconnect",
+					expect.any(Function)
+				);
+				expect(transporter.client.on).toHaveBeenCalledWith(
+					"reconnecting",
+					expect.any(Function)
+				);
+				expect(transporter.client.on).toHaveBeenCalledWith(
+					"disconnect",
+					expect.any(Function)
+				);
+				expect(transporter.client.on).toHaveBeenCalledWith("error", expect.any(Function));
+				expect(transporter.client.on).toHaveBeenCalledWith("close", expect.any(Function));
+			});
 
 		transporter._client.callbacks.connect();
 
@@ -94,10 +113,13 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
-		let p = transporter.connect().catch(protectReject).then(() => {
-			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.onConnected).toHaveBeenCalledWith();
-		});
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected).toHaveBeenCalledWith();
+			});
 
 		transporter._client.callbacks.connect(); // Trigger the `resolve`
 
@@ -107,12 +129,15 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 	it("check onConnected after reconnect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 
-		let p = transporter.connect().catch(protectReject).then(() => {
-			transporter.onConnected.mockClear();
-			transporter._client.callbacks.reconnect(); // Trigger the `resolve`
-			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.onConnected).toHaveBeenCalledWith(true);
-		});
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.onConnected.mockClear();
+				transporter._client.callbacks.reconnect(); // Trigger the `resolve`
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.onConnected).toHaveBeenCalledWith(true);
+			});
 
 		transporter._client.callbacks.connect(); // Trigger the `resolve`
 
@@ -120,17 +145,19 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 	});
 
 	it("check disconnect", () => {
-		let p = transporter.connect().catch(protectReject).then(() => {
-			let cb = transporter.client.close;
-			transporter.disconnect();
-			expect(transporter.client).toBeNull();
-			expect(cb).toHaveBeenCalledTimes(1);
-		});
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				let cb = transporter.client.close;
+				transporter.disconnect();
+				expect(transporter.client).toBeNull();
+				expect(cb).toHaveBeenCalledTimes(1);
+			});
 
 		transporter._client.callbacks.connect(); // Trigger the `resolve`
 		return p;
 	});
-
 });
 
 describe("Test StanTransporter subscribe & publish", () => {
@@ -140,7 +167,10 @@ describe("Test StanTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new StanTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })),
+			msgHandler
+		);
 
 		let p = transporter.connect();
 		transporter._client.callbacks.connect(); // Trigger the `resolve`
@@ -162,12 +192,15 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith(
+			"MOL-TEST.REQ.node",
+			expect.any(Object)
+		);
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({
@@ -190,7 +223,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		});
 		transporter.client.subscribe = jest.fn(() => {
 			return {
-				on: subscribeOn,
+				on: subscribeOn
 			};
 		});
 		transporter.incomingMessage = jest.fn();
@@ -198,7 +231,11 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribeBalancedRequest("posts.find");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", "posts.find", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith(
+			"MOL-TEST.REQB.posts.find",
+			"posts.find",
+			expect.any(Object)
+		);
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 		expect(transporter.client.setDeliverAllAvailable).toHaveBeenCalledTimes(1);
@@ -206,7 +243,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		expect(transporter.client.setDurableName).toHaveBeenCalledWith("REQB");
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({
@@ -231,7 +268,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.client.subscribe = jest.fn(() => {
 			return {
 				on: subscribeOn,
-				unsubscribe: unsubscribe,
+				unsubscribe: unsubscribe
 			};
 		});
 		transporter.incomingMessage = jest.fn();
@@ -239,7 +276,11 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.subscribeBalancedEvent("user.created", "mail");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", "mail", jasmine.any(Object));
+		expect(transporter.client.subscribe).toHaveBeenCalledWith(
+			"MOL-TEST.EVENTB.mail.user.created",
+			"mail",
+			expect.any(Object)
+		);
 
 		expect(transporter.client.subscriptionOptions).toHaveBeenCalledTimes(1);
 		expect(transporter.client.setDeliverAllAvailable).toHaveBeenCalledTimes(1);
@@ -247,7 +288,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 		expect(transporter.client.setDurableName).toHaveBeenCalledWith("EVENTB");
 
 		expect(subscribeOn).toHaveBeenCalledTimes(1);
-		expect(subscribeOn).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(subscribeOn).toHaveBeenCalledWith("message", expect.any(Function));
 
 		// Test subscribe callback
 		subCb({
@@ -258,21 +299,25 @@ describe("Test StanTransporter subscribe & publish", () => {
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("EVENT", "incoming data");
 
-
 		// Test unsubscribeFromBalancedCommands
 		transporter.client.unsubscribe = jest.fn();
 
-		return transporter.unsubscribeFromBalancedCommands().catch(protectReject).then(() => {
-			expect(unsubscribe).toHaveBeenCalledTimes(1);
-		});
+		return transporter
+			.unsubscribeFromBalancedCommands()
+			.catch(protectReject)
+			.then(() => {
+				expect(unsubscribe).toHaveBeenCalledTimes(1);
+			});
 	});
 
 	it("check publish with target", () => {
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, "node2", {});
-		return transporter.publish(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publish(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
@@ -286,8 +331,10 @@ describe("Test StanTransporter subscribe & publish", () => {
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, null, {});
-		return transporter.publish(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publish(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO",
@@ -305,8 +352,10 @@ describe("Test StanTransporter subscribe & publish", () => {
 			data: { id: 5 },
 			groups: ["mail"]
 		});
-		return transporter.publishBalancedEvent(packet, "mail")
-			.catch(protectReject).then(() => {
+		return transporter
+			.publishBalancedEvent(packet, "mail")
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.EVENTB.mail.user.created",
@@ -314,7 +363,6 @@ describe("Test StanTransporter subscribe & publish", () => {
 					expect.any(Function)
 				);
 			});
-
 	});
 
 	it("check publishBalancedRequest", () => {
@@ -323,8 +371,10 @@ describe("Test StanTransporter subscribe & publish", () => {
 		const packet = new P.Packet(P.PACKET_REQUEST, null, {
 			action: "posts.find"
 		});
-		return transporter.publishBalancedRequest(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publishBalancedRequest(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.REQB.posts.find",
@@ -332,7 +382,5 @@ describe("Test StanTransporter subscribe & publish", () => {
 					expect.any(Function)
 				);
 			});
-
 	});
 });
-

@@ -2,22 +2,20 @@ const utils = require("../../src/utils");
 const { protectReject } = require("./utils");
 const lolex = require("@sinonjs/fake-timers");
 
-
 describe("Test utils.isObject", () => {
-
 	it("should return true for Objects and Arrays and false for anything else", () => {
 		expect(utils.isObject({})).toBe(true);
 		expect(utils.isObject(Object.create(null))).toBe(true);
 		expect(utils.isObject(new Object(null))).toBe(true);
-		expect(utils.isObject(new (function() {}))).toBe(true);
+		expect(utils.isObject(new (function () {})())).toBe(true);
 		expect(utils.isObject([])).toBe(true);
 		expect(utils.isObject(Array.from([]))).toBe(true);
 		expect(utils.isObject(new Array(null))).toBe(true);
 
 		expect(utils.isObject(null)).toBe(false);
-		expect(utils.isObject(function() {})).toBe(false);
-		expect(utils.isObject(()=>{})).toBe(false);
-		expect(utils.isObject(async ()=>{})).toBe(false);
+		expect(utils.isObject(function () {})).toBe(false);
+		expect(utils.isObject(() => {})).toBe(false);
+		expect(utils.isObject(async () => {})).toBe(false);
 		expect(utils.isObject(class Dummy {})).toBe(false);
 		expect(utils.isObject(1)).toBe(false);
 		expect(utils.isObject("string")).toBe(false);
@@ -27,21 +25,20 @@ describe("Test utils.isObject", () => {
 });
 
 describe("Test utils.isPlainObject", () => {
-
 	it("should return true for POJOs false for anything else", () => {
 		expect(utils.isPlainObject({})).toBe(true);
 		expect(utils.isPlainObject(Object.create(null))).toBe(true);
 		expect(utils.isPlainObject(new Object(null))).toBe(true);
 
-		expect(utils.isPlainObject(new (function() {}))).toBe(false);
+		expect(utils.isPlainObject(new (function () {})())).toBe(false);
 		expect(utils.isPlainObject([])).toBe(false);
 		expect(utils.isPlainObject(Array.from([]))).toBe(false);
 		expect(utils.isPlainObject(new Array(null))).toBe(false);
 		expect(utils.isPlainObject([])).toBe(false);
 		expect(utils.isPlainObject(null)).toBe(false);
-		expect(utils.isPlainObject(function() {})).toBe(false);
-		expect(utils.isPlainObject(()=>{})).toBe(false);
-		expect(utils.isPlainObject(async ()=>{})).toBe(false);
+		expect(utils.isPlainObject(function () {})).toBe(false);
+		expect(utils.isPlainObject(() => {})).toBe(false);
+		expect(utils.isPlainObject(async () => {})).toBe(false);
 		expect(utils.isPlainObject(class Dummy {})).toBe(false);
 		expect(utils.isPlainObject(1)).toBe(false);
 		expect(utils.isPlainObject("string")).toBe(false);
@@ -51,7 +48,6 @@ describe("Test utils.isPlainObject", () => {
 });
 
 describe("Test utils.isString", () => {
-
 	it("should return true for strings and false for anything else", () => {
 		expect(utils.isString("string")).toBe(true);
 		expect(utils.isString(new String(""))).toBe(true);
@@ -59,14 +55,14 @@ describe("Test utils.isString", () => {
 		expect(utils.isString({})).toBe(false);
 		expect(utils.isString(Object.create(null))).toBe(false);
 		expect(utils.isString(new Object(null))).toBe(false);
-		expect(utils.isString(new (function() {}))).toBe(false);
+		expect(utils.isString(new (function () {})())).toBe(false);
 		expect(utils.isString([])).toBe(false);
 		expect(utils.isString(Array.from([]))).toBe(false);
 		expect(utils.isString(new Array(null))).toBe(false);
 		expect(utils.isString(null)).toBe(false);
-		expect(utils.isString(function() {})).toBe(false);
-		expect(utils.isString(()=>{})).toBe(false);
-		expect(utils.isString(async ()=>{})).toBe(false);
+		expect(utils.isString(function () {})).toBe(false);
+		expect(utils.isString(() => {})).toBe(false);
+		expect(utils.isString(async () => {})).toBe(false);
 		expect(utils.isString(class Dummy {})).toBe(false);
 		expect(utils.isString(1)).toBe(false);
 		expect(utils.isString(NaN)).toBe(false);
@@ -74,11 +70,10 @@ describe("Test utils.isString", () => {
 });
 
 describe("Test utils.isFunction", () => {
-
 	it("should return true for function types", () => {
-		expect(utils.isFunction(function() {})).toBe(true);
-		expect(utils.isFunction(()=>{})).toBe(true);
-		expect(utils.isFunction(async ()=>{})).toBe(true);
+		expect(utils.isFunction(function () {})).toBe(true);
+		expect(utils.isFunction(() => {})).toBe(true);
+		expect(utils.isFunction(async () => {})).toBe(true);
 		expect(utils.isFunction(class Dummy {})).toBe(true);
 
 		expect(utils.isFunction({})).toBe(false);
@@ -90,17 +85,30 @@ describe("Test utils.isFunction", () => {
 	});
 });
 
-describe("Test utils.flatten", () => {
+describe("Test utils.isDate", () => {
+	it("should return true for date types", () => {
+		expect(utils.isDate(new Date())).toBe(true);
 
+		expect(utils.isDate(1614529868608)).toBe(false);
+		expect(utils.isDate("Sun Feb 28 2021 17:36:03 GMT+0100 (GMT+01:00)")).toBe(false);
+		expect(utils.isDate({})).toBe(false);
+		expect(utils.isDate([])).toBe(false);
+		expect(utils.isDate(null)).toBe(false);
+		expect(utils.isDate(1)).toBe(false);
+		expect(utils.isDate("string")).toBe(false);
+		expect(utils.isDate(NaN)).toBe(false);
+	});
+});
+
+describe("Test utils.flatten", () => {
 	it("should flat the array", () => {
 		expect(utils.flatten([])).toEqual([]);
-		expect(utils.flatten([1,2])).toEqual([1,2]);
-		expect(utils.flatten([1,[2], [3, [4], 5]])).toEqual([1, 2, 3, [4], 5]);
+		expect(utils.flatten([1, 2])).toEqual([1, 2]);
+		expect(utils.flatten([1, [2], [3, [4], 5]])).toEqual([1, 2, 3, [4], 5]);
 	});
 });
 
 describe("Test utils.humanize", () => {
-
 	it("should humanize elapsed milliseconds", () => {
 		expect(utils.humanize()).toBe("?");
 		expect(utils.humanize(1)).toBe("1ms");
@@ -122,11 +130,11 @@ describe("Test utils.humanize", () => {
 		expect(utils.humanize(0.000001)).toBe("1ns");
 		expect(utils.humanize(0.0000001)).toBe("now");
 	});
-
 });
 
 describe("Test utils.generateToken", () => {
-	const REGEX_MATCHER = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+	const REGEX_MATCHER =
+		/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
 
 	it("should generate unique token", () => {
 		let res1 = utils.generateToken();
@@ -140,23 +148,27 @@ describe("Test utils.generateToken", () => {
 });
 
 describe("Test utils.removeFromArray", () => {
-
 	it("should remove item from array", () => {
 		expect(utils.removeFromArray()).toBeUndefined();
 		expect(utils.removeFromArray([])).toEqual([]);
 
-		expect(utils.removeFromArray([10,20,30,40,50,60], 80)).toEqual([10,20,30,40,50,60]);
-		expect(utils.removeFromArray([10,20,30,40,50,60], 30)).toEqual([10,20,40,50,60]);
+		expect(utils.removeFromArray([10, 20, 30, 40, 50, 60], 80)).toEqual([
+			10, 20, 30, 40, 50, 60
+		]);
+		expect(utils.removeFromArray([10, 20, 30, 40, 50, 60], 30)).toEqual([10, 20, 40, 50, 60]);
 
 		const arr = [{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }];
-		expect(utils.removeFromArray(arr, { a: 1 })).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }]);
+		expect(utils.removeFromArray(arr, { a: 1 })).toEqual([
+			{ a: 1 },
+			{ a: 2 },
+			{ a: 3 },
+			{ a: 4 }
+		]);
 		expect(utils.removeFromArray(arr, arr[2])).toEqual([{ a: 1 }, { a: 2 }, { a: 4 }]);
 	});
-
 });
 
 describe("Test utils.isPromise", () => {
-
 	it("should check the param", () => {
 		expect(utils.isPromise()).toBe(false);
 		expect(utils.isPromise({})).toBe(false);
@@ -164,7 +176,6 @@ describe("Test utils.isPromise", () => {
 		expect(utils.isPromise(Promise.resolve())).toBe(true);
 		//expect(utils.isPromise(Promise.reject())).toBe(true); // node gives warning
 	});
-
 });
 
 describe("Test utils.getNodeID", () => {
@@ -194,7 +205,7 @@ describe("Test utils.getIpList", () => {
 					cidr: "127.0.0.1/8"
 				}
 			],
-			"Local": [
+			Local: [
 				{
 					address: "fe80::29a9:ffeb:4a65:9f82",
 					netmask: "ffff:ffff:ffff:ffff::",
@@ -202,7 +213,8 @@ describe("Test utils.getIpList", () => {
 					internal: false,
 					cidr: "fe80::29a9:ffeb:4a65:9f82/64"
 				},
-				{ address: "192.168.2.100",
+				{
+					address: "192.168.2.100",
 					netmask: "255.255.255.0",
 					family: "IPv4",
 					internal: false,
@@ -261,15 +273,13 @@ describe("Test utils.getIpList", () => {
 					internal: true,
 					cidr: "127.0.0.2/8"
 				}
-			],
-
+			]
 		}));
-		expect(utils.getIpList()).toEqual(["127.0.0.1","127.0.0.2"]);
+		expect(utils.getIpList()).toEqual(["127.0.0.1", "127.0.0.2"]);
 	});
 });
 
 describe("Test match", () => {
-
 	expect(utils.match("1.2.3", "1.2.3")).toBe(true);
 	expect(utils.match("a.b.c.d", "a.b.c.d")).toBe(true);
 	expect(utils.match("aa.bb.cc", "aa.bb.cc")).toBe(true);
@@ -346,12 +356,11 @@ describe("Test match", () => {
 });
 
 describe("Test utils.safetyObject", () => {
-
 	it("should return a same object", () => {
 		const obj = {
 			a: 5,
 			b: "Hello",
-			c: [0,1,2],
+			c: [0, 1, 2],
 			d: {
 				e: false,
 				f: 1.23
@@ -370,29 +379,29 @@ describe("Test utils.safetyObject", () => {
 		const obj = {
 			a: 5,
 			b: "Hello",
-			c: [0,1,2],
+			c: [0, 1, 2],
 			d: {
 				e: false,
 				f: 1.23
 			},
 			bigBuffer,
-			bigSet,
+			bigSet
 		};
 		const res = utils.safetyObject(obj, { maxSafeObjectSize: 1024 });
 		expect(res).not.toBe(obj);
 		expect(res).toEqual({
 			a: 5,
 			b: "Hello",
-			c: [0,1,2],
+			c: [0, 1, 2],
 			d: {
 				e: false,
 				f: 1.23
 			},
 			bigBuffer: {
 				data: "[Array 2048]",
-				type: "Buffer",
+				type: "Buffer"
 			},
-			bigSet: "[Set 2048]",
+			bigSet: "[Set 2048]"
 		});
 	});
 
@@ -400,12 +409,12 @@ describe("Test utils.safetyObject", () => {
 		const obj = {
 			a: 5,
 			b: "Hello",
-			c: [0,1,2],
+			c: [0, 1, 2],
 			d: {
 				e: false,
 				f: 1.23
 			},
-			h: (ctx) => ctx
+			h: ctx => ctx
 		};
 		obj.d.g = obj;
 
@@ -414,7 +423,7 @@ describe("Test utils.safetyObject", () => {
 		expect(res).toEqual({
 			a: 5,
 			b: "Hello",
-			c: [0,1,2],
+			c: [0, 1, 2],
 			d: {
 				e: false,
 				f: 1.23
@@ -424,11 +433,9 @@ describe("Test utils.safetyObject", () => {
 		expect(obj.d.g).toBeDefined();
 		expect(obj.h).toBeInstanceOf(Function);
 	});
-
 });
 
 describe("Test utils.dotSet", () => {
-
 	it("should set variable", () => {
 		const obj = {};
 		const result = utils.dotSet(obj, "variable", "hello world");
@@ -445,8 +452,8 @@ describe("Test utils.dotSet", () => {
 		const obj = {
 			a: 1,
 			b: {
-				c: 2,
-			},
+				c: 2
+			}
 		};
 		const result = utils.dotSet(obj, "nested.variable", "hello world");
 		expect(result.a).toBe(1);
@@ -457,7 +464,7 @@ describe("Test utils.dotSet", () => {
 	it("should set nested value if the current value is null", () => {
 		const obj = {
 			a: 1,
-			b: null,
+			b: null
 		};
 		const result = utils.dotSet(obj, "b.c", "hello world");
 		expect(result.a).toBe(1);
@@ -467,31 +474,29 @@ describe("Test utils.dotSet", () => {
 	it("should replace values", () => {
 		const obj = {
 			hello: {
-				world: "!",
-			},
+				world: "!"
+			}
 		};
 		const result = utils.dotSet(obj, "hello.world", "?");
 		expect(result.hello.world).toBe("?");
 	});
 
-	it("should throw when not on leaf", (done) => {
+	it("should throw when not on leaf", done => {
 		const obj = {
 			level1: {
-				level2: "hello",
-			},
+				level2: "hello"
+			}
 		};
 		try {
 			utils.dotSet(obj, "level1.level2.level3", "?");
 			done.fail(new Error("Should have raised an error"));
-		} catch(err) {
+		} catch (err) {
 			done();
 		}
 	});
-
 });
 
 describe("Test utils.parseByteString", () => {
-
 	it("should parse byte string to number of bytes", () => {
 		expect(utils.parseByteString()).toBe(null);
 		expect(utils.parseByteString(null)).toBe(null);
@@ -523,12 +528,9 @@ describe("Test utils.parseByteString", () => {
 		expect(utils.parseByteString("2.56GB")).toBe(2748779069);
 		expect(utils.parseByteString("2.8TB")).toBe(3078632557772);
 	});
-
 });
 
-
 describe("Test utils.polyfillPromise", () => {
-
 	it("should missing polyfilled methods", () => {
 		expect(Promise.method).toBeUndefined();
 		expect(Promise.delay).toBeUndefined();
@@ -552,33 +554,40 @@ describe("Test utils.polyfillPromise", () => {
 	});
 
 	describe("Test Promise.method", () => {
-
 		it("should wrap a static value with Promise", () => {
 			const origFn = name => `Hello ${name}`;
 			const pFn = Promise.method(origFn);
 
-			return pFn("Promise").catch(protectReject).then(res => {
-				expect(res).toBe("Hello Promise");
-			});
+			return pFn("Promise")
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toBe("Hello Promise");
+				});
 		});
 
 		it("should wrap a resolved with value", () => {
 			const origFn = name => Promise.resolve(`Hello ${name}`);
 			const pFn = Promise.method(origFn);
 
-			return pFn("Promise").catch(protectReject).then(res => {
-				expect(res).toBe("Hello Promise");
-			});
+			return pFn("Promise")
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toBe("Hello Promise");
+				});
 		});
 
 		it("should wrap an Error with Promise", () => {
 			const err = new Error("Something happened");
-			const origFn = () => { throw err; };
+			const origFn = () => {
+				throw err;
+			};
 			const pFn = Promise.method(origFn);
 
-			return pFn("Promise").then(protectReject).catch(res => {
-				expect(res).toBe(err);
-			});
+			return pFn("Promise")
+				.then(protectReject)
+				.catch(res => {
+					expect(res).toBe(err);
+				});
 		});
 
 		it("should wrap a rejected Error", () => {
@@ -586,22 +595,24 @@ describe("Test utils.polyfillPromise", () => {
 			const origFn = () => Promise.reject(err);
 			const pFn = Promise.method(origFn);
 
-			return pFn("Promise").then(protectReject).catch(res => {
-				expect(res).toBe(err);
-			});
+			return pFn("Promise")
+				.then(protectReject)
+				.catch(res => {
+					expect(res).toBe(err);
+				});
 		});
 	});
 
 	describe.skip("Test Promise.delay", () => {
 		let clock;
 
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should wait the given time", () => {
 			let done = false;
 			return new Promise(resolve => {
-				const p = Promise.delay(2500).then(() => done = true);
+				const p = Promise.delay(2500).then(() => (done = true));
 				expect(done).toBe(false);
 				clock.tick(1000);
 				expect(done).toBe(false);
@@ -612,7 +623,6 @@ describe("Test utils.polyfillPromise", () => {
 
 				p.then(() => resolve());
 			});
-
 		});
 	});
 
@@ -624,7 +634,9 @@ describe("Test utils.polyfillPromise", () => {
 		*/
 
 		it("should be resolved", () => {
-			let p = Promise.delay(200).then(() => "OK").timeout(250);
+			let p = Promise.delay(200)
+				.then(() => "OK")
+				.timeout(250);
 
 			//clock.tick(2200);
 			//clock.tick(3000);
@@ -635,7 +647,10 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be resolved", () => {
-			let p = Promise.resolve().delay(200).then(() => "OK").timeout(250);
+			let p = Promise.resolve()
+				.delay(200)
+				.then(() => "OK")
+				.timeout(250);
 
 			//clock.tick(2200);
 			//clock.tick(3000);
@@ -646,7 +661,10 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be timed out", () => {
-			let p = Promise.resolve().delay(200).then(() => "OK").timeout(150);
+			let p = Promise.resolve()
+				.delay(200)
+				.then(() => "OK")
+				.timeout(150);
 
 			//clock.tick(1700);
 
@@ -656,7 +674,10 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be timed out", () => {
-			let p = Promise.resolve().delay(200).then(() => "OK").timeout(150);
+			let p = Promise.resolve()
+				.delay(200)
+				.then(() => "OK")
+				.timeout(150);
 
 			//clock.tick(2500);
 
@@ -667,53 +688,108 @@ describe("Test utils.polyfillPromise", () => {
 	});
 
 	describe("Test Promise.mapSeries", () => {
-
 		it("should be resolved", () => {
-			return Promise.mapSeries([
-				"First",
-				Promise.resolve("Second"),
-				"Third",
-				new Promise(resolve => resolve("Fourth"))
-			], p => p).catch(protectReject).then(res => {
-				expect(res).toEqual(["First", "Second", "Third", "Fourth"]);
-			});
+			return Promise.mapSeries(
+				[
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise(resolve => resolve("Fourth"))
+				],
+				p => p
+			)
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toEqual(["First", "Second", "Third", "Fourth"]);
+				});
 		});
 
 		it("should be resolved the empty array", () => {
-			return Promise.mapSeries([], p => p).catch(protectReject).then(res => {
-				expect(res).toEqual([]);
-			});
+			return Promise.mapSeries([], p => p)
+				.catch(protectReject)
+				.then(res => {
+					expect(res).toEqual([]);
+				});
 		});
 
 		it("should be rejected", () => {
-			return Promise.mapSeries([
-				"First",
-				Promise.resolve("Second"),
-				"Third",
-				new Promise((resolve, reject) => reject("Error"))
-			], p => p).then(protectReject).catch(res => {
-				expect(res).toEqual("Error");
-			});
+			return Promise.mapSeries(
+				[
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise((resolve, reject) => reject("Error"))
+				],
+				p => p
+			)
+				.then(protectReject)
+				.catch(res => {
+					expect(res).toEqual("Error");
+				});
 		});
 
 		it("should be rejected", () => {
 			const fn = jest.fn((item, i) => {
-				if (i == 2)
-					throw new Error("Wrong");
+				if (i == 2) throw new Error("Wrong");
 				return item;
 			});
 
-			return Promise.mapSeries([
-				"First",
-				Promise.resolve("Second"),
-				"Third",
-				new Promise(resolve => resolve("Fourth"))
-			], fn).then(protectReject).catch(res => {
-				expect(res).toBeInstanceOf(Error);
-				expect(res.message).toBe("Wrong");
-				expect(fn).toBeCalledTimes(3);
-			});
+			return Promise.mapSeries(
+				[
+					"First",
+					Promise.resolve("Second"),
+					"Third",
+					new Promise(resolve => resolve("Fourth"))
+				],
+				fn
+			)
+				.then(protectReject)
+				.catch(res => {
+					expect(res).toBeInstanceOf(Error);
+					expect(res.message).toBe("Wrong");
+					expect(fn).toBeCalledTimes(3);
+				});
 		});
 	});
 
+	if (process.versions.node.split(".")[0] >= 12) {
+		describe("Test Promise.promiseAllControl", () => {
+			it("should be resolve", () => {
+				return utils
+					.promiseAllControl(
+						[
+							"First",
+							Promise.resolve("Second"),
+							"Third",
+							new Promise((resolve, reject) => reject("Error"))
+						],
+						true
+					)
+					.then(res => {
+						expect(res).toEqual([
+							{ status: "fulfilled", value: "First" },
+							{ status: "fulfilled", value: "Second" },
+							{ status: "fulfilled", value: "Third" },
+							{ status: "rejected", reason: "Error" }
+						]);
+					});
+			});
+
+			it("should be rejected", () => {
+				return utils
+					.promiseAllControl(
+						[
+							"First",
+							Promise.resolve("Second"),
+							"Third",
+							new Promise((resolve, reject) => reject("Error"))
+						],
+						false
+					)
+					.catch(res => {
+						expect(res).toEqual("Error");
+					});
+			});
+		});
+	}
 });

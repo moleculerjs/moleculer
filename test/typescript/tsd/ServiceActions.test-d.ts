@@ -1,5 +1,11 @@
 import { expectType } from "tsd";
-import { Service, ServiceBroker, ServiceAction, ServiceActions } from "../../../index";
+import {
+	Service,
+	ServiceBroker,
+	ServiceAction,
+	ServiceActions,
+	ServiceSettingSchema,
+} from "../../../index";
 
 const broker = new ServiceBroker({ logger: false, transporter: "fake" });
 
@@ -11,10 +17,18 @@ class TestService extends Service {
 			name: "test1",
 			actions: {
 				foo: {
-					async handler() { }
+					async handler() {
+						expectType<Service<ServiceSettingSchema>>(this);
+						expectType<ServiceActions>(testService.actions);
+					},
 				},
-				bar() { }
-			}
+				bar() {
+					this.actions.foo(); // check `this` ref in `foo`, should not throw error;
+
+					expectType<Service<ServiceSettingSchema>>(this);
+					expectType<ServiceActions>(testService.actions);
+				},
+			},
 		});
 	}
 }
@@ -24,4 +38,3 @@ const testService = new TestService(broker);
 expectType<ServiceActions>(testService.actions);
 expectType<ServiceAction>(testService.actions.foo);
 expectType<ServiceAction>(testService.actions.bar);
-

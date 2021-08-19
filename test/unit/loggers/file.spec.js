@@ -28,7 +28,6 @@ describe("Test File logger class", () => {
 	});
 
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			logger = new FileLogger();
 
@@ -76,7 +75,6 @@ describe("Test File logger class", () => {
 				interval: 5 * 1000
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -107,7 +105,6 @@ describe("Test File logger class", () => {
 			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
 			expect(utils.makeDirs).toHaveBeenCalledWith("/logs/test-ns/node-123");
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -126,7 +123,6 @@ describe("Test File logger class", () => {
 			expect(logger.flush).toHaveBeenCalledTimes(1);
 			expect(logger.timer).toBeNull();
 		});
-
 	});
 
 	describe("Test getFilename method", () => {
@@ -184,7 +180,7 @@ describe("Test File logger class", () => {
 				"[1970-01-01T00:00:00.000Z] WARN  node-1/MY-SERVICE: message { a: 5 }",
 				"[1970-01-01T00:00:00.000Z] INFO  node-1/MY-SERVICE: message { a: 5 }",
 				"[1970-01-01T00:00:00.000Z] DEBUG node-1/MY-SERVICE: message { a: 5 }",
-				"[1970-01-01T00:00:00.000Z] TRACE node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] TRACE node-1/MY-SERVICE: message { a: 5 }"
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(0);
@@ -209,7 +205,7 @@ describe("Test File logger class", () => {
 				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }",
 				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }",
 				"[1970-01-01T00:00:00.000Z] WARN  node-1/MY-SERVICE: message { a: 5 }",
-				"[1970-01-01T00:00:00.000Z] INFO  node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] INFO  node-1/MY-SERVICE: message { a: 5 }"
 			]);
 		});
 
@@ -249,12 +245,11 @@ describe("Test File logger class", () => {
 
 			expect(logger.queue).toEqual([
 				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }",
-				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }"
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(2);
 		});
-
 	});
 
 	describe("Test flush method", () => {
@@ -297,7 +292,11 @@ describe("Test File logger class", () => {
 			logger.flush();
 
 			expect(fs.appendFile).toHaveBeenCalledTimes(1);
-			expect(fs.appendFile).toHaveBeenCalledWith("./logs/moleculer-1970-01-01.log", "[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }\n[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }\n", expect.any(Function));
+			expect(fs.appendFile).toHaveBeenCalledWith(
+				"./logs/moleculer-1970-01-01.log",
+				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }\n[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }\n",
+				expect.any(Function)
+			);
 		});
 
 		it("should call flush after interval", () => {
@@ -315,7 +314,5 @@ describe("Test File logger class", () => {
 
 			expect(logger.flush).toHaveBeenCalledTimes(1);
 		});
-
 	});
-
 });

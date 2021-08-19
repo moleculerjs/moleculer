@@ -3,7 +3,7 @@ const fakerator = require("fakerator")();
 
 const { delay } = require("../../src/utils");
 
-module.exports = function() {
+module.exports = function () {
 	let posts = fakerator.times(fakerator.entity.post, 10);
 
 	_.each(posts, (post, i) => {
@@ -22,7 +22,18 @@ module.exports = function() {
 
 					// Resolve authors
 					let promises = result.map(post => {
-						return ctx.call("users.get", { id: post.author }).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
+						return ctx
+							.call("users.get", { id: post.author })
+							.then(
+								user =>
+									(post.author = _.pick(user, [
+										"userName",
+										"email",
+										"id",
+										"firstName",
+										"lastName"
+									]))
+							);
 					});
 
 					return Promise.all(promises).then(() => {
@@ -47,7 +58,13 @@ module.exports = function() {
 					// this.logger.debug("Get post...", ctx.params);
 					let post = _.cloneDeep(posts.find(post => post.id == ctx.params.id));
 					return ctx.call("users.get", { id: post.author }).then(user => {
-						post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]);
+						post.author = _.pick(user, [
+							"userName",
+							"email",
+							"id",
+							"firstName",
+							"lastName"
+						]);
 						return post;
 					});
 				}
@@ -55,7 +72,7 @@ module.exports = function() {
 
 			author(ctx) {
 				//ctx.log("get post's author");
-				return ctx.call("posts.get", ctx.params).then((post) => {
+				return ctx.call("posts.get", ctx.params).then(post => {
 					return ctx.call("users.get", { id: post.author });
 				});
 			}

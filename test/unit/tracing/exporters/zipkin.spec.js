@@ -13,9 +13,7 @@ const { MoleculerRetryableError } = require("../../../../src/errors");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Zipkin tracing exporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const exporter = new ZipkinTraceExporter();
 
@@ -58,14 +56,13 @@ describe("Test Zipkin tracing exporter class", () => {
 				}
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
 		const fakeTracer = { logger: broker.logger, broker };
 
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should create timer", () => {
@@ -122,7 +119,6 @@ describe("Test Zipkin tracing exporter class", () => {
 
 			exporter.stop();
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -159,7 +155,6 @@ describe("Test Zipkin tracing exporter class", () => {
 
 			expect(exporter.queue).toEqual([span1, span2]);
 		});
-
 	});
 
 	describe("Test flush method", () => {
@@ -193,10 +188,9 @@ describe("Test Zipkin tracing exporter class", () => {
 			expect(fetch).toHaveBeenCalledWith("https://zipkin-server:9411/api/v2/spans", {
 				method: "post",
 				headers: { "Content-Type": "application/json" },
-				body: "{\"a\":5}"
+				body: '{"a":5}'
 			});
 		});
-
 	});
 
 	describe("Test generateTracingData method", () => {
@@ -221,10 +215,7 @@ describe("Test Zipkin tracing exporter class", () => {
 			expect(exporter.makePayload).toHaveBeenNthCalledWith(1, { a: 5 });
 			expect(exporter.makePayload).toHaveBeenNthCalledWith(2, { b: 10 });
 
-			expect(res).toEqual([
-				{ a: 5 },
-				{ b: 10 }
-			]);
+			expect(res).toEqual([{ a: 5 }, { b: 10 }]);
 		});
 	});
 
@@ -297,7 +288,9 @@ describe("Test Zipkin tracing exporter class", () => {
 		});
 
 		it("should convert errored span to zipkin payload", () => {
-			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", { a: 5 });
+			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", {
+				a: 5
+			});
 
 			const span = {
 				name: "Test Span",
@@ -326,7 +319,5 @@ describe("Test Zipkin tracing exporter class", () => {
 
 			expect(exporter.makePayload(span)).toMatchSnapshot();
 		});
-
 	});
-
 });

@@ -1,7 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const MemoryCacher = require("../../../src/cachers/memory");
 
-
 describe("Test MemoryCacher constructor", () => {
 	let cacher;
 	afterEach(async () => {
@@ -23,7 +22,6 @@ describe("Test MemoryCacher constructor", () => {
 		expect(cacher.opts.ttl).toBe(500);
 		expect(cacher.timer).toBeDefined();
 	});
-
 });
 
 describe("Test MemoryCacher init", () => {
@@ -43,7 +41,10 @@ describe("Test MemoryCacher init", () => {
 		cacher.init(broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith(
+			"$transporter.connected",
+			expect.any(Function)
+		);
 	});
 
 	it("should call cache clean after transporter connected", () => {
@@ -60,7 +61,6 @@ describe("Test MemoryCacher init", () => {
 });
 
 describe("Test MemoryCacher set & get", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher();
 	cacher.init(broker);
@@ -99,11 +99,9 @@ describe("Test MemoryCacher set & get", () => {
 			expect(obj).toBeNull();
 		});
 	});
-
 });
 
 describe("Test MemoryCacher get() with expire", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher();
 	cacher.init(broker);
@@ -115,7 +113,7 @@ describe("Test MemoryCacher get() with expire", () => {
 		c: "Test",
 		d: {
 			e: 55
-		},
+		}
 	};
 
 	const ttlValue = 15;
@@ -167,7 +165,6 @@ describe("Test MemoryCacher get() with expire", () => {
 });
 
 describe("Test MemoryCacher set & get with default cloning", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher({ clone: true });
 	cacher.init(broker);
@@ -196,7 +193,6 @@ describe("Test MemoryCacher set & get with default cloning", () => {
 			expect(obj).toEqual(data1);
 		});
 	});
-
 });
 
 describe("Test MemoryCacher set & get with custom cloning", () => {
@@ -232,11 +228,9 @@ describe("Test MemoryCacher set & get with custom cloning", () => {
 			expect(clone).toHaveBeenCalledWith(data1);
 		});
 	});
-
 });
 
 describe("Test MemoryCacher delete", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher();
 	cacher.init(broker);
@@ -283,11 +277,9 @@ describe("Test MemoryCacher delete", () => {
 		expect(cacher.cache.get("key2")).toEqual({ data: "value2", expire: null });
 		expect(cacher.cache.get("key3")).toBeUndefined();
 	});
-
 });
 
 describe("Test MemoryCacher clean", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher({});
 	cacher.init(broker);
@@ -364,11 +356,9 @@ describe("Test MemoryCacher clean", () => {
 		expect(cacher.cache.get("other.2")).toBeUndefined();
 		expect(cacher.cache.get("other.3")).toBeDefined();
 	});
-
 });
 
 describe("Test MemoryCacher expired method", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher({
 		ttl: 60
@@ -416,10 +406,9 @@ describe("Test MemoryCacher expired method", () => {
 			expect(obj).toEqual(data2);
 		});
 	});
-
 });
 
-describe("Test MemoryCacher getWithTTL method", ()=>{
+describe("Test MemoryCacher getWithTTL method", () => {
 	const cacher = new MemoryCacher({
 		ttl: 30,
 		lock: true
@@ -445,5 +434,33 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 				expect(res.ttl).toBeLessThanOrEqual(30);
 			});
 		});
+	});
+});
+
+describe("Test MemoryCacher getCacheKeys method", () => {
+	const cacher = new MemoryCacher({
+		ttl: 30,
+		lock: true
+	});
+	const broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+	it("should return data and ttl", () => {
+		return Promise.all([
+			cacher.set("hello", "test"),
+			cacher.set("hello2", "test"),
+			cacher.set("hello3:test", "test")
+		])
+			.then(() => {
+				return cacher.getCacheKeys();
+			})
+			.then(res => {
+				expect(res).toEqual([
+					{ key: "hello", expiresAt: expect.any(Number) },
+					{ key: "hello2", expiresAt: expect.any(Number) },
+					{ key: "hello3:test", expiresAt: expect.any(Number) }
+				]);
+			});
 	});
 });

@@ -1,7 +1,6 @@
 const ServiceBroker = require("../../src/service-broker");
 
 describe("Test RPC", () => {
-
 	let b1 = new ServiceBroker({
 		transporter: "Fake",
 		logger: false,
@@ -73,7 +72,12 @@ describe("Test RPC", () => {
 	it("should emit & receive an event via transporter", () => {
 		return b1.call("echo.emitter", { a: 5 }).then(() => {
 			expect(eventHandler).toHaveBeenCalledTimes(1);
-			expect(eventHandler).toHaveBeenCalledWith({ a: 5 }, "node-2", "emitter.hello.event", expect.any(b1.ContextFactory));
+			expect(eventHandler).toHaveBeenCalledWith(
+				{ a: 5 },
+				"node-2",
+				"emitter.hello.event",
+				expect.any(b1.ContextFactory)
+			);
 		});
 	});
 

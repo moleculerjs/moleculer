@@ -1,23 +1,20 @@
-const utils						= require("../../../../src/utils");
+const utils = require("../../../../src/utils");
 utils.makeDirs = jest.fn();
 
-const fs						= require("fs");
+const fs = require("fs");
 fs.writeFile = jest.fn();
 
-const ServiceBroker 			= require("../../../../src/service-broker");
-const { MoleculerError }		= require("../../../../src/errors");
-const Middleware 				= require("../../../../src/middlewares").Debugging.ActionLogger;
-const path						= require("path");
-
+const ServiceBroker = require("../../../../src/service-broker");
+const { MoleculerError } = require("../../../../src/errors");
+const Middleware = require("../../../../src/middlewares").Debugging.ActionLogger;
+const path = require("path");
 
 describe("Test ActionLogger", () => {
 	async function createMW(opts) {
 		const broker = new ServiceBroker({
 			nodeID: "server-1",
 			logger: false,
-			middlewares: [
-				Middleware(opts)
-			]
+			middlewares: [Middleware(opts)]
 		});
 
 		broker.createService({
@@ -38,7 +35,11 @@ describe("Test ActionLogger", () => {
 	}
 
 	function stringify(payload) {
-		return JSON.stringify(payload, payload instanceof Error ? Object.getOwnPropertyNames(payload) : null, 4);
+		return JSON.stringify(
+			payload,
+			payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
+			4
+		);
 	}
 
 	it("should register hooks", () => {
@@ -52,7 +53,6 @@ describe("Test ActionLogger", () => {
 	};
 
 	describe("Test logging to logger", () => {
-
 		it("should log action call only", async () => {
 			logger.info.mockClear();
 			const broker = await createMW({ logger, colors: false });
@@ -75,7 +75,9 @@ describe("Test ActionLogger", () => {
 			expect(res).toStrictEqual({ result: "ok" });
 
 			expect(logger.info).toBeCalledTimes(2);
-			expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.ok' with params:", { a: 5 });
+			expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.ok' with params:", {
+				a: 5
+			});
 			expect(logger.info).toHaveBeenNthCalledWith(2, "Response for 'test.ok' is received.");
 
 			await broker.stop();
@@ -83,13 +85,20 @@ describe("Test ActionLogger", () => {
 
 		it("should log action call with params & meta", async () => {
 			logger.info.mockClear();
-			const broker = await createMW({ logger, colors: false, logParams: true, logMeta: true });
+			const broker = await createMW({
+				logger,
+				colors: false,
+				logParams: true,
+				logMeta: true
+			});
 
 			const res = await broker.call("test.ok", { a: 5 }, { meta: { user: "John" } });
 			expect(res).toStrictEqual({ result: "ok" });
 
 			expect(logger.info).toBeCalledTimes(3);
-			expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.ok' with params:", { a: 5 });
+			expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.ok' with params:", {
+				a: 5
+			});
 			expect(logger.info).toHaveBeenNthCalledWith(2, "Meta:", { user: "John" });
 			expect(logger.info).toHaveBeenNthCalledWith(3, "Response for 'test.ok' is received.");
 
@@ -105,7 +114,9 @@ describe("Test ActionLogger", () => {
 
 			expect(logger.info).toBeCalledTimes(2);
 			expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.ok'.");
-			expect(logger.info).toHaveBeenNthCalledWith(2, "Response for 'test.ok' is received:", { result: "ok" });
+			expect(logger.info).toHaveBeenNthCalledWith(2, "Response for 'test.ok' is received:", {
+				result: "ok"
+			});
 
 			await broker.stop();
 		});
@@ -118,12 +129,16 @@ describe("Test ActionLogger", () => {
 			expect.assertions(4);
 			try {
 				await broker.call("test.fail", { a: 5 });
-			} catch(err) {
+			} catch (err) {
 				expect(err).toBeInstanceOf(MoleculerError);
 
 				expect(logger.info).toBeCalledTimes(2);
 				expect(logger.info).toHaveBeenNthCalledWith(1, "Calling 'test.fail'.");
-				expect(logger.info).toHaveBeenNthCalledWith(2, "Error for 'test.fail' is received:", err);
+				expect(logger.info).toHaveBeenNthCalledWith(
+					2,
+					"Error for 'test.fail' is received:",
+					err
+				);
 			}
 
 			await broker.stop();
@@ -138,15 +153,18 @@ describe("Test ActionLogger", () => {
 
 			await broker.stop();
 		});
-
 	});
 
 	describe("Test logging to files", () => {
-
 		it("should log nothing", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const broker = await createMW({ logger, colors: false, folder: "./logs", extension: ".log" });
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log"
+			});
 
 			expect(utils.makeDirs).toBeCalledTimes(1);
 			expect(utils.makeDirs).toBeCalledWith(path.join("logs", "server-1"));
@@ -159,17 +177,27 @@ describe("Test ActionLogger", () => {
 			await broker.stop();
 		});
 
-
 		it("should log request", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const broker = await createMW({ logger, colors: false, folder: "./logs", extension: ".log", logParams: true });
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
 
 			const res = await broker.call("test.ok", { a: 5 });
 			expect(res).toStrictEqual({ result: "ok" });
 
 			expect(fs.writeFile).toBeCalledTimes(1);
-			expect(fs.writeFile).toHaveBeenNthCalledWith(1, path.join("logs", "server-1", "123456-call-test.ok-request.log"), stringify({ a: 5 }), expect.any(Function));
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-call-test.ok-request.log"),
+				stringify({ a: 5 }),
+				expect.any(Function)
+			);
 
 			await broker.stop();
 		});
@@ -177,13 +205,23 @@ describe("Test ActionLogger", () => {
 		it("should log response", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const broker = await createMW({ logger, colors: false, folder: "./logs", logResponse: true });
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				logResponse: true
+			});
 
 			const res = await broker.call("test.ok", { a: 5 });
 			expect(res).toStrictEqual({ result: "ok" });
 
 			expect(fs.writeFile).toBeCalledTimes(1);
-			expect(fs.writeFile).toHaveBeenNthCalledWith(1, path.join("logs", "server-1", "123456-call-test.ok-response.json"), stringify({ result: "ok" }), expect.any(Function));
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-call-test.ok-response.json"),
+				stringify({ result: "ok" }),
+				expect.any(Function)
+			);
 
 			await broker.stop();
 		});
@@ -191,23 +229,38 @@ describe("Test ActionLogger", () => {
 		it("should log meta & error", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
-			const broker = await createMW({ logger, colors: false, folder: "./logs", extension: ".log", logMeta: true, logResponse: true });
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logMeta: true,
+				logResponse: true
+			});
 
 			expect.assertions(5);
 			try {
 				await broker.call("test.fail", { a: 5 }, { meta: { user: "John" } });
-			} catch(err) {
+			} catch (err) {
 				expect(err).toBeInstanceOf(MoleculerError);
 				expect(err.message).toBe("Action calling failed.");
 
 				expect(fs.writeFile).toBeCalledTimes(2);
-				expect(fs.writeFile).toHaveBeenNthCalledWith(1, path.join("logs", "server-1", "123456-call-test.fail-meta.log"), stringify({ user: "John" }), expect.any(Function));
-				expect(fs.writeFile).toHaveBeenNthCalledWith(2, path.join("logs", "server-1", "123456-call-test.fail-error.log"), stringify(err), expect.any(Function));
+				expect(fs.writeFile).toHaveBeenNthCalledWith(
+					1,
+					path.join("logs", "server-1", "123456-call-test.fail-meta.log"),
+					stringify({ user: "John" }),
+					expect.any(Function)
+				);
+				expect(fs.writeFile).toHaveBeenNthCalledWith(
+					2,
+					path.join("logs", "server-1", "123456-call-test.fail-error.log"),
+					stringify(err),
+					expect.any(Function)
+				);
 
 				await broker.stop();
 			}
 		});
-
 	});
-
 });

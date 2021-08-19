@@ -1,5 +1,219 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.9...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.16...master)
+
+--------------------------------------------------
+<a name="0.14.16"></a>
+# [0.14.16](https://github.com/moleculerjs/moleculer/compare/v0.14.15...v0.14.16) (2021-07-21)
+
+_11 commits from 4 contributors._
+
+## Changes
+- fix `nats-streaming` version in peerDependencies.
+- RedisCacher `pingInterval` option. [#961](https://github.com/moleculerjs/moleculer/pull/961)
+- Update NATS transporter messages to debug. [#963](https://github.com/moleculerjs/moleculer/pull/963)
+- update d.ts file. [#964](https://github.com/moleculerjs/moleculer/pull/964) [#966](https://github.com/moleculerjs/moleculer/pull/966)
+- update dependencies
+
+--------------------------------------------------
+<a name="0.14.15"></a>
+# [0.14.15](https://github.com/moleculerjs/moleculer/compare/v0.14.14...v0.14.15) (2021-07-10)
+
+_15 commits from 5 contributors._
+
+## Changes
+- fix `nats` version in peerDependencies.
+- convert `url` to `servers` in nats@2. [#954](https://github.com/moleculerjs/moleculer/pull/954)
+- add typing for `mcall` `settled` option. [#957](https://github.com/moleculerjs/moleculer/pull/957)
+- revert TS `ThisType` issue in 0.14.14. [#958](https://github.com/moleculerjs/moleculer/pull/958)
+- update dependencies
+- add `useTag259ForMaps: false` default option for CBOR serializer to keep the compatibility.
+
+--------------------------------------------------
+<a name="0.14.14"></a>
+# [0.14.14](https://github.com/moleculerjs/moleculer/compare/v0.14.13...v0.14.14) (2021-06-27)
+
+_105 commits from 11 contributors._
+
+## New CBOR serializer [#905](https://github.com/moleculerjs/moleculer/pull/905)
+CBOR ([cbor-x](https://github.com/kriszyp/cbor-x)) is a new serializer but faster than any other serializers.
+
+**Example**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: true,
+    serializer: "CBOR"
+};
+```
+
+**Benchmark**
+```
+Suite: Serialize packet with 10bytes
+√ JSON               509,217 rps
+√ Avro               308,711 rps
+√ MsgPack             79,932 rps
+√ ProtoBuf           435,183 rps
+√ Thrift              93,324 rps
+√ Notepack           530,121 rps
+√ CBOR             1,016,135 rps
+
+   JSON (#)            0%        (509,217 rps)   (avg: 1μs)
+   Avro           -39.38%        (308,711 rps)   (avg: 3μs)
+   MsgPack         -84.3%         (79,932 rps)   (avg: 12μs)
+   ProtoBuf       -14.54%        (435,183 rps)   (avg: 2μs)
+   Thrift         -81.67%         (93,324 rps)   (avg: 10μs)
+   Notepack        +4.11%        (530,121 rps)   (avg: 1μs)
+   CBOR           +99.55%      (1,016,135 rps)   (avg: 984ns)
+```
+
+## `settled` option in `broker.mcall`
+The `broker.mcall` method has a new `settled` option to receive all Promise results. Without this option, if you make a multi-call and one call is rejected, the response will be a rejected `Promise` and you don't know how many (and which) calls were rejected.
+
+If `settled: true`, the method returns a resolved `Promise` in any case and the response contains the statuses and responses of all calls.
+
+**Example**
+```js
+const res = await broker.mcall([
+    { action: "posts.find", params: { limit: 2, offset: 0 },
+    { action: "users.find", params: { limit: 2, sort: "username" } },
+    { action: "service.notfound", params: { notfound: 1 } }
+], { settled: true });
+console.log(res);
+```
+The `res` will be something similar to
+```js
+[
+    { status: "fulfilled", value: [/*... response of `posts.find`...*/] },
+    { status: "fulfilled", value: [/*... response of `users.find`...*/] },
+    { status: "rejected", reason: {/*... Rejected response/Error`...*/} }
+]
+```
+
+## New `MOLECULER_CONFIG` environment variable in Runner
+In the Moleculer Runner, you can configure the configuration filename and path with the `MOLECULER_CONFIG` environment variable. It means, no need to specify the config file with `--config` argument.
+
+## Supporting `nats@2.x.x` in NATS transporter
+The new nats `2.x.x` version has a new breaking API which has locked the NATS transporter for `nats@1.x.x` library. As of this release, the NATS transporter supports both major versions of the `nats` library. 
+
+_The transporter automatically detects the version of the library and uses the correct API._
+
+### Async custom validator functions and `ctx` as metadata
+Since `fastest-validator@1.11.0`, the FastestValidator supports async custom validators and you can [pass metadata for custom validator functions](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#meta-information-for-custom-validators).
+In Moleculer, the `FastestValidator` passes the `ctx` as metadata. It means you can access to the current context, service, broker and you can make async calls (e.g calling another service) in custom checker functions.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        params: {
+            $$async: true,
+            owner: { type: "string", custom: async (value, errors, schema, name, parent, context) => {
+                const ctx = context.meta;
+
+                const res = await ctx.call("users.isValid", { id: value });
+                if (res !== true)
+                    errors.push({ type: "invalidOwner", field: "owner", actual: value });
+                return value;
+            } }, 
+        },
+        /* ... */
+    }
+}
+```
+
+
+## Changes 
+- fix node crash in encryption mode with TCP transporter. [#849](https://github.com/moleculerjs/moleculer/pull/849)
+- expose `Utils` in typescript definition. [#909](https://github.com/moleculerjs/moleculer/pull/909)
+- other d.ts improvements. [#920](https://github.com/moleculerjs/moleculer/pull/920), [#922](https://github.com/moleculerjs/moleculer/pull/922), [#934](https://github.com/moleculerjs/moleculer/pull/934), [#950](https://github.com/moleculerjs/moleculer/pull/950)
+- fix etcd3 discoverer lease-loss issue [#922](https://github.com/moleculerjs/moleculer/pull/922)
+- catch errors in Compression and Encryption middlewares. [#850](https://github.com/moleculerjs/moleculer/pull/850)
+- using optional peer dependencies. [#911](https://github.com/moleculerjs/moleculer/pull/911)
+- add relevant packet to to serialization and deserialization calls. [#932](https://github.com/moleculerjs/moleculer/pull/932)
+- fix disabled balancer issue with external discoverer. [#933](https://github.com/moleculerjs/moleculer/pull/933)
+
+
+--------------------------------------------------
+<a name="0.14.13"></a>
+# [0.14.13](https://github.com/moleculerjs/moleculer/compare/v0.14.12...v0.14.13) (2021-04-09)
+
+_62 commits from 12 contributors._
+
+## Changes
+- update dependencies
+- logging if encryption middleware can't decrypt the data instead of crashing. [#853](https://github.com/moleculerjs/moleculer/pull/853)
+- fix `disableHeartbeatChecks` option handling. [#858](https://github.com/moleculerjs/moleculer/pull/858)
+- force scanning only master redis nodes for deletion. [#865](https://github.com/moleculerjs/moleculer/pull/865)
+- add more info into `waitForServices` debug log messages. [#870](https://github.com/moleculerjs/moleculer/pull/870)
+- fix `EVENT` packet Avro schema. [#856](https://github.com/moleculerjs/moleculer/issues/856)
+- fix array & date conversion in cacher default key generator. [#883](https://github.com/moleculerjs/moleculer/issues/883)
+- fix Datadog tracing exporter. [#890](https://github.com/moleculerjs/moleculer/issues/890)
+- better elapsed time handling in tracing. [#899](https://github.com/moleculerjs/moleculer/issues/899)
+- improve type definitions. [#843](https://github.com/moleculerjs/moleculer/pull/843), [#885](https://github.com/moleculerjs/moleculer/pull/885), [#886](https://github.com/moleculerjs/moleculer/pull/886)
+- add E2E tests for CI (test all built-in transporter & serializers)
+
+--------------------------------------------------
+<a name="0.14.12"></a>
+# [0.14.12](https://github.com/moleculerjs/moleculer/compare/v0.14.11...v0.14.12) (2021-01-03)
+
+## Other changes
+- update dependencies
+- improved type definitions. [#816](https://github.com/moleculerjs/moleculer/pull/816) [#817](https://github.com/moleculerjs/moleculer/pull/817) [#834](https://github.com/moleculerjs/moleculer/pull/834) [#840](https://github.com/moleculerjs/moleculer/pull/840)
+- support `rediss://` cacher URI. [#837](https://github.com/moleculerjs/moleculer/pull/837)
+- fix Event Trace exporter generated events loop. [#836](https://github.com/moleculerjs/moleculer/pull/836)
+- change log level of node disconnected message. [#838](https://github.com/moleculerjs/moleculer/pull/838)
+- improve the `broker.waitForServices` response. [#843](https://github.com/moleculerjs/moleculer/pull/843)
+- fix recursive hot-reload issue on Linux OS. [#848](https://github.com/moleculerjs/moleculer/pull/848)
+
+--------------------------------------------------
+<a name="0.14.11"></a>
+# [0.14.11](https://github.com/moleculerjs/moleculer/compare/v0.14.10...v0.14.11) (2020-09-27)
+
+## New `merged` service lifecycle hook
+Service has a new `merged` lifecycle hook which is called after the service schemas (including mixins) has been merged but before service is registered. It means you can manipulate the merged service schema before it's processed.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    settings: {},
+
+    actions: {
+        find: {
+            params: {
+                limit: "number"
+            }
+            handler(ctx) {
+                // ...
+            }
+        }
+    },
+
+    merged(schema) {
+        // Modify the service settings
+        schema.settings.myProp = "myValue";
+        // Modify the param validation schema in an action schema
+        schema.actions.find.params.offset = "number";
+    }
+};
+```
+
+## Other changes
+- add `requestID` tag to all action and event spans [#802](https://github.com/moleculerjs/moleculer/pull/802)
+- fix bug in second level of mixins with $secureSettings [#811](https://github.com/moleculerjs/moleculer/pull/811)
+
+--------------------------------------------------
+<a name="0.14.10"></a>
+# [0.14.10](https://github.com/moleculerjs/moleculer/compare/v0.14.9...v0.14.10) (2020-08-23)
+
+## Changes
+- update dependencies
+- fix issues in index.d.ts
+- fix broadcast event sending issue when `disableBalancer: true` [#799](https://github.com/moleculerjs/moleculer/pull/799) (thanks for [ngraef](https://github.com/ngraef))
 
 --------------------------------------------------
 <a name="0.14.9"></a>

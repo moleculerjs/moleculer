@@ -5,7 +5,6 @@ const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
 
 const broker = new ServiceBroker({
-	logFormatter: "short",
 	retryPolicy: {
 		enabled: true,
 		delay: 100,

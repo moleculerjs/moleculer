@@ -1,9 +1,9 @@
 "use strict";
 
-const _ 					= require("lodash");
-const fetch 				= require("node-fetch");
-const BaseTraceExporter 	= require("./base");
-const { isFunction } 		= require("../../utils");
+const _ = require("lodash");
+const fetch = require("node-fetch");
+const BaseTraceExporter = require("./base");
+const { isFunction } = require("../../utils");
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -17,7 +17,6 @@ const { isFunction } 		= require("../../utils");
 
 /* istanbul ignore next */
 class DatadogTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of DatadogTraceExporter.
 	 * @param {Object?} opts
@@ -51,7 +50,9 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			this.timer.unref();
 		}
 
-		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags)
+			? this.opts.defaultTags.call(this, tracer)
+			: this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}
@@ -82,14 +83,20 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			method: "post",
 			body: JSON.stringify(data),
 			headers: {
-				"Content-Type": "application/json",
-
+				"Content-Type": "application/json"
 			}
-		}).then(res => {
-			this.logger.info(`Tracing spans (${data.length} traces) are uploaded to Datadog. Status: ${res.statusText}`);
-		}).catch(err => {
-			this.logger.warn("Unable to upload tracing spans to Datadog. Error:" + err.message, err);
-		});
+		})
+			.then(res => {
+				this.logger.info(
+					`Tracing spans (${data.length} traces) are uploaded to Datadog. Status: ${res.statusText}`
+				);
+			})
+			.catch(err => {
+				this.logger.warn(
+					"Unable to upload tracing spans to Datadog. Error:" + err.message,
+					err
+				);
+			});
 	}
 
 	/**
@@ -97,12 +104,11 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @param {String} str
 	 */
 	convertIDToNumber(str) {
-		if (str == null)
-			return str;
+		if (str == null) return str;
 
 		try {
 			return parseInt(str.substring(0, 8), 16);
-		} catch(err) {
+		} catch (err) {
 			this.logger.warn(`Unable to convert '${str}' to number.`);
 			return null;
 		}
@@ -124,7 +130,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				parent_id: this.convertIDToNumber(span.parentID),
 				name: span.name,
 				resource: span.tags.action ? span.tags.action.name : null,
-				service: span.service ? span.service.fullName: null,
+				service: span.service ? span.service.fullName : null,
 				type: "custom",
 				start: Math.round(span.startTime * 1e6),
 				duration: Math.round(span.duration * 1e6),
@@ -137,10 +143,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				)
 			};
 
-			if (!store[traceID])
-				store[traceID] = [ddSpan];
-			else
-				store[traceID].push(ddSpan);
+			if (!store[traceID]) store[traceID] = [ddSpan];
+			else store[traceID].push(ddSpan);
 
 			return store;
 		}, {});

@@ -20,7 +20,6 @@ const { MoleculerServerError } = require("../errors");
  * @class ThriftSerializer
  */
 class ThriftSerializer extends BaseSerializer {
-
 	/**
 	 * Initialize Serializer
 	 *
@@ -36,31 +35,46 @@ class ThriftSerializer extends BaseSerializer {
 			this.TBufferedTransport = Thrift.TBufferedTransport;
 			this.TBinaryProtocol = Thrift.TBinaryProtocol;
 
-			const transport = new Thrift.TBufferedTransport(null, (res) => this.serialized = res);
+			const transport = new Thrift.TBufferedTransport(null, res => (this.serialized = res));
 			this.protocol = new Thrift.TBinaryProtocol(transport);
-
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'thrift' package is missing! Please install it with 'npm install thrift --save' command!", err, true);
+			this.broker.fatal(
+				"The 'thrift' package is missing! Please install it with 'npm install thrift --save' command!",
+				err,
+				true
+			);
 		}
 
 		this.packets = require("./thrift/gen-nodejs/packets_types.js");
 	}
 
 	getPacketFromType(type) {
-		switch(type) {
-			case P.PACKET_EVENT: return this.packets.PacketEvent;
-			case P.PACKET_REQUEST: return this.packets.PacketRequest;
-			case P.PACKET_RESPONSE: return this.packets.PacketResponse;
-			case P.PACKET_DISCOVER: return this.packets.PacketDiscover;
-			case P.PACKET_INFO: return this.packets.PacketInfo;
-			case P.PACKET_DISCONNECT: return this.packets.PacketDisconnect;
-			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
-			case P.PACKET_PING: return this.packets.PacketPing;
-			case P.PACKET_PONG: return this.packets.PacketPong;
-			case P.PACKET_GOSSIP_HELLO: return this.packets.PacketGossipHello;
-			case P.PACKET_GOSSIP_REQ: return this.packets.PacketGossipRequest;
-			case P.PACKET_GOSSIP_RES: return this.packets.PacketGossipResponse;
+		switch (type) {
+			case P.PACKET_EVENT:
+				return this.packets.PacketEvent;
+			case P.PACKET_REQUEST:
+				return this.packets.PacketRequest;
+			case P.PACKET_RESPONSE:
+				return this.packets.PacketResponse;
+			case P.PACKET_DISCOVER:
+				return this.packets.PacketDiscover;
+			case P.PACKET_INFO:
+				return this.packets.PacketInfo;
+			case P.PACKET_DISCONNECT:
+				return this.packets.PacketDisconnect;
+			case P.PACKET_HEARTBEAT:
+				return this.packets.PacketHeartbeat;
+			case P.PACKET_PING:
+				return this.packets.PacketPing;
+			case P.PACKET_PONG:
+				return this.packets.PacketPong;
+			case P.PACKET_GOSSIP_HELLO:
+				return this.packets.PacketGossipHello;
+			case P.PACKET_GOSSIP_REQ:
+				return this.packets.PacketGossipRequest;
+			case P.PACKET_GOSSIP_RES:
+				return this.packets.PacketGossipResponse;
 		}
 	}
 

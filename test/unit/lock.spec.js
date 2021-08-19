@@ -19,8 +19,8 @@ describe("Test lock", () => {
 		return Promise.all([
 			lock.acquire(key).then(() => {
 				expect(lock.isLocked(key)).toBeTruthy();
-				return new Promise(function(resolve) {
-					setTimeout(()=>{
+				return new Promise(function (resolve) {
+					setTimeout(() => {
 						released = 1;
 						lock.release(key).then(() => {
 							expect(lock.isLocked(key)).toBeFalsy();
@@ -43,18 +43,20 @@ describe("Test lock", () => {
 		let taskes = [1, 2, 3, 4];
 		let globalValue = 0;
 		const lock = new Lock();
-		return Promise.all(taskes.map(task => {
-			return lock.acquire(key).then(() => {
-				globalValue = task;
-				return new Promise(function(resolve) {
-					setTimeout(() => {
-						expect(globalValue).toEqual(task);
-						lock.release(key).then(() => {
-							resolve();
-						});
-					}, Math.random() * 500);
+		return Promise.all(
+			taskes.map(task => {
+				return lock.acquire(key).then(() => {
+					globalValue = task;
+					return new Promise(function (resolve) {
+						setTimeout(() => {
+							expect(globalValue).toEqual(task);
+							lock.release(key).then(() => {
+								resolve();
+							});
+						}, Math.random() * 500);
+					});
 				});
-			});
-		}));
+			})
+		);
 	});
 });

@@ -14,14 +14,13 @@ describe("Test ProtoBufSerializer constructor", () => {
 });
 
 describe("Test ProtoBuf serializer", () => {
-
 	const serializer = new ProtoBufSerializer();
 	serializer.init();
 
 	it("should serialize the disconnect packet", () => {
 		const obj = {
 			ver: "4",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCONNECT);
 		expect(s.length).toBe(11);
@@ -48,7 +47,7 @@ describe("Test ProtoBuf serializer", () => {
 	it("should serialize the discover packet", () => {
 		const obj = {
 			ver: "4",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCOVER);
 		expect(s.length).toBe(11);
@@ -65,21 +64,26 @@ describe("Test ProtoBuf serializer", () => {
 			seq: 3,
 			services: [
 				{
-					name: "users", version: "2", settings: {}, metadata: {}, actions: {
+					name: "users",
+					version: "2",
+					settings: {},
+					metadata: {},
+					actions: {
 						"users.create": {}
-					}, events: {
+					},
+					events: {
 						"user.created": {}
 					}
 				}
 			],
 			config: {},
 			instanceID: "123456",
-			ipList: [ "127.0.0.1" ],
+			ipList: ["127.0.0.1"],
 			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
-				langVersion: "6.10.2",
+				langVersion: "6.10.2"
 			},
 			metadata: {
 				region: "eu-west1"
@@ -91,7 +95,6 @@ describe("Test ProtoBuf serializer", () => {
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
-
 	});
 
 	it("should serialize the event packet", () => {
@@ -390,7 +393,7 @@ describe("Test ProtoBuf serializer", () => {
 				stack: "STACK_PLACEHOLDER",
 				data: {
 					a: 5
-				},
+				}
 			},
 			meta: {
 				user: {
@@ -421,13 +424,15 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, {
-			time: {
-				high: 0,
-				low: 1234567,
-				unsigned: false
-			}
-		}));
+		expect(res).toEqual(
+			Object.assign(obj, {
+				time: {
+					high: 0,
+					low: 1234567,
+					unsigned: false
+				}
+			})
+		);
 	});
 
 	it("should serialize the pong packet", () => {
@@ -443,24 +448,24 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, {
-			time: {
-				high: 0,
-				low: 1234567,
-				unsigned: false
-			},
-			arrived: {
-				high: 0,
-				low: 7654321,
-				unsigned: false
-			}
-		}));
+		expect(res).toEqual(
+			Object.assign(obj, {
+				time: {
+					high: 0,
+					low: 1234567,
+					unsigned: false
+				},
+				arrived: {
+					high: 0,
+					low: 7654321,
+					unsigned: false
+				}
+			})
+		);
 	});
-
 });
 
 describe("Test ProtoBuf serializer with Gossip packets", () => {
-
 	const serializer = new ProtoBufSerializer();
 	serializer.init();
 
@@ -469,7 +474,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 			ver: "4",
 			sender: "test-1",
 			host: "server-host",
-			port: 45450,
+			port: 45450
 		};
 		const s = serializer.serialize(obj, P.PACKET_GOSSIP_HELLO);
 		expect(s.length).toBe(28);
@@ -541,6 +546,4 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
 		expect(res).toEqual(obj);
 	});
-
 });
-

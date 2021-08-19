@@ -1,10 +1,9 @@
-const ServiceBroker 			= require("../../../src/service-broker");
-const { MoleculerError }		= require("../../../src/errors");
-const Middleware 				= require("../../../src/middlewares").Tracing;
-const { protectReject }			= require("../utils");
+const ServiceBroker = require("../../../src/service-broker");
+const { MoleculerError } = require("../../../src/errors");
+const Middleware = require("../../../src/middlewares").Tracing;
+const { protectReject } = require("../utils");
 
 describe("Test TracingMiddleware localAction", () => {
-
 	describe("Test localAction wrapping", () => {
 		const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 		const handler = jest.fn(() => Promise.resolve("Result"));
@@ -70,7 +69,6 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 			expect(newHandler).not.toBe(handler);
 		});
-
 	});
 
 	describe("Test localAction handler", () => {
@@ -93,7 +91,7 @@ describe("Test TracingMiddleware localAction", () => {
 		tracer.getActiveSpanID = jest.fn();
 
 		const fakeSpan = {
-			addTags: jest.fn(()=> fakeSpan),
+			addTags: jest.fn(() => fakeSpan),
 			setError: jest.fn(() => fakeSpan),
 			finish: jest.fn(),
 			sampled: true
@@ -154,7 +152,6 @@ describe("Test TracingMiddleware localAction", () => {
 
 			expect(res).toBe(result);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
 			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
@@ -183,6 +180,7 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "request-id",
 					remoteCall: true,
 
 					params: {
@@ -194,7 +192,7 @@ describe("Test TracingMiddleware localAction", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
@@ -258,11 +256,12 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "request-id",
 					remoteCall: false,
 
 					params: {
 						a: 5,
-						c:{
+						c: {
 							d: 100,
 							e: true
 						}
@@ -274,7 +273,7 @@ describe("Test TracingMiddleware localAction", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
@@ -314,9 +313,7 @@ describe("Test TracingMiddleware localAction", () => {
 
 			await newHandler(ctx);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 10;
-			/* eslint-disable-next-line */
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
@@ -338,6 +335,7 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "request-id",
 					remoteCall: false,
 
 					meta: {
@@ -355,7 +353,7 @@ describe("Test TracingMiddleware localAction", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
@@ -409,9 +407,10 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "request-id",
 					remoteCall: false
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
@@ -466,6 +465,7 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "request-id",
 					remoteCall: false,
 					custom: {
 						meta: {
@@ -485,7 +485,7 @@ describe("Test TracingMiddleware localAction", () => {
 						response: undefined
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
@@ -521,7 +521,9 @@ describe("Test TracingMiddleware localAction", () => {
 		});
 
 		it("should create a span with custom tags function & error", () => {
-			const error = new MoleculerError("Something happened", 456, "SOMETHING", { some: "thing" });
+			const error = new MoleculerError("Something happened", 456, "SOMETHING", {
+				some: "thing"
+			});
 			action.handler = jest.fn(() => Promise.reject(error));
 			action.tracing = {
 				tags: jest.fn((ctx, response) => ({
@@ -550,69 +552,71 @@ describe("Test TracingMiddleware localAction", () => {
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
 
-				expect(action.handler).toHaveBeenCalledTimes(1);
+					expect(action.handler).toHaveBeenCalledTimes(1);
 
-				expect(action.tracing.tags).toHaveBeenCalledTimes(1);
-				expect(action.tracing.tags).toHaveBeenCalledWith(ctx);
+					expect(action.tracing.tags).toHaveBeenCalledTimes(1);
+					expect(action.tracing.tags).toHaveBeenCalledWith(ctx);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+					expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
+					expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
-				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
-					id: "ctx-id",
-					type: "action",
-					traceID: "tracer-trace-id",
-					parentID: "tracer-span-id",
-					service: null,
-					tags: {
-						action: {
-							name: "posts.find",
-							rawName: "find"
-						},
-						callerNodeID: "server-1",
-						callingLevel: 3,
-						nodeID: "server-1",
-						options: {
-							retries: 3,
-							timeout: 5
-						},
-						remoteCall: false,
-
-						custom: {
-							meta: {
-								user: {
-									age: 35,
-									name: "Adam"
-								}
+					expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+					expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+						id: "ctx-id",
+						type: "action",
+						traceID: "tracer-trace-id",
+						parentID: "tracer-span-id",
+						service: null,
+						tags: {
+							action: {
+								name: "posts.find",
+								rawName: "find"
 							},
-							params: {
-								a: 10,
-								b: "John",
-								c: {
-									d: 100,
-									e: true
+							callerNodeID: "server-1",
+							callingLevel: 3,
+							nodeID: "server-1",
+							options: {
+								retries: 3,
+								timeout: 5
+							},
+							requestID: "tracer-trace-id",
+							remoteCall: false,
+
+							custom: {
+								meta: {
+									user: {
+										age: 35,
+										name: "Adam"
+									}
+								},
+								params: {
+									a: 10,
+									b: "John",
+									c: {
+										d: 100,
+										e: true
+									}
 								}
 							}
-						}
-					},
-					sampled: true,
+						},
+						sampled: true
+					});
+
+					expect(ctx.tracing).toBe(false);
+
+					expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
+
+					expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+					expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
+
+					expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
+					expect(fakeSpan.setError).toHaveBeenCalledWith(err);
 				});
-
-				expect(ctx.tracing).toBe(false);
-
-				expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
-
-				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
-
-				expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
-				expect(fakeSpan.setError).toHaveBeenCalledWith(err);
-			});
-
 		});
 
 		it("should create a span with non-object params & response", async () => {
@@ -655,11 +659,12 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
+					requestID: "tracer-trace-id",
 					remoteCall: false,
 
 					params: "Moleculer"
 				},
-				sampled: false,
+				sampled: false
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
@@ -681,28 +686,28 @@ describe("Test TracingMiddleware localAction", () => {
 				fakeSpan.setError.mockClear();
 				fakeSpan.finish.mockClear();
 				ctx.tracing = true;
+				ctx.requestID = "request-id";
 
 				action = {
 					name: "posts.find",
 					rawName: "find",
 					handler
 				};
-				ctx.params = {
+				(ctx.params = {
 					a: 2,
 					b: "John",
 					c: {
 						d: 100,
 						e: true
 					}
-				},
-				ctx.meta = {
-					user: {
-						name: "Adam",
-						age: 30
-					}
-				};
+				}),
+					(ctx.meta = {
+						user: {
+							name: "Adam",
+							age: 30
+						}
+					});
 			});
-
 
 			it("should create a span with local custom tags function even if global custom tags are specified", async () => {
 				const brokerOptions = {
@@ -712,7 +717,12 @@ describe("Test TracingMiddleware localAction", () => {
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: true, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					tracing: true,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
@@ -726,7 +736,6 @@ describe("Test TracingMiddleware localAction", () => {
 					}))
 				};
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -742,11 +751,10 @@ describe("Test TracingMiddleware localAction", () => {
 				expect(action.tracing.tags).toHaveBeenCalledTimes(2);
 				expect(action.tracing.tags).toHaveBeenCalledWith(ctx);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -768,7 +776,7 @@ describe("Test TracingMiddleware localAction", () => {
 								c: {
 									d: 100,
 									e: true
-								},
+								}
 							},
 							response: undefined
 						},
@@ -777,9 +785,10 @@ describe("Test TracingMiddleware localAction", () => {
 							retries: 3,
 							timeout: 5
 						},
+						requestID: "request-id",
 						remoteCall: false
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "action"
 				});
 
@@ -804,13 +813,17 @@ describe("Test TracingMiddleware localAction", () => {
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: true, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					tracing: true,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 				fakeSpan.sampled = false;
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -822,11 +835,10 @@ describe("Test TracingMiddleware localAction", () => {
 				await newHandler(ctx);
 				expect(action.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -848,7 +860,7 @@ describe("Test TracingMiddleware localAction", () => {
 								c: {
 									d: 100,
 									e: true
-								},
+								}
 							},
 							response: undefined
 						},
@@ -857,11 +869,11 @@ describe("Test TracingMiddleware localAction", () => {
 							retries: 3,
 							timeout: 5
 						},
+						requestID: "request-id",
 						remoteCall: false
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "action"
-
 				});
 				expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
 
@@ -873,13 +885,17 @@ describe("Test TracingMiddleware localAction", () => {
 
 			it("should default to params tags if no local or global action tags are specified", async () => {
 				const brokerOptions = {};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: true, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					tracing: true,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 				fakeSpan.sampled = false;
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -891,11 +907,10 @@ describe("Test TracingMiddleware localAction", () => {
 				await newHandler(ctx);
 				expect(action.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -913,16 +928,17 @@ describe("Test TracingMiddleware localAction", () => {
 							c: {
 								d: 100,
 								e: true
-							},
+							}
 						},
 						nodeID: "server-1",
 						options: {
 							retries: 3,
 							timeout: 5
 						},
+						requestID: "request-id",
 						remoteCall: false
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "action"
 				});
 
@@ -938,18 +954,22 @@ describe("Test TracingMiddleware localAction", () => {
 						tags: {
 							action: {
 								meta: true,
-								response: true,
+								response: true
 							}
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: true, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					tracing: true,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 				fakeSpan.sampled = false;
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -961,11 +981,10 @@ describe("Test TracingMiddleware localAction", () => {
 				await newHandler(ctx);
 				expect(action.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -986,16 +1005,17 @@ describe("Test TracingMiddleware localAction", () => {
 							c: {
 								d: 100,
 								e: true
-							},
+							}
 						},
 						nodeID: "server-1",
 						options: {
 							retries: 3,
 							timeout: 5
 						},
+						requestID: "request-id",
 						remoteCall: false
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "action"
 				});
 
@@ -1005,8 +1025,8 @@ describe("Test TracingMiddleware localAction", () => {
 					response: {
 						id: "post-id",
 						title: "Post title",
-						content: "Post content",
-					},
+						content: "Post content"
+					}
 				});
 
 				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
@@ -1020,12 +1040,17 @@ describe("Test TracingMiddleware localAction", () => {
 							action: {
 								params: false,
 								meta: false,
-								response: false,
+								response: false
 							}
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: true, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					tracing: true,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
@@ -1035,11 +1060,10 @@ describe("Test TracingMiddleware localAction", () => {
 					tags: {
 						params: ["a"],
 						meta: ["user.age"],
-						response: ["id"],
+						response: ["id"]
 					}
 				};
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -1051,11 +1075,10 @@ describe("Test TracingMiddleware localAction", () => {
 				await newHandler(ctx);
 				expect(action.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -1071,16 +1094,17 @@ describe("Test TracingMiddleware localAction", () => {
 							user: { age: 30 }
 						},
 						params: {
-							a: 2,
+							a: 2
 						},
 						nodeID: "server-1",
 						options: {
 							retries: 3,
 							timeout: 5
 						},
+						requestID: "request-id",
 						remoteCall: false
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "action"
 				});
 
@@ -1088,21 +1112,18 @@ describe("Test TracingMiddleware localAction", () => {
 				expect(fakeSpan.addTags).toHaveBeenCalledWith({
 					fromCache: false,
 					response: {
-						id: "post-id",
-					},
+						id: "post-id"
+					}
 				});
 
 				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
 				expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 			});
 		});
-
 	});
-
 });
 
 describe("Test TracingMiddleware localEvent", () => {
-
 	describe("Test localEvent wrapping", () => {
 		const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 		const handler = jest.fn(() => Promise.resolve("Result"));
@@ -1169,14 +1190,17 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 			expect(newHandler).not.toBe(handler);
 		});
-
 	});
 
 	describe("Test localEvent handler", () => {
-		const broker = new ServiceBroker({ nodeID: "server-1", logger: false, tracing: {
-			enabled: true,
-			events: true
-		} });
+		const broker = new ServiceBroker({
+			nodeID: "server-1",
+			logger: false,
+			tracing: {
+				enabled: true,
+				events: true
+			}
+		});
 
 		const handler = jest.fn(() => Promise.resolve());
 		const event = {
@@ -1195,7 +1219,7 @@ describe("Test TracingMiddleware localEvent", () => {
 		tracer.getActiveSpanID = jest.fn();
 
 		const fakeSpan = {
-			addTags: jest.fn(()=> fakeSpan),
+			addTags: jest.fn(() => fakeSpan),
 			setError: jest.fn(() => fakeSpan),
 			finish: jest.fn(),
 			sampled: true
@@ -1255,7 +1279,6 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			await newHandler(ctx);
 
-			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
 			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
@@ -1283,6 +1306,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: true,
+					requestID: "request-id",
 
 					params: {
 						a: 2,
@@ -1293,7 +1317,7 @@ describe("Test TracingMiddleware localEvent", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(ctx.span).toBeUndefined();
@@ -1358,10 +1382,11 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: false,
+					requestID: "request-id",
 
 					params: {
 						a: 5,
-						c:{
+						c: {
 							d: 100,
 							e: true
 						}
@@ -1373,7 +1398,7 @@ describe("Test TracingMiddleware localEvent", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(ctx.span).toBeUndefined();
@@ -1434,6 +1459,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: false,
+					requestID: "request-id",
 
 					meta: {
 						user: {
@@ -1450,7 +1476,7 @@ describe("Test TracingMiddleware localEvent", () => {
 						}
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
@@ -1502,8 +1528,9 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: false,
+					requestID: "request-id"
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
@@ -1558,6 +1585,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: false,
+					requestID: "request-id",
 
 					custom: {
 						meta: {
@@ -1577,7 +1605,7 @@ describe("Test TracingMiddleware localEvent", () => {
 						response: undefined
 					}
 				},
-				sampled: true,
+				sampled: true
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
@@ -1589,7 +1617,9 @@ describe("Test TracingMiddleware localEvent", () => {
 		});
 
 		it("should create a span with custom tags function & error", () => {
-			const error = new MoleculerError("Something happened", 456, "SOMETHING", { some: "thing" });
+			const error = new MoleculerError("Something happened", 456, "SOMETHING", {
+				some: "thing"
+			});
 			event.handler = jest.fn(() => Promise.reject(error));
 			event.tracing = {
 				tags: jest.fn(ctx => ({
@@ -1617,72 +1647,77 @@ describe("Test TracingMiddleware localEvent", () => {
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
 
-			return newHandler(ctx).then(protectReject).catch(err => {
-				expect(err).toBe(error);
+			return newHandler(ctx)
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
 
-				expect(event.handler).toHaveBeenCalledTimes(1);
+					expect(event.handler).toHaveBeenCalledTimes(1);
 
-				expect(event.tracing.tags).toHaveBeenCalledTimes(1);
-				expect(event.tracing.tags).toHaveBeenCalledWith(ctx);
+					expect(event.tracing.tags).toHaveBeenCalledTimes(1);
+					expect(event.tracing.tags).toHaveBeenCalledWith(ctx);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+					expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
+					expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
-				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
-					id: "ctx-id",
-					type: "event",
-					traceID: "tracer-trace-id",
-					parentID: "tracer-span-id",
-					service: {
-						fullName: "v1.posts",
-						name: "posts",
-						version: 1
-					},
-					tags: {
-						event: {
-							name: "user.created",
-							group: "posts"
-						},
-						eventName: "user.created",
-						eventType: "emit",
-						callerNodeID: "server-1",
-						callingLevel: 3,
-						nodeID: "server-1",
-						remoteCall: false,
+					expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+					expect(ctx.startSpan).toHaveBeenCalledWith(
+						"event 'user.created' in 'v1.posts'",
+						{
+							id: "ctx-id",
+							type: "event",
+							traceID: "tracer-trace-id",
+							parentID: "tracer-span-id",
+							service: {
+								fullName: "v1.posts",
+								name: "posts",
+								version: 1
+							},
+							tags: {
+								event: {
+									name: "user.created",
+									group: "posts"
+								},
+								eventName: "user.created",
+								eventType: "emit",
+								callerNodeID: "server-1",
+								callingLevel: 3,
+								nodeID: "server-1",
+								remoteCall: false,
+								requestID: "tracer-trace-id",
 
-						custom: {
-							meta: {
-								user: {
-									age: 35,
-									name: "Adam"
+								custom: {
+									meta: {
+										user: {
+											age: 35,
+											name: "Adam"
+										}
+									},
+									params: {
+										a: 10,
+										b: "John",
+										c: {
+											d: 100,
+											e: true
+										}
+									}
 								}
 							},
-							params: {
-								a: 10,
-								b: "John",
-								c: {
-									d: 100,
-									e: true
-								}
-							}
+							sampled: true
 						}
-					},
-					sampled: true,
+					);
+
+					expect(ctx.span).toBeUndefined();
+					expect(ctx.tracing).toBe(false);
+
+					expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
+
+					expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+					expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
+
+					expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
+					expect(fakeSpan.setError).toHaveBeenCalledWith(err);
 				});
-
-				expect(ctx.span).toBeUndefined();
-				expect(ctx.tracing).toBe(false);
-
-				expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
-
-				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
-
-				expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
-				expect(fakeSpan.setError).toHaveBeenCalledWith(err);
-			});
-
 		});
 
 		it("should create a span with non-object params", async () => {
@@ -1727,10 +1762,11 @@ describe("Test TracingMiddleware localEvent", () => {
 					callingLevel: 3,
 					nodeID: "server-1",
 					remoteCall: false,
+					requestID: "tracer-trace-id",
 
 					params: "Moleculer"
 				},
-				sampled: false,
+				sampled: false
 			});
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
@@ -1751,6 +1787,7 @@ describe("Test TracingMiddleware localEvent", () => {
 				fakeSpan.setError.mockClear();
 				fakeSpan.finish.mockClear();
 				fakeSpan.sampled = true;
+				ctx.requestID = "request-id";
 
 				event = {
 					name: "user.created",
@@ -1763,22 +1800,21 @@ describe("Test TracingMiddleware localEvent", () => {
 					handler
 				};
 				ctx.tracing = true;
-				ctx.params = {
+				(ctx.params = {
 					a: 2,
 					b: "John",
 					c: {
 						d: 100,
 						e: true
 					}
-				},
-				ctx.meta = {
-					user: {
-						name: "Adam",
-						age: 30
-					}
-				};
+				}),
+					(ctx.meta = {
+						user: {
+							name: "Adam",
+							age: 30
+						}
+					});
 			});
-
 
 			it("should create a span with local custom tags function even if global custom event tags are specified", async () => {
 				const brokerOptions = {
@@ -1790,7 +1826,11 @@ describe("Test TracingMiddleware localEvent", () => {
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
@@ -1804,7 +1844,6 @@ describe("Test TracingMiddleware localEvent", () => {
 					}))
 				};
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -1819,11 +1858,10 @@ describe("Test TracingMiddleware localEvent", () => {
 				expect(event.tracing.tags).toHaveBeenCalledTimes(1);
 				expect(event.tracing.tags).toHaveBeenCalledWith(ctx);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -1835,7 +1873,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					tags: {
 						event: {
 							group: "posts",
-							name: "user.created",
+							name: "user.created"
 						},
 						callerNodeID: "server-1",
 						callingLevel: 3,
@@ -1849,15 +1887,16 @@ describe("Test TracingMiddleware localEvent", () => {
 								c: {
 									d: 100,
 									e: true
-								},
-							},
+								}
+							}
 						},
 						eventName: "user.created",
 						eventType: "emit",
 						nodeID: "server-1",
-						remoteCall: false
+						remoteCall: false,
+						requestID: "request-id"
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "event"
 				});
 
@@ -1877,18 +1916,21 @@ describe("Test TracingMiddleware localEvent", () => {
 							event: jest.fn((ctx, response) => ({
 								custom: {
 									params: ctx.params,
-									meta: ctx.meta,
+									meta: ctx.meta
 								}
 							}))
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -1900,11 +1942,10 @@ describe("Test TracingMiddleware localEvent", () => {
 				await newHandler(ctx);
 				expect(event.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -1916,7 +1957,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					tags: {
 						event: {
 							group: "posts",
-							name: "user.created",
+							name: "user.created"
 						},
 						callerNodeID: "server-1",
 						callingLevel: 3,
@@ -1930,17 +1971,17 @@ describe("Test TracingMiddleware localEvent", () => {
 								c: {
 									d: 100,
 									e: true
-								},
-							},
+								}
+							}
 						},
 						eventName: "user.created",
 						eventType: "emit",
 						nodeID: "server-1",
-						remoteCall: false
+						remoteCall: false,
+						requestID: "request-id"
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "event"
-
 				});
 				expect(ctx.tracing).toBe(true);
 
@@ -1954,15 +1995,18 @@ describe("Test TracingMiddleware localEvent", () => {
 				const brokerOptions = {
 					tracing: {
 						enabled: true,
-						events: true,
+						events: true
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -1980,11 +2024,10 @@ describe("Test TracingMiddleware localEvent", () => {
 				await newHandler(ctx);
 				expect(event.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -1996,7 +2039,7 @@ describe("Test TracingMiddleware localEvent", () => {
 					tags: {
 						event: {
 							group: "posts",
-							name: "user.created",
+							name: "user.created"
 						},
 						callerNodeID: "server-1",
 						callingLevel: 3,
@@ -2006,14 +2049,15 @@ describe("Test TracingMiddleware localEvent", () => {
 							c: {
 								d: 100,
 								e: true
-							},
+							}
 						},
 						eventName: "user.created",
 						eventType: "emit",
 						nodeID: "server-1",
-						remoteCall: false
+						remoteCall: false,
+						requestID: "request-id"
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "event"
 				});
 				expect(ctx.tracing).toBe(true);
@@ -2029,17 +2073,20 @@ describe("Test TracingMiddleware localEvent", () => {
 						events: true,
 						tags: {
 							event: {
-								meta: true,
+								meta: true
 							}
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -2057,23 +2104,22 @@ describe("Test TracingMiddleware localEvent", () => {
 				await newHandler(ctx);
 				expect(event.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
 					service: {
 						fullName: "v1.posts",
 						name: "posts",
-						version: 1,
+						version: 1
 					},
 					tags: {
 						event: {
 							group: "posts",
-							name: "user.created",
+							name: "user.created"
 						},
 						eventName: "user.created",
 						eventType: "emit",
@@ -2089,11 +2135,12 @@ describe("Test TracingMiddleware localEvent", () => {
 							c: {
 								d: 100,
 								e: true
-							},
+							}
 						},
-						remoteCall: false
+						remoteCall: false,
+						requestID: "request-id"
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "event"
 				});
 				expect(ctx.tracing).toBe(true);
@@ -2110,12 +2157,16 @@ describe("Test TracingMiddleware localEvent", () => {
 						tags: {
 							event: {
 								params: false,
-								meta: false,
+								meta: false
 							}
 						}
 					}
 				};
-				const broker = new ServiceBroker({ nodeID: "server-1", logger: false, ...brokerOptions });
+				const broker = new ServiceBroker({
+					nodeID: "server-1",
+					logger: false,
+					...brokerOptions
+				});
 				const tracer = broker.tracer;
 				tracer.getCurrentTraceID = jest.fn();
 				tracer.getActiveSpanID = jest.fn();
@@ -2123,11 +2174,10 @@ describe("Test TracingMiddleware localEvent", () => {
 				event.tracing = {
 					tags: {
 						params: ["a"],
-						meta: ["user.age"],
+						meta: ["user.age"]
 					}
 				};
 
-				ctx.requestID = null;
 				ctx.parentID = null;
 
 				tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
@@ -2145,11 +2195,10 @@ describe("Test TracingMiddleware localEvent", () => {
 				await newHandler(ctx);
 				expect(event.handler).toHaveBeenCalledTimes(1);
 
-				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'",{
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					parentID: "tracer-span-id",
 					sampled: true,
@@ -2163,7 +2212,7 @@ describe("Test TracingMiddleware localEvent", () => {
 						eventType: "emit",
 						event: {
 							group: "posts",
-							name: "user.created",
+							name: "user.created"
 						},
 						callerNodeID: "server-1",
 						callingLevel: 3,
@@ -2171,12 +2220,13 @@ describe("Test TracingMiddleware localEvent", () => {
 							user: { age: 30 }
 						},
 						params: {
-							a: 2,
+							a: 2
 						},
 						nodeID: "server-1",
-						remoteCall: false
+						remoteCall: false,
+						requestID: "request-id"
 					},
-					traceID: "tracer-trace-id",
+					traceID: "request-id",
 					type: "event"
 				});
 				expect(ctx.tracing).toBe(true);

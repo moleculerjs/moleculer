@@ -16,7 +16,6 @@ const METRIC = require("../constants");
  *
  */
 class StatsDReporter extends BaseReporter {
-
 	/**
 	 * Constructor of StatsDReporters
 	 *
@@ -30,7 +29,7 @@ class StatsDReporter extends BaseReporter {
 			host: "localhost",
 			port: 8125,
 
-			maxPayloadSize: 1300,
+			maxPayloadSize: 1300
 		});
 	}
 
@@ -94,7 +93,10 @@ class StatsDReporter extends BaseReporter {
 		const sock = dgram.createSocket("udp4");
 		sock.send(buf, 0, buf.length, this.opts.port, this.opts.host, (err, bytes) => {
 			if (err) {
-				this.logger.warn("Unable to send metrics to StatsD server. Error:" + err.message, err);
+				this.logger.warn(
+					"Unable to send metrics to StatsD server. Error:" + err.message,
+					err
+				);
 			} else {
 				this.logger.debug("Metrics are uploaded to StatsD. Sent bytes:", bytes);
 			}
@@ -115,14 +117,13 @@ class StatsDReporter extends BaseReporter {
 		const list = this.registry.list({
 			types: this.opts.types,
 			includes: this.opts.includes,
-			excludes: this.opts.excludes,
+			excludes: this.opts.excludes
 		});
 
 		list.forEach(metric => {
 			metric.values.forEach(item => {
 				const line = this.generateStatDLine(metric, item);
-				if (line)
-					series.push(line);
+				if (line) series.push(line);
 			});
 		});
 
@@ -132,30 +133,28 @@ class StatsDReporter extends BaseReporter {
 	generateStatDLine(metric, item, lastValue) {
 		const metricName = this.formatMetricName(metric.name);
 
-		switch(metric.type) {
+		switch (metric.type) {
 			case METRIC.TYPE_COUNTER: {
 				let line = `${metricName}:${item.value}|c`;
-				if (metric.labelNames.length > 0)
-					line += "|#" + this.labelsToTags(item.labels);
+				if (metric.labelNames.length > 0) line += "|#" + this.labelsToTags(item.labels);
 				return line;
 			}
 			case METRIC.TYPE_GAUGE: {
 				let line = `${metricName}:${item.value}|g`;
-				if (metric.labelNames.length > 0)
-					line += "|#" + this.labelsToTags(item.labels);
+				if (metric.labelNames.length > 0) line += "|#" + this.labelsToTags(item.labels);
 				return line;
 			}
 			case METRIC.TYPE_INFO: {
-				let line = `${metricName}:${typeof item.value == "number" ? item.value : "\"" + item.value + "\""}|s`;
-				if (metric.labelNames.length > 0)
-					line += "|#" + this.labelsToTags(item.labels);
+				let line = `${metricName}:${
+					typeof item.value == "number" ? item.value : '"' + item.value + '"'
+				}|s`;
+				if (metric.labelNames.length > 0) line += "|#" + this.labelsToTags(item.labels);
 				return line;
 			}
 			case METRIC.TYPE_HISTOGRAM: {
 				if (lastValue != null) {
 					let line = `${metricName}:${lastValue}|ms`;
-					if (metric.labelNames.length > 0)
-						line += "|#" + this.labelsToTags(item.labels);
+					if (metric.labelNames.length > 0) line += "|#" + this.labelsToTags(item.labels);
 					return line;
 				}
 			}
@@ -188,8 +187,7 @@ class StatsDReporter extends BaseReporter {
 	 * @memberof DatadogReporter
 	 */
 	escapeLabelValue(str) {
-		if (typeof str == "string")
-			return str.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+		if (typeof str == "string") return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 		return str;
 	}
 
@@ -204,12 +202,12 @@ class StatsDReporter extends BaseReporter {
 	labelsToTags(itemLabels) {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {});
 		const keys = Object.keys(labels);
-		if (keys.length == 0)
-			return "";
+		if (keys.length == 0) return "";
 
-		return keys.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`).join(",");
+		return keys
+			.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`)
+			.join(",");
 	}
-
 }
 
 module.exports = StatsDReporter;

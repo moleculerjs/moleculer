@@ -3,18 +3,21 @@
 const BaseMetric = require("../../../../src/metrics/types/base");
 
 describe("Test Base Metric class", () => {
-
 	describe("Test Constructor", () => {
-
-		const registry = { opts: {
-			defaultAggregator: "sum"
-		} };
+		const registry = {
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
 
 		it("should create with base options", () => {
-			const item = new BaseMetric({
-				type: "counter",
-				name: "test.counter"
-			}, registry);
+			const item = new BaseMetric(
+				{
+					type: "counter",
+					name: "test.counter"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("counter");
@@ -28,18 +31,20 @@ describe("Test Base Metric class", () => {
 			expect(item.dirty).toBe(true);
 
 			expect(item.values).toBeInstanceOf(Map);
-
 		});
 
 		it("should create with all options", () => {
-			const item = new BaseMetric({
-				type: "gauge",
-				name: "test.gauge",
-				description: "Test gauge",
-				labelNames: ["action", "service"],
-				unit: "bytes",
-				aggregator: "avg"
-			}, registry);
+			const item = new BaseMetric(
+				{
+					type: "gauge",
+					name: "test.gauge",
+					description: "Test gauge",
+					labelNames: ["action", "service"],
+					unit: "bytes",
+					aggregator: "avg"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("gauge");
@@ -53,20 +58,23 @@ describe("Test Base Metric class", () => {
 			expect(item.dirty).toBe(true);
 
 			expect(item.values).toBeInstanceOf(Map);
-
 		});
 	});
 
 	describe("Test setDirty & clearDirty", () => {
+		const registry = {
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
 
-		const registry = { opts: {
-			defaultAggregator: "sum"
-		} };
-
-		const item = new BaseMetric({
-			type: "counter",
-			name: "test.counter"
-		}, registry);
+		const item = new BaseMetric(
+			{
+				type: "counter",
+				name: "test.counter"
+			},
+			registry
+		);
 
 		it("should clear dirty flag", () => {
 			expect(item.dirty).toBe(true);
@@ -78,10 +86,11 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test hashingLabels", () => {
-
-		const registry = { opts: {
-			defaultAggregator: "sum"
-		} };
+		const registry = {
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
 
 		it("should create empty hash because labels are not defined", () => {
 			const item = new BaseMetric({ type: "counter", name: "test.counter" }, registry);
@@ -92,7 +101,10 @@ describe("Test Base Metric class", () => {
 		});
 
 		it("should create limited hash because labels are not defined", () => {
-			const item = new BaseMetric({ type: "counter", name: "test.counter", labelNames: ["a", "c", "d"] }, registry);
+			const item = new BaseMetric(
+				{ type: "counter", name: "test.counter", labelNames: ["a", "c", "d"] },
+				registry
+			);
 
 			expect(item.hashingLabels()).toBe("");
 			expect(item.hashingLabels({ a: 5 })).toBe("5||");
@@ -101,21 +113,30 @@ describe("Test Base Metric class", () => {
 		});
 
 		it("should create full hash because labels are not defined", () => {
-			const item = new BaseMetric({ type: "counter", name: "test.counter", labelNames: ["a", "b", "c", "d"] }, registry);
+			const item = new BaseMetric(
+				{ type: "counter", name: "test.counter", labelNames: ["a", "b", "c", "d"] },
+				registry
+			);
 
 			expect(item.hashingLabels()).toBe("");
 			expect(item.hashingLabels({ a: 5 })).toBe("5|||");
-			expect(item.hashingLabels({ a: 5, b: "John", c: null, d: false })).toBe("5|\"John\"||false");
+			expect(item.hashingLabels({ a: 5, b: "John", c: null, d: false })).toBe(
+				'5|"John"||false'
+			);
 		});
 	});
 
 	describe("Test get & clear method", () => {
+		const registry = {
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
 
-		const registry = { opts: {
-			defaultAggregator: "sum"
-		} };
-
-		const item = new BaseMetric({ type: "counter", name: "test.counter", labelNames: ["a", "b"] }, registry);
+		const item = new BaseMetric(
+			{ type: "counter", name: "test.counter", labelNames: ["a", "b"] },
+			registry
+		);
 
 		it("should return the correct values", () => {
 			const hash = item.hashingLabels({ a: 5, b: "John", c: null, d: false });
@@ -140,10 +161,11 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test snapshot method", () => {
-
-		const registry = { opts: {
-			defaultAggregator: "sum"
-		} };
+		const registry = {
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
 
 		const item = new BaseMetric({ type: "counter", name: "test.counter" }, registry);
 		item.generateSnapshot = jest.fn(() => "snapshot");
@@ -170,7 +192,6 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test changed method", () => {
-
 		const registry = {
 			changed: jest.fn(),
 			opts: {
@@ -189,7 +210,6 @@ describe("Test Base Metric class", () => {
 			expect(registry.changed).toBeCalledTimes(1);
 			expect(registry.changed).toBeCalledWith(item, 5.6, labels, 123456);
 		});
-
 	});
 
 	describe("Test toObject method", () => {
@@ -200,20 +220,27 @@ describe("Test Base Metric class", () => {
 			}
 		};
 
-		const item = new BaseMetric({ type: "counter", name: "test.counter", labelNames: ["a", "b"], description: "Test description", unit: "bytes" }, registry);
+		const item = new BaseMetric(
+			{
+				type: "counter",
+				name: "test.counter",
+				labelNames: ["a", "b"],
+				description: "Test description",
+				unit: "bytes"
+			},
+			registry
+		);
 		item.snapshot = jest.fn(() => "snapshot");
 
 		it("should call snapshot & generate POJO", () => {
 			expect(item.toObject()).toEqual({
-				type: "counter", name:
-				"test.counter",
+				type: "counter",
+				name: "test.counter",
 				labelNames: ["a", "b"],
 				description: "Test description",
 				unit: "bytes",
 				values: "snapshot"
 			});
 		});
-
 	});
-
 });

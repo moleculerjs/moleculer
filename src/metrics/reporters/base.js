@@ -15,7 +15,6 @@ const { match, isString } = require("../../utils");
  * @class BaseReporter
  */
 class BaseReporter {
-
 	/**
 	 * Creates an instance of BaseReporter.
 	 *
@@ -31,14 +30,12 @@ class BaseReporter {
 			metricNameSuffix: null,
 
 			metricNameFormatter: null,
-			labelNameFormatter: null,
+			labelNameFormatter: null
 		});
 
-		if (isString(this.opts.includes))
-			this.opts.includes = [this.opts.includes];
+		if (isString(this.opts.includes)) this.opts.includes = [this.opts.includes];
 
-		if (isString(this.opts.excludes))
-			this.opts.excludes = [this.opts.excludes];
+		if (isString(this.opts.excludes)) this.opts.excludes = [this.opts.excludes];
 	}
 
 	/**
@@ -71,13 +68,11 @@ class BaseReporter {
 	 */
 	matchMetricName(name) {
 		if (Array.isArray(this.opts.includes)) {
-			if (!this.opts.includes.some(pattern => match(name, pattern)))
-				return false;
+			if (!this.opts.includes.some(pattern => match(name, pattern))) return false;
 		}
 
 		if (Array.isArray(this.opts.excludes)) {
-			if (!this.opts.excludes.every(pattern => !match(name, pattern)))
-				return false;
+			if (!this.opts.excludes.every(pattern => !match(name, pattern))) return false;
 		}
 
 		return true;
@@ -91,9 +86,11 @@ class BaseReporter {
 	 * @memberof BaseReporter
 	 */
 	formatMetricName(name) {
-		name = (this.opts.metricNamePrefix ? this.opts.metricNamePrefix : "") + name + (this.opts.metricNameSuffix ? this.opts.metricNameSuffix : "");
-		if (this.opts.metricNameFormatter)
-			return this.opts.metricNameFormatter(name);
+		name =
+			(this.opts.metricNamePrefix ? this.opts.metricNamePrefix : "") +
+			name +
+			(this.opts.metricNameSuffix ? this.opts.metricNameSuffix : "");
+		if (this.opts.metricNameFormatter) return this.opts.metricNameFormatter(name);
 		return name;
 	}
 
@@ -105,8 +102,7 @@ class BaseReporter {
 	 * @memberof BaseReporter
 	 */
 	formatLabelName(name) {
-		if (this.opts.labelNameFormatter)
-			return this.opts.labelNameFormatter(name);
+		if (this.opts.labelNameFormatter) return this.opts.labelNameFormatter(name);
 		return name;
 	}
 

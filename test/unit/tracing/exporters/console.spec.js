@@ -6,9 +6,7 @@ const ServiceBroker = require("../../../../src/service-broker");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Console tracing exporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const exporter = new ConsoleTraceExporter();
 
@@ -36,7 +34,6 @@ describe("Test Console tracing exporter class", () => {
 				gaugeWidth: 50
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -49,7 +46,6 @@ describe("Test Console tracing exporter class", () => {
 
 			expect(exporter.tracer).toBe(fakeTracer);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -85,11 +81,11 @@ describe("Test Console tracing exporter class", () => {
 			expect(exporter.spans).toEqual({
 				span1: {
 					children: [],
-					span: span1,
+					span: span1
 				},
 				span2: {
 					children: [],
-					span: span2,
+					span: span2
 				}
 			});
 		});
@@ -99,22 +95,19 @@ describe("Test Console tracing exporter class", () => {
 
 			expect(exporter.spans).toEqual({
 				span1: {
-					children: [
-						"span3"
-					],
-					span: span1,
+					children: ["span3"],
+					span: span1
 				},
 				span2: {
 					children: [],
-					span: span2,
+					span: span2
 				},
 				span3: {
 					children: [],
-					span: span3,
+					span: span3
 				}
 			});
 		});
-
 	});
 
 	describe("Test spanFinished method", () => {
@@ -181,7 +174,6 @@ describe("Test Console tracing exporter class", () => {
 				}
 			});
 		});
-
 	});
 
 	describe("Test spans printing", () => {
@@ -193,7 +185,7 @@ describe("Test Console tracing exporter class", () => {
 		const exporter = new ConsoleTraceExporter({
 			colors: false,
 			width: 80,
-			logger,
+			logger
 		});
 		exporter.init(fakeTracer);
 
@@ -205,7 +197,7 @@ describe("Test Console tracing exporter class", () => {
 			duration: 100,
 			tags: {
 				fromCache: false,
-				remoteCall: false,
+				remoteCall: false
 			},
 			error: null
 		};
@@ -219,7 +211,7 @@ describe("Test Console tracing exporter class", () => {
 			duration: 50,
 			tags: {
 				fromCache: true,
-				remoteCall: false,
+				remoteCall: false
 			},
 			error: null
 		};
@@ -233,7 +225,7 @@ describe("Test Console tracing exporter class", () => {
 			duration: 25,
 			tags: {
 				fromCache: false,
-				remoteCall: true,
+				remoteCall: true
 			},
 			error: null
 		};
@@ -247,7 +239,7 @@ describe("Test Console tracing exporter class", () => {
 			duration: 75,
 			tags: {
 				fromCache: false,
-				remoteCall: false,
+				remoteCall: false
 			},
 			error: null
 		};
@@ -309,5 +301,4 @@ describe("Test Console tracing exporter class", () => {
 			expect(LOG_STORE).toMatchSnapshot();
 		});
 	});
-
 });

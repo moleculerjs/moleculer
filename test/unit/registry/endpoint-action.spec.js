@@ -4,7 +4,6 @@ let ActionEndpoint = require("../../../src/registry/endpoint-action");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ActionEndpoint", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 

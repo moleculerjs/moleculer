@@ -2,19 +2,16 @@
 
 const lolex = require("@sinonjs/fake-timers");
 
-
 const RateLimiter = require("../../../src/tracing/rate-limiter");
 
 describe("Test Tracing Rate Limiter", () => {
-
 	describe("Test Constructor", () => {
 		let clock;
 
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		it("should create with default options", () => {
-
 			const rate = new RateLimiter();
 
 			expect(rate.opts).toEqual({
@@ -27,7 +24,6 @@ describe("Test Tracing Rate Limiter", () => {
 		});
 
 		it("should create with custom options", () => {
-
 			const rate = new RateLimiter({ tracesPerSecond: 5 });
 
 			expect(rate.opts).toEqual({
@@ -40,7 +36,6 @@ describe("Test Tracing Rate Limiter", () => {
 		});
 
 		it("should create with custom options", () => {
-
 			const rate = new RateLimiter({ tracesPerSecond: 0.5 });
 
 			expect(rate.opts).toEqual({
@@ -51,17 +46,15 @@ describe("Test Tracing Rate Limiter", () => {
 			expect(rate.balance).toBe(0);
 			expect(rate.maxBalance).toBe(1);
 		});
-
 	});
 
 	describe("Test check method", () => {
 		let clock;
 
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		it("should return once per seconds", () => {
-
 			const rate = new RateLimiter();
 
 			expect(rate.check()).toBe(false);
@@ -115,7 +108,6 @@ describe("Test Tracing Rate Limiter", () => {
 		});
 
 		it("should return once per 5 seconds", () => {
-
 			const rate = new RateLimiter({ tracesPerSecond: 0.2 });
 
 			expect(rate.check()).toBe(false);
@@ -153,7 +145,6 @@ describe("Test Tracing Rate Limiter", () => {
 		});
 
 		it("should return 3 times per seconds", () => {
-
 			const rate = new RateLimiter({ tracesPerSecond: 3 });
 
 			expect(rate.check()).toBe(false);
@@ -191,7 +182,6 @@ describe("Test Tracing Rate Limiter", () => {
 		});
 
 		it("should return 2 times per seconds", () => {
-
 			const rate = new RateLimiter({ tracesPerSecond: 3 });
 
 			expect(rate.check(2)).toBe(false);
@@ -227,6 +217,4 @@ describe("Test Tracing Rate Limiter", () => {
 			expect(rate.check(1)).toBe(true);
 		});
 	});
-
-
 });

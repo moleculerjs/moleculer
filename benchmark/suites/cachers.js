@@ -33,35 +33,52 @@ let redisCacher = new Moleculer.Cachers.Redis({
 });
 redisCacher.init(broker);
 
-
 // ----
 bench1.add("Memory", done => {
-	memCacher.set(key, data).then(() => memCacher.get(key)).then(done);
+	memCacher
+		.set(key, data)
+		.then(() => memCacher.get(key))
+		.then(done);
 });
 
 bench1.add("Memory LRU", done => {
-	memLruCacher.set(key, data).then(() => memLruCacher.get(key)).then(done);
+	memLruCacher
+		.set(key, data)
+		.then(() => memLruCacher.get(key))
+		.then(done);
 });
 
 bench1.add("Redis", done => {
-	redisCacher.set(key, data).then(() => redisCacher.get(key)).then(done);
+	redisCacher
+		.set(key, data)
+		.then(() => redisCacher.get(key))
+		.then(done);
 });
 
 let c = 1000000;
 
 bench2.add("Memory", done => {
-	let key = "TESTKEY-" + (c++);
-	memCacher.set(key, data).then(() => memCacher.get(key)).then(done);
+	let key = "TESTKEY-" + c++;
+	memCacher
+		.set(key, data)
+		.then(() => memCacher.get(key))
+		.then(done);
 });
 
 bench2.add("Memory LRU", done => {
-	let key = "TESTKEY-" + (c++);
-	memLruCacher.set(key, data).then(() => memLruCacher.get(key)).then(done);
+	let key = "TESTKEY-" + c++;
+	memLruCacher
+		.set(key, data)
+		.then(() => memLruCacher.get(key))
+		.then(done);
 });
 
 bench2.add("Redis", done => {
-	let key = "TESTKEY-" + (c++);
-	redisCacher.set(key, data).then(() => redisCacher.get(key)).then(done);
+	let key = "TESTKEY-" + c++;
+	redisCacher
+		.set(key, data)
+		.then(() => redisCacher.get(key))
+		.then(done);
 });
 
 let bench3 = benchmark.createSuite("Test getCacheKey");
@@ -89,7 +106,6 @@ bench4.add("With cloning", done => {
 benchmark.run([bench1, bench2, bench3, bench4]).then(() => {
 	redisCacher.close();
 });
-
 
 /*
 =====================

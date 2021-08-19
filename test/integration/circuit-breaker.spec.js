@@ -28,7 +28,7 @@ describe("Test circuit breaker", () => {
 	const slave1 = new ServiceBroker({
 		logger: false,
 		transporter: new FakeTransporter(),
-		nodeID: "slave-1",
+		nodeID: "slave-1"
 	});
 
 	slave1.createService({
@@ -41,8 +41,7 @@ describe("Test circuit breaker", () => {
 			angry(ctx) {
 				if (ctx.params.please != true)
 					return Promise.reject(new MoleculerError("Don't call me!", 555));
-				else
-					return "Just for you!";
+				else return "Just for you!";
 			},
 
 			tired() {
@@ -52,20 +51,23 @@ describe("Test circuit breaker", () => {
 	});
 
 	beforeAll(() => {
-		return master1.start()
+		return master1
+			.start()
 			.then(() => slave1.start())
 			.delay(100)
-			.then(() => clock = lolex.install());
+			.then(() => (clock = lolex.install()));
 	});
 
 	afterAll(() => {
-		return master1.stop()
+		return master1
+			.stop()
 			.then(() => slave1.stop())
 			.then(() => clock.uninstall());
 	});
 
 	it("should call 'happy' x5 without problem", () => {
-		return master1.call("cb.happy")
+		return master1
+			.call("cb.happy")
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
@@ -75,7 +77,8 @@ describe("Test circuit breaker", () => {
 	});
 
 	it("should call 'angry' and throw MoleculerError", () => {
-		return master1.call("cb.angry")
+		return master1
+			.call("cb.angry")
 			.then(protectReject)
 			.catch(err => expect(err.name).toBe("MoleculerError"))
 
@@ -114,7 +117,8 @@ describe("Test circuit breaker", () => {
 	it("should switched to half-open and again open", () => {
 		cbOpenedHandler.mockClear();
 		clock.tick(6000);
-		return master1.call("cb.angry")
+		return master1
+			.call("cb.angry")
 			.then(protectReject)
 			.catch(err => expect(err.name).toBe("MoleculerError"))
 
@@ -136,7 +140,8 @@ describe("Test circuit breaker", () => {
 
 	it("should switched to half-open and close", () => {
 		clock.tick(6000);
-		return master1.call("cb.angry", { please: true })
+		return master1
+			.call("cb.angry", { please: true })
 			.then(res => expect(res).toBe("Just for you!"))
 			.catch(protectReject)
 
@@ -148,54 +153,55 @@ describe("Test circuit breaker", () => {
 	// TODO: Not working because timer created before lolex install.
 
 	it.skip("should reset values by window timer", () => {
-		return master1.call("cb.angry")
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+		return (
+			master1
+				.call("cb.angry")
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			// Reset
-			.then(() => clock.tick(35 * 1000))
+				// Reset
+				.then(() => clock.tick(35 * 1000))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => expect(err.name).toBe("MoleculerError"))
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => expect(err.name).toBe("MoleculerError"))
 
-			.then(() => master1.call("cb.angry"))
-			.then(protectReject)
-			.catch(err => {
-				expect(err.message).toBe("ServiceNotAvailableError");
-				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
-				expect(cbOpenedHandler).toHaveBeenCalledWith({
-					node: jasmine.any(Object),
-					action: jasmine.any(Object),
-					failures: 4,
-					passes: 2,
-				});
-			});
+				.then(() => master1.call("cb.angry"))
+				.then(protectReject)
+				.catch(err => {
+					expect(err.message).toBe("ServiceNotAvailableError");
+					expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
+					expect(cbOpenedHandler).toHaveBeenCalledWith({
+						node: expect.any(Object),
+						action: expect.any(Object),
+						failures: 4,
+						passes: 2
+					});
+				})
+		);
 	});
-
 });
-

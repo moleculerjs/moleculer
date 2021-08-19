@@ -2,7 +2,6 @@ const { BrokerOptionsError } = require("../../../src/errors");
 const Validators = require("../../../src/validators");
 
 describe("Test Validators resolver", () => {
-
 	it("should resolve default Fastest discoverer", () => {
 		const discoverer = Validators.resolve();
 		expect(discoverer).toBeInstanceOf(Validators.Fastest);

@@ -18,4 +18,9 @@ module.exports = {
 	logger: true,
 	logLevel: "debug",
 	//transporter: "TCP"
+	hotReload: true,
+
+	created(broker) {
+		console.log("myVar", broker.options.myVar);
+	}
 };

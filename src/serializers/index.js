@@ -16,17 +16,16 @@ const Serializers = {
 	MsgPack: require("./msgpack"),
 	ProtoBuf: require("./protobuf"),
 	Thrift: require("./thrift"),
-	Notepack: require("./notepack")
+	Notepack: require("./notepack"),
+	CBOR: require("./cbor")
 };
 
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name)
-		return null;
+	if (!name) return null;
 
 	let n = Object.keys(Serializers).find(n => n.toLowerCase() == name.toLowerCase());
-	if (n)
-		return Serializers[n];
+	if (n) return Serializers[n];
 }
 
 /**
@@ -41,17 +40,15 @@ function resolve(opt) {
 		return opt;
 	} else if (isString(opt)) {
 		let SerializerClass = getByName(opt);
-		if (SerializerClass)
-			return new SerializerClass();
-		else
-			throw new BrokerOptionsError(`Invalid serializer type '${opt}'.`, { type: opt });
-
+		if (SerializerClass) return new SerializerClass();
+		else throw new BrokerOptionsError(`Invalid serializer type '${opt}'.`, { type: opt });
 	} else if (isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "JSON");
-		if (SerializerClass)
-			return new SerializerClass(opt.options);
+		if (SerializerClass) return new SerializerClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid serializer type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid serializer type '${opt.type}'.`, {
+				type: opt.type
+			});
 	}
 
 	return new Serializers.JSON();

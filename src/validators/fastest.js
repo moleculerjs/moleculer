@@ -9,9 +9,9 @@
 const Validator = require("fastest-validator");
 const { ValidationError } = require("../errors");
 const BaseValidator = require("./base");
+const _ = require("lodash");
 
-class FastestValidator  extends BaseValidator{
-
+class FastestValidator extends BaseValidator {
 	constructor(opts) {
 		super(opts);
 		this.validator = new Validator(this.opts);
@@ -19,11 +19,13 @@ class FastestValidator  extends BaseValidator{
 
 	/**
 	 * Compile a validation schema to a checker function.
+	 * Need a clone because FV manipulate the schema (removing $$... props)
+	 *
 	 * @param {any} schema
 	 * @returns {Function}
 	 */
 	compile(schema) {
-		return this.validator.compile(schema);
+		return this.validator.compile(_.cloneDeep(schema));
 	}
 
 	/**
@@ -33,9 +35,8 @@ class FastestValidator  extends BaseValidator{
 	 * @returns {boolean}
 	 */
 	validate(params, schema) {
-		const res = this.validator.validate(params, schema);
-		if (res !== true)
-			throw new ValidationError("Parameters validation error!", null, res);
+		const res = this.validator.validate(params, _.cloneDeep(schema));
+		if (res !== true) throw new ValidationError("Parameters validation error!", null, res);
 
 		return true;
 	}

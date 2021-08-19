@@ -183,7 +183,6 @@ const broker = new ServiceBroker({
 	nodeID: "mw",
 	transporter: "NATS",
 	//logLevel: "debug",
-	logFormatter: "short",
 	middlewares: [MW]
 });
 

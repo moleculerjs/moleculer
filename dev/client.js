@@ -24,14 +24,14 @@ const broker = new ServiceBroker({
 	//transporter: "kafka://192.168.0.181:9092",
 	//transporter: "amqp://192.168.0.181:5672",
 	transporter: "NATS",
-	//serializer: "Thrift",
+	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
 
 	registry: {
 		//strategy: Strategies.Random
-		//discoverer: "Redis"
+		//discoverer: "Etcd3"
 	},
 
 	cacher: true,
@@ -80,7 +80,6 @@ const broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short",
 	middlewares: [
 		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
 		//Middlewares.Transmit.Compression(),

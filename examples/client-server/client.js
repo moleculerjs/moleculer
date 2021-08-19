@@ -21,23 +21,28 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
-	logLevel: process.env.LOGLEVEL,
-	logFormatter: "simple"
+	logLevel: process.env.LOGLEVEL
 });
 
 broker.createService({
 	name: "event-handler",
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(kleur.yellow().bold(`---  Circuit breaker opened on '${payload.node.id}'!`));
+			broker.logger.warn(
+				kleur.yellow().bold(`---  Circuit breaker opened on '${payload.node.id}'!`)
+			);
 		},
 
 		"$circuit-breaker.half-opened"(payload) {
-			broker.logger.warn(kleur.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`));
+			broker.logger.warn(
+				kleur.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`)
+			);
 		},
 
 		"$circuit-breaker.closed"(payload) {
-			broker.logger.warn(kleur.green().bold(`---  Circuit breaker closed on '${payload.node.id}'!`));
+			broker.logger.warn(
+				kleur.green().bold(`---  Circuit breaker closed on '${payload.node.id}'!`)
+			);
 		}
 	},
 
@@ -54,7 +59,8 @@ broker.createService({
 let reqCount = 0;
 let pendingReqs = [];
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	/*.then(() => {
 		setInterval(() => {
@@ -68,7 +74,9 @@ broker.start()
 		setInterval(() => {
 			let pendingInfo = "";
 			if (pendingReqs.length > 10) {
-				pendingInfo = ` [${pendingReqs.slice(0, 10).join(",")}] + ${pendingReqs.length - 10}`;
+				pendingInfo = ` [${pendingReqs.slice(0, 10).join(",")}] + ${
+					pendingReqs.length - 10
+				}`;
 			} else if (pendingReqs.length > 0) {
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
@@ -77,18 +85,35 @@ broker.start()
 			pendingReqs.push(reqCount);
 			let p = broker.call("math.add", payload);
 			if (p.ctx) {
-				broker.logger.info(kleur.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), kleur.yellow().bold(pendingInfo));
+				broker.logger.info(
+					kleur.grey(
+						`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${
+							p.ctx.nodeID ? p.ctx.nodeID : "some node"
+						} (queue: ${broker.transit.pendingRequests.size})...`
+					),
+					kleur.yellow().bold(pendingInfo)
+				);
 			}
 			p.then(({ count, res }) => {
-				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+				broker.logger.info(
+					_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20),
+					`(from: ${p.ctx.nodeID})`
+				);
 
 				// Remove from pending
 				if (pendingReqs.indexOf(count) !== -1)
 					pendingReqs = pendingReqs.filter(n => n != count);
-				else
-					broker.logger.warn(kleur.red().bold("Invalid coming request count: ", count));
+				else broker.logger.warn(kleur.red().bold("Invalid coming request count: ", count));
 			}).catch(err => {
-				broker.logger.warn(kleur.red().bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				broker.logger.warn(
+					kleur
+						.red()
+						.bold(
+							_.padEnd(
+								`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`
+							)
+						)
+				);
 				if (pendingReqs.indexOf(payload.count) !== -1)
 					pendingReqs = pendingReqs.filter(n => n != payload.count);
 			});

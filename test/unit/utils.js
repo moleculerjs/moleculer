@@ -21,9 +21,7 @@ module.exports = {
 					}
 				}
 
-				let list = expected
-					.map(item => item.toString())
-					.join(", ");
+				let list = expected.map(item => item.toString()).join(", ");
 				let message = `Expected ${received.toString()} to be any of [${list}]`;
 
 				return {
@@ -31,7 +29,7 @@ module.exports = {
 					message: () => message,
 					pass
 				};
-			},
+			}
 		});
 	}
 };

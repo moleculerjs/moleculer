@@ -16,7 +16,6 @@ const METRIC = require("../constants");
  * @extends {GaugeMetric}
  */
 class CounterMetric extends GaugeMetric {
-
 	/**
 	 * Creates an instance of CounterMetric.
 	 * @param {Object} opts

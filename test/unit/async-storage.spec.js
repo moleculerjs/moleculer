@@ -46,7 +46,7 @@ describe("Test 'AsyncStorage' class", () => {
 				//before: "_beforeBindMock",
 				//after: "_afterBindMock",
 				destroy: "_destroyBindMock",
-				promiseResolve: "_destroyBindMock",
+				promiseResolve: "_destroyBindMock"
 			});
 			expect(storage.hook).toEqual("createHookMock");
 
@@ -54,7 +54,7 @@ describe("Test 'AsyncStorage' class", () => {
 				broker: {},
 				executionAsyncId: executionAsyncIdMock,
 				hook: "createHookMock",
-				store: new Map(),
+				store: new Map()
 			};
 			expect(_initBindMock).toBeCalledTimes(1);
 			expect(_initBindMock).toBeCalledWith(thisOnMock);
@@ -144,7 +144,7 @@ describe("Test 'AsyncStorage' class", () => {
 			expect(storage.store.set).toBeCalledTimes(1);
 			expect(storage.store.set).toBeCalledWith("currentUidMock", {
 				data: "dataMock",
-				owner: "currentUidMock",
+				owner: "currentUidMock"
 			});
 
 			executionAsyncIdMock.mockClear();
@@ -157,9 +157,9 @@ describe("Test 'AsyncStorage' class", () => {
 			storage.store = {
 				get: jest.fn(() => {
 					return {
-						data: "itemDataMock",
+						data: "itemDataMock"
 					};
-				}),
+				})
 			};
 			// ---- ^ SETUP ^ ---
 			const res = storage.getSessionData();
@@ -176,7 +176,7 @@ describe("Test 'AsyncStorage' class", () => {
 		it("should get executionAsyncId and get item from store (item has no data)", () => {
 			const storage = new AsyncStorage(broker);
 			storage.store = {
-				get: jest.fn(),
+				get: jest.fn()
 			};
 			// ---- ^ SETUP ^ ---
 			const res = storage.getSessionData();
@@ -253,7 +253,7 @@ describe("Test 'AsyncStorage' class", () => {
 			const storage = new AsyncStorage(broker);
 			storage.store = {
 				get: jest.fn(() => "itemMock"),
-				delete: jest.fn(),
+				delete: jest.fn()
 			};
 			// ---- ^ SETUP ^ ---
 			storage._destroy("asyncId");

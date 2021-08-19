@@ -8,9 +8,9 @@ const ServiceBroker = require("../../src/service-broker");
 const { getDataFile } = require("../utils");
 
 const Benchmarkify = require("benchmarkify");
-const benchmark = new Benchmarkify("Throughput benchmark").printHeader();
+new Benchmarkify("Throughput benchmark").printHeader();
 
-const dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
+const dataFiles = ["10"]; //, "150", "1k", "10k", "50k", "100k", "1M"];
 
 const MAX = 20 * 1000;
 let received = 0;
@@ -22,8 +22,14 @@ function done() {
 	endTime = Date.now();
 
 	let mps = parseInt(MAX / ((endTime - startTime) / 1000));
-	console.log("Messages  : " + received.toLocaleString("en-US", { maximumFractionDigits: 0 }) + " msgs");
-	console.log("Throughput: " + kleur.green().bold(mps.toLocaleString("en-US", { maximumFractionDigits: 0 })) + " msgs/sec");
+	console.log(
+		"Messages  : " + received.toLocaleString("en-US", { maximumFractionDigits: 0 }) + " msgs"
+	);
+	console.log(
+		"Throughput: " +
+			kleur.green().bold(mps.toLocaleString("en-US", { maximumFractionDigits: 0 })) +
+			" msgs/sec"
+	);
 	console.log("");
 
 	resolve();
@@ -49,23 +55,20 @@ function createBrokers(transporter) {
 	b2.createService({
 		name: "echo",
 		actions: {
-			reply(ctx) {
+			reply() {
 				received++;
-				if (received >= MAX)
-					done();
+				if (received >= MAX) done();
 			}
 		}
 	});
 
-	return Promise.all([
-		b1.start().then(() => b1.waitForServices("echo")),
-		b2.start()
-	]).delay(1000).then(() => [b1, b2]);
+	return Promise.all([b1.start().then(() => b1.waitForServices("echo")), b2.start()])
+		.delay(1000)
+		.then(() => [b1, b2]);
 }
 
 function measureTP(transporter, dataName) {
 	received = 0;
-
 
 	console.log(kleur.cyan().bold(`'${transporter}' transporter with ${dataName}bytes payload:`));
 	console.log(kleur.cyan().bold("==============================================="));
@@ -73,31 +76,30 @@ function measureTP(transporter, dataName) {
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
-	return createBrokers(transporter)
-		.then(([b1, b2]) => {
-			return new Promise(r => {
-				resolve = r;
-				startTime = Date.now();
+	return createBrokers(transporter).then(([b1, b2]) => {
+		return new Promise(r => {
+			resolve = r;
+			startTime = Date.now();
 
-				for (let i = 0; i < MAX; i++)
-					b1.call("echo.reply", payload).catch(err => console.error(transporter, err.message));
-
-			}).delay(500).then(() => Promise.all([b1.stop(), b2.stop()]));
-		});
+			for (let i = 0; i < MAX; i++)
+				b1.call("echo.reply", payload).catch(err =>
+					console.error(transporter, err.message)
+				);
+		})
+			.delay(500)
+			.then(() => Promise.all([b1.stop(), b2.stop()]));
+	});
 }
 
 function runTest(dataName) {
 	return Promise.resolve()
-		.then(() => Promise.mapSeries([
-			"Fake",
-			"NATS",
-			"Redis",
-			"MQTT",
-			"TCP"
-		], transporter => measureTP(transporter, dataName)))
+		.then(() =>
+			Promise.mapSeries(["Fake", "NATS", "Redis", "MQTT", "TCP"], transporter =>
+				measureTP(transporter, dataName)
+			)
+		)
 		.then(() => {
-			if (dataFiles.length > 0)
-				runTest(dataFiles.shift());
+			if (dataFiles.length > 0) runTest(dataFiles.shift());
 		});
 }
 

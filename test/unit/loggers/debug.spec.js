@@ -17,9 +17,7 @@ const LoggerFactory = require("../../../src/logger-factory");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Debug logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new DebugLogger();
 
@@ -42,7 +40,6 @@ describe("Test Debug logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -58,7 +55,6 @@ describe("Test Debug logger class", () => {
 			expect(Debug).toHaveBeenCalledTimes(1);
 			expect(Debug).toHaveBeenCalledWith("moleculer");
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -136,7 +132,5 @@ describe("Test Debug logger class", () => {
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(1);
 			expect(logger.getLogLevel).toHaveBeenCalledWith(null);
 		});
-
 	});
-
 });

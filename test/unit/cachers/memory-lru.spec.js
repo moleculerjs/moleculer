@@ -3,7 +3,6 @@ const MemoryLRUCacher = require("../../../src/cachers/memory-lru");
 const lolex = require("@sinonjs/fake-timers");
 
 describe("Test MemoryLRUCacher constructor", () => {
-
 	it("should create an empty options", () => {
 		const cacher = new MemoryLRUCacher();
 		expect(cacher).toBeDefined();
@@ -20,11 +19,9 @@ describe("Test MemoryLRUCacher constructor", () => {
 		expect(cacher.cache).toBeDefined();
 		expect(cacher.timer).toBeDefined();
 	});
-
 });
 
 describe("Test MemoryLRUCacher init", () => {
-
 	it("check init", () => {
 		const broker = new ServiceBroker({ logger: false });
 		broker.localBus.on = jest.fn();
@@ -33,7 +30,10 @@ describe("Test MemoryLRUCacher init", () => {
 		cacher.init(broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith(
+			"$transporter.connected",
+			expect.any(Function)
+		);
 	});
 
 	it("should call cache clean after transporter connected", () => {
@@ -50,7 +50,6 @@ describe("Test MemoryLRUCacher init", () => {
 });
 
 describe("Test MemoryLRUCacher set & get", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher();
 	cacher.init(broker);
@@ -82,11 +81,9 @@ describe("Test MemoryLRUCacher set & get", () => {
 			expect(obj).toBeNull();
 		});
 	});
-
 });
 
 describe("Test MemoryLRUCacher set & get with default cloning", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({ clone: true });
 	cacher.init(broker);
@@ -110,7 +107,6 @@ describe("Test MemoryLRUCacher set & get with default cloning", () => {
 			expect(obj).toEqual(data1);
 		});
 	});
-
 });
 
 describe("Test MemoryLRUCacher set & get with custom cloning", () => {
@@ -141,11 +137,9 @@ describe("Test MemoryLRUCacher set & get with custom cloning", () => {
 			expect(clone).toHaveBeenCalledWith(data1);
 		});
 	});
-
 });
 
 describe("Test MemoryLRUCacher delete", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher();
 	cacher.init(broker);
@@ -187,11 +181,9 @@ describe("Test MemoryLRUCacher delete", () => {
 		expect(cacher.cache.get("key2")).toEqual("value2");
 		expect(cacher.cache.get("key3")).toBeUndefined();
 	});
-
 });
 
 describe("Test MemoryLRUCacher clean", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({});
 	cacher.init(broker);
@@ -263,7 +255,6 @@ describe("Test MemoryLRUCacher clean", () => {
 		expect(cacher.cache.get("other.2")).toBeUndefined();
 		expect(cacher.cache.get("other.3")).toBeDefined();
 	});
-
 });
 
 describe("Test MemoryLRUCacher expired method", () => {
@@ -315,10 +306,9 @@ describe("Test MemoryLRUCacher expired method", () => {
 			expect(obj).toBeNull();
 		});
 	});
-
 });
 
-describe("Test MemoryCacher getWithTTL method", ()=>{
+describe("Test MemoryCacher getWithTTL method", () => {
 	const cacher = new MemoryLRUCacher({
 		ttl: 30,
 		lock: true
@@ -338,5 +328,35 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 				expect(res.ttl).toBeDefined();
 			});
 		});
+	});
+});
+
+describe("Test MemoryCacher getCacheKeys method", () => {
+	const cacher = new MemoryLRUCacher({
+		ttl: 30,
+		lock: true
+	});
+	const broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+	it("should return data and ttl", () => {
+		return Promise.all([
+			cacher.set("hello", "test"),
+			cacher.set("hello2", "test"),
+			cacher.set("hello3:test", "test")
+		])
+			.then(() => {
+				return cacher.getCacheKeys();
+			})
+			.then(res => {
+				expect(res).toEqual(
+					expect.arrayContaining([
+						{ key: "hello3:test" },
+						{ key: "hello2" },
+						{ key: "hello" }
+					])
+				);
+			});
 	});
 });

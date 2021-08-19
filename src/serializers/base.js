@@ -14,14 +14,12 @@ const P = require("../packets");
  * @class Serializer
  */
 class Serializer {
-
 	/**
 	 * Creates an instance of Serializer.
 	 *
 	 * @memberof Serializer
 	 */
-	constructor() {
-	}
+	constructor() {}
 
 	/**
 	 * Initialize Serializer
@@ -77,10 +75,8 @@ class Serializer {
 		switch (type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.stringify(obj.services);
-				if (obj.config)
-					obj.config = JSON.stringify(obj.config);
-				if (obj.metadata)
-					obj.metadata = JSON.stringify(obj.metadata);
+				if (obj.config) obj.config = JSON.stringify(obj.config);
+				if (obj.metadata) obj.metadata = JSON.stringify(obj.metadata);
 				break;
 			}
 			case P.PACKET_EVENT: {
@@ -96,22 +92,17 @@ class Serializer {
 			case P.PACKET_RESPONSE: {
 				this.convertDataToTransport(obj, "data", "dataType");
 				obj.meta = JSON.stringify(obj.meta);
-				if (obj.error)
-					obj.error = JSON.stringify(obj.error);
+				if (obj.error) obj.error = JSON.stringify(obj.error);
 				break;
 			}
 			case P.PACKET_GOSSIP_REQ: {
-				if (obj.online)
-					obj.online = JSON.stringify(obj.online);
-				if (obj.offline)
-					obj.offline = JSON.stringify(obj.offline);
+				if (obj.online) obj.online = JSON.stringify(obj.online);
+				if (obj.offline) obj.offline = JSON.stringify(obj.offline);
 				break;
 			}
 			case P.PACKET_GOSSIP_RES: {
-				if (obj.online)
-					obj.online = JSON.stringify(obj.online);
-				if (obj.offline)
-					obj.offline = JSON.stringify(obj.offline);
+				if (obj.online) obj.online = JSON.stringify(obj.online);
+				if (obj.offline) obj.offline = JSON.stringify(obj.offline);
 				break;
 			}
 		}
@@ -131,10 +122,8 @@ class Serializer {
 		switch (type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.parse(obj.services);
-				if (obj.config)
-					obj.config = JSON.parse(obj.config);
-				if (obj.metadata)
-					obj.metadata = JSON.parse(obj.metadata);
+				if (obj.config) obj.config = JSON.parse(obj.config);
+				if (obj.metadata) obj.metadata = JSON.parse(obj.metadata);
 				break;
 			}
 			case P.PACKET_EVENT: {
@@ -150,22 +139,17 @@ class Serializer {
 			case P.PACKET_RESPONSE: {
 				this.convertDataFromTransport(obj, "data", "dataType");
 				obj.meta = JSON.parse(obj.meta);
-				if (obj.error)
-					obj.error = JSON.parse(obj.error);
+				if (obj.error) obj.error = JSON.parse(obj.error);
 				break;
 			}
 			case P.PACKET_GOSSIP_REQ: {
-				if (obj.online)
-					obj.online = JSON.parse(obj.online);
-				if (obj.offline)
-					obj.offline = JSON.parse(obj.offline);
+				if (obj.online) obj.online = JSON.parse(obj.online);
+				if (obj.offline) obj.offline = JSON.parse(obj.offline);
 				break;
 			}
 			case P.PACKET_GOSSIP_RES: {
-				if (obj.online)
-					obj.online = JSON.parse(obj.online);
-				if (obj.offline)
-					obj.offline = JSON.parse(obj.offline);
+				if (obj.online) obj.online = JSON.parse(obj.online);
+				if (obj.offline) obj.offline = JSON.parse(obj.offline);
 				break;
 			}
 		}
@@ -189,7 +173,7 @@ class Serializer {
 
 	convertDataFromTransport(obj, field, fieldType) {
 		const type = obj[fieldType];
-		switch(type) {
+		switch (type) {
 			case P.DATATYPE_UNDEFINED: {
 				obj[field] = undefined;
 				break;
@@ -199,8 +183,7 @@ class Serializer {
 				break;
 			}
 			case P.DATATYPE_BUFFER: {
-				if (!Buffer.isBuffer(obj[field]))
-					obj[field] = Buffer.from(obj[field]);
+				if (!Buffer.isBuffer(obj[field])) obj[field] = Buffer.from(obj[field]);
 				break;
 			}
 			default: {

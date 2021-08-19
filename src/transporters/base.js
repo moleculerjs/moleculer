@@ -1,12 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const _	= require("lodash");
+const _ = require("lodash");
 const P = require("../packets");
 const { flatten } = require("../utils");
 const { BrokerDisconnectedError } = require("../errors");
@@ -17,7 +17,6 @@ const { BrokerDisconnectedError } = require("../errors");
  * @class BaseTransporter
  */
 class BaseTransporter {
-
 	/**
 	 * Creates an instance of BaseTransporter.
 	 *
@@ -48,9 +47,7 @@ class BaseTransporter {
 			this.logger = this.broker.getLogger("transporter");
 
 			this.prefix = "MOL";
-			if (this.broker.namespace)
-				this.prefix += "-" + this.broker.namespace;
-
+			if (this.broker.namespace) this.prefix += "-" + this.broker.namespace;
 		}
 		this.messageHandler = messageHandler;
 		this.afterConnect = afterConnect;
@@ -101,7 +98,9 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	makeSubscriptions(topics) {
-		return this.broker.Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+		return this.broker.Promise.all(
+			topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID))
+		);
 	}
 
 	/**
@@ -117,7 +116,7 @@ class BaseTransporter {
 		try {
 			const packet = this.deserialize(cmd, msg);
 			return this.messageHandler(cmd, packet);
-		} catch(err) {
+		} catch (err) {
 			this.logger.warn("Invalid incoming packet. Type:", cmd, err);
 			this.logger.debug("Content:", msg.toString ? msg.toString() : msg);
 		}
@@ -259,24 +258,32 @@ class BaseTransporter {
 
 		return this.unsubscribeFromBalancedCommands().then(() => {
 			const services = this.broker.getLocalNodeInfo().services;
-			return this.broker.Promise.all(services.map(service => {
-				const p = [];
+			return this.broker.Promise.all(
+				services.map(service => {
+					const p = [];
 
-				// Service actions queues
-				if (service.actions && typeof(service.actions) == "object") {
-					p.push(Object.keys(service.actions).map(action => this.subscribeBalancedRequest(action)));
-				}
+					// Service actions queues
+					if (service.actions && typeof service.actions == "object") {
+						p.push(
+							Object.keys(service.actions).map(action =>
+								this.subscribeBalancedRequest(action)
+							)
+						);
+					}
 
-				// Load-balanced/grouped events queues
-				if (service.events && typeof(service.events) == "object") {
-					p.push(Object.keys(service.events).map(event => {
-						const group = service.events[event].group || service.name;
-						this.subscribeBalancedEvent(event, group);
-					}));
-				}
+					// Load-balanced/grouped events queues
+					if (service.events && typeof service.events == "object") {
+						p.push(
+							Object.keys(service.events).map(event => {
+								const group = service.events[event].group || service.name;
+								this.subscribeBalancedEvent(event, group);
+							})
+						);
+					}
 
-				return this.broker.Promise.all(_.compact(flatten(p, true)));
-			}));
+					return this.broker.Promise.all(_.compact(flatten(p, true)));
+				})
+			);
 		});
 	}
 
@@ -308,15 +315,16 @@ class BaseTransporter {
 			// and AMQP will load-balanced it.
 			if (groups.length > 0) {
 				groups.forEach(group => {
+					// Create a copy of the packet because the `publishBalancedEvent` will modify the payload.
+					const copy = _.cloneDeep(packet);
 					// Change the groups to this group to avoid multi handling in consumers.
-					packet.payload.groups = [group];
-					this.publishBalancedEvent(packet, group);
+					copy.payload.groups = [group];
+					this.publishBalancedEvent(copy, group);
 				});
 				return this.broker.Promise.resolve();
 			}
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)
-
 		} else if (packet.type === P.PACKET_REQUEST && packet.target == null) {
 			return this.publishBalancedRequest(packet);
 		}
@@ -353,7 +361,6 @@ class BaseTransporter {
 
 		const msg = this.broker.serializer.deserialize(buf, type);
 		return new P.Packet(type, null, msg);
-
 	}
 }
 

@@ -6,26 +6,28 @@
 
 "use strict";
 
-const kleur		= require("kleur");
-const os 	 	= require("os");
-const path 	 	= require("path");
-const fs 	 	= require("fs");
+const kleur = require("kleur");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
 const ExtendableError = require("es6-error");
 
 const lut = [];
-for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
+for (let i = 0; i < 256; i++) {
+	lut[i] = (i < 16 ? "0" : "") + i.toString(16);
+}
 
 const RegexCache = new Map();
 
 const deprecateList = [];
 
 const byteMultipliers = {
-	b:  1,
+	b: 1,
 	kb: 1 << 10,
 	mb: 1 << 20,
 	gb: 1 << 30,
 	tb: Math.pow(1024, 4),
-	pb: Math.pow(1024, 5),
+	pb: Math.pow(1024, 5)
 };
 // eslint-disable-next-line security/detect-unsafe-regex
 const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
@@ -41,15 +43,23 @@ class TimeoutError extends ExtendableError {}
  */
 function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
 	const seen = new WeakSet();
-	return function(key, value) {
+	return function (key, value) {
 		if (typeof value === "object" && value !== null) {
-			const objectType = value.constructor && value.constructor.name || typeof value;
+			const objectType = (value.constructor && value.constructor.name) || typeof value;
 
-			if (options.maxSafeObjectSize && "length" in value && value.length > options.maxSafeObjectSize) {
+			if (
+				options.maxSafeObjectSize &&
+				"length" in value &&
+				value.length > options.maxSafeObjectSize
+			) {
 				return `[${objectType} ${value.length}]`;
 			}
 
-			if (options.maxSafeObjectSize && "size" in value && value.size > options.maxSafeObjectSize) {
+			if (
+				options.maxSafeObjectSize &&
+				"size" in value &&
+				value.size > options.maxSafeObjectSize
+			) {
 				return `[${objectType} ${value.size}]`;
 			}
 
@@ -67,7 +77,6 @@ const units = ["h", "m", "s", "ms", "μs", "ns"];
 const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
 
 const utils = {
-
 	isFunction(fn) {
 		return typeof fn === "function";
 	},
@@ -81,7 +90,13 @@ const utils = {
 	},
 
 	isPlainObject(o) {
-		return o !=null ? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null : false;
+		return o != null
+			? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null
+			: false;
+	},
+
+	isDate(d) {
+		return d instanceof Date && !Number.isNaN(d.getTime());
 	},
 
 	flatten(arr) {
@@ -93,8 +108,7 @@ const utils = {
 
 		for (let i = 0; i < divisors.length; i++) {
 			const val = milli / divisors[i];
-			if (val >= 1.0)
-				return "" + Math.floor(val) + units[i];
+			if (val >= 1.0) return "" + Math.floor(val) + units[i];
 		}
 
 		return "now";
@@ -102,21 +116,38 @@ const utils = {
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
-		const d0 = Math.random()*0xffffffff|0;
-		const d1 = Math.random()*0xffffffff|0;
-		const d2 = Math.random()*0xffffffff|0;
-		const d3 = Math.random()*0xffffffff|0;
-		return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+"-"+
-			lut[d1&0xff]+lut[d1>>8&0xff]+"-"+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+"-"+
-			lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+"-"+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
-			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
+		const d0 = (Math.random() * 0xffffffff) | 0;
+		const d1 = (Math.random() * 0xffffffff) | 0;
+		const d2 = (Math.random() * 0xffffffff) | 0;
+		const d3 = (Math.random() * 0xffffffff) | 0;
+		return (
+			lut[d0 & 0xff] +
+			lut[(d0 >> 8) & 0xff] +
+			lut[(d0 >> 16) & 0xff] +
+			lut[(d0 >> 24) & 0xff] +
+			"-" +
+			lut[d1 & 0xff] +
+			lut[(d1 >> 8) & 0xff] +
+			"-" +
+			lut[((d1 >> 16) & 0x0f) | 0x40] +
+			lut[(d1 >> 24) & 0xff] +
+			"-" +
+			lut[(d2 & 0x3f) | 0x80] +
+			lut[(d2 >> 8) & 0xff] +
+			"-" +
+			lut[(d2 >> 16) & 0xff] +
+			lut[(d2 >> 24) & 0xff] +
+			lut[d3 & 0xff] +
+			lut[(d3 >> 8) & 0xff] +
+			lut[(d3 >> 16) & 0xff] +
+			lut[(d3 >> 24) & 0xff]
+		);
 	},
 
 	removeFromArray(arr, item) {
 		if (!arr || arr.length == 0) return arr;
 		const idx = arr.indexOf(item);
-		if (idx !== -1)
-			arr.splice(idx, 1);
+		if (idx !== -1) arr.splice(idx, 1);
 
 		return arr;
 	},
@@ -163,21 +194,20 @@ const utils = {
 	 * @returns
 	 */
 	isPromise(p) {
-		return (p != null && typeof p.then === "function");
+		return p != null && typeof p.then === "function";
 	},
 
 	/**
 	 * Polyfill a Promise library with missing Bluebird features.
 	 *
-	 * NOT USED & NOT TESTED YET !!!
 	 *
 	 * @param {PromiseClass} P
 	 */
 	polyfillPromise(P) {
 		if (!utils.isFunction(P.method)) {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
-			P.method = function(fn) {
-				return function() {
+			P.method = function (fn) {
+				return function () {
 					try {
 						const val = fn.apply(this, arguments);
 						return P.resolve(val);
@@ -190,10 +220,10 @@ const utils = {
 
 		if (!utils.isFunction(P.delay)) {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/timers.js#L15
-			P.delay = function(ms) {
+			P.delay = function (ms) {
 				return new P(resolve => setTimeout(resolve, +ms));
 			};
-			P.prototype.delay = function(ms) {
+			P.prototype.delay = function (ms) {
 				return this.then(res => P.delay(ms).then(() => res));
 				//return this.then(res => new P(resolve => setTimeout(() => resolve(res), +ms)));
 			};
@@ -202,16 +232,13 @@ const utils = {
 		if (!utils.isFunction(P.prototype.timeout)) {
 			P.TimeoutError = TimeoutError;
 
-			P.prototype.timeout = function(ms, message) {
+			P.prototype.timeout = function (ms, message) {
 				let timer;
 				const timeout = new P((resolve, reject) => {
 					timer = setTimeout(() => reject(new P.TimeoutError(message)), +ms);
 				});
 
-				return P.race([
-					timeout,
-					this
-				])
+				return P.race([timeout, this])
 					.then(value => {
 						clearTimeout(timer);
 						return value;
@@ -224,22 +251,36 @@ const utils = {
 		}
 
 		if (!utils.isFunction(P.mapSeries)) {
-
-			P.mapSeries = function(arr, fn) {
+			P.mapSeries = function (arr, fn) {
 				const promFn = Promise.method(fn);
 				const res = [];
 
-				return arr.reduce((p, item, i) => {
-					return p.then(r => {
-						res[i] = r;
-						return promFn(item, i);
+				return arr
+					.reduce((p, item, i) => {
+						return p.then(r => {
+							res[i] = r;
+							return promFn(item, i);
+						});
+					}, P.resolve())
+					.then(r => {
+						res[arr.length] = r;
+						return res.slice(1);
 					});
-				}, P.resolve()).then(r => {
-					res[arr.length] = r;
-					return res.slice(1);
-				});
 			};
 		}
+	},
+
+	/**
+	 * Promise control
+	 * if you'd always like to know the result of each promise
+	 *
+	 * @param {Array} promises
+	 * @param {Boolean} settled set true for result of each promise with reject
+	 * @param {Object} promise
+	 * @return {Promise<{[p: string]: PromiseSettledResult<*>}>|Promise<unknown[]>}
+	 */
+	promiseAllControl(promises, settled = false, promise = Promise) {
+		return settled ? promise.allSettled(promises) : promise.all(promises);
 	},
 
 	/**
@@ -249,7 +290,7 @@ const utils = {
 	 */
 	clearRequireCache(filename) {
 		/* istanbul ignore next */
-		Object.keys(require.cache).forEach(function(key) {
+		Object.keys(require.cache).forEach(function (key) {
 			if (key == filename) {
 				delete require.cache[key];
 			}
@@ -266,7 +307,6 @@ const utils = {
 	match(text, pattern) {
 		// Simple patterns
 		if (pattern.indexOf("?") == -1) {
-
 			// Exact match (eg. "prefix.event")
 			const firstStarPosition = pattern.indexOf("*");
 			if (firstStarPosition == -1) {
@@ -328,8 +368,7 @@ const utils = {
 	 * @param {String} msg
 	 */
 	deprecate(prop, msg) {
-		if (arguments.length == 1)
-			msg = prop;
+		if (arguments.length == 1) msg = prop;
 
 		if (deprecateList.indexOf(prop) === -1) {
 			// eslint-disable-next-line no-console
@@ -383,14 +422,13 @@ const utils = {
 	 * @param {String} p - directory path
 	 */
 	makeDirs(p) {
-		p.split(path.sep)
-			.reduce((prevPath, folder) => {
-				const currentPath = path.join(prevPath, folder, path.sep);
-				if (!fs.existsSync(currentPath)) {
-					fs.mkdirSync(currentPath);
-				}
-				return currentPath;
-			}, "");
+		p.split(path.sep).reduce((prevPath, folder) => {
+			const currentPath = path.join(prevPath, folder, path.sep);
+			if (!fs.existsSync(currentPath)) {
+				fs.mkdirSync(currentPath);
+			}
+			return currentPath;
+		}, "");
 	},
 
 	/**
@@ -417,8 +455,7 @@ const utils = {
 		if (!results) {
 			// Nothing could be extracted from the given string
 			floatValue = parseInt(v, 10);
-			if (Number.isNaN(floatValue))
-				return null;
+			if (Number.isNaN(floatValue)) return null;
 
 			unit = "b";
 		} else {

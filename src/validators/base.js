@@ -10,7 +10,6 @@ const { ValidationError } = require("../errors");
 const _ = require("lodash");
 
 class BaseValidator {
-
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
 			paramName: "params"
@@ -60,6 +59,16 @@ class BaseValidator {
 		const self = this;
 		const paramName = this.opts.paramName;
 
+		const processCheckResponse = function (ctx, handler, res, additionalInfo) {
+			if (res === true) return handler(ctx);
+			else {
+				res = res.map(data => Object.assign(data, additionalInfo));
+				return broker.Promise.reject(
+					new ValidationError("Parameters validation error!", null, res)
+				);
+			}
+		};
+
 		return {
 			name: "Validator",
 			localAction: function validatorMiddleware(handler, action) {
@@ -67,13 +76,19 @@ class BaseValidator {
 				if (action[paramName] && typeof action[paramName] === "object") {
 					const check = self.compile(action[paramName]);
 					return function validateContextParams(ctx) {
-						let res = check(ctx.params != null ? ctx.params : {});
-						if (res === true)
-							return handler(ctx);
-						else {
-							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
-							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
-						}
+						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
+						if (check.async)
+							return res.then(res =>
+								processCheckResponse(ctx, handler, res, {
+									nodeID: ctx.nodeID,
+									action: ctx.action.name
+								})
+							);
+						else
+							return processCheckResponse(ctx, handler, res, {
+								nodeID: ctx.nodeID,
+								action: ctx.action.name
+							});
 					};
 				}
 				return handler;
@@ -84,13 +99,20 @@ class BaseValidator {
 				if (event[paramName] && typeof event[paramName] === "object") {
 					const check = self.compile(event[paramName]);
 					return function validateContextParams(ctx) {
-						let res = check(ctx.params != null ? ctx.params : {});
-						if (res === true)
-							return handler(ctx);
-						else {
-							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, event: ctx.event.name }));
-							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
-						}
+						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
+
+						if (check.async)
+							return res.then(res =>
+								processCheckResponse(ctx, handler, res, {
+									nodeID: ctx.nodeID,
+									event: ctx.event.name
+								})
+							);
+						else
+							return processCheckResponse(ctx, handler, res, {
+								nodeID: ctx.nodeID,
+								event: ctx.event.name
+							});
 					};
 				}
 				return handler;
@@ -98,6 +120,5 @@ class BaseValidator {
 		};
 	}
 }
-
 
 module.exports = BaseValidator;

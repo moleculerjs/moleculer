@@ -9,24 +9,26 @@ const lolex = require("@sinonjs/fake-timers");
 extendExpect(expect);
 
 describe("Test LatencyStrategy constructor", () => {
-
 	it("should be the master", () => {
 		const callbacks = {};
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 		broker.localBus.listenerCount = jest.fn(() => 0);
-		broker.localBus.on = jest.fn((name, fn) => callbacks[name] = fn);
+		broker.localBus.on = jest.fn((name, fn) => (callbacks[name] = fn));
 
 		let strategy = new LatencyStrategy(broker.registry, broker);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(7);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyMaster", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith(
+			"$node.latencyMaster",
+			expect.any(Function)
+		);
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
 
 		// Test callbacks
 		/* Can't work due to bindings
@@ -39,17 +41,19 @@ describe("Test LatencyStrategy constructor", () => {
 		callbacks["$node.pong"]();
 		expect(strategy.processPong).toHaveBeenCalledTimes(1);*/
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(strategy.brokerStopped).toBe(false);
-			expect(strategy.hostMap.size).toBe(0);
-			expect(strategy.hostAvgLatency.size).toBe(0);
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(strategy.brokerStopped).toBe(false);
+				expect(strategy.hostMap.size).toBe(0);
+				expect(strategy.hostAvgLatency.size).toBe(0);
 
-			return broker.stop();
-		});
+				return broker.stop();
+			});
 	});
 
 	it("should be the slave", () => {
-
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 		broker.localBus.listenerCount = jest.fn(() => 1);
 		broker.localBus.on = jest.fn();
@@ -57,19 +61,24 @@ describe("Test LatencyStrategy constructor", () => {
 		let strategy = new LatencyStrategy(broker.registry, broker, {});
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", jasmine.any(Function));
-		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith(
+			"$node.latencySlave.removeHost",
+			expect.any(Function)
+		);
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", expect.any(Function));
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(strategy.hostMap.size).toBe(0);
-			expect(strategy.hostAvgLatency.size).toBe(0);
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(strategy.hostMap.size).toBe(0);
+				expect(strategy.hostAvgLatency.size).toBe(0);
 
-			return broker.stop();
-		});
+				return broker.stop();
+			});
 	});
 
 	it("test without options & transporter", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 		broker.localBus.on = jest.fn();
 
@@ -84,7 +93,6 @@ describe("Test LatencyStrategy constructor", () => {
 	});
 
 	it("test with options", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy(broker.registry, broker, {
@@ -104,7 +112,7 @@ describe("Test LatencyStrategy constructor", () => {
 describe("Test LatencyStrategy.discovery method", () => {
 	let clock;
 
-	beforeAll(() => clock = lolex.install());
+	beforeAll(() => (clock = lolex.install()));
 	afterAll(() => clock.uninstall());
 
 	it("should call sendPing in transit", () => {
@@ -120,24 +128,26 @@ describe("Test LatencyStrategy.discovery method", () => {
 		strategy.pingHosts = jest.fn();
 		broker.transit.sendPing = jest.fn(() => Promise.resolve());
 
-		return strategy.discovery().catch(protectReject).then(() => {
+		return strategy
+			.discovery()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
+				expect(broker.transit.sendPing).toHaveBeenCalledWith();
 
-			expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
-			expect(broker.transit.sendPing).toHaveBeenCalledWith();
+				expect(strategy.pingHosts).toHaveBeenCalledTimes(0);
 
-			expect(strategy.pingHosts).toHaveBeenCalledTimes(0);
+				clock.tick(15500);
 
-			clock.tick(15500);
-
-			expect(strategy.pingHosts).toHaveBeenCalledTimes(1);
-		});
+				expect(strategy.pingHosts).toHaveBeenCalledTimes(1);
+			});
 	});
 });
 
 describe("Test LatencyStrategy.pingHosts method", () => {
 	let clock;
 
-	beforeAll(() => clock = lolex.install());
+	beforeAll(() => (clock = lolex.install()));
 	afterAll(() => clock.uninstall());
 
 	it("should call sendPing in transit", () => {
@@ -159,17 +169,27 @@ describe("Test LatencyStrategy.pingHosts method", () => {
 
 		broker.transit.sendPing = jest.fn(() => Promise.resolve());
 
-		return strategy.pingHosts().catch(protectReject).then(() => {
+		return strategy
+			.pingHosts()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.transit.sendPing).toHaveBeenCalledTimes(2);
+				expect(broker.transit.sendPing.mock.calls[0][0]).toBeAnyOf([
+					"node-a1",
+					"node-a2",
+					"node-a3"
+				]);
+				expect(broker.transit.sendPing.mock.calls[1][0]).toBeAnyOf([
+					"node-b1",
+					"node-b2",
+					"node-b3"
+				]);
 
-			expect(broker.transit.sendPing).toHaveBeenCalledTimes(2);
-			expect(broker.transit.sendPing.mock.calls[0][0]).toBeAnyOf(["node-a1", "node-a2", "node-a3"]);
-			expect(broker.transit.sendPing.mock.calls[1][0]).toBeAnyOf(["node-b1", "node-b2", "node-b3"]);
+				strategy.pingHosts = jest.fn(() => Promise.resolve());
+				clock.tick(15500);
 
-			strategy.pingHosts = jest.fn(() => Promise.resolve());
-			clock.tick(15500);
-
-			expect(strategy.pingHosts).toHaveBeenCalledTimes(1);
-		});
+				expect(strategy.pingHosts).toHaveBeenCalledTimes(1);
+			});
 	});
 });
 
@@ -293,10 +313,12 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 			nodeList: ["node-1", "node-2"]
 		});
 
-		strategy.removeHostMap({ node: {
-			hostname: "host-b",
-			id: "node-3"
-		} });
+		strategy.removeHostMap({
+			node: {
+				hostname: "host-b",
+				id: "node-3"
+			}
+		});
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-1", "node-2"]
@@ -306,10 +328,12 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 	});
 
 	it("should remove 'node-1'", () => {
-		strategy.removeHostMap({ node: {
-			hostname: "host-a",
-			id: "node-1"
-		} });
+		strategy.removeHostMap({
+			node: {
+				hostname: "host-a",
+				id: "node-1"
+			}
+		});
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-2"]
@@ -319,17 +343,21 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 	});
 
 	it("should remove 'node-2' & emit event", () => {
-		strategy.removeHostMap({ node: {
-			hostname: "host-a",
-			id: "node-2"
-		} });
+		strategy.removeHostMap({
+			node: {
+				hostname: "host-a",
+				id: "node-2"
+			}
+		});
 
 		expect(strategy.hostMap.get("host-a")).toBeUndefined();
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.emit).toHaveBeenCalledWith("$node.latencySlave.removeHost", "host-a");
+		expect(broker.localBus.emit).toHaveBeenCalledWith(
+			"$node.latencySlave.removeHost",
+			"host-a"
+		);
 	});
-
 });
 
 describe("Test LatencyStrategy.updateLatency & removeHostLatency method", () => {
@@ -357,9 +385,7 @@ describe("Test LatencyStrategy.updateLatency & removeHostLatency method", () => 
 });
 
 describe("Test LatencyStrategy.select method", () => {
-
 	it("test without latency data (random)", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy(broker.registry, broker, {
@@ -375,18 +401,19 @@ describe("Test LatencyStrategy.select method", () => {
 			{ b: "now", node: { id: "c" } }
 		];
 
-		return broker.start().catch(protectReject).then(() => {
-			expect(strategy.select(list)).toBeAnyOf(list);
-			expect(strategy.select(list)).toBeAnyOf(list);
-			expect(strategy.select(list)).toBeAnyOf(list);
+		return broker
+			.start()
+			.catch(protectReject)
+			.then(() => {
+				expect(strategy.select(list)).toBeAnyOf(list);
+				expect(strategy.select(list)).toBeAnyOf(list);
+				expect(strategy.select(list)).toBeAnyOf(list);
 
-			return broker.stop;
-		});
-
+				return broker.stop;
+			});
 	});
 
 	it("test with latency data (where node has a low latency)", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy(broker.registry, broker, {
@@ -409,11 +436,9 @@ describe("Test LatencyStrategy.select method", () => {
 		expect(strategy.select(list)).toBe(list[1]);
 		expect(strategy.select(list)).toBe(list[1]);
 		expect(strategy.select(list)).toBe(list[1]);
-
 	});
 
 	it("test with latency data (where all nodes have some latency)", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy(broker.registry, broker, {
@@ -437,11 +462,9 @@ describe("Test LatencyStrategy.select method", () => {
 		expect(strategy.select(list)).toBe(list[1]);
 		expect(strategy.select(list)).toBe(list[1]);
 		expect(strategy.select(list)).toBe(list[1]);
-
 	});
 
 	it("test with latency data (where all we have lots of nodes)", () => {
-
 		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy(broker.registry, broker, {
@@ -471,9 +494,8 @@ describe("Test LatencyStrategy.select method", () => {
 			{ b: "ccccc", node: { hostname: "c" } }
 		];
 
-		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
-		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
-		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
-
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10]]);
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10]]);
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10]]);
 	});
 });

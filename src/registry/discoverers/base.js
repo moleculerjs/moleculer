@@ -14,7 +14,6 @@ const _ = require("lodash");
  * @class BaseDiscoverer
  */
 class BaseDiscoverer {
-
 	/**
 	 * Creates an instance of Discoverer.
 	 *
@@ -29,7 +28,7 @@ class BaseDiscoverer {
 
 			disableHeartbeatChecks: false,
 			disableOfflineNodeRemoving: false,
-			cleanOfflineNodesTimeout: 10 * 60, // 10 minutes
+			cleanOfflineNodesTimeout: 10 * 60 // 10 minutes
 		});
 
 		// Timer variables
@@ -95,12 +94,16 @@ class BaseDiscoverer {
 
 		if (this.opts.heartbeatInterval > 0) {
 			// HB timer
-			const time = this.opts.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
+			const time =
+				this.opts.heartbeatInterval * 1000 + (Math.round(Math.random() * 1000) - 500); // random +/- 500ms
 			this.heartbeatTimer = setInterval(() => this.beat(), time);
 			this.heartbeatTimer.unref();
 
 			// Check expired heartbeats of remote nodes timer
-			this.checkNodesTimer = setInterval(() => this.checkRemoteNodes(), this.opts.heartbeatTimeout * 1000);
+			this.checkNodesTimer = setInterval(
+				() => this.checkRemoteNodes(),
+				this.opts.heartbeatTimeout * 1000
+			);
 			this.checkNodesTimer.unref();
 
 			// Clean offline nodes timer
@@ -142,7 +145,8 @@ class BaseDiscoverer {
 	 */
 	beat() {
 		// Update the local CPU usage before sending heartbeat.
-		return this.localNode.updateLocalInfo(this.broker.getCpuUsage)
+		return this.localNode
+			.updateLocalInfo(this.broker.getCpuUsage)
 			.then(() => this.sendHeartbeat());
 	}
 
@@ -150,7 +154,7 @@ class BaseDiscoverer {
 	 * Check all registered remote nodes are available.
 	 */
 	checkRemoteNodes() {
-		if (this.disableHeartbeatChecks) return;
+		if (this.opts.disableHeartbeatChecks) return;
 
 		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
@@ -172,7 +176,7 @@ class BaseDiscoverer {
 	 * Check offline nodes. Remove which is older than 10 minutes.
 	 */
 	checkOfflineNodes() {
-		if (this.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
+		if (this.opts.disableOfflineNodeRemoving || !this.opts.cleanOfflineNodesTimeout) return;
 
 		const now = Math.round(process.uptime());
 		this.registry.nodes.toArray().forEach(node => {
@@ -184,7 +188,9 @@ class BaseDiscoverer {
 			}
 
 			if (now - node.lastHeartbeatTime > this.opts.cleanOfflineNodesTimeout) {
-				this.logger.warn(`Removing offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
+				this.logger.warn(
+					`Removing offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`
+				);
 				this.registry.nodes.delete(node.id);
 			}
 		});
@@ -206,7 +212,10 @@ class BaseDiscoverer {
 				if (payload.seq != null && node.seq !== payload.seq) {
 					// Some services changed on the remote node. Request a new INFO
 					this.discoverNode(nodeID);
-				} else if (payload.instanceID != null && !node.instanceID.startsWith(payload.instanceID)) {
+				} else if (
+					payload.instanceID != null &&
+					!node.instanceID.startsWith(payload.instanceID)
+				) {
 					// The node has been restarted. Request a new INFO
 					this.discoverNode(nodeID);
 				} else {
@@ -293,7 +302,6 @@ class BaseDiscoverer {
 	remoteNodeDisconnected(nodeID, isUnexpected) {
 		return this.registry.nodes.disconnected(nodeID, isUnexpected);
 	}
-
 }
 
 module.exports = BaseDiscoverer;

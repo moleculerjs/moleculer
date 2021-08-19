@@ -6,8 +6,8 @@
 
 "use strict";
 
-const { defaultsDeep } 	= require("lodash");
-const Transporter 		= require("./base");
+const { defaultsDeep } = require("lodash");
+const Transporter = require("./base");
 
 /**
  * Lightweight transporter for Kafka
@@ -23,7 +23,6 @@ const Transporter 		= require("./base");
  * @extends {Transporter}
  */
 class KafkaTransporter extends Transporter {
-
 	/**
 	 * Creates an instance of KafkaTransporter.
 	 *
@@ -49,8 +48,7 @@ class KafkaTransporter extends Transporter {
 			customPartitioner: undefined,
 
 			// ConsumerGroup options. More info: https://github.com/SOHU-Co/kafka-node#consumergroupoptions-topics
-			consumer: {
-			},
+			consumer: {},
 
 			// Advanced options for `send`. More info: https://github.com/SOHU-Co/kafka-node#sendpayloads-cb
 			publish: {
@@ -76,15 +74,23 @@ class KafkaTransporter extends Transporter {
 			let Kafka;
 			try {
 				Kafka = require("kafka-node");
-			} catch(err) {
+			} catch (err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'kafka-node' package is missing. Please install it with 'npm install kafka-node --save' command.", err, true);
+				this.broker.fatal(
+					"The 'kafka-node' package is missing. Please install it with 'npm install kafka-node --save' command.",
+					err,
+					true
+				);
 			}
 
 			this.client = new Kafka.KafkaClient(this.opts.client);
 
 			// Create Producer
-			this.producer = new Kafka.Producer(this.client, this.opts.producer, this.opts.customPartitioner);
+			this.producer = new Kafka.Producer(
+				this.client,
+				this.opts.producer,
+				this.opts.customPartitioner
+			);
 			this.producer.on("ready", () => {
 				/* Moved to ConsumerGroup
 				// Create Consumer
@@ -116,10 +122,8 @@ class KafkaTransporter extends Transporter {
 				this.logger.error("Kafka Producer error", e.message);
 				this.logger.debug(e);
 
-				if (!this.connected)
-					reject(e);
+				if (!this.connected) reject(e);
 			});
-
 		});
 	}
 
@@ -154,21 +158,23 @@ class KafkaTransporter extends Transporter {
 		topics = topics.map(({ cmd, nodeID }) => this.getTopicName(cmd, nodeID));
 
 		return new this.broker.Promise((resolve, reject) => {
-
-			this.producer.createTopics(topics, true, (err) => {
+			this.producer.createTopics(topics, true, err => {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Unable to create topics!", topics, err);
 					return reject(err);
 				}
 
-				const consumerOptions = Object.assign({
-					id: "default-kafka-consumer",
-					kafkaHost: this.opts.host,
-					groupId: this.broker.instanceID, //this.nodeID,
-					fromOffset: "latest",
-					encoding: "buffer",
-				}, this.opts.consumer);
+				const consumerOptions = Object.assign(
+					{
+						id: "default-kafka-consumer",
+						kafkaHost: this.opts.host,
+						groupId: this.broker.instanceID, //this.nodeID,
+						fromOffset: "latest",
+						encoding: "buffer"
+					},
+					this.opts.consumer
+				);
 
 				const Kafka = require("kafka-node");
 				this.consumer = new Kafka.ConsumerGroup(consumerOptions, topics);
@@ -178,8 +184,7 @@ class KafkaTransporter extends Transporter {
 					this.logger.error("Kafka Consumer error", e.message);
 					this.logger.debug(e);
 
-					if (!this.connected)
-						reject(e);
+					if (!this.connected) reject(e);
 				});
 
 				this.consumer.on("message", message => {
@@ -241,19 +246,24 @@ class KafkaTransporter extends Transporter {
 		if (!this.client) return this.broker.Promise.resolve();
 
 		return new this.broker.Promise((resolve, reject) => {
-			this.producer.send([{
-				topic: this.getTopicName(packet.type, packet.target),
-				messages: [data],
-				partition: this.opts.publish.partition,
-				attributes: this.opts.publish.attributes,
-			}], (err) => {
-				/* istanbul ignore next */
-				if (err) {
-					this.logger.error("Publish error", err);
-					reject(err);
+			this.producer.send(
+				[
+					{
+						topic: this.getTopicName(packet.type, packet.target),
+						messages: [data],
+						partition: this.opts.publish.partition,
+						attributes: this.opts.publish.attributes
+					}
+				],
+				err => {
+					/* istanbul ignore next */
+					if (err) {
+						this.logger.error("Publish error", err);
+						reject(err);
+					}
+					resolve();
 				}
-				resolve();
-			});
+			);
 		});
 	}
 }

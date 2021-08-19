@@ -14,7 +14,6 @@ const BaseDiscoverer = require("./base");
  * @class Discoverer
  */
 class LocalDiscoverer extends BaseDiscoverer {
-
 	/**
 	 * Creates an instance of Discoverer.
 	 *
@@ -62,9 +61,13 @@ class LocalDiscoverer extends BaseDiscoverer {
 		if (!this.transit) return this.Promise.resolve();
 
 		const info = this.broker.getLocalNodeInfo();
-		return this.transit.sendNodeInfo(info, nodeID);
-	}
 
+		const p =
+			!nodeID && this.broker.options.disableBalancer
+				? this.transit.tx.makeBalancedSubscriptions()
+				: this.Promise.resolve();
+		return p.then(() => this.transit.sendNodeInfo(info, nodeID));
+	}
 }
 
 module.exports = LocalDiscoverer;

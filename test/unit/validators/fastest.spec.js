@@ -3,9 +3,9 @@
 const FastestValidator = require("../../../src/validators").Fastest;
 const ServiceBroker = require("../../../src/service-broker");
 const { ValidationError } = require("../../../src/errors");
+const { protectReject } = require("../utils");
 
 describe("Test FastestValidator constructor", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor without opts", () => {
@@ -26,11 +26,9 @@ describe("Test FastestValidator constructor", () => {
 			useNewCustomCheckerFunction: true
 		});
 	});
-
 });
 
 describe("Test FastestValidator 'init' method", () => {
-
 	it("should set broker", () => {
 		const broker = new ServiceBroker({ logger: false });
 
@@ -43,7 +41,6 @@ describe("Test FastestValidator 'init' method", () => {
 });
 
 describe("Test Validator.compile", () => {
-
 	const v = new FastestValidator();
 	v.validator.compile = jest.fn(() => true);
 
@@ -55,7 +52,6 @@ describe("Test Validator.compile", () => {
 });
 
 describe("Test Validator.validate", () => {
-
 	const v = new FastestValidator();
 	v.validator.validate = jest.fn(() => true);
 
@@ -70,7 +66,6 @@ describe("Test Validator.validate", () => {
 		v.validator.validate = jest.fn(() => []);
 		expect(() => {
 			v.validate({}, {});
-
 		}).toThrow(ValidationError);
 	});
 });
@@ -82,5 +77,68 @@ describe("Test Validator.convertSchemaToMoleculer", () => {
 		const obj = { a: 5 };
 
 		expect(v.convertSchemaToMoleculer(obj)).toBe(obj);
+	});
+});
+
+describe("Test Validator with context", () => {
+	const broker = new ServiceBroker({ logger: false });
+	broker.createService({
+		name: "test",
+		actions: {
+			withCustomValidation: {
+				params: {
+					c: {
+						type: "string",
+						messages: {
+							isTest: "The 'meta.isTest' field is required."
+						},
+						custom: (value, schema, path, parent, context) => {
+							const { meta: ctx } = context;
+							if (!(ctx && "meta" in ctx && "isTest" in ctx.meta)) {
+								return [
+									{
+										type: "isTest",
+										actual: undefined
+									}
+								];
+							}
+							return value;
+						}
+					}
+				},
+				handler: jest.fn(() => 123)
+			}
+		}
+	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
+	it("should validate with meta", () => {
+		return broker
+			.call("test.withCustomValidation", { c: "asd" }, { meta: { isTest: true } })
+			.catch(protectReject)
+			.then(res => {
+				expect(res).toEqual(123);
+			});
+	});
+
+	it("should throw ValidationError without meta", () => {
+		return broker
+			.call("test.withCustomValidation", { c: "asd" })
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBeInstanceOf(ValidationError);
+				expect(err.data).toEqual([
+					{
+						action: "test.withCustomValidation",
+						actual: undefined,
+						field: "c",
+						message: "The 'meta.isTest' field is required.",
+						nodeID: broker.nodeID,
+						type: "isTest"
+					}
+				]);
+			});
 	});
 });

@@ -12,6 +12,7 @@ const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray } = require("../../utils");
+const P = require("../../packets");
 
 let ETCD3;
 
@@ -21,7 +22,6 @@ let ETCD3;
  * @class Etcd3Discoverer
  */
 class Etcd3Discoverer extends BaseDiscoverer {
-
 	/**
 	 * Creates an instance of Discoverer.
 	 *
@@ -31,15 +31,14 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 * @memberof Etcd3Discoverer
 	 */
 	constructor(opts) {
-		if (typeof opts === "string")
-			opts = { etcd: { hosts: opts.replace(/etcd3:\/\//g, "") } };
+		if (typeof opts === "string") opts = { etcd: { hosts: opts.replace(/etcd3:\/\//g, "") } };
 
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
 			etcd: undefined,
 			serializer: "JSON",
-			fullCheck: 10, // Disable with `0` or `null`
+			fullCheck: 10 // Disable with `0` or `null`
 		});
 
 		// Loop counter for full checks. Starts from a random value for better distribution
@@ -71,14 +70,24 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			ETCD3 = require("etcd3");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'etcd3' package is missing. Please install it with 'npm install etcd3 --save' command.", err, true);
+			this.broker.fatal(
+				"The 'etcd3' package is missing. Please install it with 'npm install etcd3 --save' command.",
+				err,
+				true
+			);
 		}
 
-		this.logger.warn(kleur.yellow().bold("Etcd3 Discoverer is an EXPERIMENTAL module. Do NOT use it in production!"));
+		this.logger.warn(
+			kleur
+				.yellow()
+				.bold("Etcd3 Discoverer is an EXPERIMENTAL module. Do NOT use it in production!")
+		);
 
 		this.instanceHash = this.broker.instanceID.substring(0, 8);
 
-		this.PREFIX = `moleculer${this.broker.namespace ? "-" + this.broker.namespace : ""}/discovery`;
+		this.PREFIX = `moleculer${
+			this.broker.namespace ? "-" + this.broker.namespace : ""
+		}/discovery`;
 		this.BEAT_KEY = `${this.PREFIX}/beats/${this.broker.nodeID}/${this.instanceHash}`;
 		this.INFO_KEY = `${this.PREFIX}/info/${this.broker.nodeID}`;
 
@@ -95,19 +104,28 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 * Stop discoverer clients.
 	 */
 	stop() {
-		return super.stop()
-			.then(() => {
-				if (this.client)
-					return this.client.close();
-			});
+		return super.stop().then(() => {
+			if (this.client) return this.client.close();
+		});
 	}
 
 	/**
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, rate: true, description: "Number of Service Registry fetching from etcd" });
-		this.broker.metrics.register({ name: METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS, description: "Time of Service Registry fetching from etcd" });
+		this.broker.metrics.register({
+			name: METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL,
+			type: METRIC.TYPE_COUNTER,
+			rate: true,
+			description: "Number of Service Registry fetching from etcd"
+		});
+		this.broker.metrics.register({
+			name: METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TIME,
+			type: METRIC.TYPE_HISTOGRAM,
+			quantiles: true,
+			unit: METRIC.UNIT_MILLISECONDS,
+			description: "Time of Service Registry fetching from etcd"
+		});
 	}
 
 	/**
@@ -144,12 +162,30 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				if (!leaseBeat) {
 					// Create a new for lease
 					leaseBeat = this.client.lease(this.opts.heartbeatTimeout);
-					return leaseBeat.grant() // Waiting for the lease creation on the server
-						.then(() => this.leaseBeat = leaseBeat);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseBeat.on("lost", err => {
+						this.logger.warn(
+							"Lost heartbeat lease. Dropping lease and retrying heartbeat. Error:",
+							err.message
+						);
+						leaseBeat.release();
+						this.leaseBeat = null;
+						// if broker is connected, send heartbeat immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendHeartbeat();
+						}
+					});
+
+					return leaseBeat
+						.grant() // Waiting for the lease creation on the server
+						.then(() => (this.leaseBeat = leaseBeat));
 				}
 			})
-			.then(() => this.leaseBeat.put(key).value(this.serializer.serialize(data)))
-			.then(() => this.lastBeatSeq = seq)
+			.then(() =>
+				this.leaseBeat.put(key).value(this.serializer.serialize(data, P.PACKET_HEARTBEAT))
+			)
+			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
 			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
 			.then(() => {
@@ -163,7 +199,8 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 */
 	collectOnlineNodes() {
 		// Get the current node list so that we can check the disconnected nodes.
-		const prevNodes = this.registry.nodes.list({ onlyAvailable: true, withServices: false })
+		const prevNodes = this.registry.nodes
+			.list({ onlyAvailable: true, withServices: false })
 			.map(node => node.id)
 			.filter(nodeID => nodeID !== this.broker.nodeID);
 
@@ -175,27 +212,37 @@ class Etcd3Discoverer extends BaseDiscoverer {
 					//this.logger.debug("Full check", this.idx);
 					this.idx = 0;
 
-					return this.client.getAll().prefix(`${this.PREFIX}/beats/`).buffers()
-						.then(result => Object.values(result).map(raw => {
-							try {
-								return this.serializer.deserialize(raw);
-							} catch(err) {
-								this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
-							}
-						}));
+					return this.client
+						.getAll()
+						.prefix(`${this.PREFIX}/beats/`)
+						.buffers()
+						.then(result =>
+							Object.values(result).map(raw => {
+								try {
+									return this.serializer.deserialize(raw, P.PACKET_INFO);
+								} catch (err) {
+									this.logger.warn("Unable to parse HEARTBEAT packet", err, raw);
+								}
+							})
+						);
 				} else {
 					//this.logger.debug("Lazy check", this.idx);
 					// Lazy check
-					return this.client.getAll().prefix(`${this.PREFIX}/beats/`).keys()
-						.then(keys => keys.map(key => {
-							const p = key.substring(`${this.PREFIX}/beats/`.length).split("/");
-							return {
-								key,
-								sender: p[0],
-								instanceID: p[1],
-								seq: Number(p[2])
-							};
-						}));
+					return this.client
+						.getAll()
+						.prefix(`${this.PREFIX}/beats/`)
+						.keys()
+						.then(keys =>
+							keys.map(key => {
+								const p = key.substring(`${this.PREFIX}/beats/`.length).split("/");
+								return {
+									key,
+									sender: p[0],
+									instanceID: p[1],
+									seq: Number(p[2])
+								};
+							})
+						);
 				}
 			})
 
@@ -212,7 +259,9 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				if (prevNodes.length > 0) {
 					// Disconnected nodes
 					prevNodes.map(nodeID => {
-						this.logger.info(`The node '${nodeID}' is not available. Removing from registry...`);
+						this.logger.info(
+							`The node '${nodeID}' is not available. Removing from registry...`
+						);
 						this.remoteNodeDisconnected(nodeID, true);
 					});
 				}
@@ -225,16 +274,18 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	discoverNode(nodeID) {
-		return this.client.get(`${this.PREFIX}/info/${nodeID}`).buffer()
+		return this.client
+			.get(`${this.PREFIX}/info/${nodeID}`)
+			.buffer()
 			.then(res => {
 				if (!res) {
 					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
 					return;
 				}
 				try {
-					const info = this.serializer.deserialize(res);
+					const info = this.serializer.deserialize(res, P.PACKET_INFO);
 					return this.processRemoteNodeInfo(nodeID, info);
-				} catch(err) {
+				} catch (err) {
 					this.logger.warn("Unable to parse INFO packet", err, res);
 				}
 			});
@@ -254,16 +305,23 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();
 
-		const payload = Object.assign({
-			ver: this.broker.PROTOCOL_VERSION,
-			sender: this.broker.nodeID
-		}, info);
+		const payload = Object.assign(
+			{
+				ver: this.broker.PROTOCOL_VERSION,
+				sender: this.broker.nodeID
+			},
+			info
+		);
 
 		const key = this.INFO_KEY;
 		const seq = this.localNode.seq;
 		let leaseInfo = this.leaseInfo;
 
-		return this.Promise.resolve()
+		const p =
+			!nodeID && this.broker.options.disableBalancer
+				? this.transit.tx.makeBalancedSubscriptions()
+				: this.Promise.resolve();
+		return p
 			.then(() => {
 				if (leaseInfo) {
 					if (seq != this.lastInfoSeq) {
@@ -276,17 +334,32 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => {
 				if (!leaseInfo) {
 					leaseInfo = this.client.lease(60);
-					return leaseInfo.grant() // Waiting for the lease creation on the server
-						.then(() => this.leaseInfo = leaseInfo);
+
+					//Handle lease-lost event. Release lease when lost. Next heartbeat will request a new lease
+					leaseInfo.on("lost", err => {
+						this.logger.warn(
+							"Lost info lease. Dropping lease and retrying info-send. Error:",
+							err.message
+						);
+						leaseInfo.release();
+						this.leaseInfo = null;
+						// if broker is connected, send local node info immediately. Otherwise it is sent on reconnect.
+						if (this.broker.transit.connected) {
+							this.sendLocalNodeInfo(nodeID);
+						}
+					});
+
+					return leaseInfo
+						.grant() // Waiting for the lease creation on the server
+						.then(() => (this.leaseInfo = leaseInfo));
 				}
 			})
-			.then(() => leaseInfo.put(key).value(this.serializer.serialize(payload)))
+			.then(() => leaseInfo.put(key).value(this.serializer.serialize(payload, P.PACKET_INFO)))
 			.then(() => {
 				this.lastInfoSeq = seq;
 
 				// Sending a new heartbeat because it contains the `seq`
-				if (!nodeID)
-					return this.beat();
+				if (!nodeID) return this.beat();
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to etcd server", err);
@@ -303,12 +376,10 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			.then(() => this.client.delete().key(this.INFO_KEY))
 			.then(() => this.client.delete().key(this.BEAT_KEY))
 			.then(() => {
-				if (this.leaseBeat)
-					return this.leaseBeat.revoke();
+				if (this.leaseBeat) return this.leaseBeat.revoke();
 			})
 			.then(() => {
-				if (this.leaseInfo)
-					return this.leaseInfo.revoke();
+				if (this.leaseInfo) return this.leaseInfo.revoke();
 			});
 	}
 }

@@ -14,7 +14,6 @@ class MyCustomAppender extends Loggers.Base {
 jest.spyOn(MyCustomAppender.prototype, "getLogHandler");
 
 describe("Test LoggerFactory", () => {
-
 	const broker = new ServiceBroker({ logger: false });
 
 	it("test constructor", () => {
@@ -203,7 +202,6 @@ describe("Test LoggerFactory", () => {
 
 			expect(mockInit).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -277,15 +275,15 @@ describe("Test LoggerFactory", () => {
 
 		it("should call log handlers middlewares", () => {
 			broker.middlewares.add({ newLogEntry: jest.fn() });
-			broker.middlewares.callSyncHandlers = jest.fn();
+			jest.spyOn(broker.middlewares, "callSyncHandlers");
 
 			const handler1 = jest.fn();
 			const handler2 = jest.fn();
 
 			loggerFactory.appenders = [
-				{ getLogHandler: jest.fn(bindings => handler1 ) },
-				{ getLogHandler: jest.fn(bindings => null ) },
-				{ getLogHandler: jest.fn(bindings => handler2 ) }
+				{ getLogHandler: jest.fn(bindings => handler1) },
+				{ getLogHandler: jest.fn(bindings => null) },
+				{ getLogHandler: jest.fn(bindings => handler2) }
 			];
 
 			const bindings = { mod: "posts", nodeID: "node-1" };
@@ -294,13 +292,32 @@ describe("Test LoggerFactory", () => {
 			logger.info("message", { a: 5 });
 
 			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledTimes(1);
-			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledWith("newLogEntry", ["info", ["message", { a: 5 }], bindings], {});
+			expect(broker.middlewares.callSyncHandlers).toHaveBeenCalledWith(
+				"newLogEntry",
+				["info", ["message", { a: 5 }], bindings],
+				{}
+			);
 
 			expect(handler1).toHaveBeenCalledTimes(1);
 			expect(handler1).toHaveBeenCalledWith("info", ["message", { a: 5 }]);
 
 			expect(handler2).toHaveBeenCalledTimes(1);
 			expect(handler2).toHaveBeenCalledWith("info", ["message", { a: 5 }]);
+		});
+
+		it("should call log handlers middlewares without appenders", () => {
+			const newLogEntry = jest.fn();
+			broker.middlewares.add({ newLogEntry });
+
+			loggerFactory.appenders = [];
+
+			const bindings = { mod: "posts", nodeID: "node-1" };
+			const logger = loggerFactory.getLogger(bindings);
+
+			logger.info("message", { a: 5 });
+
+			expect(newLogEntry).toHaveBeenCalledTimes(1);
+			expect(newLogEntry).toHaveBeenCalledWith("info", ["message", { a: 5 }], bindings);
 		});
 	});
 
@@ -311,9 +328,13 @@ describe("Test LoggerFactory", () => {
 			expect(loggerFactory.getBindingsKey()).toBe("");
 			expect(loggerFactory.getBindingsKey({})).toBe("||");
 			expect(loggerFactory.getBindingsKey({ mod: "service" })).toBe("||service");
-			expect(loggerFactory.getBindingsKey({ mod: "service", ns: "namespace", nodeID: "node-123" })).toBe("node-123|namespace|service");
+			expect(
+				loggerFactory.getBindingsKey({
+					mod: "service",
+					ns: "namespace",
+					nodeID: "node-123"
+				})
+			).toBe("node-123|namespace|service");
 		});
 	});
-
 });
-

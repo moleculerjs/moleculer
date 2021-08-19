@@ -2,7 +2,7 @@ const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("../unit/utils");
 
 describe("Test Service handlers", () => {
-
+	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
 	let stoppedHandler = jest.fn();
@@ -13,6 +13,7 @@ describe("Test Service handlers", () => {
 	broker.createService({
 		name: "posts",
 
+		merged: mergedHandler,
 		created: createdHandler,
 		started: startedHandler,
 		stopped: stoppedHandler,
@@ -20,6 +21,10 @@ describe("Test Service handlers", () => {
 		events: {
 			"user.*": eventHandler
 		}
+	});
+
+	it("should call merged handler", () => {
+		expect(mergedHandler).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call created handler", () => {
@@ -35,7 +40,12 @@ describe("Test Service handlers", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
+		expect(eventHandler).toHaveBeenCalledWith(
+			{ id: 1, name: "John" },
+			"node-1",
+			"user.created",
+			expect.any(broker.ContextFactory)
+		);
 	});
 
 	it("should call stop handler", () => {
@@ -46,7 +56,7 @@ describe("Test Service handlers", () => {
 });
 
 describe("Test Service handlers after broker.start", () => {
-
+	let mergedHandler = jest.fn();
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
 	let stoppedHandler = jest.fn();
@@ -60,6 +70,7 @@ describe("Test Service handlers after broker.start", () => {
 		broker.createService({
 			name: "posts",
 
+			merged: mergedHandler,
 			created: createdHandler,
 			started: startedHandler,
 			stopped: stoppedHandler,
@@ -70,8 +81,9 @@ describe("Test Service handlers after broker.start", () => {
 		});
 	});
 
-	it("should call created & started handler", () => {
+	it("should call merged, created & started handler", () => {
 		return broker.Promise.delay(100).then(() => {
+			expect(mergedHandler).toHaveBeenCalledTimes(1);
 			expect(createdHandler).toHaveBeenCalledTimes(1);
 			expect(startedHandler).toHaveBeenCalledTimes(1);
 		});
@@ -80,7 +92,12 @@ describe("Test Service handlers after broker.start", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created", expect.any(broker.ContextFactory));
+		expect(eventHandler).toHaveBeenCalledWith(
+			{ id: 1, name: "John" },
+			"node-1",
+			"user.created",
+			expect.any(broker.ContextFactory)
+		);
 	});
 
 	it("should call stop handler", () => {
@@ -89,7 +106,6 @@ describe("Test Service handlers after broker.start", () => {
 		});
 	});
 });
-
 
 describe("Test Service requesting during stopping", () => {
 	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
@@ -105,7 +121,7 @@ describe("Test Service requesting during stopping", () => {
 		},
 
 		stopped() {
-			return new this.Promise((resolve) => {
+			return new this.Promise(resolve => {
 				resolver = resolve;
 			});
 		}
@@ -123,7 +139,8 @@ describe("Test Service requesting during stopping", () => {
 	beforeAll(() => Promise.all([broker1.start(), broker2.start()]));
 
 	it("should call action", () => {
-		return broker1.call("posts.find")
+		return broker1
+			.call("posts.find")
 			.catch(protectReject)
 			.then(() => {
 				expect(schema1.actions.find).toHaveBeenCalledTimes(1);

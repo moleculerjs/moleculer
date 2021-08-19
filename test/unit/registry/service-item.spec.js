@@ -3,7 +3,6 @@
 let ServiceItem = require("../../../src/registry/service-item");
 
 describe("Test ServiceItem without version", () => {
-
 	let node = { id: "server-1" };
 
 	const serviceDef = {
@@ -42,7 +41,12 @@ describe("Test ServiceItem without version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ fullName: "v2.posts", version: 2, settings: { b: 3 }, metadata: { scalable: true } });
+		svc.update({
+			fullName: "v2.posts",
+			version: 2,
+			settings: { b: 3 },
+			metadata: { scalable: true }
+		});
 		expect(svc.fullName).toBe("v2.posts");
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });
@@ -60,11 +64,9 @@ describe("Test ServiceItem without version", () => {
 		svc.addEvent({ name: "user.created" });
 		expect(Object.keys(svc.events).length).toBe(1);
 	});
-
 });
 
 describe("Test ServiceItem with version", () => {
-
 	let node = { id: "server-1" };
 	const serviceDef = {
 		name: "posts",
@@ -103,7 +105,12 @@ describe("Test ServiceItem with version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ fullName: "v2.posts", version: 2, settings: { b: 3 }, metadata: { scalable: true } });
+		svc.update({
+			fullName: "v2.posts",
+			version: 2,
+			settings: { b: 3 },
+			metadata: { scalable: true }
+		});
 		expect(svc.fullName).toBe("v2.posts");
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });

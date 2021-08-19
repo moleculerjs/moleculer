@@ -7,9 +7,7 @@ const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
 describe("Test ConsoleReporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new ConsoleReporter();
 
@@ -26,7 +24,7 @@ describe("Test ConsoleReporter class", () => {
 				interval: 5,
 				logger: null,
 				colors: true,
-				onlyChanges: true,
+				onlyChanges: true
 			});
 			expect(reporter.lastChanges).toBeInstanceOf(Set);
 		});
@@ -43,7 +41,7 @@ describe("Test ConsoleReporter class", () => {
 				interval: 10,
 				logger: {},
 				colors: false,
-				onlyChanges: false,
+				onlyChanges: false
 			});
 
 			expect(reporter.opts).toEqual({
@@ -57,15 +55,14 @@ describe("Test ConsoleReporter class", () => {
 				interval: 10,
 				logger: {},
 				colors: false,
-				onlyChanges: false,
+				onlyChanges: false
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should start timer", () => {
@@ -103,12 +100,11 @@ describe("Test ConsoleReporter class", () => {
 
 			expect(reporter.print).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test print method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		let LOG_STORE = [];
@@ -118,7 +114,6 @@ describe("Test ConsoleReporter class", () => {
 		const registry = new MetricRegistry(broker);
 
 		it("should print lines to the logger", () => {
-
 			const reporter = new ConsoleReporter({
 				interval: 0,
 				colors: false,
@@ -128,17 +123,36 @@ describe("Test ConsoleReporter class", () => {
 			reporter.init(registry);
 
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -152,12 +166,11 @@ describe("Test ConsoleReporter class", () => {
 
 			expect(LOG_STORE).toMatchSnapshot();
 		});
-
 	});
 
 	describe("Test print method with onlyChanges", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 
 		let LOG_STORE = [];
@@ -184,17 +197,36 @@ describe("Test ConsoleReporter class", () => {
 
 		it("should not print lines to the logger", () => {
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -222,7 +254,5 @@ describe("Test ConsoleReporter class", () => {
 			expect(LOG_STORE).toMatchSnapshot();
 			expect(reporter.lastChanges.size).toBe(0);
 		});
-
 	});
-
 });

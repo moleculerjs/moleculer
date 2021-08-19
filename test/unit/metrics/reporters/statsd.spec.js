@@ -16,9 +16,7 @@ const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
 describe("Test StatsDReporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new StatsDReporter();
 
@@ -35,7 +33,7 @@ describe("Test StatsDReporter class", () => {
 				host: "localhost",
 				port: 8125,
 
-				maxPayloadSize: 1300,
+				maxPayloadSize: 1300
 			});
 		});
 
@@ -51,7 +49,7 @@ describe("Test StatsDReporter class", () => {
 				host: "localhost",
 				port: 8888,
 
-				maxPayloadSize: 600,
+				maxPayloadSize: 600
 			});
 
 			expect(reporter.opts).toEqual({
@@ -65,15 +63,14 @@ describe("Test StatsDReporter class", () => {
 				host: "localhost",
 				port: 8888,
 
-				maxPayloadSize: 600,
+				maxPayloadSize: 600
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		it("should start timer & create directory", () => {
@@ -88,7 +85,6 @@ describe("Test StatsDReporter class", () => {
 
 			expect(reporter.flush).toBeCalledTimes(1);
 		});
-
 	});
 
 	describe("Test labelsToTags method", () => {
@@ -100,15 +96,16 @@ describe("Test StatsDReporter class", () => {
 		it("should convert labels to filename compatible string", () => {
 			expect(reporter.labelsToTags()).toBe("");
 			expect(reporter.labelsToTags({})).toBe("");
-			expect(reporter.labelsToTags({
-				a: 5,
-				b: "John",
-				c: true,
-				d: null,
-				e: "\"Hello ' Mol:ec?uler\""
-			})).toBe("a:5,b:John,c:true,d:null,e:\\\"Hello ' Mol:ec?uler\\\"");
+			expect(
+				reporter.labelsToTags({
+					a: 5,
+					b: "John",
+					c: true,
+					d: null,
+					e: '"Hello \' Mol:ec?uler"'
+				})
+			).toBe('a:5,b:John,c:true,d:null,e:\\"Hello \' Mol:ec?uler\\"');
 		});
-
 	});
 
 	describe("Test flush method", () => {
@@ -140,14 +137,13 @@ describe("Test StatsDReporter class", () => {
 
 			expect(reporter.generateStatsDSeries).toBeCalledTimes(1);
 			expect(reporter.sendChunks).toBeCalledTimes(1);
-			expect(reporter.sendChunks).toBeCalledWith([1,2]);
+			expect(reporter.sendChunks).toBeCalledWith([1, 2]);
 		});
-
 	});
 
 	describe("Test sendChunks method with maxPayloadSize", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		const fakeBroker = {
@@ -164,7 +160,7 @@ describe("Test StatsDReporter class", () => {
 			"34567890123456789012345678901234567890123456789012",
 			"45678901234567890123456789012345678901234567890123",
 			"56789012345678901234567890123456789012345678901234",
-			"67890123456789012345678901234567890123456789012345",
+			"67890123456789012345678901234567890123456789012345"
 		];
 
 		it("should call send with chunks", () => {
@@ -192,12 +188,11 @@ describe("Test StatsDReporter class", () => {
 
 			expect(reporter.send).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test sendChunks method without maxPayloadSize", () => {
 		let clock;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 
 		const fakeBroker = {
@@ -214,7 +209,7 @@ describe("Test StatsDReporter class", () => {
 			"34567890123456789012345678901234567890123456789012",
 			"45678901234567890123456789012345678901234567890123",
 			"56789012345678901234567890123456789012345678901234",
-			"67890123456789012345678901234567890123456789012345",
+			"67890123456789012345678901234567890123456789012345"
 		];
 
 		it("should call send with all chunks", () => {
@@ -233,7 +228,6 @@ describe("Test StatsDReporter class", () => {
 
 			expect(reporter.send).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test send method", () => {
@@ -258,7 +252,6 @@ describe("Test StatsDReporter class", () => {
 
 			expect(sockClose).toBeCalledTimes(1);
 		});
-
 	});
 
 	describe("Test generateStatsDSeries & generateStatDLine method", () => {
@@ -272,17 +265,36 @@ describe("Test StatsDReporter class", () => {
 
 		it("should call generateStatDLine", () => {
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
+			registry
+				.register({ name: "test.info", type: "info", description: "Test Info Metric" })
+				.set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
+			registry.register({
+				name: "test.counter",
+				type: "counter",
+				labelNames: ["action"],
+				description: "Test Counter Metric"
+			});
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
+			registry.register({
+				name: "test.gauge-total",
+				type: "gauge",
+				labelNames: ["action"],
+				description: "Test Gauge Metric"
+			});
+			registry.decrement("test.gauge-total", { action: 'users-"John"' }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -295,25 +307,34 @@ describe("Test StatsDReporter class", () => {
 			const res = reporter.generateStatsDSeries();
 
 			expect(res).toEqual([
-				"test.info:\"Test Value\"|s",
+				'test.info:"Test Value"|s',
 				"test.counter:5|c|#",
 				"test.counter:8|c|#action:posts\\\\comments",
-				"test.gauge-total:-8|g|#action:users-\\\"John\\\"",
+				'test.gauge-total:-8|g|#action:users-\\"John\\"',
 				"test.gauge-total:[object Object]|g|#"
 			]);
 		});
-
 	});
 
 	describe("Test metricChanged method", () => {
-		const broker = new ServiceBroker({ logger: false, metrics: {
-			reporter: "StatsD"
-		} });
+		const broker = new ServiceBroker({
+			logger: false,
+			metrics: {
+				reporter: "StatsD"
+			}
+		});
 		const registry = broker.metrics;
 		const reporter = registry.reporter[0];
 
 		it("should call generateStatDLine", () => {
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true,
+				unit: "byte"
+			});
 
 			reporter.send = jest.fn();
 
@@ -322,7 +343,5 @@ describe("Test StatsDReporter class", () => {
 			expect(reporter.send).toBeCalledTimes(1);
 			expect(reporter.send).toBeCalledWith(Buffer.from("test.histogram:7|ms|#action:auth"));
 		});
-
 	});
-
 });

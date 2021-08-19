@@ -17,9 +17,7 @@ const LoggerFactory = require("../../../src/logger-factory");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Pino logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new PinoLogger();
 
@@ -52,7 +50,6 @@ describe("Test Pino logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -75,7 +72,7 @@ describe("Test Pino logger class", () => {
 				pino: {
 					options: { a: 5 },
 					destination: "/logs"
-				},
+				}
 			});
 
 			logger.init(loggerFactory);
@@ -85,7 +82,6 @@ describe("Test Pino logger class", () => {
 			expect(Pino).toHaveBeenCalledTimes(1);
 			expect(Pino).toHaveBeenCalledWith({ a: 5 }, "/logs");
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -98,11 +94,14 @@ describe("Test Pino logger class", () => {
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
 			expect(logger.pino.child).toHaveBeenCalledTimes(1);
-			expect(logger.pino.child).toHaveBeenCalledWith({
-				level: "info",
-				mod: "my-service",
-				nodeID: "node-1"
-			});
+			expect(logger.pino.child).toHaveBeenCalledWith(
+				{},
+				{
+					level: "info",
+					mod: "my-service",
+					nodeID: "node-1"
+				}
+			);
 
 			logHandler("warn", ["message", { a: 5 }]);
 			expect(childFakeLogger.warn).toHaveBeenCalledTimes(1);
@@ -161,7 +160,5 @@ describe("Test Pino logger class", () => {
 			expect(logHandler).toBeNull();
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
-
 	});
-
 });

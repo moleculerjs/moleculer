@@ -16,8 +16,7 @@ let broker = new ServiceBroker({
 	//serializer: "ProtoBuf",
 
 	logger: console,
-	logLevel: process.env.LOGLEVEL,
-	logFormatter: "simple"
+	logLevel: process.env.LOGLEVEL
 });
 
 broker.createService({
@@ -29,24 +28,30 @@ broker.createService({
 			// 	throw new MoleculerError("Random error!", 510);
 			// }
 
-			this.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
+			this.logger.info(
+				_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20),
+				`(from: ${ctx.nodeID})`
+			);
 
 			return {
 				count: ctx.params.count,
 				res: Number(ctx.params.a) + Number(ctx.params.b)
 			};
-		},
+		}
 	},
 
 	events: {
 		"echo.event"(data, sender) {
-			this.logger.info(`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`);
+			this.logger.info(
+				`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`
+			);
 			this.broker.emit("reply.event", data);
 		}
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => {
 		setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
 		/*setInterval(() => {

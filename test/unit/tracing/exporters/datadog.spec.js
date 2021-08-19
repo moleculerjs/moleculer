@@ -1,6 +1,6 @@
 "use strict";
 
-const asyncHooks			= require("async_hooks");
+const asyncHooks = require("async_hooks");
 
 //jest.mock("dd-trace");
 jest.mock("dd-trace/packages/dd-trace/src/opentracing/span_context");
@@ -44,9 +44,7 @@ const { MoleculerRetryableError } = require("../../../../src/errors");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Datadog tracing exporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const exporter = new DatadogTraceExporter();
 
@@ -55,7 +53,7 @@ describe("Test Datadog tracing exporter class", () => {
 				env: process.env.DD_ENVIRONMENT || null,
 				samplingPriority: "AUTO_KEEP",
 				defaultTags: null,
-				tracerOptions: null,
+				tracerOptions: null
 			});
 
 			expect(exporter.ddTracer).toBeUndefined();
@@ -94,7 +92,6 @@ describe("Test Datadog tracing exporter class", () => {
 
 			expect(exporter.ddTracer).toBe(fakeDdTracer);
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -102,7 +99,7 @@ describe("Test Datadog tracing exporter class", () => {
 			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 
 		ddTrace.init = jest.fn(() => fakeDdTracer);
@@ -178,7 +175,6 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fn).toHaveBeenCalledTimes(1);
 			expect(fn).toHaveBeenNthCalledWith(1, fakeTracer);
 		});
-
 	});
 
 	describe("Test spanStarted method", () => {
@@ -189,11 +185,11 @@ describe("Test Datadog tracing exporter class", () => {
 				errorFields: ["name", "message", "retryable", "data", "code"]
 			},
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 		const exporter = new DatadogTraceExporter({
 			defaultTags: {
-				"def": "ault"
+				def: "ault"
 			}
 		});
 		exporter.init(fakeTracer);
@@ -261,7 +257,6 @@ describe("Test Datadog tracing exporter class", () => {
 				asyncId: asyncHooks.executionAsyncId(),
 				oldSpan: undefined
 			});
-
 		});
 
 		it("should convert normal span to Datadog span with parentID, env & logs", () => {
@@ -299,7 +294,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 				logs: [
 					{ name: "log1", time: 100, fields: { a: 5 } },
-					{ name: "log2", time: 200, fields: { b: "John" } },
+					{ name: "log2", time: 200, fields: { b: "John" } }
 				],
 
 				meta: {}
@@ -313,7 +308,7 @@ describe("Test Datadog tracing exporter class", () => {
 				childOf: {
 					parentId: "ccc-12345678901234567890",
 					spanId: "ccc-12345678901234567890",
-					traceId: "bbb-12345678901234567890",
+					traceId: "bbb-12345678901234567890"
 				},
 				tags: {
 					a: 5,
@@ -331,8 +326,8 @@ describe("Test Datadog tracing exporter class", () => {
 			});
 
 			expect(fakeDdSpan.setTag).toHaveBeenCalledTimes(2);
-			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(1,"env", "testing");
-			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(2,"service.name", "v1.posts");
+			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(1, "env", "testing");
+			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(2, "service.name", "v1.posts");
 
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 
@@ -340,7 +335,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(DatadogSpanContext).toHaveBeenCalledWith({
 				parentId: "ccc-12345678901234567890",
 				spanId: "ccc-12345678901234567890",
-				traceId: "bbb-12345678901234567890",
+				traceId: "bbb-12345678901234567890"
 			});
 
 			expect(fakeSpanContext._traceId.toString()).toEqual("bbb-12345678901234567890");
@@ -362,11 +357,11 @@ describe("Test Datadog tracing exporter class", () => {
 				errorFields: ["name", "message", "retryable", "data", "code"]
 			},
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 		const exporter = new DatadogTraceExporter({
 			defaultTags: {
-				"def": "ault"
+				def: "ault"
 			}
 		});
 		exporter.init(fakeTracer);
@@ -379,7 +374,7 @@ describe("Test Datadog tracing exporter class", () => {
 			const span = {
 				finishTime: 1050,
 
-				logs: [1,5],
+				logs: [1, 5],
 
 				meta: {
 					datadog: {
@@ -399,9 +394,6 @@ describe("Test Datadog tracing exporter class", () => {
 
 			expect(fakeDdSpan.finish).toHaveBeenCalledTimes(1);
 			expect(fakeDdSpan.finish).toHaveBeenCalledWith(1050);
-
-			expect(fakeTracerScope._destroy).toHaveBeenCalledTimes(1);
-			expect(fakeTracerScope._destroy).toHaveBeenCalledWith(span.meta.datadog.asyncId);
 		});
 
 		it("should finish with error", () => {
@@ -413,7 +405,9 @@ describe("Test Datadog tracing exporter class", () => {
 			const fakeOldSpan = { name: "old-span" };
 			fakeTracerScope._spans[asyncHooks.executionAsyncId()] = null;
 
-			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", { a: 5 });
+			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", {
+				a: 5
+			});
 
 			const span = {
 				finishTime: 1050,
@@ -437,7 +431,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(exporter.addTags).toHaveBeenCalledWith(fakeDdSpan, "error", {
 				name: "MoleculerRetryableError",
 				code: 512,
-				data: { "a": 5 },
+				data: { a: 5 },
 				message: "Something happened",
 				retryable: true
 			});
@@ -459,7 +453,7 @@ describe("Test Datadog tracing exporter class", () => {
 			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 
 		const exporter = new DatadogTraceExporter();
@@ -472,14 +466,21 @@ describe("Test Datadog tracing exporter class", () => {
 
 			exporter.addLogs(datadogSpan, [
 				{ name: "log1", time: 100, fields: { a: 5 } },
-				{ name: "log2", time: 200, fields: { b: "John" } },
+				{ name: "log2", time: 200, fields: { b: "John" } }
 			]);
 
 			expect(datadogSpan.log).toHaveBeenCalledTimes(2);
-			expect(datadogSpan.log).toHaveBeenNthCalledWith(1, { event: "log1", payload: { a: 5 } }, 100);
-			expect(datadogSpan.log).toHaveBeenNthCalledWith(2, { event: "log2", payload: { b: "John" } }, 200);
+			expect(datadogSpan.log).toHaveBeenNthCalledWith(
+				1,
+				{ event: "log1", payload: { a: 5 } },
+				100
+			);
+			expect(datadogSpan.log).toHaveBeenNthCalledWith(
+				2,
+				{ event: "log2", payload: { b: "John" } },
+				200
+			);
 		});
-
 	});
 
 	describe("Test addTags method", () => {
@@ -487,7 +488,7 @@ describe("Test Datadog tracing exporter class", () => {
 			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 
 		const exporter = new DatadogTraceExporter();
@@ -547,10 +548,13 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(datadogSpan.setTag).toHaveBeenCalledTimes(4);
 			expect(datadogSpan.setTag).toHaveBeenNthCalledWith(1, "user.id", 1);
 			expect(datadogSpan.setTag).toHaveBeenNthCalledWith(2, "user.name", "John");
-			expect(datadogSpan.setTag).toHaveBeenNthCalledWith(3, "user.address.country", "Australia");
+			expect(datadogSpan.setTag).toHaveBeenNthCalledWith(
+				3,
+				"user.address.country",
+				"Australia"
+			);
 			expect(datadogSpan.setTag).toHaveBeenNthCalledWith(4, "user.address.city", "Sydney");
 		});
-
 	});
 
 	describe("Test convertID method", () => {
@@ -558,7 +562,7 @@ describe("Test Datadog tracing exporter class", () => {
 			broker,
 			logger: broker.logger,
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn(),
+			getActiveSpanID: jest.fn()
 		};
 		const exporter = new DatadogTraceExporter({});
 		exporter.init(fakeTracer);
@@ -568,21 +572,23 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(exporter.convertID("")).toBeNull();
 			expect(exporter.convertID("12345678").toString()).toEqual("12345678");
 			expect(exporter.convertID("123456789-0123456").toString()).toEqual("1234567890123456");
-			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual("1234567890123456");
+			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual(
+				"1234567890123456"
+			);
 			expect(exporter.convertID("abc-def").toString()).toEqual("abcdef");
-			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual("abcdefabcdefabcd");
+			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual(
+				"abcdefabcdefabcd"
+			);
 		});
-
 	});
 
 	describe("Test wrapped getCurrentTraceID method", () => {
-
 		it("should retun with the original traceID", () => {
 			let oldGetCurrentTraceID = jest.fn(() => "old-trace-id");
 			const fakeTracer = {
 				broker,
 				getCurrentTraceID: oldGetCurrentTraceID,
-				getActiveSpanID: jest.fn(),
+				getActiveSpanID: jest.fn()
 			};
 			const exporter = new DatadogTraceExporter({});
 			exporter.init(fakeTracer);
@@ -600,7 +606,7 @@ describe("Test Datadog tracing exporter class", () => {
 			const fakeTracer = {
 				broker,
 				getCurrentTraceID: oldGetCurrentTraceID,
-				getActiveSpanID: jest.fn(),
+				getActiveSpanID: jest.fn()
 			};
 			const exporter = new DatadogTraceExporter({});
 			exporter.init(fakeTracer);
@@ -615,17 +621,15 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 			expect(fakeSpanContext.toTraceId).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test wrapped getActiveSpanID method", () => {
-
 		it("should retun with the original spanID", () => {
 			let oldGetActiveSpanID = jest.fn(() => "old-trace-id");
 			const fakeTracer = {
 				broker,
 				getActiveSpanID: oldGetActiveSpanID,
-				getCurrentTraceID: jest.fn(),
+				getCurrentTraceID: jest.fn()
 			};
 			const exporter = new DatadogTraceExporter({});
 			exporter.init(fakeTracer);
@@ -645,7 +649,7 @@ describe("Test Datadog tracing exporter class", () => {
 			const fakeTracer = {
 				broker,
 				getActiveSpanID: oldGetActiveSpanID,
-				getCurrentTraceID: jest.fn(),
+				getCurrentTraceID: jest.fn()
 			};
 			const exporter = new DatadogTraceExporter({});
 			exporter.init(fakeTracer);
@@ -660,7 +664,5 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 			expect(fakeSpanContext.toSpanId).toHaveBeenCalledTimes(1);
 		});
-
 	});
-
 });

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-	name: "test",
+	name: "hot",
 	metadata: {
 		scalable: true,
 		priority: 5
@@ -9,7 +9,7 @@ module.exports = {
 
 	actions: {
 		hello() {
-			return "Hello Moleculer!!!";
+			return "Hello Moleculer!";
 		}
 	},
 	events: {

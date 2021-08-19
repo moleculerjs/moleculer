@@ -1,9 +1,9 @@
 "use strict";
 
-const _ 					= require("lodash");
-const fetch 				= require("node-fetch");
-const BaseTraceExporter 	= require("./base");
-const { isFunction } 		= require("../../utils");
+const _ = require("lodash");
+const fetch = require("node-fetch");
+const BaseTraceExporter = require("./base");
+const { isFunction } = require("../../utils");
 
 /**
  * Trace Exporter for NewRelic using Zipkin data.
@@ -14,7 +14,6 @@ const { isFunction } 		= require("../../utils");
  * @class NewRelicTraceExporter
  */
 class NewRelicTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of NewRelicTraceExporter.
 	 * @param {Object?} opts
@@ -25,26 +24,25 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String} Base URL for NewRelic server. */
-			baseURL:
-			process.env.NEW_RELIC_TRACE_API_URL || "https://trace-api.newrelic.com",
+			baseURL: process.env.NEW_RELIC_TRACE_API_URL || "https://trace-api.newrelic.com",
 
-		  /** @type {String} NewRelic Insert API Key */
-		  insertKey: "",
+			/** @type {String} NewRelic Insert API Key */
+			insertKey: "",
 
-		  /** @type {Number} Batch send time interval in seconds. */
-		  interval: 5,
+			/** @type {Number} Batch send time interval in seconds. */
+			interval: 5,
 
-		  /** @type {Object} Additional payload options. */
-		  payloadOptions: {
-			/** @type {Boolean} Set `debug` property in v2 payload. */
+			/** @type {Object} Additional payload options. */
+			payloadOptions: {
+				/** @type {Boolean} Set `debug` property in v2 payload. */
 				debug: false,
 
 				/** @type {Boolean} Set `shared` property in v2 payload. */
-				shared: false,
-		  },
+				shared: false
+			},
 
-		  /** @type {Object?} Default span tags */
-		  defaultTags: null,
+			/** @type {Object?} Default span tags */
+			defaultTags: null
 		});
 
 		this.queue = [];
@@ -66,7 +64,9 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 			this.timer.unref();
 		}
 
-		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags)
+			? this.opts.defaultTags.call(this, tracer)
+			: this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}
@@ -104,25 +104,33 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		const data = this.generateTracingData();
 		this.queue.length = 0;
 
-		fetch(`${this.opts.baseURL}/trace/v1`,
-			{
-				method: "post",
-				body: JSON.stringify(data),
-				headers: {
-					"Content-Type": "application/json",
-					"Api-Key": this.opts.insertKey,
- 				"Data-Format": "zipkin",
- 				"Data-Format-Version": "2"
-				}
-			}).then(res => {
-			if (res.status >= 400) {
-				this.logger.warn(`Unable to upload tracing spans to NewRelic. Status: ${res.status} ${res.statusText}`);
-			} else {
-				this.logger.debug(`Tracing spans (${data.length} spans) uploaded to NewRelic. Status: ${res.statusText}`);
+		fetch(`${this.opts.baseURL}/trace/v1`, {
+			method: "post",
+			body: JSON.stringify(data),
+			headers: {
+				"Content-Type": "application/json",
+				"Api-Key": this.opts.insertKey,
+				"Data-Format": "zipkin",
+				"Data-Format-Version": "2"
 			}
-		}).catch(err => {
-			this.logger.warn("Unable to upload tracing spans to NewRelic. Error:" + err.message, err);
-		});
+		})
+			.then(res => {
+				if (res.status >= 400) {
+					this.logger.warn(
+						`Unable to upload tracing spans to NewRelic. Status: ${res.status} ${res.statusText}`
+					);
+				} else {
+					this.logger.debug(
+						`Tracing spans (${data.length} spans) uploaded to NewRelic. Status: ${res.statusText}`
+					);
+				}
+			})
+			.catch(err => {
+				this.logger.warn(
+					"Unable to upload tracing spans to NewRelic. Error:" + err.message,
+					err
+				);
+			});
 	}
 
 	/**
@@ -157,7 +165,7 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 
 			annotations: [
 				{ timestamp: this.convertTime(span.startTime), value: "sr" },
-				{ timestamp: this.convertTime(span.finishTime), value: "ss" },
+				{ timestamp: this.convertTime(span.finishTime), value: "ss" }
 			],
 
 			timestamp: this.convertTime(span.startTime),
@@ -165,7 +173,7 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 
 			tags: {
 				service: serviceName,
-				"span.type": span.type,
+				"span.type": span.type
 			},
 
 			debug: this.opts.payloadOptions.debug,
@@ -211,7 +219,6 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 	convertTime(ts) {
 		return ts != null ? Math.round(ts * 1000) : null;
 	}
-
 }
 
 module.exports = NewRelicTraceExporter;

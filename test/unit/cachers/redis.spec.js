@@ -12,7 +12,6 @@ const Serializers = require("../../../src/serializers");
  */
 
 describe("Test RedisCacher constructor", () => {
-
 	it("should create an empty options", () => {
 		let cacher = new RedisCacher();
 		expect(cacher).toBeDefined();
@@ -31,6 +30,14 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts.maxParamsLength).toBe(1024);
 	});
 
+	it("should add option for pingInterval", () => {
+		let opts = { pingInterval: 5000 };
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual(opts);
+		expect(cacher.opts.pingInterval).toBe(5000);
+	});
+
 	it("should create with redis opts from string", () => {
 		let opts = "redis://localhost:6379";
 		let cacher = new RedisCacher(opts);
@@ -39,6 +46,7 @@ describe("Test RedisCacher constructor", () => {
 			keygen: null,
 			ttl: null,
 			prefix: null,
+			pingInterval: null,
 			maxParamsLength: null,
 			redis: opts
 		});
@@ -80,18 +88,18 @@ describe("Test RedisCacher init", () => {
 	});
 });
 
-
 describe("Test RedisCacher cluster", () => {
-
 	it("should create with redis opts", () => {
 		let opts = {
 			type: "Redis",
 			ttl: 30,
 			cluster: {
-				nodes: [{
-					host: "localhost",
-					port: 6379
-				}]
+				nodes: [
+					{
+						host: "localhost",
+						port: 6379
+					}
+				]
 			}
 		};
 
@@ -107,10 +115,12 @@ describe("Test RedisCacher cluster", () => {
 			type: "Redis",
 			ttl: 30,
 			cluster: {
-				nodes: [{
-					host: "localhost",
-					port: 6379
-				}]
+				nodes: [
+					{
+						host: "localhost",
+						port: 6379
+					}
+				]
 			}
 		};
 
@@ -135,7 +145,9 @@ describe("Test RedisCacher cluster", () => {
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
-		expect(() => { cacher.init(broker); }).toThrowError("No nodes defined for cluster");
+		expect(() => {
+			cacher.init(broker);
+		}).toThrowError("No nodes defined for cluster");
 	});
 
 	it("should construct serializer based on options", () => {
@@ -143,7 +155,7 @@ describe("Test RedisCacher cluster", () => {
 
 		let opts = {
 			type: "Redis",
-			serializer: "Notepack",
+			serializer: "Notepack"
 		};
 
 		let cacher = new RedisCacher(opts);
@@ -152,10 +164,83 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher.serializer).toBeInstanceOf(Serializers.Notepack);
 	});
 
+	it("should ping based on numeric interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: 25
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(1);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(2);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(3);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
+
+	it("should ping based on numeric string interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: "25"
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(1);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(2);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(3);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
+
+	it("should not ping with malformed pingInterval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: "foo"
+		};
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		cacher.init(broker);
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
+		jest.advanceTimersByTime(25);
+		expect(cacher.client.ping).toHaveBeenCalledTimes(0);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
 });
 
 describe("Test RedisCacher set & get without prefix", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker);
@@ -173,7 +258,6 @@ describe("Test RedisCacher set & get without prefix", () => {
 	let prefix = "MOL-";
 	let dataEvent;
 
-
 	beforeEach(() => {
 		dataEvent = jest.fn().mockImplementation((eventType, callback) => {
 			if (eventType === "data") {
@@ -188,14 +272,19 @@ describe("Test RedisCacher set & get without prefix", () => {
 			pause: jest.fn(),
 			resume: jest.fn()
 		}));
-		cacher.client.getBuffer = jest.fn(() => Promise.resolve(cacher.serializer.serialize(data1)));
+		cacher.client.getBuffer = jest.fn(() =>
+			Promise.resolve(cacher.serializer.serialize(data1))
+		);
 		cacher.client.set = jest.fn(() => Promise.resolve());
 		cacher.client.del = jest.fn(() => Promise.resolve());
 	});
 	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
 		expect(cacher.client.set).toHaveBeenCalledTimes(1);
-		expect(cacher.client.set).toHaveBeenCalledWith(prefix + key, cacher.serializer.serialize(data1));
+		expect(cacher.client.set).toHaveBeenCalledWith(
+			prefix + key,
+			cacher.serializer.serialize(data1)
+		);
 		expect(cacher.client.setex).toHaveBeenCalledTimes(0);
 	});
 
@@ -203,7 +292,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.getBuffer).toHaveBeenCalledTimes(1);
 		expect(cacher.client.getBuffer).toHaveBeenCalledWith(prefix + key);
-		return p.catch(protectReject).then((d) => {
+		return p.catch(protectReject).then(d => {
 			expect(d).toEqual(data1);
 		});
 	});
@@ -214,7 +303,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.getBuffer).toHaveBeenCalledTimes(1);
 		expect(cacher.client.getBuffer).toHaveBeenCalledWith(prefix + key);
-		return p.catch(protectReject).then((d) => {
+		return p.catch(protectReject).then(d => {
 			expect(d).toBeNull();
 		});
 	});
@@ -232,7 +321,8 @@ describe("Test RedisCacher set & get without prefix", () => {
 	});
 
 	it("should call client.scanStream & del", () => {
-		return cacher.clean()
+		return cacher
+			.clean()
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
@@ -256,7 +346,8 @@ describe("Test RedisCacher set & get without prefix", () => {
 			}
 		});
 
-		return cacher.clean()
+		return cacher
+			.clean()
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
@@ -268,18 +359,16 @@ describe("Test RedisCacher set & get without prefix", () => {
 				expect(cacher.client.del).not.toBeCalled();
 			});
 	});
-
 });
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
-
 	const broker = new ServiceBroker({ logger: false, namespace: "uat" });
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
 	cacher.init(broker); // for empty logger
 
-	["fatal", "error", "info", "log", "debug"].forEach((level) => cacher.logger[level] = jest.fn());
+	["fatal", "error", "info", "log", "debug"].forEach(level => (cacher.logger[level] = jest.fn()));
 
 	let key = "tst123";
 	let data1 = {
@@ -311,16 +400,21 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		}));
 		cacher.client.getBuffer = jest.fn(() => Promise.resolve());
 		cacher.client.del = jest.fn(() => Promise.resolve());
-		["error", "fatal", "info", "log", "debug"].forEach((level) => cacher.logger[level].mockClear());
+		["error", "fatal", "info", "log", "debug"].forEach(level =>
+			cacher.logger[level].mockClear()
+		);
 
 		cacher.client.setex = jest.fn(() => Promise.resolve());
 	});
 
-
 	it("should call client.setex with key & data", () => {
 		cacher.set(key, data1);
 		expect(cacher.client.setex).toHaveBeenCalledTimes(1);
-		expect(cacher.client.setex).toHaveBeenCalledWith(prefix + key, 60, cacher.serializer.serialize(data1));
+		expect(cacher.client.setex).toHaveBeenCalledWith(
+			prefix + key,
+			60,
+			cacher.serializer.serialize(data1)
+		);
 	});
 
 	it("should give back the data by key", () => {
@@ -330,7 +424,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	});
 
 	it("should call client.del with key", () => {
-		return cacher.del(key)
+		return cacher
+			.del(key)
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
@@ -339,7 +434,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	});
 
 	it("should call client.del with multiple keys", () => {
-		return cacher.del(["key1", "key2"])
+		return cacher
+			.del(["key1", "key2"])
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
@@ -350,19 +446,24 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	it("should throw error", () => {
 		const error = new Error("Redis delete error");
 		cacher.client.del = jest.fn(() => Promise.reject(error));
-		return cacher.del(["key1"])
+		return cacher
+			.del(["key1"])
 			.then(protectReject)
 			.catch(err => {
 				expect(err).toBe(error);
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
 				expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1"]);
 				expect(cacher.logger.error).toHaveBeenCalledTimes(1);
-				expect(cacher.logger.error).toHaveBeenCalledWith("Redis 'del' error. Key: MOL-uat-key1", error);
+				expect(cacher.logger.error).toHaveBeenCalledWith(
+					"Redis 'del' error. Key: MOL-uat-key1",
+					error
+				);
 			});
 	});
 
 	it("should call client.scanStream", () => {
-		return cacher.clean()
+		return cacher
+			.clean()
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
@@ -371,11 +472,11 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 					count: 100
 				});
 			});
-
 	});
 
 	it("should call client.scanStream with service key", () => {
-		return cacher.clean("service-name.*")
+		return cacher
+			.clean("service-name.*")
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
@@ -384,11 +485,11 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 					count: 100
 				});
 			});
-
 	});
 
 	it("should call client.scanStream if provided as array service key in array", () => {
-		return cacher.clean(["service-name.*"])
+		return cacher
+			.clean(["service-name.*"])
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
@@ -397,11 +498,11 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 					count: 100
 				});
 			});
-
 	});
 
 	it("should call client.scanStream for each array element", () => {
-		return cacher.clean(["service-name.*", "service2-name.*"])
+		return cacher
+			.clean(["service-name.*", "service2-name.*"])
 			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(2);
@@ -414,20 +515,26 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 					count: 100
 				});
 			});
-
 	});
 
 	it("should not call second pattern if failed on first", () => {
 		const error = new Error("Redis delete error");
 		cacher.client.del = jest.fn().mockRejectedValueOnce(error);
-		return cacher.clean(["service-name.*", "service2-name.*"])
+		return cacher
+			.clean(["service-name.*", "service2-name.*"])
 			.then(protectReject)
 			.catch(err => {
 				expect(err).toBe(error);
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
-				expect(cacher.client.scanStream).toHaveBeenCalledWith({ count: 100, match: "MOL-uat-service-name.*" });
+				expect(cacher.client.scanStream).toHaveBeenCalledWith({
+					count: 100,
+					match: "MOL-uat-service-name.*"
+				});
 				expect(cacher.logger.error).toHaveBeenCalledTimes(1);
-				expect(cacher.logger.error).toHaveBeenCalledWith("Redis 'scanDel' error. Pattern: MOL-uat-service-name.*", error);
+				expect(cacher.logger.error).toHaveBeenCalledWith(
+					"Redis 'scanDel' error. Pattern: MOL-uat-service-name.*",
+					error
+				);
 			});
 	});
 });
@@ -444,13 +551,15 @@ describe("Test RedisCacher getWithTTL method", () => {
 	let mockPipeline = {};
 
 	beforeEach(() => {
-		mockPipeline.getBuffer = jest.fn(() =>mockPipeline);
-		mockPipeline.ttl = jest.fn(() =>mockPipeline);
-		mockPipeline.exec = jest.fn(() => Promise.resolve([
-			[null, cacher.serializer.serialize(cachedData)],
-			[null, 20]
-		]));
-		cacher.client.pipeline = jest.fn(() =>mockPipeline);
+		mockPipeline.getBuffer = jest.fn(() => mockPipeline);
+		mockPipeline.ttl = jest.fn(() => mockPipeline);
+		mockPipeline.exec = jest.fn(() =>
+			Promise.resolve([
+				[null, cacher.serializer.serialize(cachedData)],
+				[null, 20]
+			])
+		);
+		cacher.client.pipeline = jest.fn(() => mockPipeline);
 	});
 
 	it("should call the getBuffer and ttl using pipeline", () => {
@@ -465,10 +574,12 @@ describe("Test RedisCacher getWithTTL method", () => {
 
 	it("should throw an error when getBuffer method return error", () => {
 		const err = new Error("getBuffer error.");
-		mockPipeline.exec = jest.fn(() => Promise.resolve([
-			[err, null],
-			[null, 20]
-		]));
+		mockPipeline.exec = jest.fn(() =>
+			Promise.resolve([
+				[err, null],
+				[null, 20]
+			])
+		);
 		return cacher.getWithTTL(key).catch(e => {
 			expect(e).toBe(err);
 		});
@@ -476,25 +587,28 @@ describe("Test RedisCacher getWithTTL method", () => {
 
 	it("should throw an error when ttl method return error", () => {
 		const err = new Error("ttl error.");
-		mockPipeline.exec = jest.fn(() => Promise.resolve([
-			[null, cachedData],
-			[err, null]
-		]));
+		mockPipeline.exec = jest.fn(() =>
+			Promise.resolve([
+				[null, cachedData],
+				[err, null]
+			])
+		);
 		return cacher.getWithTTL(key).catch(e => {
 			expect(e).toBe(err);
 		});
 	});
 
 	it("should return null if data cannot be deserialized", () => {
-		mockPipeline.exec = jest.fn(() => Promise.resolve([
-			[null, "{'some invalid JSON here."],
-			[null, 20]
-		]));
+		mockPipeline.exec = jest.fn(() =>
+			Promise.resolve([
+				[null, "{'some invalid JSON here."],
+				[null, 20]
+			])
+		);
 		return cacher.getWithTTL(key).then(res => {
 			expect(res.data).toBeNull();
 		});
 	});
-
 });
 
 describe("Test RedisCacher lock method", () => {
@@ -507,14 +621,14 @@ describe("Test RedisCacher lock method", () => {
 	cacher.init(broker); // for empty logger
 	let unlock1, unlock2;
 	beforeEach(() => {
-		unlock1 = jest.fn(()=>Promise.resolve());
-		unlock2 = jest.fn(()=>Promise.resolve());
-		cacher.redlock.lock = jest.fn(()=>{
+		unlock1 = jest.fn(() => Promise.resolve());
+		unlock2 = jest.fn(() => Promise.resolve());
+		cacher.redlock.lock = jest.fn(() => {
 			return Promise.resolve({
 				unlock: unlock1
 			});
 		});
-		cacher.redlockNonBlocking.lock = jest.fn(()=>{
+		cacher.redlockNonBlocking.lock = jest.fn(() => {
 			return Promise.resolve({
 				unlock: unlock2
 			});
@@ -530,7 +644,7 @@ describe("Test RedisCacher lock method", () => {
 
 	it("should call redlock.unlock when calling unlock callback", () => {
 		return cacher.lock(key, 20).then(unlock => {
-			return unlock().then(()=>{
+			return unlock().then(() => {
 				expect(unlock1).toBeCalled();
 			});
 		});
@@ -539,13 +653,16 @@ describe("Test RedisCacher lock method", () => {
 	it("should call redlock.lock when calling cacher.tryLock", () => {
 		return cacher.tryLock(key, 20).then(() => {
 			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledTimes(1);
-			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(cacher.prefix + key + "-lock", 20);
+			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(
+				cacher.prefix + key + "-lock",
+				20
+			);
 		});
 	});
 
 	it("should call redlock.unlock when calling unlock callback", () => {
 		const err = new Error("Already locked.");
-		cacher.redlockNonBlocking.lock = jest.fn(()=>{
+		cacher.redlockNonBlocking.lock = jest.fn(() => {
 			return Promise.reject(err);
 		});
 		return cacher.tryLock(key, 20).catch(e => {
@@ -556,11 +673,9 @@ describe("Test RedisCacher lock method", () => {
 	it("should failed to acquire a lock when redlock client throw an error", () => {
 		return cacher.tryLock(key, 20);
 	});
-
 });
 
 describe("Test RedisCacher with opts.lock", () => {
-
 	it("should create redlock clients", () => {
 		let broker = new ServiceBroker({ logger: false });
 		let cacher = new RedisCacher({
@@ -570,16 +685,63 @@ describe("Test RedisCacher with opts.lock", () => {
 		expect(cacher.redlock).toBeDefined();
 		expect(cacher.redlockNonBlocking).toBeDefined();
 	});
-
 });
 
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker({ logger: false });
-	let cacher = new RedisCacher();
+	it("should call client.quit", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new RedisCacher();
+		cacher.init(broker); // for empty logger
+		cacher.close();
+	});
+
+	it("should clear interval", () => {
+		jest.useFakeTimers();
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			pingInterval: 25
+		};
+
+		let cacher = new RedisCacher(opts);
+		cacher.init(broker); // for empty logger
+		cacher.client.ping = jest.fn().mockResolvedValue(undefined);
+
+		expect(jest.getTimerCount()).toBe(1);
+
+		cacher.close();
+		expect(jest.getTimerCount()).toBe(0);
+
+		jest.clearAllTimers();
+		jest.useRealTimers();
+	});
+});
+
+describe("Test MemoryCacher getCacheKeys method", () => {
+	const cacher = new RedisCacher();
+	const broker = new ServiceBroker({ logger: false });
 	cacher.init(broker); // for empty logger
 
-	it("should call client.quit", () => {
-		cacher.close();
-		expect(cacher.client.quit).toHaveBeenCalledTimes(1);
+	let dataEvent;
+
+	beforeEach(() => {
+		dataEvent = jest.fn().mockImplementation((eventType, callback) => {
+			if (eventType === "data") {
+				callback(["MOL-hello", "MOL-hello2", "hello3:test"]);
+			}
+			if (eventType === "end") {
+				callback();
+			}
+		});
+		cacher.client.scanStream = jest.fn(() => ({
+			on: dataEvent
+		}));
+	});
+
+	it("should return data and ttl", () => {
+		return cacher.getCacheKeys().then(res => {
+			expect(res).toEqual([{ key: "hello" }, { key: "hello2" }, { key: "hello3:test" }]);
+		});
 	});
 });

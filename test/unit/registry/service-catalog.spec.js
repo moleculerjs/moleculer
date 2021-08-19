@@ -5,7 +5,6 @@ let ServiceItem = require("../../../src/registry/service-item");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ServiceCatalog constructor", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -18,7 +17,6 @@ describe("Test ServiceCatalog constructor", () => {
 		expect(catalog.logger).toBe(registry.logger);
 		expect(catalog.services).toBeInstanceOf(Array);
 	});
-
 });
 
 describe("Test ServiceCatalog methods", () => {
@@ -28,7 +26,6 @@ describe("Test ServiceCatalog methods", () => {
 	let svc;
 
 	it("should create a ServiceItem and add to 'events'", () => {
-
 		expect(catalog.services.length).toBe(0);
 
 		svc = catalog.add(node, { name: "test", fullName: "test", settings: { a: 5 } });
@@ -88,127 +85,144 @@ describe("Test ServiceCatalog methods", () => {
 	});
 
 	it("should return with service list", () => {
-		catalog.add({ id: broker.nodeID, available: true }, { name: "$node", fullName: "$node" }, true);
+		catalog.add(
+			{ id: broker.nodeID, available: true },
+			{ name: "$node", fullName: "$node" },
+			true
+		);
 
 		let node2 = { id: "server-2", available: true };
 		catalog.add(node2, { name: "$node", fullName: "$node" });
 
-		let svc = catalog.add(node2, { name: "posts", fullName: "v2.posts", version: 2, settings: { a: 5 }, metadata: { priority:  5 } });
+		let svc = catalog.add(node2, {
+			name: "posts",
+			fullName: "v2.posts",
+			version: 2,
+			settings: { a: 5 },
+			metadata: { priority: 5 }
+		});
 		svc.addAction({ name: "posts.find" });
 		svc.addEvent({ name: "user.created" });
 		svc.addEvent({ name: "$services.changed" }); // internal
 
 		let res = catalog.list({});
-		expect(res).toEqual([{
-			"name": "$node",
-			"fullName": "$node",
-			"nodeID": broker.nodeID,
-			"settings": undefined,
-			"metadata": {},
-			"version": undefined,
-			"available": true,
-			"local": true
-		}, {
-			"name": "$node",
-			"fullName": "$node",
-			"nodeID": "server-2",
-			"settings": undefined,
-			"metadata": {},
-			"version": undefined,
-			"available": true,
-			"local": false
-		}, {
-			"name": "posts",
-			"fullName": "v2.posts",
-			"nodeID": "server-2",
-			"settings": {
-				"a": 5
+		expect(res).toEqual([
+			{
+				name: "$node",
+				fullName: "$node",
+				nodeID: broker.nodeID,
+				settings: undefined,
+				metadata: {},
+				version: undefined,
+				available: true,
+				local: true
 			},
-			"metadata": { priority: 5 },
-			"version": 2,
-			"available": true,
-			"local": false
-		}]);
+			{
+				name: "$node",
+				fullName: "$node",
+				nodeID: "server-2",
+				settings: undefined,
+				metadata: {},
+				version: undefined,
+				available: true,
+				local: false
+			},
+			{
+				name: "posts",
+				fullName: "v2.posts",
+				nodeID: "server-2",
+				settings: {
+					a: 5
+				},
+				metadata: { priority: 5 },
+				version: 2,
+				available: true,
+				local: false
+			}
+		]);
 
 		res = catalog.list({ grouping: true });
-		expect(res).toEqual([{
-			"name": "$node",
-			"fullName": "$node",
-			"settings": undefined,
-			"metadata": {},
-			"version": undefined,
-			"available": true,
-			"local": true,
-			nodes: [
-				"master",
-				"server-2"
-			]
-		}, {
-			"name": "posts",
-			"fullName": "v2.posts",
-			"settings": {
-				"a": 5
+		expect(res).toEqual([
+			{
+				name: "$node",
+				fullName: "$node",
+				settings: undefined,
+				metadata: {},
+				version: undefined,
+				available: true,
+				local: true,
+				nodes: ["master", "server-2"]
 			},
-			"metadata": { priority: 5 },
-			"version": 2,
-			"available": true,
-			"local": false,
-			nodes: [
-				"server-2"
-			]
-		}]);
+			{
+				name: "posts",
+				fullName: "v2.posts",
+				settings: {
+					a: 5
+				},
+				metadata: { priority: 5 },
+				version: 2,
+				available: true,
+				local: false,
+				nodes: ["server-2"]
+			}
+		]);
 
 		res = catalog.list({ onlyLocal: true });
-		expect(res).toEqual([{
-			"name": "$node",
-			"fullName": "$node",
-			"nodeID": broker.nodeID,
-			"settings": undefined,
-			"metadata": {},
-			"version": undefined,
-			"available": true,
-			"local": true
-		}]);
+		expect(res).toEqual([
+			{
+				name: "$node",
+				fullName: "$node",
+				nodeID: broker.nodeID,
+				settings: undefined,
+				metadata: {},
+				version: undefined,
+				available: true,
+				local: true
+			}
+		]);
 
 		res = catalog.list({ skipInternal: true, withActions: true, withEvents: true });
-		expect(res).toEqual([{
-			"actions": {
-				"posts.find": {
-					"name": "posts.find"
-				}
-			},
-			"events": {
-				"user.created": {
-					"name": "user.created"
-				}
-			},
-			"name": "posts",
-			"fullName": "v2.posts",
-			"nodeID": "server-2",
-			"settings": {
-				"a": 5
-			},
-			"metadata": {
-				"priority": 5
-			},
-			"version": 2,
-			"available": true,
-			"local": false
-		}]);
+		expect(res).toEqual([
+			{
+				actions: {
+					"posts.find": {
+						name: "posts.find"
+					}
+				},
+				events: {
+					"user.created": {
+						name: "user.created"
+					}
+				},
+				name: "posts",
+				fullName: "v2.posts",
+				nodeID: "server-2",
+				settings: {
+					a: 5
+				},
+				metadata: {
+					priority: 5
+				},
+				version: 2,
+				available: true,
+				local: false
+			}
+		]);
 
 		svc.node.available = false;
-		res = catalog.list({ onlyAvailable : true });
-		expect(res).toEqual([{
-			"name": "$node",
-			"fullName": "$node",
-			"nodeID": broker.nodeID,
-			"settings": undefined,
-			"metadata": {},
-			"version": undefined,
-			"available": true,
-			"local": true
-		}]);
-
+		res = catalog.list({ onlyAvailable: true });
+		expect(res).toEqual([
+			{
+				name: "$node",
+				fullName: "$node",
+				nodeID: broker.nodeID,
+				settings: undefined,
+				metadata: {},
+				version: undefined,
+				available: true,
+				local: true
+			}
+		]);
 	});
 
 	it("should return with service list for info", () => {
@@ -217,50 +231,57 @@ describe("Test ServiceCatalog methods", () => {
 
 		let svc = catalog.add(
 			{ id: broker.nodeID, available: true },
-			{ name: "posts", fullName: "v2.posts", version: 2, settings: { a: 5 }, metadata: { priority:  5 } },
-			true);
+			{
+				name: "posts",
+				fullName: "v2.posts",
+				version: 2,
+				settings: { a: 5 },
+				metadata: { priority: 5 }
+			},
+			true
+		);
 
 		svc.addAction({ name: "posts.find" });
 		svc.addEvent({ name: "user.created" });
 		svc.addEvent({ name: "$services.changed" }); // internal
 
 		let res = catalog.getLocalNodeServices();
-		expect(res).toEqual([{
-			"name": "$node",
-			"fullName": "$node",
-			"actions": {},
-			"dependencies": undefined,
-			"events": {},
-			"metadata": {},
-			"settings": undefined,
-			"version": undefined
-		}, {
-			"name": "posts",
-			"fullName": "v2.posts",
-			"version": 2,
-			"settings": {
-				"a": 5
+		expect(res).toEqual([
+			{
+				name: "$node",
+				fullName: "$node",
+				actions: {},
+				dependencies: undefined,
+				events: {},
+				metadata: {},
+				settings: undefined,
+				version: undefined
 			},
-			"actions": {
-				"posts.find": {
-					"name": "posts.find"
-				}
-			},
-			"dependencies": undefined,
-			"events": {
-				"user.created": {
-					"name": "user.created"
+			{
+				name: "posts",
+				fullName: "v2.posts",
+				version: 2,
+				settings: {
+					a: 5
 				},
-				"$services.changed": {
-					"name": "$services.changed"
+				actions: {
+					"posts.find": {
+						name: "posts.find"
+					}
+				},
+				dependencies: undefined,
+				events: {
+					"user.created": {
+						name: "user.created"
+					},
+					"$services.changed": {
+						name: "$services.changed"
+					}
+				},
+				metadata: {
+					priority: 5
 				}
-			},
-			"metadata": {
-				"priority": 5
-			},
-		}]);
-
+			}
+		]);
 	});
-
 });
-

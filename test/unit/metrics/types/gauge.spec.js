@@ -13,7 +13,6 @@ const fakeRate = {
 MetricRate.mockImplementation(() => fakeRate);
 
 describe("Test Base Metric class", () => {
-
 	const registry = {
 		changed: jest.fn(),
 		opts: {
@@ -22,13 +21,15 @@ describe("Test Base Metric class", () => {
 	};
 
 	describe("Test Constructor", () => {
-
 		it("should create with base options", () => {
 			registry.changed.mockClear();
-			const item = new GaugeMetric({
-				type: "gauge",
-				name: "test.gauge"
-			}, registry);
+			const item = new GaugeMetric(
+				{
+					type: "gauge",
+					name: "test.gauge"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("gauge");
@@ -40,11 +41,14 @@ describe("Test Base Metric class", () => {
 
 		it("should create with custom options", () => {
 			registry.changed.mockClear();
-			const item = new GaugeMetric({
-				type: "gauge",
-				name: "test.gauge",
-				rate: true
-			}, registry);
+			const item = new GaugeMetric(
+				{
+					type: "gauge",
+					name: "test.gauge",
+					rate: true
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("gauge");
@@ -56,7 +60,6 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test increment method", () => {
-
 		const item = new GaugeMetric({ type: "gauge", name: "test.gauge" }, registry);
 		jest.spyOn(item, "set");
 
@@ -80,7 +83,6 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test decrement method", () => {
-
 		const item = new GaugeMetric({ type: "gauge", name: "test.gauge" }, registry);
 		jest.spyOn(item, "set");
 		item.set(10);
@@ -105,8 +107,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test set, reset & resetAll method", () => {
-
-		const item = new GaugeMetric({ type: "gauge", name: "test.gauge", labelNames: ["a"], rate: true }, registry);
+		const item = new GaugeMetric(
+			{ type: "gauge", name: "test.gauge", labelNames: ["a"], rate: true },
+			registry
+		);
 		jest.spyOn(item, "changed");
 
 		it("should store a value", () => {
@@ -233,8 +237,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test generateSnapshot method", () => {
-
-		const item = new GaugeMetric({ type: "gauge", name: "test.gauge", labelNames: ["a"], rate: true }, registry);
+		const item = new GaugeMetric(
+			{ type: "gauge", name: "test.gauge", labelNames: ["a"], rate: true },
+			registry
+		);
 
 		item.set(3, null, 1111);
 		item.set(4, { a: 1 }, 2222);
@@ -244,7 +250,5 @@ describe("Test Base Metric class", () => {
 		it("should generate a snapshot", () => {
 			expect(item.generateSnapshot()).toMatchSnapshot();
 		});
-
 	});
-
 });

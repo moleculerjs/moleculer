@@ -22,7 +22,7 @@ const RateLimiter = require("../../../src/tracing/rate-limiter");
 
 const fakeScope = {
 	enable: jest.fn(),
-	stop: jest.fn(),
+	stop: jest.fn()
 };
 
 jest.mock("../../../src/async-storage", () => {
@@ -44,9 +44,7 @@ describe("Test Tracer", () => {
 	const broker = new ServiceBroker({ logger: false });
 
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
-
 			const tracer = new Tracer(broker);
 
 			expect(tracer.broker).toBe(broker);
@@ -73,7 +71,7 @@ describe("Test Tracer", () => {
 
 				tags: {
 					action: null,
-					event: null,
+					event: null
 				}
 			});
 
@@ -88,7 +86,7 @@ describe("Test Tracer", () => {
 			const tracer = new Tracer(broker, {
 				sampling: {
 					rate: 0.5,
-					tracesPerSecond: 0.2,
+					tracesPerSecond: 0.2
 				},
 
 				events: true,
@@ -126,7 +124,7 @@ describe("Test Tracer", () => {
 
 				tags: {
 					action: null,
-					event: null,
+					event: null
 				}
 			});
 
@@ -196,12 +194,16 @@ describe("Test Tracer", () => {
 			fakeExporter.init.mockClear();
 
 			const tracer = new Tracer(broker, {
-				exporter: ["Exporter1", null, {
-					type: "Datadog",
-					options: {
-						a: 5
+				exporter: [
+					"Exporter1",
+					null,
+					{
+						type: "Datadog",
+						options: {
+							a: 5
+						}
 					}
-				}],
+				],
 				defaultTags: jest.fn(() => ({
 					a: 5
 				}))
@@ -227,7 +229,6 @@ describe("Test Tracer", () => {
 			expect(tracer.opts.defaultTags).toHaveBeenCalledTimes(1);
 			expect(tracer.opts.defaultTags).toHaveBeenCalledWith(tracer);
 		});
-
 	});
 
 	describe("Test stop method", () => {
@@ -262,7 +263,6 @@ describe("Test Tracer", () => {
 	});
 
 	describe("Test isEnabled", () => {
-
 		it("should return false if disabled", () => {
 			const tracer = new Tracer(broker, {
 				enabled: false
@@ -282,7 +282,6 @@ describe("Test Tracer", () => {
 
 			expect(tracer.isEnabled()).toBe(true);
 		});
-
 	});
 
 	/*describe("Test stopAndClearScope", () => {
@@ -323,7 +322,6 @@ describe("Test Tracer", () => {
 	*/
 
 	describe("Test shouldSample", () => {
-
 		it("should check the span priority", () => {
 			const tracer = new Tracer(broker, {
 				enabled: true,
@@ -411,11 +409,9 @@ describe("Test Tracer", () => {
 			expect(tracer.shouldSample()).toBe(false);
 			expect(tracer.shouldSample()).toBe(false);
 		});
-
 	});
 
 	describe("Test startSpan", () => {
-
 		it("should create a new span", () => {
 			const tracer = new Tracer(broker, {
 				enabled: true,
@@ -434,9 +430,9 @@ describe("Test Tracer", () => {
 			expect(Span).toHaveBeenCalledWith(tracer, "new-span", {
 				type: "custom",
 				defaultTags: {
-					"def": "ault"
+					def: "ault"
 				},
-				tags: { "a": 5 },
+				tags: { a: 5 }
 			});
 
 			expect(fakeSpan.start).toHaveBeenCalledTimes(1);
@@ -469,21 +465,19 @@ describe("Test Tracer", () => {
 			expect(Span).toHaveBeenCalledWith(tracer, "new-span", {
 				type: "custom",
 				defaultTags: {
-					"def": "ault"
+					def: "ault"
 				},
 				parentID: "parent-123",
 				traceID: "trace-123",
 				sampled: true,
-				tags: { "a": 5 },
+				tags: { a: 5 }
 			});
 
 			expect(fakeSpan.start).toHaveBeenCalledTimes(1);
 		});
-
 	});
 
 	describe("Test invokeExporter", () => {
-
 		it("should do nothing if no exporter", () => {
 			Exporters.resolve.mockClear();
 			fakeExporter.init.mockClear();
@@ -516,7 +510,6 @@ describe("Test Tracer", () => {
 			expect(fakeExporter.someMethod).toHaveBeenNthCalledWith(1, 5, "John");
 			expect(fakeExporter.someMethod).toHaveBeenNthCalledWith(2, 5, "John");
 		});
-
 	});
 
 	describe("Test spanStarted", () => {
@@ -553,7 +546,6 @@ describe("Test Tracer", () => {
 
 			expect(tracer.invokeExporter).toBeCalledTimes(0);
 		});
-
 	});
 
 	describe("Test spanFinished", () => {
@@ -590,7 +582,6 @@ describe("Test Tracer", () => {
 
 			expect(tracer.invokeExporter).toBeCalledTimes(0);
 		});
-
 	});
 
 	/*
@@ -754,4 +745,3 @@ describe("Test Tracer", () => {
 	});
 	*/
 });
-

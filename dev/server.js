@@ -20,10 +20,11 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	//transporter: "kafka://192.168.0.181:9092",
+	//transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
+	//transporter: "AMQP10",
 	transporter: "NATS",
-	//serializer: "Thrift",
+	//serializer: "MsgPack",
 
 	//disableBalancer: true,
 
@@ -33,11 +34,11 @@ const broker = new ServiceBroker({
 
 	registry: {
 		//strategy: Strategies.Random
-		//discoverer: "Redis"
+		//discoverer: "Etcd3"
 	},
 
 	metrics: {
-		enabled: true,
+		enabled: false,
 		reporter: [
 			{
 				type: "Console",
@@ -60,7 +61,6 @@ const broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short",
 
 	middlewares: [
 		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),

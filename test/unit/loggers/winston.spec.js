@@ -9,7 +9,7 @@ const childFakeLogger = {
 	error: jest.fn(),
 	warn: jest.fn(),
 	debug: jest.fn(),
-	log: jest.fn(),
+	log: jest.fn()
 };
 const fakeLogger = {
 	child: jest.fn(() => childFakeLogger)
@@ -23,15 +23,13 @@ const LoggerFactory = require("../../../src/logger-factory");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Winston logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new WinstonLogger();
 
 			expect(logger.opts).toEqual({
 				winston: {
-					level: "silly",
+					level: "silly"
 				},
 				createLogger: null,
 				level: "info"
@@ -57,7 +55,6 @@ describe("Test Winston logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -79,7 +76,7 @@ describe("Test Winston logger class", () => {
 			const logger = new WinstonLogger({
 				winston: {
 					transports: []
-				},
+				}
 			});
 
 			logger.init(loggerFactory);
@@ -89,7 +86,6 @@ describe("Test Winston logger class", () => {
 			expect(Winston.createLogger).toHaveBeenCalledTimes(1);
 			expect(Winston.createLogger).toHaveBeenCalledWith({ level: "silly", transports: [] });
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -211,7 +207,5 @@ describe("Test Winston logger class", () => {
 			expect(logHandler).toBeNull();
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
-
 	});
-
 });

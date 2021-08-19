@@ -10,7 +10,6 @@ let ServiceBroker = require("../../../src/service-broker");
 const { protectReject } = require("../utils");
 
 describe("Test EventCatalog constructor", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
@@ -25,7 +24,6 @@ describe("Test EventCatalog constructor", () => {
 		expect(catalog.events).toBeInstanceOf(Array);
 		expect(catalog.EndpointFactory).toBe(EventEndpoint);
 	});
-
 });
 
 describe("Test EventCatalog methods", () => {
@@ -45,7 +43,6 @@ describe("Test EventCatalog methods", () => {
 		expect(catalog.events.length).toBe(1);
 		expect(list).toBeInstanceOf(EndpointList);
 		expect(list.group).toBe(service.name);
-
 	});
 
 	it("should not create a new EndpointList just add new node", () => {
@@ -61,7 +58,6 @@ describe("Test EventCatalog methods", () => {
 
 		expect(list.add).toHaveBeenCalledTimes(1);
 		expect(list.add).toHaveBeenCalledWith(node, service, event);
-
 	});
 
 	it("should return the list", () => {
@@ -84,7 +80,10 @@ describe("Test EventCatalog methods", () => {
 
 	it("should call list.removeByService", () => {
 		let service2 = { name: "echo" };
-		let list2 = catalog.add(broker.registry.nodes.localNode, service2, { name: "echo.reply", cache: true });
+		let list2 = catalog.add(broker.registry.nodes.localNode, service2, {
+			name: "echo.reply",
+			cache: true
+		});
 
 		list.removeByService = jest.fn();
 		list2.removeByService = jest.fn();
@@ -100,97 +99,98 @@ describe("Test EventCatalog methods", () => {
 		let res = catalog.list({});
 		expect(res).toEqual([
 			{
-				"event": {
-					"name": "hello"
+				event: {
+					name: "hello"
 				},
-				"available": true,
-				"count": 1,
-				"group": "test",
-				"hasLocal": false,
-				"name": "hello"
+				available: true,
+				count: 1,
+				group: "test",
+				hasLocal: false,
+				name: "hello"
 			},
 			{
-				"event": {
-					"name": "echo.reply",
-					"cache": true
+				event: {
+					name: "echo.reply",
+					cache: true
 				},
-				"available": true,
-				"count": 1,
-				"group": "echo",
-				"hasLocal": true,
-				"name": "echo.reply"
+				available: true,
+				count: 1,
+				group: "echo",
+				hasLocal: true,
+				name: "echo.reply"
 			}
 		]);
 
 		res = catalog.list({ withEndpoints: true });
 		expect(res).toEqual([
 			{
-				"event": {
-					"name": "hello"
+				event: {
+					name: "hello"
 				},
-				"available": true,
-				"count": 1,
-				"endpoints": [
+				available: true,
+				count: 1,
+				endpoints: [
 					{
-						"available": undefined,
-						"nodeID": "server-1",
-						"state": true
+						available: undefined,
+						nodeID: "server-1",
+						state: true
 					}
 				],
-				"group": "test",
-				"hasLocal": false,
-				"name": "hello"
+				group: "test",
+				hasLocal: false,
+				name: "hello"
 			},
 			{
-				"event": {
-					"name": "echo.reply",
-					"cache": true
+				event: {
+					name: "echo.reply",
+					cache: true
 				},
-				"available": true,
-				"count": 1,
-				"endpoints": [
+				available: true,
+				count: 1,
+				endpoints: [
 					{
-						"available": true,
-						"nodeID": broker.registry.nodes.localNode.id,
-						"state": true
+						available: true,
+						nodeID: broker.registry.nodes.localNode.id,
+						state: true
 					}
 				],
-				"group": "echo",
-				"hasLocal": true,
-				"name": "echo.reply"
+				group: "echo",
+				hasLocal: true,
+				name: "echo.reply"
 			}
 		]);
 
 		res = catalog.list({ onlyLocal: true, skipInternal: true });
-		expect(res).toEqual([{
-			"available": true,
-			"count": 1,
-			"event": {
-				"cache": true,
-				"name": "echo.reply"
-			},
-			"group": "echo",
-			"hasLocal": true,
-			"name": "echo.reply"
-		}]);
+		expect(res).toEqual([
+			{
+				available: true,
+				count: 1,
+				event: {
+					cache: true,
+					name: "echo.reply"
+				},
+				group: "echo",
+				hasLocal: true,
+				name: "echo.reply"
+			}
+		]);
 
 		catalog.get("hello", "test").hasAvailable = jest.fn(() => false);
 		res = catalog.list({ onlyAvailable: true });
 		expect(res).toEqual([
 			{
-				"event": {
-					"name": "echo.reply",
-					"cache": true
+				event: {
+					name: "echo.reply",
+					cache: true
 				},
-				"available": true,
-				"count": 1,
-				"group": "echo",
-				"hasLocal": true,
-				"name": "echo.reply"
+				available: true,
+				count: 1,
+				group: "echo",
+				hasLocal: true,
+				name: "echo.reply"
 			}
 		]);
 	});
-
 });
 
 describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
@@ -227,7 +227,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res.length).toBe(3);
 		expect(res[2][0].id).toEqual("node-2");
 		expect(res[2][1]).toEqual("mail");
-
 	});
 
 	it("should return balanced endpoint list for 'user.updated'", () => {
@@ -238,7 +237,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-3");
 		expect(res[0][1]).toEqual("mail");
-
 	});
 
 	it("should return balanced endpoint list for 'user.created' on group 'payment'", () => {
@@ -249,7 +247,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-2");
 		expect(res[0][1]).toEqual("payment");
-
 	});
 
 	it("should return all endpoint", () => {
@@ -260,7 +257,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res[1].id).toEqual("node-2");
 		expect(res[2].id).toEqual("node-4");
 		expect(res[3].id).toEqual("node-3");
-
 	});
 
 	it("should return all endpoint with groups", () => {
@@ -269,7 +265,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res.length).toBe(2);
 		expect(res[0].id).toEqual("node-2");
 		expect(res[1].id).toEqual("node-3");
-
 	});
 
 	it("should return all endpoint with matches", () => {
@@ -285,7 +280,6 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 
 		expect(res.length).toBe(0);
 	});
-
 });
 
 describe("Test getGroups", () => {
@@ -319,7 +313,12 @@ describe("Test EventCatalog.emitLocalServices", () => {
 	let usersEvent = { name: "user.created", desc: "usersEvent", handler: jest.fn() };
 	let paymentEvent = { name: "user.created", desc: "paymentEvent", handler: jest.fn() };
 	let mailEvent = { name: "user.*", desc: "mailEvent", handler: jest.fn() };
-	let otherEvent = { name: "user.created", group: "payment", desc: "otherEvent", handler: jest.fn() };
+	let otherEvent = {
+		name: "user.created",
+		group: "payment",
+		desc: "otherEvent",
+		handler: jest.fn()
+	};
 
 	catalog.add({ id: "node-1" }, { name: "users" }, usersEvent);
 	catalog.add({ id: "node-1" }, { name: "payment" }, paymentEvent);
@@ -341,22 +340,39 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
 		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "usersEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "usersEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "paymentEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[2][0];
-		expect(copied.event).toEqual({ name: "user.created", group: "payment", desc: "otherEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			group: "payment",
+			desc: "otherEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[3][0];
-		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.*",
+			desc: "mailEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
@@ -378,17 +394,30 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
 		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "paymentEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(["mail", "payment"]);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({ name: "user.created", group: "payment", desc: "otherEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			group: "payment",
+			desc: "otherEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(["mail", "payment"]);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[2][0];
-		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.*",
+			desc: "mailEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(["mail", "payment"]);
 		expect(copied.nodeID).toEqual("node-99");
 
@@ -410,17 +439,29 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
 		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "usersEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "usersEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "paymentEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "paymentEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[2][0];
-		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.*",
+			desc: "mailEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(null);
 		expect(copied.nodeID).toEqual("node-99");
 
@@ -442,12 +483,21 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
 		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({ name: "user.created", desc: "otherEvent", group: "payment", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.created",
+			desc: "otherEvent",
+			group: "payment",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(["mail", "payment"]);
 		expect(copied.nodeID).toEqual("node-99");
 
 		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({ name: "user.*", desc: "mailEvent", handler: expect.any(Function) });
+		expect(copied.event).toEqual({
+			name: "user.*",
+			desc: "mailEvent",
+			handler: expect.any(Function)
+		});
 		expect(copied.eventGroups).toEqual(["mail", "payment"]);
 		expect(copied.nodeID).toEqual("node-99");
 
@@ -467,7 +517,7 @@ describe("Test EventCatalog.callEventHandler", () => {
 
 	it("should add catch handler to result", () => {
 		let resolver;
-		ctx.endpoint.event.handler = jest.fn(() => new Promise(res => resolver = res));
+		ctx.endpoint.event.handler = jest.fn(() => new Promise(res => (resolver = res)));
 
 		const p = catalog.callEventHandler(ctx);
 
@@ -483,7 +533,7 @@ describe("Test EventCatalog.callEventHandler", () => {
 
 	it("should catch error", () => {
 		let rejecter;
-		ctx.endpoint.event.handler = jest.fn(() => new Promise((res, rej) => rejecter = rej));
+		ctx.endpoint.event.handler = jest.fn(() => new Promise((res, rej) => (rejecter = rej)));
 		broker.logger.error = jest.fn();
 
 		const p = catalog.callEventHandler(ctx);
@@ -527,5 +577,4 @@ describe("Test EventCatalog add method", () => {
 		expect(list.strategy).toBeInstanceOf(CpuStrategy);
 		expect(list.strategy.opts).toEqual({ sampleCount: 6, lowCpuUsage: 10 });
 	});
-
 });

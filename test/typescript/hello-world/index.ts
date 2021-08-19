@@ -27,7 +27,8 @@ broker.loadService(path.join(__dirname, "greeter.service.ts"));
 	try {
 		await broker.start();
 
-		const res = await broker.call("greeter.welcome", { name: "Typescript"});
+		await broker.call("greeter.hello");
+		const res = await broker.call("greeter.welcome", { name: "Typescript" });
 		broker.logger.info("");
 		broker.logger.info("Result: ", res);
 		broker.logger.info("");

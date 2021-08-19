@@ -45,7 +45,6 @@ const { protectReject } = require("../utils");
 const TcpTransporter = require("../../../src/transporters/tcp");
 
 describe("Test TcpTransporter constructor", () => {
-
 	it("check constructor", () => {
 		let transporter = new TcpTransporter();
 		expect(transporter).toBeDefined();
@@ -81,7 +80,12 @@ describe("Test TcpTransporter constructor", () => {
 	// });
 
 	it("check constructor with options", () => {
-		let opts = { udpDiscovery: false, udpBindAddress: "10.0.0.4", port: 5555, udpBroadcast: true };
+		let opts = {
+			udpDiscovery: false,
+			udpBindAddress: "10.0.0.4",
+			port: 5555,
+			udpBroadcast: true
+		};
 		let transporter = new TcpTransporter(opts);
 		expect(transporter.opts).toEqual({
 			udpDiscovery: false,
@@ -101,9 +105,7 @@ describe("Test TcpTransporter constructor", () => {
 			maxPacketSize: 1 * 1024 * 1024
 		});
 	});
-
 });
-
 
 describe("Test TcpTransporter init", () => {
 	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
@@ -117,9 +119,7 @@ describe("Test TcpTransporter init", () => {
 		expect(transporter.nodes).toBe(broker.registry.nodes);
 		expect(broker.registry.discoverer.disableHeartbeat).toHaveBeenCalledTimes(1);
 	});
-
 });
-
 
 describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 	let broker = new ServiceBroker({ logger: false });
@@ -142,20 +142,22 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		broker.registry.regenerateLocalRawInfo = jest.fn();
 
-		let p = transporter.connect().catch(protectReject).then(() => {
-			expect(transporter.connected).toBe(true);
-			expect(transporter.startTcpServer).toHaveBeenCalledTimes(1);
-			expect(transporter.startUdpServer).toHaveBeenCalledTimes(1);
-			expect(transporter.startTimers).toHaveBeenCalledTimes(1);
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.connected).toBe(true);
+				expect(transporter.startTcpServer).toHaveBeenCalledTimes(1);
+				expect(transporter.startUdpServer).toHaveBeenCalledTimes(1);
+				expect(transporter.startTimers).toHaveBeenCalledTimes(1);
 
-			expect(broker.registry.nodes.localNode.port).toBe(1234);
+				expect(broker.registry.nodes.localNode.port).toBe(1234);
 
-			expect(broker.registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+				expect(broker.registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
 
-			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.loadUrls).toHaveBeenCalledTimes(0);
-		});
-
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.loadUrls).toHaveBeenCalledTimes(0);
+			});
 
 		return p;
 	});
@@ -164,18 +166,20 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		transporter.opts.urls = [];
 
-		let p = transporter.connect().catch(protectReject).then(() => {
-			expect(transporter.connected).toBe(true);
-			expect(transporter.startTcpServer).toHaveBeenCalledTimes(1);
-			expect(transporter.startUdpServer).toHaveBeenCalledTimes(1);
-			expect(transporter.startTimers).toHaveBeenCalledTimes(1);
+		let p = transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.connected).toBe(true);
+				expect(transporter.startTcpServer).toHaveBeenCalledTimes(1);
+				expect(transporter.startUdpServer).toHaveBeenCalledTimes(1);
+				expect(transporter.startTimers).toHaveBeenCalledTimes(1);
 
-			expect(broker.registry.nodes.localNode.port).toBe(1234);
+				expect(broker.registry.nodes.localNode.port).toBe(1234);
 
-			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
-			expect(transporter.loadUrls).toHaveBeenCalledTimes(1);
-		});
-
+				expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+				expect(transporter.loadUrls).toHaveBeenCalledTimes(1);
+			});
 
 		return p;
 	});
@@ -185,16 +189,18 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 		transporter.writer = { close: jest.fn() };
 		transporter.udpServer = { close: jest.fn() };
 
-		return transporter.connect().catch(protectReject).then(() => {
-			transporter.disconnect();
-			expect(transporter.connected).toBe(false);
-			expect(transporter.stopTimers).toHaveBeenCalledTimes(1);
-			expect(transporter.reader.close).toHaveBeenCalledTimes(1);
-			expect(transporter.writer.close).toHaveBeenCalledTimes(1);
-			expect(transporter.udpServer.close).toHaveBeenCalledTimes(1);
-		});
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.disconnect();
+				expect(transporter.connected).toBe(false);
+				expect(transporter.stopTimers).toHaveBeenCalledTimes(1);
+				expect(transporter.reader.close).toHaveBeenCalledTimes(1);
+				expect(transporter.writer.close).toHaveBeenCalledTimes(1);
+				expect(transporter.udpServer.close).toHaveBeenCalledTimes(1);
+			});
 	});
-
 });
 
 describe("Test TcpTransporter getLocalNodeInfo & getNodeInfo", () => {
@@ -215,16 +221,16 @@ describe("Test TcpTransporter getLocalNodeInfo & getNodeInfo", () => {
 		expect(transporter.nodes.get).toHaveBeenCalledTimes(1);
 		expect(transporter.nodes.get).toHaveBeenCalledWith("node-2");
 	});
-
 });
-
 
 describe("Test TcpTransporter subscribe & publish", () => {
 	let transporter;
 
 	beforeEach(() => {
 		transporter = new TcpTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" }))
+		);
 
 		transporter.writer = {
 			send: jest.fn(() => Promise.resolve())
@@ -240,12 +246,12 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		return transporter.connect();
 	});
 
-
 	it("should send packet with target", () => {
-
 		const packet = new P.Packet(P.PACKET_EVENT, "node2", {});
-		return transporter.publish(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publish(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.writer.send).toHaveBeenCalledTimes(1);
 				expect(transporter.writer.send).toHaveBeenCalledWith(
 					"node2",
@@ -264,8 +270,10 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		transporter.nodes.disconnected = jest.fn();
 
 		const packet = new P.Packet(P.PACKET_EVENT, "node2", {});
-		return transporter.publish(packet)
-			.then(protectReject).catch(() => {
+		return transporter
+			.publish(packet)
+			.then(protectReject)
+			.catch(() => {
 				expect(transporter.writer.send).toHaveBeenCalledTimes(1);
 				expect(transporter.writer.send).toHaveBeenCalledWith(
 					"node2",
@@ -283,8 +291,10 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		transporter.writer.send.mockClear();
 
 		const packet = new P.Packet(P.PACKET_EVENT, null, {});
-		return transporter.publish(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publish(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.writer.send).toHaveBeenCalledTimes(0);
 				expect(transporter.serialize).toHaveBeenCalledTimes(0);
 			});
@@ -295,13 +305,14 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		transporter.writer.send.mockClear();
 
 		const packet = new P.Packet(P.PACKET_DISCOVER);
-		return transporter.publish(packet)
-			.catch(protectReject).then(() => {
+		return transporter
+			.publish(packet)
+			.catch(protectReject)
+			.then(() => {
 				expect(transporter.writer.send).toHaveBeenCalledTimes(0);
 				expect(transporter.serialize).toHaveBeenCalledTimes(0);
 			});
 	});
-
 });
 
 describe("Test TcpTransporter nodes functions", () => {
@@ -359,7 +370,6 @@ describe("Test TcpTransporter nodes functions", () => {
 	});
 });
 
-
 describe("Test TcpTransporter startTcpServer", () => {
 	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
@@ -380,8 +390,8 @@ describe("Test TcpTransporter startTcpServer", () => {
 		expect(TcpReader).toHaveBeenCalledWith(transporter, transporter.opts);
 
 		expect(transporter.writer.on).toHaveBeenCalledTimes(2);
-		expect(transporter.writer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-		expect(transporter.writer.on).toHaveBeenCalledWith("end", jasmine.any(Function));
+		expect(transporter.writer.on).toHaveBeenCalledWith("error", expect.any(Function));
+		expect(transporter.writer.on).toHaveBeenCalledWith("end", expect.any(Function));
 
 		expect(transporter.reader.listen).toHaveBeenCalledTimes(1);
 		expect(transporter.reader.listen).toHaveBeenCalledWith();
@@ -406,7 +416,6 @@ describe("Test TcpTransporter startTcpServer", () => {
 		expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
 		expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
 	});
-
 });
 
 describe("Test TcpTransporter startUdpServer", () => {
@@ -426,7 +435,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 		expect(UdpServer).toHaveBeenCalledWith(transporter, transporter.opts);
 
 		expect(transporter.udpServer.on).toHaveBeenCalledTimes(1);
-		expect(transporter.udpServer.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+		expect(transporter.udpServer.on).toHaveBeenCalledWith("message", expect.any(Function));
 
 		expect(transporter.udpServer.bind).toHaveBeenCalledTimes(1);
 		expect(transporter.udpServer.bind).toHaveBeenCalledWith();
@@ -488,7 +497,6 @@ describe("Test TcpTransporter startUdpServer", () => {
 
 		expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
 	});
-
 });
 
 describe("Test TcpTransporter startUdpServer", () => {
@@ -537,9 +545,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 		transporter.stopTimers();
 		expect(transporter.gossipTimer).toBeNull();
 	});
-
 });
-
 
 describe("Test TcpTransporter loadUrls", () => {
 	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
@@ -557,63 +563,110 @@ describe("Test TcpTransporter loadUrls", () => {
 	it("check with null", () => {
 		return createTransporter({
 			urls: null
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
-		});
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			});
 	});
 
 	it("check with empty string", () => {
 		return createTransporter({
 			urls: ""
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
-		});
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			});
 	});
 
 	it("check with empty array", () => {
 		return createTransporter({
 			urls: []
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
-		});
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+			});
 	});
 
 	it("check with string", () => {
 		return createTransporter({
 			urls: "tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5",
 			port: 1234
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-1",
+					"192.168.0.1",
+					5001
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-2",
+					"192.168.0.2",
+					5002
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-3",
+					"192.168.0.3",
+					5003
+				);
 
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
-			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
-			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing nodeID. URL:",
+					"192.168.0.4:5004"
+				);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing port. URL:",
+					"192.168.0.5/node-5"
+				);
 
-			expect(transporter.opts.port).toBe(1234);
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
-		});
+				expect(transporter.opts.port).toBe(1234);
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+			});
 	});
 
 	it("check with connection string", () => {
-		return createTransporter("tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5")
-			.catch(protectReject).then(transporter => {
+		return createTransporter(
+			"tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5"
+		)
+			.catch(protectReject)
+			.then(transporter => {
 				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-1",
+					"192.168.0.1",
+					5001
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-2",
+					"192.168.0.2",
+					5002
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-3",
+					"192.168.0.3",
+					5003
+				);
 
 				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing nodeID. URL:",
+					"192.168.0.4:5004"
+				);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing port. URL:",
+					"192.168.0.5/node-5"
+				);
 
 				expect(transporter.opts.port).toBe(5123);
 				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
@@ -630,18 +683,38 @@ describe("Test TcpTransporter loadUrls", () => {
 				"tcp://192.168.0.123:5123/node-123",
 				"192.168.0.5/node-5"
 			]
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-1",
+					"192.168.0.1",
+					5001
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-2",
+					"192.168.0.2",
+					5002
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-3",
+					"192.168.0.3",
+					5003
+				);
 
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
-			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
-			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing nodeID. URL:",
+					"192.168.0.4:5004"
+				);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing port. URL:",
+					"192.168.0.5/node-5"
+				);
 
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
-		});
+				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+			});
 	});
 
 	it("check with object", () => {
@@ -654,42 +727,85 @@ describe("Test TcpTransporter loadUrls", () => {
 				"node-123": "tcp://192.168.0.123:5123",
 				"node-5": "192.168.0.5"
 			}
-		}).catch(protectReject).then(transporter => {
-			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(4);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
-			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-4", "192.168.0.4", 5004);
+		})
+			.catch(protectReject)
+			.then(transporter => {
+				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(4);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-1",
+					"192.168.0.1",
+					5001
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-2",
+					"192.168.0.2",
+					5002
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-3",
+					"192.168.0.3",
+					5003
+				);
+				expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+					"node-4",
+					"192.168.0.4",
+					5004
+				);
 
-			expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
-			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
-
-			// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
-		});
-	});
-
-	describe("check with file path", () => {
-
-		it("should parse txt file", () => {
-			fs.readFileSync = jest.fn(() => "tcp://192.168.0.1:5001/node-1\ntcp://192.168.0.2:5002/node-2\n\n192.168.0.3:5003/node-3\ntcp://192.168.0.4:5004\ntcp://192.168.0.123:5123/node-123\n192.168.0.5/node-5\n");
-
-			return createTransporter({
-				urls: "file://./registry/nodes.txt"
-			}).catch(protectReject).then(transporter => {
-				expect(fs.readFileSync).toHaveBeenCalledTimes(1);
-				expect(fs.readFileSync).toHaveBeenCalledWith("./registry/nodes.txt");
-
-				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
-
-				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+				expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
+				expect(transporter.logger.warn).toHaveBeenCalledWith(
+					"Invalid endpoint URL. Missing port. URL:",
+					"192.168.0.5/node-5"
+				);
 
 				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
+	});
+
+	describe("check with file path", () => {
+		it("should parse txt file", () => {
+			fs.readFileSync = jest.fn(
+				() =>
+					"tcp://192.168.0.1:5001/node-1\ntcp://192.168.0.2:5002/node-2\n\n192.168.0.3:5003/node-3\ntcp://192.168.0.4:5004\ntcp://192.168.0.123:5123/node-123\n192.168.0.5/node-5\n"
+			);
+
+			return createTransporter({
+				urls: "file://./registry/nodes.txt"
+			})
+				.catch(protectReject)
+				.then(transporter => {
+					expect(fs.readFileSync).toHaveBeenCalledTimes(1);
+					expect(fs.readFileSync).toHaveBeenCalledWith("./registry/nodes.txt");
+
+					expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-1",
+						"192.168.0.1",
+						5001
+					);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-2",
+						"192.168.0.2",
+						5002
+					);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-3",
+						"192.168.0.3",
+						5003
+					);
+
+					expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+					expect(transporter.logger.warn).toHaveBeenCalledWith(
+						"Invalid endpoint URL. Missing nodeID. URL:",
+						"192.168.0.4:5004"
+					);
+					expect(transporter.logger.warn).toHaveBeenCalledWith(
+						"Invalid endpoint URL. Missing port. URL:",
+						"192.168.0.5/node-5"
+					);
+
+					// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+				});
 		});
 
 		it("should parse json file", () => {
@@ -708,25 +824,44 @@ describe("Test TcpTransporter loadUrls", () => {
 
 			return createTransporter({
 				urls: "file://./registry/nodes.json"
-			}).catch(protectReject).then(transporter => {
-				expect(fs.readFileSync).toHaveBeenCalledTimes(1);
-				expect(fs.readFileSync).toHaveBeenCalledWith("./registry/nodes.json");
+			})
+				.catch(protectReject)
+				.then(transporter => {
+					expect(fs.readFileSync).toHaveBeenCalledTimes(1);
+					expect(fs.readFileSync).toHaveBeenCalledWith("./registry/nodes.json");
 
-				expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
-				expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+					expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-1",
+						"192.168.0.1",
+						5001
+					);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-2",
+						"192.168.0.2",
+						5002
+					);
+					expect(transporter.addOfflineNode).toHaveBeenCalledWith(
+						"node-3",
+						"192.168.0.3",
+						5003
+					);
 
-				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
-				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+					expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+					expect(transporter.logger.warn).toHaveBeenCalledWith(
+						"Invalid endpoint URL. Missing nodeID. URL:",
+						"192.168.0.4:5004"
+					);
+					expect(transporter.logger.warn).toHaveBeenCalledWith(
+						"Invalid endpoint URL. Missing port. URL:",
+						"192.168.0.5/node-5"
+					);
 
-				// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
-			});
+					// expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
+				});
 		});
 	});
 });
-
 
 describe("Test TcpTransporter onIncomingMessage", () => {
 	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
@@ -776,7 +911,6 @@ describe("Test TcpTransporter onIncomingMessage", () => {
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(2);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith(P.PACKET_EVENT, "message 2");
 	});
-
 });
 
 describe("Test Gossip methods", () => {
@@ -790,7 +924,6 @@ describe("Test Gossip methods", () => {
 	});
 
 	describe("Test onIncomingMessage", () => {
-
 		it("should call processGossipHello", () => {
 			const msg = {};
 			const socket = {};
@@ -834,18 +967,19 @@ describe("Test Gossip methods", () => {
 			expect(transporter.incomingMessage).toHaveBeenCalledTimes(2);
 			expect(transporter.incomingMessage).toHaveBeenCalledWith(P.PACKET_EVENT, msg);
 		});
-
 	});
 
 	describe("Test sendHello", () => {
-
 		it("should throw error if nodeID is unknown", () => {
 			transporter.getNode = jest.fn();
 
-			return transporter.sendHello("node-xy").then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(E.MoleculerServerError);
-				expect(err.message).toBe("Missing node info for 'node-xy'");
-			});
+			return transporter
+				.sendHello("node-xy")
+				.then(protectReject)
+				.catch(err => {
+					expect(err).toBeInstanceOf(E.MoleculerServerError);
+					expect(err.message).toBe("Missing node info for 'node-xy'");
+				});
 		});
 
 		it("should publish a HELLO packet", () => {
@@ -868,11 +1002,9 @@ describe("Test Gossip methods", () => {
 				}
 			});
 		});
-
 	});
 
 	describe("Test processGossipHello", () => {
-
 		it("should create as offline node", () => {
 			transporter.addOfflineNode = jest.fn();
 			transporter.nodes.get = jest.fn();
@@ -914,16 +1046,10 @@ describe("Test Gossip methods", () => {
 
 			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
 		});
-
 	});
 
 	describe("Test sendGossipToRandomEndpoint", () => {
-		const endpoints = [
-			{ id: "node-1" },
-			{ id: "node-2" },
-			{ id: "node-3" },
-			{ id: "node-4" },
-		];
+		const endpoints = [{ id: "node-1" }, { id: "node-2" }, { id: "node-3" }, { id: "node-4" }];
 
 		const data = {
 			a: 5
@@ -938,7 +1064,7 @@ describe("Test Gossip methods", () => {
 		});
 
 		it("should select a random endpoint and publish", () => {
-			Math.random = jest.fn(() => .6);
+			Math.random = jest.fn(() => 0.6);
 			transporter.publish = jest.fn(() => Promise.resolve());
 
 			transporter.sendGossipToRandomEndpoint(data, endpoints);
@@ -952,20 +1078,16 @@ describe("Test Gossip methods", () => {
 				}
 			});
 		});
-
 	});
 
 	describe("Test sendGossipRequest", () => {
-
 		beforeEach(() => {
 			Math.random = jest.fn(() => 0);
 			transporter.sendGossipToRandomEndpoint = jest.fn();
 		});
 
 		it("should send nothing, if no other nodes", () => {
-			transporter.nodes.toArray = jest.fn(() => ([
-				{ id: "node-1", local: true }
-			]));
+			transporter.nodes.toArray = jest.fn(() => [{ id: "node-1", local: true }]);
 
 			transporter.sendGossipRequest();
 
@@ -974,83 +1096,93 @@ describe("Test Gossip methods", () => {
 
 		it("should send info to online node", () => {
 			const nodes = [
-				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuSeq: 2 },
-				{ id: "node-2", local: false, available: true, seq: 3 },
+				{ id: "node-1", local: true, available: true, seq: 5, cpu: 12, cpuSeq: 2 },
+				{ id: "node-2", local: false, available: true, seq: 3 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
 			transporter.sendGossipRequest();
 
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [5, 2, 12],
-					"node-2": [3, 0, 0]
-				}
-			},[ nodes[1]]);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith(
+				{
+					online: {
+						"node-1": [5, 2, 12],
+						"node-2": [3, 0, 0]
+					}
+				},
+				[nodes[1]]
+			);
 		});
 
 		it("should send info to offline node", () => {
 			const nodes = [
-				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuSeq: 2 },
-				{ id: "node-2", local: false, available: false, seq: 4 },
+				{ id: "node-1", local: true, available: true, seq: 5, cpu: 12, cpuSeq: 2 },
+				{ id: "node-2", local: false, available: false, seq: 4 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
 			transporter.sendGossipRequest();
 
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [5, 2, 12]
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith(
+				{
+					online: {
+						"node-1": [5, 2, 12]
+					},
+					offline: {
+						"node-2": 4
+					}
 				},
-				offline: {
-					"node-2": 4
-				}
-			},[ nodes[1]]);
+				[nodes[1]]
+			);
 		});
 
 		it("should send info to online & offline nodes", () => {
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-1", local: true, available: true, seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true, seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true, seq: 30, cpu: 33, cpuSeq: 300 },
 				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
-				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
 			transporter.sendGossipRequest();
 
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [10, 100, 11],
-					"node-2": [20, 200, 22],
-					"node-3": [30, 300, 33],
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith(
+				{
+					online: {
+						"node-1": [10, 100, 11],
+						"node-2": [20, 200, 22],
+						"node-3": [30, 300, 33]
+					},
+					offline: {
+						"node-4": 40,
+						"node-5": 50
+					}
 				},
-				offline: {
-					"node-4": 40,
-					"node-5": 50,
-				}
-			},[ nodes[1], nodes[2]]);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [10, 100, 11],
-					"node-2": [20, 200, 22],
-					"node-3": [30, 300, 33],
+				[nodes[1], nodes[2]]
+			);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith(
+				{
+					online: {
+						"node-1": [10, 100, 11],
+						"node-2": [20, 200, 22],
+						"node-3": [30, 300, 33]
+					},
+					offline: {
+						"node-4": 40,
+						"node-5": 50
+					}
 				},
-				offline: {
-					"node-4": 40,
-					"node-5": 50,
-				}
-			},[ nodes[3], nodes[4]]);
+				[nodes[3], nodes[4]]
+			);
 		});
-
 	});
 
 	describe("Test processGossipRequest", () => {
-
 		beforeEach(() => {
 			Math.random = jest.fn(() => 0);
 			transporter.deserialize = jest.fn((type, msg) => msg);
@@ -1062,12 +1194,12 @@ describe("Test Gossip methods", () => {
 
 		it("should update local info and send new node info", () => {
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-1", local: true, available: true, seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true, seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true, seq: 30, cpu: 33, cpuSeq: 300 },
 				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
 				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
-				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuSeq: 600 },
+				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuSeq: 600 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
@@ -1079,12 +1211,12 @@ describe("Test Gossip methods", () => {
 						"node-2": [18, 180, 10], // We got older info, send newer
 						"node-5": [48, 500, 55], // We got older info, send it is offline
 						"node-6": [66, 606, 6], // We got newer info, but we think it is offline, skip
-						"node-7": [70, 700, 77], // We don't know it, skip
+						"node-7": [70, 700, 77] // We don't know it, skip
 					},
 					offline: {
 						"node-4": 41, // Newer seq
 						"node-3": 33, // Newer seq, Gone to offline, we change it to offline
-						"node-8": 88, // We don't know it, skip
+						"node-8": 88 // We don't know it, skip
 					}
 				}
 			});
@@ -1101,12 +1233,12 @@ describe("Test Gossip methods", () => {
 				type: "GOSSIP_RES",
 				target: "node-2",
 				payload: {
-					"online": {
-						"node-2": [{ "info": "node-2" }, 200, 22]
+					online: {
+						"node-2": [{ info: "node-2" }, 200, 22]
 					},
-					"offline": {
+					offline: {
 						"node-5": 50
-					},
+					}
 				}
 			});
 		});
@@ -1114,14 +1246,22 @@ describe("Test Gossip methods", () => {
 		it("should update local info and send new node info and inc our seq", () => {
 			const heartbeat = jest.fn();
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 1, cpu: 11, cpuSeq: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200, heartbeat },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-1", local: true, available: true, seq: 1, cpu: 11, cpuSeq: 100 },
+				{
+					id: "node-2",
+					local: false,
+					available: true,
+					seq: 20,
+					cpu: 22,
+					cpuSeq: 200,
+					heartbeat
+				},
+				{ id: "node-3", local: false, available: true, seq: 30, cpu: 33, cpuSeq: 300 },
 				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
 				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
 				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuSeq: 600 },
 				{ id: "node-7", local: false, available: true, seq: 70, cpu: null, cpuSeq: null },
-				{ id: "node-8", local: false, available: true, seq: 80, cpu: 88, cpuSeq: 800 },
+				{ id: "node-8", local: false, available: true, seq: 80, cpu: 88, cpuSeq: 800 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 			transporter.nodes.get = jest.fn(() => ({ id: "node-10" }));
@@ -1135,13 +1275,13 @@ describe("Test Gossip methods", () => {
 						"node-2": [20, 220, 25], // We got newer CPU info, update local
 						"node-3": [30, 300, 33], // No changes, skip
 						// No node-7, send back with info
-						"node-8": [80, 777, 77], // Whet got older CPU info, send back newer
+						"node-8": [80, 777, 77] // Whet got older CPU info, send back newer
 					},
 					offline: {
 						"node-1": 33, // Local - inc seq & send we are online
 						// No "node-4", send back
 						// No "node-5", send back
-						"node-6": 60, // No changes, skip
+						"node-6": 60 // No changes, skip
 					}
 				}
 			});
@@ -1167,21 +1307,20 @@ describe("Test Gossip methods", () => {
 				target: "node-10",
 				payload: {
 					online: {
-						"node-1": [{ "info": "node-1" }, 100, 11],
-						"node-7": [{ "info": "node-7" }, 0, 0],
+						"node-1": [{ info: "node-1" }, 100, 11],
+						"node-7": [{ info: "node-7" }, 0, 0],
 						"node-8": [800, 88]
 					},
 					offline: {
 						"node-4": 40,
 						"node-5": 50
-					},
+					}
 				}
 			});
 		});
 	});
 
 	describe("Test processGossipResponse", () => {
-
 		beforeEach(() => {
 			Math.random = jest.fn(() => 0);
 			transporter.deserialize = jest.fn((type, msg) => msg);
@@ -1193,18 +1332,26 @@ describe("Test Gossip methods", () => {
 			const heartbeat = jest.fn();
 			const nodes = [
 				// Online nodes
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
-				{ id: "node-4", local: false, available: true,  seq: 40, cpu: 44, cpuSeq: 400 },
-				{ id: "node-5", local: false, available: true, seq: 50, cpu: 55, cpuSeq: 500, heartbeat },
+				{ id: "node-1", local: true, available: true, seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true, seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true, seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-4", local: false, available: true, seq: 40, cpu: 44, cpuSeq: 400 },
+				{
+					id: "node-5",
+					local: false,
+					available: true,
+					seq: 50,
+					cpu: 55,
+					cpuSeq: 500,
+					heartbeat
+				},
 				//{ id: "node-6", local: false, available: true, seq: 60, cpu: 66, cpuSeq: 600 },
 
 				// Offline nodes
 				{ id: "node-7", local: false, available: false, seq: 70, cpu: 77, cpuSeq: 700 },
 				{ id: "node-8", local: false, available: false, seq: 80, cpu: 88, cpuSeq: 800 },
 				{ id: "node-9", local: false, available: false, seq: 90, cpu: 99, cpuSeq: 900 },
-				{ id: "node-10", local: false, available: true, seq: 100, cpu: 100, cpuSeq: 1000 },
+				{ id: "node-10", local: false, available: true, seq: 100, cpu: 100, cpuSeq: 1000 }
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 			transporter.nodes.get = jest.fn(id => nodes.find(n => n.id == id));
@@ -1217,13 +1364,13 @@ describe("Test Gossip methods", () => {
 						"node-2": [{ seq: 18 }, 180, 10], // We got older info, skip
 						"node-5": [550, 5], // We got only new CPU info, update
 						"node-6": [{ seq: 66 }, 660, 6], // We got newer info from unknow node, update
-						"node-7": [{ seq: 77 }], // We got only new info from offline node, update
+						"node-7": [{ seq: 77 }] // We got only new info from offline node, update
 					},
 					offline: {
 						"node-8": 88, // We got newer seq, update
 						"node-9": 33, // We got older seq, skip
 						"node-10": 101, // We got newer seq from online node, disconnect and save seq
-						"node-11": 110, // Unknow node, skip
+						"node-11": 110 // Unknow node, skip
 					}
 				}
 			});
@@ -1234,8 +1381,14 @@ describe("Test Gossip methods", () => {
 
 			// Update 'node-6' & 'node-7'
 			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledTimes(2);
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-6", "seq": 66 });
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-7", "seq": 77 });
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({
+				sender: "node-6",
+				seq: 66
+			});
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({
+				sender: "node-7",
+				seq: 77
+			});
 
 			// Update 'node-8' seq
 			expect(nodes[6].seq).toBe(88);
@@ -1244,10 +1397,6 @@ describe("Test Gossip methods", () => {
 			expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
 			expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-10", false);
 			expect(nodes[8].seq).toBe(101);
-
-
 		});
-
 	});
-
 });

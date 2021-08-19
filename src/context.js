@@ -20,8 +20,7 @@ const { RequestSkippedError, MaxCallLevelError } = require("./errors");
  * @memberof Context
  */
 function mergeMeta(ctx, newMeta) {
-	if (newMeta)
-		Object.assign(ctx.meta, newMeta);
+	if (newMeta) Object.assign(ctx.meta, newMeta);
 	return ctx.meta;
 }
 
@@ -39,7 +38,6 @@ function mergeMeta(ctx, newMeta) {
  * @class Context
  */
 class Context {
-
 	/**
 	 * Creates an instance of Context.
 	 *
@@ -49,7 +47,6 @@ class Context {
 	 * @memberof Context
 	 */
 	constructor(broker, endpoint) {
-
 		this.broker = broker;
 		if (this.broker) {
 			this.nodeID = this.broker.nodeID;
@@ -76,7 +73,7 @@ class Context {
 
 		this.options = {
 			timeout: null,
-			retries: null,
+			retries: null
 		};
 
 		this.parentID = null;
@@ -121,13 +118,11 @@ class Context {
 	static create(broker, endpoint, params, opts = {}) {
 		const ctx = new broker.ContextFactory(broker, endpoint);
 
-		if (endpoint != null)
-			ctx.setEndpoint(endpoint);
+		if (endpoint != null) ctx.setEndpoint(endpoint);
 
 		if (params != null) {
 			let cloning = broker ? broker.options.contextParamsCloning : false;
-			if (opts.paramsCloning != null)
-				cloning = opts.paramsCloning;
+			if (opts.paramsCloning != null) cloning = opts.paramsCloning;
 			ctx.setParams(params, cloning);
 		}
 
@@ -135,29 +130,24 @@ class Context {
 		ctx.options = opts;
 
 		// RequestID
-		if (opts.requestID != null)
-			ctx.requestID = opts.requestID;
+		if (opts.requestID != null) ctx.requestID = opts.requestID;
 		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
 			ctx.requestID = opts.parentCtx.requestID;
 
 		// Meta
 		if (opts.parentCtx != null && opts.parentCtx.meta != null)
 			ctx.meta = Object.assign({}, opts.parentCtx.meta || {}, opts.meta || {});
-		else if (opts.meta != null)
-			ctx.meta = opts.meta;
+		else if (opts.meta != null) ctx.meta = opts.meta;
 
 		// ParentID, Level, Caller, Tracing
 		if (opts.parentCtx != null) {
 			ctx.tracing = opts.parentCtx.tracing;
 			ctx.level = opts.parentCtx.level + 1;
 
-			if (opts.parentCtx.span)
-				ctx.parentID = opts.parentCtx.span.id;
-			else
-				ctx.parentID = opts.parentCtx.id;
+			if (opts.parentCtx.span) ctx.parentID = opts.parentCtx.span.id;
+			else ctx.parentID = opts.parentCtx.id;
 
-			if (opts.parentCtx.service)
-				ctx.caller = opts.parentCtx.service.fullName;
+			if (opts.parentCtx.service) ctx.caller = opts.parentCtx.service.fullName;
 		}
 
 		// caller
@@ -226,7 +216,7 @@ class Context {
 				this.service = this.action.service;
 				this.event = null;
 			} else if (endpoint.event) {
-				this.event =  endpoint.event;
+				this.event = endpoint.event;
 				this.service = this.event.service;
 				this.action = null;
 			}
@@ -242,10 +232,8 @@ class Context {
 	 * @memberof Context
 	 */
 	setParams(newParams, cloning = false) {
-		if (cloning && newParams)
-			this.params = Object.assign({}, newParams);
-		else
-			this.params = newParams;
+		if (cloning && newParams) this.params = Object.assign({}, newParams);
+		else this.params = newParams;
 	}
 
 	/**
@@ -262,86 +250,108 @@ class Context {
 	 * @memberof Context
 	 */
 	call(actionName, params, _opts) {
-		const opts = Object.assign({
-			parentCtx: this
-		}, _opts);
+		const opts = Object.assign(
+			{
+				parentCtx: this
+			},
+			_opts
+		);
 
 		if (this.options.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.
 			const diff = process.hrtime(this.startHrTime);
-			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+			const duration = diff[0] * 1e3 + diff[1] / 1e6;
 			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return this.broker.Promise.reject(new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID }));
+				return this.broker.Promise.reject(
+					new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID })
+				);
 			}
 
-			if (!opts.timeout || distTimeout < opts.timeout)
-				opts.timeout = distTimeout;
+			if (!opts.timeout || distTimeout < opts.timeout) opts.timeout = distTimeout;
 		}
 
 		// Max calling level check to avoid calling loops
-		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return this.broker.Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+		if (
+			this.broker.options.maxCallLevel > 0 &&
+			this.level >= this.broker.options.maxCallLevel
+		) {
+			return this.broker.Promise.reject(
+				new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level })
+			);
 		}
 
 		let p = this.broker.call(actionName, params, opts);
 
 		// Merge metadata with sub context metadata
-		return p.then(res => {
-			if (p.ctx)
-				mergeMeta(this, p.ctx.meta);
+		return p
+			.then(res => {
+				if (p.ctx) mergeMeta(this, p.ctx.meta);
 
-			return res;
-		}).catch(err => {
-			if (p.ctx)
-				mergeMeta(this, p.ctx.meta);
+				return res;
+			})
+			.catch(err => {
+				if (p.ctx) mergeMeta(this, p.ctx.meta);
 
-			return this.broker.Promise.reject(err);
-		});
+				return this.broker.Promise.reject(err);
+			});
 	}
 
 	mcall(def, _opts) {
-		const opts = Object.assign({
-			parentCtx: this
-		}, _opts);
+		const opts = Object.assign(
+			{
+				parentCtx: this
+			},
+			_opts
+		);
 
 		if (this.options.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.
 			const diff = process.hrtime(this.startHrTime);
-			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+			const duration = diff[0] * 1e3 + diff[1] / 1e6;
 			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				const action = (Array.isArray(def) ? def : Object.values(def)).map(d => d.action).join(", ");
-				return this.broker.Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
+				const action = (Array.isArray(def) ? def : Object.values(def))
+					.map(d => d.action)
+					.join(", ");
+				return this.broker.Promise.reject(
+					new RequestSkippedError({ action, nodeID: this.broker.nodeID })
+				);
 			}
 
-			if (!opts.timeout || distTimeout < opts.timeout)
-				opts.timeout = distTimeout;
+			if (!opts.timeout || distTimeout < opts.timeout) opts.timeout = distTimeout;
 		}
 
 		// Max calling level check to avoid calling loops
-		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return this.broker.Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+		if (
+			this.broker.options.maxCallLevel > 0 &&
+			this.level >= this.broker.options.maxCallLevel
+		) {
+			return this.broker.Promise.reject(
+				new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level })
+			);
 		}
 
 		let p = this.broker.mcall(def, opts);
 
 		// Merge metadata with sub context metadata
-		return p.then(res => {
-			if (Array.isArray(p.ctx) && p.ctx.length)
-				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+		return p
+			.then(res => {
+				if (Array.isArray(p.ctx) && p.ctx.length)
+					p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
 
-			return res;
-		}).catch(err => {
-			if (Array.isArray(p.ctx) && p.ctx.length)
-				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+				return res;
+			})
+			.catch(err => {
+				if (Array.isArray(p.ctx) && p.ctx.length)
+					p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
 
-			return this.broker.Promise.reject(err);
-		});
+				return this.broker.Promise.reject(err);
+			});
 	}
 
 	/**
@@ -358,13 +368,10 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, opts) {
-		if (Array.isArray(opts) || isString(opts))
-			opts = { groups: opts };
-		else if (opts == null)
-			opts = {};
+		if (Array.isArray(opts) || isString(opts)) opts = { groups: opts };
+		else if (opts == null) opts = {};
 
-		if (opts.groups && !Array.isArray(opts.groups))
-			opts.groups = [opts.groups];
+		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
 		opts.parentCtx = this;
 		return this.broker.emit(eventName, data, opts);
@@ -384,13 +391,10 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, opts) {
-		if (Array.isArray(opts) || isString(opts))
-			opts = { groups: opts };
-		else if (opts == null)
-			opts = {};
+		if (Array.isArray(opts) || isString(opts)) opts = { groups: opts };
+		else if (opts == null) opts = {};
 
-		if (opts.groups && !Array.isArray(opts.groups))
-			opts.groups = [opts.groups];
+		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
 		opts.parentCtx = this;
 		return this.broker.broadcast(eventName, data, opts);

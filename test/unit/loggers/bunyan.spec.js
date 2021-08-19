@@ -17,9 +17,7 @@ const LoggerFactory = require("../../../src/logger-factory");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Bunyan logger class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const logger = new BunyanLogger();
 
@@ -49,7 +47,6 @@ describe("Test Bunyan logger class", () => {
 				level: "debug"
 			});
 		});
-
 	});
 
 	describe("Test init method", () => {
@@ -86,7 +83,6 @@ describe("Test Bunyan logger class", () => {
 				name: "my-app"
 			});
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
@@ -162,7 +158,5 @@ describe("Test Bunyan logger class", () => {
 			expect(logHandler).toBeNull();
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
-
 	});
-
 });

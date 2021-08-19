@@ -35,7 +35,6 @@ const BaseStrategy = require("./base");
  * @class LatencyStrategy
  */
 class LatencyStrategy extends BaseStrategy {
-
 	constructor(registry, broker, opts) {
 		super(registry, broker, opts);
 
@@ -63,7 +62,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
 			// claim as master
-			this.broker.localBus.on("$node.latencyMaster", function() {});
+			this.broker.localBus.on("$node.latencyMaster", function () {});
 			// respond to PONG
 			this.broker.localBus.on("$node.pong", this.processPong.bind(this));
 			// dynamically add new node
@@ -73,10 +72,13 @@ class LatencyStrategy extends BaseStrategy {
 			// try to discovery all nodes on start up
 			this.broker.localBus.on("$broker.started", this.discovery.bind(this));
 			// clean up ourselves
-			this.broker.localBus.on("$broker.stopped", () => this.brokerStopped = true);
+			this.broker.localBus.on("$broker.stopped", () => (this.brokerStopped = true));
 		} else {
 			// remove node if we are told by master
-			this.broker.localBus.on("$node.latencySlave.removeHost", this.removeHostLatency.bind(this));
+			this.broker.localBus.on(
+				"$node.latencySlave.removeHost",
+				this.removeHostLatency.bind(this)
+			);
 		}
 
 		this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
@@ -92,7 +94,6 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	pingHosts() {
-
 		/* istanbul ignore next */
 		if (this.brokerStopped) return;
 		/*
@@ -103,11 +104,14 @@ class LatencyStrategy extends BaseStrategy {
 		*/
 		const hosts = Array.from(this.hostMap.values());
 
-		return this.broker.Promise.all(hosts.map(host => { // TODO: missing concurency: 5, here was bluebird Promise.map
-			// Select a nodeID randomly
-			const nodeID = host.nodeList[random(0, host.nodeList.length - 1)];
-			return this.broker.transit.sendPing(nodeID);
-		})).then(() => {
+		return this.broker.Promise.all(
+			hosts.map(host => {
+				// TODO: missing concurency: 5, here was bluebird Promise.map
+				// Select a nodeID randomly
+				const nodeID = host.nodeList[random(0, host.nodeList.length - 1)];
+				return this.broker.transit.sendPing(nodeID);
+			})
+		).then(() => {
 			const timer = setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
 			timer.unref();
 		});
@@ -122,12 +126,13 @@ class LatencyStrategy extends BaseStrategy {
 
 		let info = this.getHostLatency(node);
 
-		if (info.historicLatency.length > (this.opts.collectCount - 1))
-			info.historicLatency.shift();
+		if (info.historicLatency.length > this.opts.collectCount - 1) info.historicLatency.shift();
 
 		info.historicLatency.push(payload.elapsedTime);
 
-		const avgLatency = info.historicLatency.reduce((sum, latency) => sum + latency, 0) / info.historicLatency.length;
+		const avgLatency =
+			info.historicLatency.reduce((sum, latency) => sum + latency, 0) /
+			info.historicLatency.length;
 
 		this.broker.localBus.emit("$node.latencySlave", {
 			hostname: node.hostname,
@@ -141,7 +146,7 @@ class LatencyStrategy extends BaseStrategy {
 		if (typeof info === "undefined") {
 			info = {
 				historicLatency: [],
-				nodeList: [ node.id ]
+				nodeList: [node.id]
 			};
 			this.hostMap.set(node.hostname, info);
 		}
@@ -214,9 +219,7 @@ class LatencyStrategy extends BaseStrategy {
 
 			// Check latency of endpoint
 			if (typeof epLatency !== "undefined") {
-
-				if (epLatency < this.opts.lowLatency)
-					return ep;
+				if (epLatency < this.opts.lowLatency) return ep;
 
 				if (!minEp || !minLatency || epLatency < minLatency) {
 					minLatency = epLatency;

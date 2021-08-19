@@ -13,9 +13,7 @@ const MetricRegistry = require("../../../../src/metrics/registry");
 process.env.DATADOG_API_KEY = "datadog-api-key";
 
 describe("Test Datadog Reporter class", () => {
-
 	describe("Test Constructor", () => {
-
 		it("should create with default options", () => {
 			const reporter = new DatadogReporter();
 
@@ -35,7 +33,7 @@ describe("Test Datadog Reporter class", () => {
 				apiVersion: "v1",
 				defaultLabels: expect.any(Function),
 				host: os.hostname(),
-				interval: 10,
+				interval: 10
 			});
 		});
 
@@ -69,19 +67,21 @@ describe("Test Datadog Reporter class", () => {
 				apiVersion: "v2",
 				defaultLabels: expect.any(Function),
 				host: "custom-hostname",
-				interval: 5,
+				interval: 5
 			});
 		});
 
 		it("should throw error if apiKey is not defined", () => {
-			expect(() => new DatadogReporter({ apiKey: "" })).toThrow("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
+			expect(() => new DatadogReporter({ apiKey: "" })).toThrow(
+				"Datadog API key is missing. Set DATADOG_API_KEY environment variable."
+			);
 		});
 	});
 
 	describe("Test init method", () => {
 		let clock;
 		let reporter;
-		beforeAll(() => clock = lolex.install());
+		beforeAll(() => (clock = lolex.install()));
 		afterAll(() => clock.uninstall());
 		afterEach(async () => {
 			await reporter.stop();
@@ -136,7 +136,6 @@ describe("Test Datadog Reporter class", () => {
 				b: "John"
 			});
 		});
-
 	});
 
 	describe("Test flush method", () => {
@@ -171,31 +170,27 @@ describe("Test Datadog Reporter class", () => {
 			reporter = new DatadogReporter({ apiKey: "12345" });
 			reporter.init(fakeRegistry);
 
-			reporter.generateDatadogSeries = jest.fn(()=> [
-				{ a: 5 },
-				{ a: 6 }
-			]);
+			reporter.generateDatadogSeries = jest.fn(() => [{ a: 5 }, { a: 6 }]);
 
 			await reporter.flush();
 
 			expect(reporter.generateDatadogSeries).toBeCalledTimes(1);
 			expect(fetch).toBeCalledTimes(1);
 			expect(fetch).toBeCalledWith("https://api.datadoghq.com/api/v1/series?api_key=12345", {
-				body: "{\"series\":[{\"a\":5},{\"a\":6}]}",
+				body: '{"series":[{"a":5},{"a":6}]}',
 				headers: {
 					"Content-Type": "application/json"
 				},
 				method: "post"
 			});
 		});
-
 	});
 
 	describe("Test generateDatadogSeries method", () => {
 		let clock;
 		let reporter;
 
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
+		beforeAll(() => (clock = lolex.install({ now: 12345678000 })));
 		afterAll(() => clock.uninstall());
 		afterEach(async () => {
 			await reporter.stop();
@@ -209,11 +204,10 @@ describe("Test Datadog Reporter class", () => {
 		});
 
 		it("should call generateDatadogSeries method but not fetch", () => {
-
 			reporter = new DatadogReporter({
 				host: "test-host",
 				defaultLabels: {
-					defLabel: "def\\Value-\"quote\""
+					defLabel: 'def\\Value-"quote"'
 				}
 			});
 			reporter.init(registry);
@@ -228,7 +222,13 @@ describe("Test Datadog Reporter class", () => {
 			registry.register({ name: "test.gauge", type: "gauge", labelNames: ["action"] });
 			registry.decrement("test.gauge", { action: "users" }, 8);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true });
+			registry.register({
+				name: "test.histogram",
+				type: "histogram",
+				labelNames: ["action"],
+				buckets: true,
+				quantiles: true
+			});
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
@@ -242,7 +242,5 @@ describe("Test Datadog Reporter class", () => {
 
 			expect(res).toMatchSnapshot();
 		});
-
 	});
-
 });

@@ -3,7 +3,6 @@
 const InfoMetric = require("../../../../src/metrics/types/info");
 
 describe("Test Base Metric class", () => {
-
 	const registry = {
 		changed: jest.fn(),
 		opts: {
@@ -12,13 +11,15 @@ describe("Test Base Metric class", () => {
 	};
 
 	describe("Test Constructor", () => {
-
 		it("should create with base options", () => {
 			registry.changed.mockClear();
-			const item = new InfoMetric({
-				type: "info",
-				name: "test.info"
-			}, registry);
+			const item = new InfoMetric(
+				{
+					type: "info",
+					name: "test.info"
+				},
+				registry
+			);
 
 			expect(item.registry).toBe(registry);
 			expect(item.type).toBe("info");
@@ -29,8 +30,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test set, reset & resetAll method", () => {
-
-		const item = new InfoMetric({ type: "info", name: "test.info", labelNames: ["a"] }, registry);
+		const item = new InfoMetric(
+			{ type: "info", name: "test.info", labelNames: ["a"] },
+			registry
+		);
 		jest.spyOn(item, "changed");
 
 		it("should store a value", () => {
@@ -110,8 +113,10 @@ describe("Test Base Metric class", () => {
 	});
 
 	describe("Test generateSnapshot method", () => {
-
-		const item = new InfoMetric({ type: "info", name: "test.info", labelNames: ["a"] }, registry);
+		const item = new InfoMetric(
+			{ type: "info", name: "test.info", labelNames: ["a"] },
+			registry
+		);
 
 		item.set("John", null, 1111);
 		item.set("Jane", { a: 1 }, 2222);
@@ -121,7 +126,5 @@ describe("Test Base Metric class", () => {
 		it("should generate a snapshot", () => {
 			expect(item.generateSnapshot()).toMatchSnapshot();
 		});
-
 	});
-
 });

@@ -9,14 +9,14 @@ const clientCallbacks = {};
 let clientCloseCB;
 Kafka.KafkaClient = jest.fn(() => {
 	return {
-		close: jest.fn(cb => clientCloseCB = cb),
+		close: jest.fn(cb => (clientCloseCB = cb)),
 		callbacks: clientCallbacks
 	};
 });
 const producerCallbacks = {};
 Kafka.Producer = jest.fn(() => {
 	return {
-		on: jest.fn((event, cb) => producerCallbacks[event] = cb),
+		on: jest.fn((event, cb) => (producerCallbacks[event] = cb)),
 		//disconnect: jest.fn(),
 		//subscribe: jest.fn(),
 		send: jest.fn((data, cb) => cb()),
@@ -27,8 +27,8 @@ Kafka.Producer = jest.fn(() => {
 const groupCallbacks = {};
 Kafka.ConsumerGroup = jest.fn(() => {
 	return {
-		on: jest.fn((event, cb) => groupCallbacks[event] = cb),
-		close: jest.fn(cb => groupCallbacks.close = cb),
+		on: jest.fn((event, cb) => (groupCallbacks[event] = cb)),
+		close: jest.fn(cb => (groupCallbacks.close = cb)),
 		callbacks: groupCallbacks
 	};
 });
@@ -36,23 +36,22 @@ Kafka.ConsumerGroup = jest.fn(() => {
 const KafkaTransporter = require("../../../src/transporters/kafka");
 
 describe("Test KafkaTransporter constructor", () => {
-
 	it("check constructor", () => {
 		let transporter = new KafkaTransporter();
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			"host": undefined,
-			"client": {
-				"noAckBatchOptions": undefined,
-				"sslOptions": undefined,
-				"zkOptions": undefined
+			host: undefined,
+			client: {
+				noAckBatchOptions: undefined,
+				sslOptions: undefined,
+				zkOptions: undefined
 			},
-			"customPartitioner": undefined,
-			"producer": {},
-			"consumer": {},
-			"publish": {
-				"attributes": 0,
-				"partition": 0
+			customPartitioner: undefined,
+			producer: {},
+			consumer: {},
+			publish: {
+				attributes: 0,
+				partition: 0
 			}
 		});
 		expect(transporter.connected).toBe(false);
@@ -64,36 +63,39 @@ describe("Test KafkaTransporter constructor", () => {
 	it("check constructor with string param", () => {
 		let transporter = new KafkaTransporter("localhost:9092");
 		expect(transporter.opts).toEqual({
-			"host": "localhost:9092",
-			"client": {
-				"kafkaHost": "localhost:9092",
+			host: "localhost:9092",
+			client: {
+				kafkaHost: "localhost:9092"
 			},
-			"customPartitioner": undefined,
-			"producer": {},
-			"consumer": {},
-			"publish": {
-				"attributes": 0,
-				"partition": 0
+			customPartitioner: undefined,
+			producer: {},
+			consumer: {},
+			publish: {
+				attributes: 0,
+				partition: 0
 			}
 		});
 	});
 
 	it("check constructor with options", () => {
-		let opts = { host: "localhost:9092", publish: {
-			partition: 1
-		} };
+		let opts = {
+			host: "localhost:9092",
+			publish: {
+				partition: 1
+			}
+		};
 		let transporter = new KafkaTransporter(opts);
 		expect(transporter.opts).toEqual({
-			"host": "localhost:9092",
-			"client": {
-				"kafkaHost": "localhost:9092"
+			host: "localhost:9092",
+			client: {
+				kafkaHost: "localhost:9092"
 			},
-			"customPartitioner": undefined,
-			"producer": {},
-			"consumer": {},
-			"publish": {
-				"attributes": 0,
-				"partition": 1
+			customPartitioner: undefined,
+			producer: {},
+			consumer: {},
+			publish: {
+				attributes: 0,
+				partition: 1
 			}
 		});
 	});
@@ -115,8 +117,8 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 			expect(transporter.client).toBeDefined();
 			expect(transporter.producer).toBeDefined();
 			expect(transporter.producer.on).toHaveBeenCalledTimes(2);
-			expect(transporter.producer.on).toHaveBeenCalledWith("ready", jasmine.any(Function));
-			expect(transporter.producer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(transporter.producer.on).toHaveBeenCalledWith("ready", expect.any(Function));
+			expect(transporter.producer.on).toHaveBeenCalledWith("error", expect.any(Function));
 		});
 
 		transporter.producer.callbacks.ready();
@@ -152,9 +154,7 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 		transporter.producer.callbacks.ready(); // Trigger the `resolve`
 		return p;
 	});
-
 });
-
 
 describe("Test KafkaTransporter makeSubscriptions", () => {
 	let transporter;
@@ -163,7 +163,10 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new KafkaTransporter("kafka://kafka-server:1234");
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" })), msgHandler);
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" })),
+			msgHandler
+		);
 
 		let p = transporter.connect();
 		transporter.producer.callbacks.ready(); // Trigger the `resolve`
@@ -179,32 +182,38 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		]);
 
 		expect(transporter.producer.createTopics).toHaveBeenCalledTimes(1);
-		expect(transporter.producer.createTopics).toHaveBeenCalledWith(["MOL-TEST.REQ.node", "MOL-TEST.RES.node"], true, jasmine.any(Function));
+		expect(transporter.producer.createTopics).toHaveBeenCalledWith(
+			["MOL-TEST.REQ.node", "MOL-TEST.RES.node"],
+			true,
+			expect.any(Function)
+		);
 
 		expect(Kafka.ConsumerGroup).toHaveBeenCalledTimes(1);
-		expect(Kafka.ConsumerGroup).toHaveBeenCalledWith( {
-			"encoding": "buffer",
-			"fromOffset": "latest",
-			"groupId": transporter.broker.instanceID,
-			"kafkaHost": "kafka-server:1234",
-			"id": "default-kafka-consumer"
-		}, ["MOL-TEST.REQ.node", "MOL-TEST.RES.node"]);
+		expect(Kafka.ConsumerGroup).toHaveBeenCalledWith(
+			{
+				encoding: "buffer",
+				fromOffset: "latest",
+				groupId: transporter.broker.instanceID,
+				kafkaHost: "kafka-server:1234",
+				id: "default-kafka-consumer"
+			},
+			["MOL-TEST.REQ.node", "MOL-TEST.RES.node"]
+		);
 
 		expect(transporter.consumer).toBeDefined();
 
 		expect(transporter.consumer.on).toHaveBeenCalledTimes(3);
-		expect(transporter.consumer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-		expect(transporter.consumer.on).toHaveBeenCalledWith("message", jasmine.any(Function));
-		expect(transporter.consumer.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("error", expect.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("message", expect.any(Function));
+		expect(transporter.consumer.on).toHaveBeenCalledWith("connect", expect.any(Function));
 		transporter.consumer.callbacks.connect();
 
 		transporter.consumer.callbacks.message({
 			topic: "MOL.INFO.node-2",
-			value: "{ ver: \"3\" }"
+			value: '{ ver: "3" }'
 		});
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", "{ ver: \"3\" }");
-
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", '{ ver: "3" }');
 	});
 });
 
@@ -215,7 +224,10 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new KafkaTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })), msgHandler);
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })),
+			msgHandler
+		);
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 
 		let p = transporter.connect();
@@ -229,16 +241,19 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 		transporter.publish(packet);
 
 		expect(transporter.producer.send).toHaveBeenCalledTimes(1);
-		expect(transporter.producer.send).toHaveBeenCalledWith([{
-			topic: "MOL-TEST.INFO.node2",
-			messages: [Buffer.from("json data")],
-			partition: 0,
-			attributes: 0
-		}], jasmine.any(Function));
+		expect(transporter.producer.send).toHaveBeenCalledWith(
+			[
+				{
+					topic: "MOL-TEST.INFO.node2",
+					messages: [Buffer.from("json data")],
+					partition: 0,
+					attributes: 0
+				}
+			],
+			expect.any(Function)
+		);
 
 		expect(transporter.serialize).toHaveBeenCalledTimes(1);
 		expect(transporter.serialize).toHaveBeenCalledWith(packet);
-
 	});
 });
-

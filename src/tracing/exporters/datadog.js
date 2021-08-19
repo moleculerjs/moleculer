@@ -1,9 +1,9 @@
 "use strict";
 
-const _ 					= require("lodash");
-const BaseTraceExporter 	= require("./base");
-const asyncHooks			= require("async_hooks");
-const { isFunction } 		= require("../../utils");
+const _ = require("lodash");
+const BaseTraceExporter = require("./base");
+const asyncHooks = require("async_hooks");
+const { isFunction } = require("../../utils");
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -18,7 +18,6 @@ let DatadogID;
  * @class DatadogTraceExporter
  */
 class DatadogTraceExporter extends BaseTraceExporter {
-
 	/**
 	 * Creates an instance of DatadogTraceExporter.
 	 * @param {Object?} opts
@@ -32,7 +31,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			env: process.env.DD_ENVIRONMENT || null,
 			samplingPriority: "AUTO_KEEP",
 			defaultTags: null,
-			tracerOptions: null,
+			tracerOptions: null
 		});
 
 		this.ddTracer = this.opts.tracer;
@@ -52,16 +51,24 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
 			DatadogID = require("dd-trace/packages/dd-trace/src/id");
 			if (!this.ddTracer) {
-				this.ddTracer = ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
-					url: this.opts.agentUrl
-				}));
+				this.ddTracer = ddTrace.init(
+					_.defaultsDeep(this.opts.tracerOptions, {
+						url: this.opts.agentUrl
+					})
+				);
 			}
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
-			this.tracer.broker.fatal("The 'dd-trace' package is missing! Please install it with 'npm install dd-trace --save' command!", err, true);
+			this.tracer.broker.fatal(
+				"The 'dd-trace' package is missing! Please install it with 'npm install dd-trace --save' command!",
+				err,
+				true
+			);
 		}
 
-		this.defaultTags = isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
+		this.defaultTags = isFunction(this.opts.defaultTags)
+			? this.opts.defaultTags.call(this, tracer)
+			: this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}
@@ -71,15 +78,13 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		const oldGetCurrentTraceID = this.tracer.getCurrentTraceID.bind(this.tracer);
 		this.tracer.getCurrentTraceID = () => {
 			const traceID = oldGetCurrentTraceID();
-			if (traceID)
-				return traceID;
+			if (traceID) return traceID;
 
 			if (this.ddScope) {
 				const span = this.ddScope.active();
 				if (span) {
 					const spanContext = span.context();
-					if (spanContext)
-						return spanContext.toTraceId();
+					if (spanContext) return spanContext.toTraceId();
 				}
 			}
 			return null;
@@ -88,15 +93,13 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		const oldGetActiveSpanID = this.tracer.getActiveSpanID.bind(this.tracer);
 		this.tracer.getActiveSpanID = () => {
 			const spanID = oldGetActiveSpanID();
-			if (spanID)
-				return spanID;
+			if (spanID) return spanID;
 
 			if (this.ddScope) {
 				const span = this.ddScope.active();
 				if (span) {
 					const spanContext = span.context();
-					if (spanContext)
-						return spanContext.toSpanId();
+					if (spanContext) return spanContext.toSpanId();
 				}
 			}
 			return null;
@@ -133,19 +136,25 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		const ddSpan = this.ddTracer.startSpan(span.name, {
 			startTime: span.startTime,
 			childOf: parentCtx,
-			tags: this.flattenTags(_.defaultsDeep({}, span.tags, {
-				span: {
-					kind: "server",
-					type: span.type,
-				},
-				type: span.type,
-				resource: span.tags.action ? span.tags.action.name : undefined,
-				"sampling.priority": this.opts.samplingPriority
-			}, this.defaultTags))
+			tags: this.flattenTags(
+				_.defaultsDeep(
+					{},
+					span.tags,
+					{
+						span: {
+							kind: "server",
+							type: span.type
+						},
+						type: span.type,
+						resource: span.tags.action ? span.tags.action.name : undefined,
+						"sampling.priority": this.opts.samplingPriority
+					},
+					this.defaultTags
+				)
+			)
 		});
 
-		if (this.opts.env)
-			this.addTags(ddSpan, "env", this.opts.env);
+		if (this.opts.env) this.addTags(ddSpan, "env", this.opts.env);
 		this.addTags(ddSpan, "service.name", serviceName);
 
 		const sc = ddSpan.context();
@@ -154,6 +163,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		// Activate span in Datadog tracer
 		const asyncId = asyncHooks.executionAsyncId();
+		this.ddScope._spans = this.ddScope._spans || {};
 		const oldSpan = this.ddScope._spans[asyncId];
 
 		this.ddScope._spans[asyncId] = ddSpan;
@@ -190,7 +200,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		if (item.oldSpan) {
 			this.ddScope._spans[item.asyncId] = item.oldSpan;
 		} else {
-			this.ddScope._destroy(item.asyncId);
+			delete this.ddScope._spans[item.asyncId];
 		}
 	}
 
@@ -259,15 +269,17 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 */
 	addLogs(span, logs) {
 		if (Array.isArray(logs)) {
-			logs.forEach((log) => {
-				span.log({
-					event: log.name,
-					payload: log.fields,
-				}, log.time);
+			logs.forEach(log => {
+				span.log(
+					{
+						event: log.name,
+						payload: log.fields
+					},
+					log.time
+				);
 			});
 		}
 	}
-
 
 	/**
 	 * Convert Trace/Span ID to Jaeger format
@@ -277,8 +289,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 */
 	convertID(id) {
 		if (id) {
-			if (id.indexOf("-") !== -1)
-				return DatadogID(id.replace(/-/g, "").substring(0,16));
+			if (id.indexOf("-") !== -1) return DatadogID(id.replace(/-/g, "").substring(0, 16));
 			return DatadogID(id);
 		}
 

@@ -14,14 +14,13 @@ describe("Test AvroSerializer constructor", () => {
 });
 
 describe("Test Avro serializer", () => {
-
 	const serializer = new AvroSerializer();
 	serializer.init();
 
 	it("should serialize the disconnect packet", () => {
 		const obj = {
 			ver: "2",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCONNECT);
 		expect(s.length).toBe(9);
@@ -48,7 +47,7 @@ describe("Test Avro serializer", () => {
 	it("should serialize the discover packet", () => {
 		const obj = {
 			ver: "2",
-			sender: "test-1",
+			sender: "test-1"
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCOVER);
 		expect(s.length).toBe(9);
@@ -63,20 +62,27 @@ describe("Test Avro serializer", () => {
 			ver: "2",
 			sender: "test-1",
 			services: [
-				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
-					"users.create": {}
-				}, events: {
-					"user.created": {}
-				} }
+				{
+					name: "users",
+					version: "2",
+					settings: {},
+					metadata: {},
+					actions: {
+						"users.create": {}
+					},
+					events: {
+						"user.created": {}
+					}
+				}
 			],
 			config: {},
-			ipList: [ "127.0.0.1" ],
+			ipList: ["127.0.0.1"],
 			instanceID: "123456",
 			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
-				langVersion: "6.10.2",
+				langVersion: "6.10.2"
 			},
 			metadata: {
 				region: "eu-west1"
@@ -89,7 +95,6 @@ describe("Test Avro serializer", () => {
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
-
 	});
 
 	it("should serialize the event packet", () => {
@@ -112,7 +117,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(114);
+		expect(s.length).toBe(115);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -140,7 +145,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(131);
+		expect(s.length).toBe(132);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -164,7 +169,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(95);
+		expect(s.length).toBe(96);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -187,7 +192,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(95);
+		expect(s.length).toBe(96);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -204,7 +209,7 @@ describe("Test Avro serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -234,7 +239,7 @@ describe("Test Avro serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -264,7 +269,7 @@ describe("Test Avro serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -298,7 +303,7 @@ describe("Test Avro serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,
@@ -341,7 +346,7 @@ describe("Test Avro serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: true,
@@ -364,7 +369,7 @@ describe("Test Avro serializer", () => {
 			data: null,
 			meta: {},
 			stream: false,
-			seq: 3,
+			seq: 3
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
 		expect(s.length).toBe(26);
@@ -390,12 +395,12 @@ describe("Test Avro serializer", () => {
 				stack: "STACK_PLACEHOLDER",
 				data: {
 					a: 5
-				},
+				}
 			},
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,
@@ -430,7 +435,7 @@ describe("Test Avro serializer", () => {
 			sender: "test-1",
 			time: 1234567,
 			id: "123",
-			arrived: 7654321,
+			arrived: 7654321
 		};
 		const s = serializer.serialize(obj, P.PACKET_PONG);
 		expect(s.length).toBe(22);
@@ -439,11 +444,9 @@ describe("Test Avro serializer", () => {
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
-
 });
 
 describe("Test Avro serializer with Gossip packets", () => {
-
 	const serializer = new AvroSerializer();
 	serializer.init();
 
@@ -452,7 +455,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 			ver: "2",
 			sender: "test-1",
 			host: "server-host",
-			port: 45450,
+			port: 45450
 		};
 		const s = serializer.serialize(obj, P.PACKET_GOSSIP_HELLO);
 		expect(s.length).toBe(24);
@@ -529,5 +532,4 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
-
 });

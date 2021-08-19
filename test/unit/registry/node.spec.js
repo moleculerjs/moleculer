@@ -3,7 +3,6 @@
 let Node = require("../../../src/registry/node");
 
 describe("Test Node", () => {
-
 	it("should create a new Node", () => {
 		let node = new Node("node-1");
 
@@ -56,7 +55,7 @@ describe("Test Node", () => {
 			expect(node.hostname).toBe("host");
 			expect(node.port).toBe(1234);
 
-			expect(node.services).toBe(payload.services);
+			expect(node.services).toStrictEqual(payload.services);
 			expect(node.rawInfo).toBe(payload);
 			expect(node.instanceID).toBe("123456");
 			expect(node.metadata).toEqual({
@@ -148,5 +147,4 @@ describe("Test Node", () => {
 		expect(node.offlineSince).toBeDefined();
 		expect(node.seq).toBe(6);
 	});
-
 });

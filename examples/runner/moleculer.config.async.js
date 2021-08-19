@@ -15,7 +15,7 @@
 
 const fetch = require("node-fetch");
 
-module.exports = async function() {
+module.exports = async function () {
 	const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
 	return await res.json();
 };

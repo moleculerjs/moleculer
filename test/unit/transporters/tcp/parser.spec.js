@@ -4,7 +4,6 @@ const P = require("../../../../src/packets");
 const Parser = require("../../../../src/transporters/tcp/parser");
 
 describe("Test Parser constructor", () => {
-
 	it("check constructor", () => {
 		let opts = {};
 
@@ -13,7 +12,6 @@ describe("Test Parser constructor", () => {
 		expect(parser.maxPacketSize).toBe(5000);
 		expect(parser.buf).toBeNull();
 	});
-
 });
 
 describe("Test Parser write", () => {
@@ -49,7 +47,7 @@ describe("Test Parser write", () => {
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
-		expect(cb).toHaveBeenCalledWith(jasmine.any(Error));
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
 		let err = cb.mock.calls[0][0];
 		expect(err.message).toBe("Invalid packet CRC! 49");
 		expect(parser.buf).toBeNull();
@@ -62,9 +60,11 @@ describe("Test Parser write", () => {
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
-		expect(cb).toHaveBeenCalledWith(jasmine.any(Error));
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
 		let err = cb.mock.calls[0][0];
-		expect(err.message).toBe("Incoming packet is larger than the 'maxPacketSize' limit (513 > 512)!");
+		expect(err.message).toBe(
+			"Incoming packet is larger than the 'maxPacketSize' limit (513 > 512)!"
+		);
 		expect(parser.buf).toBeNull();
 	});
 
@@ -78,7 +78,7 @@ describe("Test Parser write", () => {
 		expect(cb).toHaveBeenCalledWith();
 
 		expect(onData).toHaveBeenCalledTimes(1);
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, expect.any(Buffer));
 		let data = onData.mock.calls[0][1];
 		expect(data.toString()).toBe("data");
 
@@ -89,24 +89,27 @@ describe("Test Parser write", () => {
 		let cb = jest.fn();
 		onData.mockClear();
 
-		let buf = Buffer.from([13, 0, 0, 0, 11, 6, 100, 97, 116, 97, 49].concat([12, 0, 0, 0, 11, 7, 100, 97, 116, 97, 50], [13, 0, 0, 0, 11, 6, 100, 97]));
+		let buf = Buffer.from(
+			[13, 0, 0, 0, 11, 6, 100, 97, 116, 97, 49].concat(
+				[12, 0, 0, 0, 11, 7, 100, 97, 116, 97, 50],
+				[13, 0, 0, 0, 11, 6, 100, 97]
+			)
+		);
 		parser._write(buf, null, cb);
 
 		expect(cb).toHaveBeenCalledTimes(1);
 		expect(cb).toHaveBeenCalledWith();
 
 		expect(onData).toHaveBeenCalledTimes(2);
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, expect.any(Buffer));
 		let data = onData.mock.calls[0][1];
 		expect(data.toString()).toBe("data1");
 
-		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_RES, jasmine.any(Buffer));
+		expect(onData).toHaveBeenCalledWith(P.PACKET_GOSSIP_RES, expect.any(Buffer));
 		data = onData.mock.calls[1][1];
 		expect(data.toString()).toBe("data2");
 
 		expect(parser.buf).toBeInstanceOf(Buffer);
 		expect(parser.buf).toEqual(Buffer.from([13, 0, 0, 0, 11, 6, 100, 97]));
 	});
-
 });
-

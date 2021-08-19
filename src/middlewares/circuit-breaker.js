@@ -6,11 +6,10 @@
 
 "use strict";
 
-const C 			= require("../constants");
-const { METRIC }	= require("../metrics");
+const C = require("../constants");
+const { METRIC } = require("../metrics");
 
 module.exports = function circuitBreakerMiddleware(broker) {
-
 	let windowTimer;
 	const store = new Map();
 	let logger;
@@ -95,10 +94,8 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	function success(item, ctx) {
 		item.count++;
 
-		if (item.state === C.CIRCUIT_HALF_OPEN_WAIT)
-			circuitClose(item, ctx);
-		else
-			checkThreshold(item, ctx);
+		if (item.state === C.CIRCUIT_HALF_OPEN_WAIT) circuitClose(item, ctx);
+		else checkThreshold(item, ctx);
 	}
 
 	/**
@@ -110,8 +107,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	function checkThreshold(item, ctx) {
 		if (item.count >= item.opts.minRequestCount) {
 			const rate = item.failures / item.count;
-			if (rate >= item.opts.threshold)
-				trip(item, ctx);
+			if (rate >= item.opts.threshold) trip(item, ctx);
 		}
 	}
 
@@ -139,11 +135,33 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		const service = item.service.fullName;
 
 		const rate = item.count > 0 ? item.failures / item.count : 0;
-		logger.debug(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name, failures: item.failures, count: item.count, rate });
-		broker.broadcast("$circuit-breaker.opened", { nodeID: item.ep.id, service, action: action.name, failures: item.failures, count: item.count, rate });
+		logger.debug(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, {
+			nodeID: item.ep.id,
+			service,
+			action: action.name,
+			failures: item.failures,
+			count: item.count,
+			rate
+		});
+		broker.broadcast("$circuit-breaker.opened", {
+			nodeID: item.ep.id,
+			service,
+			action: action.name,
+			failures: item.failures,
+			count: item.count,
+			rate
+		});
 
-		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 1, { affectedNodeID: item.ep.id, service, action: action.name });
-		broker.metrics.increment(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, { affectedNodeID: item.ep.id, service, action: action.name });
+		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 1, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
+		broker.metrics.increment(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 	}
 
 	/**
@@ -159,12 +177,28 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		const action = item.ep.action;
 		const service = item.service.fullName;
 
-		logger.debug(`Circuit breaker has been half-opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name });
+		logger.debug(`Circuit breaker has been half-opened on '${item.ep.name}' endpoint.`, {
+			nodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
-		broker.broadcast("$circuit-breaker.half-opened", { nodeID: item.ep.id, service, action: action.name });
+		broker.broadcast("$circuit-breaker.half-opened", {
+			nodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
-		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, { affectedNodeID: item.ep.id, service, action: action.name });
-		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 1, { affectedNodeID: item.ep.id, service, action: action.name });
+		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
+		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 1, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
 		if (item.cbTimer) {
 			clearTimeout(item.cbTimer);
@@ -177,7 +211,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 *
 	 * @param {Object} item
 	 * @param {Context} ctx
-	*/
+	 */
 	function halfOpenWait(item, ctx) {
 		item.state = C.CIRCUIT_HALF_OPEN_WAIT;
 		item.ep.state = false;
@@ -202,12 +236,28 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		const action = item.ep.action;
 		const service = item.service.fullName;
 
-		logger.debug(`Circuit breaker has been closed on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name });
+		logger.debug(`Circuit breaker has been closed on '${item.ep.name}' endpoint.`, {
+			nodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
-		broker.broadcast("$circuit-breaker.closed", { nodeID: item.ep.id, service, action: action.name });
+		broker.broadcast("$circuit-breaker.closed", {
+			nodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
-		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, { affectedNodeID: item.ep.id, service, action: action.name });
-		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 0, { affectedNodeID: item.ep.id, service, action: action.name });
+		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
+		broker.metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 0, {
+			affectedNodeID: item.ep.id,
+			service,
+			action: action.name
+		});
 
 		if (item.cbTimer) {
 			clearTimeout(item.cbTimer);
@@ -225,7 +275,11 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	function wrapCBMiddleware(handler, action) {
 		const service = action.service;
 		// Merge action option and broker options
-		const opts = Object.assign({}, this.options.circuitBreaker || {}, action.circuitBreaker || {});
+		const opts = Object.assign(
+			{},
+			this.options.circuitBreaker || {},
+			action.circuitBreaker || {}
+		);
 		if (opts.enabled) {
 			return function circuitBreakerMiddleware(ctx) {
 				// Get endpoint state item
@@ -238,28 +292,29 @@ module.exports = function circuitBreakerMiddleware(broker) {
 				}
 
 				// Call the handler
-				return handler(ctx).then(res => {
-					const item = getEpState(ep, service, opts);
-					success(item, ctx);
+				return handler(ctx)
+					.then(res => {
+						const item = getEpState(ep, service, opts);
+						success(item, ctx);
 
-					return res;
-				}).catch(err => {
-					if (opts.check && opts.check(err)) {
-						// Failure if error is created locally (not came from a 3rd node error)
-						if (item && (!err.nodeID || err.nodeID == ctx.nodeID)) {
-							const item = getEpState(ep, service, opts);
-							failure(item, err, ctx);
+						return res;
+					})
+					.catch(err => {
+						if (opts.check && opts.check(err)) {
+							// Failure if error is created locally (not came from a 3rd node error)
+							if (item && (!err.nodeID || err.nodeID == ctx.nodeID)) {
+								const item = getEpState(ep, service, opts);
+								failure(item, err, ctx);
+							}
 						}
-					}
 
-					return this.Promise.reject(err);
-				});
+						return this.Promise.reject(err);
+					});
 			}.bind(this);
 		}
 
 		return handler;
 	}
-
 
 	return {
 		name: "CircuitBreaker",
@@ -275,9 +330,24 @@ module.exports = function circuitBreakerMiddleware(broker) {
 				createWindowTimer(opts.windowTime);
 
 				if (broker.isMetricsEnabled()) {
-					broker.metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["affectedNodeID", "service", "action"], description: "Number of active opened circuit-breakers" });
-					broker.metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["affectedNodeID", "service", "action"], description: "Number of opened circuit-breakers" });
-					broker.metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["affectedNodeID", "service", "action"], description: "Number of active half-opened circuit-breakers" });
+					broker.metrics.register({
+						name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE,
+						type: METRIC.TYPE_GAUGE,
+						labelNames: ["affectedNodeID", "service", "action"],
+						description: "Number of active opened circuit-breakers"
+					});
+					broker.metrics.register({
+						name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL,
+						type: METRIC.TYPE_COUNTER,
+						labelNames: ["affectedNodeID", "service", "action"],
+						description: "Number of opened circuit-breakers"
+					});
+					broker.metrics.register({
+						name: METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE,
+						type: METRIC.TYPE_GAUGE,
+						labelNames: ["affectedNodeID", "service", "action"],
+						description: "Number of active half-opened circuit-breakers"
+					});
 				}
 			}
 		},

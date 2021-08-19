@@ -35,7 +35,6 @@ function createBroker(nodeID) {
 		},
 		//logger: console,
 		logLevel: "warn",
-		//logFormatter: "simple",
 	});
 
 	return broker;
