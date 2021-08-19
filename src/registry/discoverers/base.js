@@ -165,7 +165,7 @@ class BaseDiscoverer {
 				return;
 			}
 
-			if (now - node.lastHeartbeatTime > this.broker.options.heartbeatTimeout) {
+			if (now - node.lastHeartbeatTime > this.opts.heartbeatTimeout) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.registry.nodes.disconnected(node.id, true);
 			}
