@@ -32,7 +32,7 @@ class Cacher {
 		});
 
 		/** @type {boolean} Flag indicating the connection status */
-		this.connected = false;
+		this.connected = null; // Init as null for backward compatibility
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Cacher {
 
 					// Cache is enabled but not in healthy state
 					// More info: https://github.com/moleculerjs/moleculer/issues/978
-					if (!this.connected) {
+					if (this.connected === false) {
 						this.logger.debug(
 							"Cacher is enabled but it is not connected at the moment... Calling the handler"
 						);

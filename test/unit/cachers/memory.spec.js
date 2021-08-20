@@ -12,7 +12,7 @@ describe("Test MemoryCacher constructor", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
-		expect(cacher.connected).toBe(false);
+		expect(cacher.connected).toBe(null);
 	});
 
 	it("should create a timer if set ttl option", () => {
@@ -39,7 +39,7 @@ describe("Test MemoryCacher init", () => {
 		broker.localBus.on = jest.fn();
 		cacher = new MemoryCacher();
 
-		expect(cacher.connected).toBe(false);
+		expect(cacher.connected).toBe(null);
 
 		cacher.init(broker);
 

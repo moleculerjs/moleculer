@@ -8,7 +8,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
-		expect(cacher.connected).toBe(false);
+		expect(cacher.connected).toBe(null);
 		expect(cacher.init).toBeDefined();
 		expect(cacher.close).toBeDefined();
 		expect(cacher.get).toBeDefined();

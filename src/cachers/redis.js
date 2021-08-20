@@ -72,6 +72,8 @@ class RedisCacher extends BaseCacher {
 			this.client = new Redis(this.opts.redis);
 		}
 
+		this.connected = false;
+
 		this.client.on("connect", () => {
 			this.connected = true;
 
