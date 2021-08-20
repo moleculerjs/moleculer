@@ -64,7 +64,7 @@ describe("Test Registry constructor", () => {
 		expect(registry.discoverer).toBeInstanceOf(Discoverers.Redis);
 
 		await registry.discoverer.stop();
-		// await broker.registry.stop();
+		await broker.registry.stop();
 	});
 
 	it("should register metrics", () => {
