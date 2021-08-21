@@ -8,6 +8,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
+		expect(cacher.connected).toBe(null);
 		expect(cacher.init).toBeDefined();
 		expect(cacher.close).toBeDefined();
 		expect(cacher.get).toBeDefined();
@@ -319,6 +320,8 @@ describe("Test middleware", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();
+	// Fake connection
+	cacher.connected = true;
 	let broker = new ServiceBroker({
 		logger: false,
 		cacher
@@ -514,12 +517,40 @@ describe("Test middleware", () => {
 			});
 		});
 	});
+
+	it("should call the handler if the connection to cacher is lost", () => {
+		cacher.connected = false; // <- cacher lost connection
+
+		let action = {
+			name: "posts.get",
+			cache: {
+				enabled: true
+			},
+			// Return what you receive
+			handler: jest.fn(() => Promise.resolve(params))
+		};
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(action.handler, action);
+		expect(typeof cachedHandler).toBe("function");
+
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+			expect(action.handler).toHaveBeenCalledTimes(1);
+			expect(response).toBe(params);
+		});
+	});
 });
 
 describe("Test middleware with lock enabled", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();
+	// Fake connection
+	cacher.connected = true;
+
 	let broker = new ServiceBroker({
 		logger: false,
 		cacher
