@@ -211,22 +211,22 @@ describe("Test MemoryCacher set & get with custom cloning", () => {
 		}
 	};
 
-	cacher.set(key, data1);
-
 	afterAll(async () => {
 		await cacher.close();
 		await broker.stop();
 	});
 
-	it("should give back the data by key", () => {
-		return cacher.get(key).then(obj => {
-			expect(obj).toBeDefined();
-			expect(obj).not.toBe(data1);
-			expect(obj).toEqual(data1);
+	it("should give back the data by key", async () => {
+		await cacher.set(key, data1);
 
-			expect(clone).toHaveBeenCalledTimes(1);
-			expect(clone).toHaveBeenCalledWith(data1);
-		});
+		let obj = await cacher.get(key);
+		expect(obj).toBeDefined();
+		expect(obj).not.toBe(data1);
+		expect(obj).toEqual(data1);
+
+		// 1 with set + 1 with  get
+		expect(clone).toHaveBeenCalledTimes(2);
+		expect(clone).toHaveBeenCalledWith(data1);
 	});
 });
 
