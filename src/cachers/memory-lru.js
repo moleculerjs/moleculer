@@ -124,6 +124,8 @@ class MemoryLRUCacher extends BaseCacher {
 
 		if (ttl == null) ttl = this.opts.ttl;
 
+		data = this.clone ? this.clone(data) : data;
+
 		this.cache.set(key, data, ttl ? ttl * 1000 : null);
 
 		timeEnd();

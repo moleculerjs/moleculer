@@ -169,7 +169,7 @@ describe("Test MemoryCacher get() with expire", () => {
 	});
 });
 
-describe("Test MemoryCacher set & get with default cloning", () => {
+describe("Test MemoryCacher set & get with default cloning enabled", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryCacher({ clone: true });
 	cacher.init(broker);
@@ -184,19 +184,75 @@ describe("Test MemoryCacher set & get with default cloning", () => {
 		}
 	};
 
-	cacher.set(key, data1);
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
+
+	it("should give back the data by key", async () => {
+		let cached_response = await cacher.set(key, data1);
+
+		// Cloned object. References different object
+		expect(cached_response).not.toBe(data1);
+		expect(cached_response).toEqual(data1);
+
+		let obj = await cacher.get(key);
+		expect(obj).toBeDefined();
+		// Cloned object. References different object
+		expect(obj).not.toBe(data1);
+		expect(obj).toEqual(data1);
+
+		let obj2 = await cacher.get(key);
+		expect(obj2).toBeDefined();
+
+		// Cloned object. References different objects
+		expect(obj2).not.toBe(obj);
+		expect(obj).not.toBe(data1);
+
+		expect(obj2).toEqual(data1);
+	});
+});
+
+describe("Test MemoryCacher set & get with default cloning disabled", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let cacher = new MemoryCacher({ clone: false });
+	cacher.init(broker);
+
+	let key = "tst123";
+	let data1 = {
+		a: 1,
+		b: false,
+		c: "Test",
+		d: {
+			e: 55
+		}
+	};
 
 	afterAll(async () => {
 		await cacher.close();
 		await broker.stop();
 	});
 
-	it("should give back the data by key", () => {
-		return cacher.get(key).then(obj => {
-			expect(obj).toBeDefined();
-			expect(obj).not.toBe(data1);
-			expect(obj).toEqual(data1);
-		});
+	it("should give back the data by key", async () => {
+		let cached_response = await cacher.set(key, data1);
+
+		// Not a clone. References the same entry
+		expect(cached_response).toBe(data1);
+		expect(cached_response).toEqual(data1);
+
+		let obj = await cacher.get(key);
+		expect(obj).toBeDefined();
+		// Not a clone. References the same entry
+		expect(obj).toBe(data1);
+		expect(obj).toEqual(data1);
+
+		let obj2 = await cacher.get(key);
+		expect(obj2).toBeDefined();
+
+		// Not a clone. Reference the same entry
+		expect(obj2).toBe(obj);
+		expect(obj).toBe(data1);
+		expect(obj2).toEqual(data1);
 	});
 });
 
@@ -216,22 +272,22 @@ describe("Test MemoryCacher set & get with custom cloning", () => {
 		}
 	};
 
-	cacher.set(key, data1);
-
 	afterAll(async () => {
 		await cacher.close();
 		await broker.stop();
 	});
 
-	it("should give back the data by key", () => {
-		return cacher.get(key).then(obj => {
-			expect(obj).toBeDefined();
-			expect(obj).not.toBe(data1);
-			expect(obj).toEqual(data1);
+	it("should give back the data by key", async () => {
+		await cacher.set(key, data1);
 
-			expect(clone).toHaveBeenCalledTimes(1);
-			expect(clone).toHaveBeenCalledWith(data1);
-		});
+		let obj = await cacher.get(key);
+		expect(obj).toBeDefined();
+		expect(obj).not.toBe(data1);
+		expect(obj).toEqual(data1);
+
+		// 1 with set + 1 with  get
+		expect(clone).toHaveBeenCalledTimes(2);
+		expect(clone).toHaveBeenCalledWith(data1);
 	});
 });
 

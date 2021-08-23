@@ -122,6 +122,8 @@ class MemoryCacher extends BaseCacher {
 
 		if (ttl == null) ttl = this.opts.ttl;
 
+		data = this.clone ? this.clone(data) : data;
+
 		this.cache.set(key, {
 			data,
 			expire: ttl ? Date.now() + ttl * 1000 : null
