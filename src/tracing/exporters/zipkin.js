@@ -46,7 +46,12 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			},
 
 			/** @type {Object?} Default span tags */
-			defaultTags: null
+			defaultTags: null,
+
+			/** @type {Object} Default headers */
+			headers: {
+				"Content-Type": "application/json"
+			}
 		});
 
 		this.queue = [];
@@ -111,9 +116,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 		fetch(`${this.opts.baseURL}/api/v2/spans`, {
 			method: "post",
 			body: JSON.stringify(data),
-			headers: {
-				"Content-Type": "application/json"
-			}
+			headers: this.opts.headers
 		})
 			.then(res => {
 				if (res.status >= 400) {

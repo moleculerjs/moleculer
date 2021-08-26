@@ -24,6 +24,10 @@ describe("Test Zipkin tracing exporter class", () => {
 				payloadOptions: {
 					debug: false,
 					shared: false
+				},
+
+				headers: {
+					"Content-Type": "application/json"
 				}
 			});
 
@@ -40,6 +44,10 @@ describe("Test Zipkin tracing exporter class", () => {
 
 				defaultTags: {
 					a: 5
+				},
+
+				headers: {
+					"X-B3-Sampled": 0
 				}
 			});
 
@@ -53,6 +61,11 @@ describe("Test Zipkin tracing exporter class", () => {
 
 				defaultTags: {
 					a: 5
+				},
+
+				headers: {
+					"Content-Type": "application/json",
+					"X-B3-Sampled": 0
 				}
 			});
 		});
