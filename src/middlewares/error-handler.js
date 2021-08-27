@@ -70,7 +70,7 @@ function wrapEventErrorHandler(handler) {
 			.catch(err => {
 				// No global error Handler, or thrown further, log and re-throw. Pass responsibility to the transit layer.
 				ctx.broker.logger.error(err);
-        throw err;
+				throw err;
 			});
 	}.bind(this);
 }
