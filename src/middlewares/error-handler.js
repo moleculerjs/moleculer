@@ -60,7 +60,7 @@ function wrapEventErrorHandler(handler) {
 					enumerable: false
 				});
 
-				// Call global errorHandler
+				// Call global errorHandler (may choose to resolve error)
 				return ctx.broker.errorHandler(err, {
 					ctx,
 					service: ctx.service,
@@ -68,8 +68,9 @@ function wrapEventErrorHandler(handler) {
 				});
 			})
 			.catch(err => {
-				// No global error Handler, or thrown further, so we handle it because it's an event handler.
+				// No global error Handler, or thrown further, log and re-throw. Pass responsibility to the transit layer.
 				ctx.broker.logger.error(err);
+        throw err;
 			});
 	}.bind(this);
 }
