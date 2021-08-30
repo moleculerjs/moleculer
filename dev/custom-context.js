@@ -26,7 +26,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	//.then(() => broker.repl())
 	/*.delay(2000)
 	.then(() => {

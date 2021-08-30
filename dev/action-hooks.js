@@ -25,7 +25,7 @@ const mixin = {
 				broker.logger.info(kleur.magenta("  After hook (MIXIN)"));
 				return res;
 			}
-		},
+		}
 	},
 
 	actions: {
@@ -64,7 +64,7 @@ broker.createService({
 				broker.logger.info(kleur.magenta("  After hook"));
 				return res;
 			}
-		},
+		}
 	},
 
 	actions: {
@@ -87,7 +87,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.catch(err => broker.logger.error(err))
 	.then(() => broker.stop());

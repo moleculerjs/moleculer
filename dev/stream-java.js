@@ -6,7 +6,6 @@ const path = require("path");
 const kleur = require("kleur");
 const crypto = require("crypto");
 
-
 const broker = new ServiceBroker({
 	//namespace: "streaming",
 	nodeID: "node-client-" + process.pid,
@@ -70,11 +69,10 @@ broker.start()
 	});
 */
 
-
-broker.start()
+broker
+	.start()
 	.delay(2000)
 	.then(() => {
-
 		const fileName = "d://1.pdf";
 		const fileName2 = "d://2.pdf";
 
@@ -86,29 +84,26 @@ broker.start()
 
 			const stream = fs.createReadStream(fileName);
 
-			broker.call("echo.reply", stream)
-				.then(stream => {
-					const s = fs.createWriteStream(fileName2);
-					stream.pipe(s);
-					s.on("close", () => {
-						broker.logger.info("Time:", Date.now() - startTime + "ms");
-						getSHA(fileName2).then(hash => {
-							broker.logger.info("Received SHA:", hash);
+			broker.call("echo.reply", stream).then(stream => {
+				const s = fs.createWriteStream(fileName2);
+				stream.pipe(s);
+				s.on("close", () => {
+					broker.logger.info("Time:", Date.now() - startTime + "ms");
+					getSHA(fileName2).then(hash => {
+						broker.logger.info("Received SHA:", hash);
 
-							if (hash != origHash) {
-								broker.logger.error(kleur.red().bold("Hash mismatch!"));
-							} else {
-								broker.logger.info(kleur.green().bold("Hash OK!"));
-							}
-						});
-
-						broker.stop();
+						if (hash != origHash) {
+							broker.logger.error(kleur.red().bold("Hash mismatch!"));
+						} else {
+							broker.logger.info(kleur.green().bold("Hash OK!"));
+						}
 					});
+
+					broker.stop();
 				});
+			});
 		});
-
 	});
-
 
 /*
 broker.start()
@@ -132,4 +127,3 @@ function getSHA(fileName) {
 		stream.on("end", () => resolve(hash.digest("base64")));
 	});
 }
-

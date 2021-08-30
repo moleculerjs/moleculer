@@ -23,9 +23,11 @@ function logging(broker) {
 let brk;
 
 function createBroker(options) {
-	const broker = new ServiceBroker(_.defaultsDeep(options, {
-		cacher: "Memory"
-	}));
+	const broker = new ServiceBroker(
+		_.defaultsDeep(options, {
+			cacher: "Memory"
+		})
+	);
 
 	broker.createService({
 		name: "greeter",
@@ -42,7 +44,7 @@ function createBroker(options) {
 }
 
 Promise.resolve()
-	.then(async function() {
+	.then(async function () {
 		console.log(kleur.yellow().bold("\n--- CONSOLE LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "console",
@@ -52,7 +54,7 @@ Promise.resolve()
 					options: {
 						level: "trace",
 						formatter: "jsonext",
-						moduleColors: true,
+						moduleColors: true
 						//autoPadding: true
 					}
 				},
@@ -62,9 +64,9 @@ Promise.resolve()
 						level: "trace",
 						formatter: "jsonext",
 						folder: "d:/logs",
-						filename: "moleculer-{date}.log",
+						filename: "moleculer-{date}.log"
 					}
-				},
+				}
 			]
 		});
 		await broker.start();
@@ -72,7 +74,7 @@ Promise.resolve()
 		logging(broker);
 
 		brk = broker;
-	})/*
+	}) /*
 	.then(async function() {
 		console.log(kleur.yellow().bold("\n--- BUNYAN LOGGER ---"));
 		const broker = createBroker({

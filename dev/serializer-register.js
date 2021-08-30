@@ -1,6 +1,9 @@
-const ServiceBroker = require("../src/service-broker");
+const { ServiceBroker, Serializers } = require("..");
+const SafeJSON = require("./SafeJsonSerializer");
+Serializers.register("SafeJSON", SafeJSON);
 
 const broker = new ServiceBroker({
+	serializer: "SafeJSON"
 });
 
 broker.createService({

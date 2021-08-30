@@ -44,22 +44,18 @@ module.exports = {
 			}
 		});
 
-		return broker.Promise.delay(2000)
-			.then(() => broker.call("$node.list"));
+		return broker.Promise.delay(2000).then(() => broker.call("$node.list"));
 	},
 
 	stopped(broker) {
-		return broker.Promise.delay(2000)
-			.then(() => broker.logger.warn("--- Broker stopped"));
+		return broker.Promise.delay(2000).then(() => broker.logger.warn("--- Broker stopped"));
 	},
 	replCommands: [
 		{
 			command: "hello <name>",
 			description: "Call the greeter.hello service with name",
 			alias: "hi",
-			options: [
-				{ option: "-u, --uppercase", description: "Uppercase the name" }
-			],
+			options: [{ option: "-u, --uppercase", description: "Uppercase the name" }],
 			types: {
 				string: ["name"],
 				boolean: ["u", "uppercase"]

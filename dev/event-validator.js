@@ -24,9 +24,12 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
-	.then(() => broker.emit("send.mail", {
-		to: "a@b.c",
-		//subject: "Test"
-	}));
+	.then(() =>
+		broker.emit("send.mail", {
+			to: "a@b.c"
+			//subject: "Test"
+		})
+	);

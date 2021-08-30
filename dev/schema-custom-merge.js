@@ -5,15 +5,17 @@ const broker = new ServiceBroker({ logLevel: "warn" });
 
 // Add custom merge logic for "foobar" schema
 // property as static method of Service.
-Service.mergeSchemaFoobar = function(src, target) {
+Service.mergeSchemaFoobar = function (src, target) {
 	return [src, target].join("-");
 };
 
 broker.createService({
 	name: "greeter",
-	mixins: [{
-		foobar: "Bar"
-	}],
+	mixins: [
+		{
+			foobar: "Bar"
+		}
+	],
 
 	foobar: "Foo",
 

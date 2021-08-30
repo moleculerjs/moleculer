@@ -11,14 +11,11 @@ const broker = new ServiceBroker({
 		"TX-COMPRESS": "debug",
 		"*": "info"
 	},
-	middlewares: [
-		Middlewares.Transmit.Compression(),
-	]
+	middlewares: [Middlewares.Transmit.Compression()]
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
-	.then(() => {
-
-	})
+	.then(() => {})
 	.catch(err => broker.logger.error(err));

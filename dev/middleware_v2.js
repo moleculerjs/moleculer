@@ -23,7 +23,7 @@ const MW = {
 
 	// Wrap local event handlers
 	localEvent(next, event) {
-		return function(payload, sender, eventName) {
+		return function (payload, sender, eventName) {
 			console.log("MW localEvent is fired.", eventName);
 			payload.$joker = "MW";
 			return next(payload, sender, eventName);
@@ -32,7 +32,7 @@ const MW = {
 
 	// Wrap broker.createService method
 	createService(next) {
-		return function() {
+		return function () {
 			console.log("MW createService is fired.");
 			return next(...arguments);
 		};
@@ -40,7 +40,7 @@ const MW = {
 
 	// Wrap broker.registerLocalService method
 	registerLocalService(next) {
-		return function(svcItem) {
+		return function (svcItem) {
 			console.log("MW registerLocalService is fired.", svcItem.name);
 			return next(svcItem);
 		};
@@ -48,7 +48,7 @@ const MW = {
 
 	// Wrap broker.destroyService method
 	destroyService(next) {
-		return function() {
+		return function () {
 			console.log("MW destroyService is fired.");
 			return next(...arguments);
 		};
@@ -56,7 +56,7 @@ const MW = {
 
 	// Wrap broker.call method
 	call(next) {
-		return function() {
+		return function () {
 			console.log("MW call before is fired.", arguments);
 			return next(...arguments).then(res => {
 				console.log("MW call after is fired.", res);
@@ -67,7 +67,7 @@ const MW = {
 
 	// Wrap broker.mcall method
 	mcall(next) {
-		return function() {
+		return function () {
 			console.log("MW call before is fired.");
 			return next(...arguments).then(res => {
 				console.log("MW call after is fired.");
@@ -77,7 +77,7 @@ const MW = {
 
 	// When event is emitted
 	emit(next) {
-		return function(eventName, payload, groups) {
+		return function (eventName, payload, groups) {
 			console.log("MW emit is fired.", eventName);
 			return next(eventName, payload, groups);
 		};
@@ -85,7 +85,7 @@ const MW = {
 
 	// When broadcast event is emitted
 	broadcast(next) {
-		return function(eventName, payload, groups) {
+		return function (eventName, payload, groups) {
 			console.log("MW broadcast is fired.", eventName);
 			return next(eventName, payload, groups);
 		};
@@ -93,7 +93,7 @@ const MW = {
 
 	// When local broadcast event is emitted
 	broadcastLocal(next) {
-		return function(eventName, payload, groups) {
+		return function (eventName, payload, groups) {
 			console.log("MW broadcastLocal is fired.", eventName);
 			return next(eventName, payload, groups);
 		};
@@ -176,7 +176,7 @@ const MW = {
 	// When a new log entry created
 	newLogEntry(type, args, bindings) {
 		console.log(`:: New ${type} log entry:: `, args, bindings);
-	},
+	}
 };
 
 const broker = new ServiceBroker({
@@ -186,13 +186,12 @@ const broker = new ServiceBroker({
 	middlewares: [MW]
 });
 
-
 broker.createService({
 	name: "test",
 	actions: {
 		hello(ctx) {
 			return `Hello ${ctx.params.name}`;
-		},
+		}
 	},
 	events: {
 		"test.**"(payload, sender, eventName) {
@@ -201,12 +200,11 @@ broker.createService({
 	}
 });
 
-
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => {
 		broker.emit("test.emitted.event", { a: 5 });
 		broker.broadcast("test.broadcasted.event", { b: "John" });
-		broker.call("test.hello", { name: "John" })
-			.then(res => broker.logger.info("Res:", res));
+		broker.call("test.hello", { name: "John" }).then(res => broker.logger.info("Res:", res));
 	});

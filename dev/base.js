@@ -20,7 +20,7 @@ broker.createService({
 });*/
 
 broker.start().then(() => {
-/*
+	/*
 	setInterval(() => {
 		//broker.call("test.hello")
 		broker.call("math.add", { a: 5, b: 2 })
@@ -30,13 +30,13 @@ broker.start().then(() => {
 	}, 1000);*/
 
 	//setInterval(() => {
-/*
+	/*
 		setTimeout(() => {
 			let svc = broker.getLocalService("test");
 			broker.destroyService(svc);
 		}, 10 * 1000);*/
 
-		//broker.loadService("./examples/hot.service.js");
+	//broker.loadService("./examples/hot.service.js");
 
 	//}, 10 * 1000);
 

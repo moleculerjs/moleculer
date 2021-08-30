@@ -26,7 +26,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => broker.call("greeter.welcome"))
 	.then(res => broker.logger.info("Result:", res))

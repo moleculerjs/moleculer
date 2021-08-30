@@ -19,7 +19,8 @@ const broker = new ServiceBroker({
 
 let origHash;
 
-broker.start()
+broker
+	.start()
 	.delay(2000)
 	.then(() => {
 		//broker.repl();
@@ -35,7 +36,8 @@ broker.start()
 
 			const stream = fs.createReadStream(fileName);
 
-			broker.call("aes.encrypt", stream)
+			broker
+				.call("aes.encrypt", stream)
 				.then(stream => broker.call("aes.decrypt", stream))
 				.then(stream => {
 					const s = fs.createWriteStream(fileName2);
@@ -56,7 +58,6 @@ broker.start()
 					});
 				});
 		});
-
 	});
 
 function getSHA(fileName) {

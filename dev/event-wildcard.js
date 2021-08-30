@@ -14,9 +14,8 @@ broker.createService({
 		}
 	},
 	events: {
-		"**"(data, sender, eventName){
-			if (eventName == "this.is.an.event")
-				this.logger.info("event triggered", eventName);
+		"**"(data, sender, eventName) {
+			if (eventName == "this.is.an.event") this.logger.info("event triggered", eventName);
 		}
 	}
 });
@@ -24,9 +23,8 @@ broker.createService({
 broker.createService({
 	name: "test2",
 	events: {
-		"*.is.an.event"(data, sender, eventName){
-			if (eventName == "this.is.an.event")
-				this.logger.info("event triggered2", eventName);
+		"*.is.an.event"(data, sender, eventName) {
+			if (eventName == "this.is.an.event") this.logger.info("event triggered2", eventName);
 		}
 	}
 });

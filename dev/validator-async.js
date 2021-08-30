@@ -37,14 +37,16 @@ broker.createService({
 			params: {
 				$$async: true,
 				title: "string",
-				owner: { type: "number", custom: async (value, errors, schema, name, parent, context) => {
-					const ctx = context.meta;
+				owner: {
+					type: "number",
+					custom: async (value, errors, schema, name, parent, context) => {
+						const ctx = context.meta;
 
-					const res = await ctx.call("users.isValid", { id: value });
-					if (res !== true)
-						errors.push({ type: "invalidOwner", actual: value });
-					return value;
-				} },
+						const res = await ctx.call("users.isValid", { id: value });
+						if (res !== true) errors.push({ type: "invalidOwner", actual: value });
+						return value;
+					}
+				}
 			},
 			handler(ctx) {
 				return `Post created for owner '${ctx.params.owner}'`;
@@ -53,7 +55,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => broker.call("posts.create", { title: "Post #1", owner: 2 }))
 	.then(res => broker.logger.info("Result:", res))

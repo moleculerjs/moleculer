@@ -14,7 +14,7 @@ const broker = new ServiceBroker({
 				//level: "error",
 				//formatter: (level, args, bindings) => [`[${level.toUpperCase()}]`, ...args],
 				//formatter: "[{time}] {level} <{nodeID}:{mod}> ->",
-				moduleColors: true,
+				moduleColors: true
 				//autoPadding: true
 			}
 		},
@@ -25,7 +25,7 @@ const broker = new ServiceBroker({
 				filename: "moleculer-{date}.log",
 				formatter: "full"
 			}
-		},
+		}
 		/*{
 			type: "File",
 			options: {
@@ -94,7 +94,7 @@ const broker = new ServiceBroker({
 		"MY.**": "trace",
 		"TRANS*": "warn",
 		"*.GREETER": "debug",
-		"**": "debug",
+		"**": "debug"
 	},
 	//logLevel: "info",
 	transporter: "NATS",
@@ -120,18 +120,27 @@ const schema = {
 	}
 };
 
-broker.createService({
-	name: "greeter",
-	version: 2
-}, schema);
+broker.createService(
+	{
+		name: "greeter",
+		version: 2
+	},
+	schema
+);
 
-broker.createService({
-	name: "test"
-}, schema);
+broker.createService(
+	{
+		name: "test"
+	},
+	schema
+);
 
-broker.createService({
-	name: "hello"
-}, schema);
+broker.createService(
+	{
+		name: "hello"
+	},
+	schema
+);
 
 const myLogger = broker.getLogger("my.custom.module");
 
@@ -143,7 +152,6 @@ myLogger.error("Error test", new MoleculerClientError("Something happened", 404)
 
 myLogger.info("Object test - after", { a: 5, b: { c: "John" } });
 myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
-
 
 broker.start();
 broker.repl();

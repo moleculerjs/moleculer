@@ -32,7 +32,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
@@ -40,7 +41,7 @@ broker.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false } }))
 
 	.then(async () => {
-		for(let i = 0; i < 1000; i++) {
+		for (let i = 0; i < 1000; i++) {
 			broker.cacher.set(`key-${i}`, i);
 			if (i % 10 == 0) {
 				broker.cacher.get(`key-${100}`);

@@ -6,10 +6,8 @@ broker.createService({
 	actions: {
 		hello(ctx) {
 			return "Hello!";
-		},
+		}
 	}
 });
 
-broker.start().then(() => require("repl").start("mol $ ").context.broker = broker);
-
-
+broker.start().then(() => (require("repl").start("mol $ ").context.broker = broker));

@@ -19,28 +19,30 @@ broker.createService({
 				console.log("Called first handler");
 				throw new Error("Error in event handler");
 			},
-			() => { console.log("Called second handler"); },
+			() => {
+				console.log("Called second handler");
+			}
 		]
 	},
-	started() {
-
-	}
+	started() {}
 });
 
 broker.createService({
 	name: "events",
 	events: {
-		"test.event": () => { console.log("Called third handler"); },
+		"test.event": () => {
+			console.log("Called third handler");
+		}
 	}
 });
 
-(async function() {
+(async function () {
 	await broker.start();
 
 	try {
 		await broker.call("greeter2.hello");
 		//broker.broadcast("test.event", { a: 5 });
-	} catch(err) {
+	} catch (err) {
 		broker.logger.error("Catched error", err);
 	}
 

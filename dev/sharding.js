@@ -2,25 +2,29 @@ const ServiceBroker = require("../src/service-broker");
 const _ = require("lodash");
 
 function createBroker(opts) {
-	const broker = new ServiceBroker(_.defaultsDeep(opts, {
-		transporter: "NATS",
-		logLevel: "warn",
-		registry: {
-			strategy: "RoundRobin"
-		},
+	const broker = new ServiceBroker(
+		_.defaultsDeep(opts, {
+			transporter: "NATS",
+			logLevel: "warn",
+			registry: {
+				strategy: "RoundRobin"
+			},
 
-		middlewares: [
-			{
-				name: "CallingLogger",
-				remoteAction(handler, action) {
-					return ctx => {
-						this.logger.warn(`===========> Calling ${action.name} on ${ctx.nodeID} ===========>`);
-						return handler(ctx);
-					};
+			middlewares: [
+				{
+					name: "CallingLogger",
+					remoteAction(handler, action) {
+						return ctx => {
+							this.logger.warn(
+								`===========> Calling ${action.name} on ${ctx.nodeID} with ${ctx.params.name} ===========>`
+							);
+							return handler(ctx);
+						};
+					}
 				}
-			}
-		]
-	}));
+			]
+		})
+	);
 
 	if (broker.nodeID != "main") {
 		broker.createService({
@@ -68,7 +72,6 @@ async function start() {
 		const name = usernames[_.random(usernames.length - 1)];
 		await main.call("users.getAge", { name });
 	}, 1000);
-
 }
 
 start();

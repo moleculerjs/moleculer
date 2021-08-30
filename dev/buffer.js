@@ -18,18 +18,18 @@ const server = new ServiceBroker({
 	logLevel: "info",
 	transporter: {
 		type: "TCP",
-		maxPacketSize: 1 * 1024 * 1024,
+		maxPacketSize: 1 * 1024 * 1024
 	},
 	requestTimeout: 5 * 1000,
 	serializer,
 	circuitBreaker: {
-		enabled: false,
+		enabled: false
 	},
 	metrics: true,
 	statistics: true,
 	maxCallLevel: 10,
 	heartbeatInterval: 2,
-	heartbeatTimeout: 8,
+	heartbeatTimeout: 8
 });
 
 server.createService({
@@ -42,7 +42,6 @@ server.createService({
 	}
 });
 
-
 // Create client
 const client = new ServiceBroker({
 	namespace: "buffer",
@@ -51,28 +50,27 @@ const client = new ServiceBroker({
 	logLevel: "info",
 	transporter: {
 		type: "TCP",
-		maxPacketSize: 1 * 1024 * 1024,
+		maxPacketSize: 1 * 1024 * 1024
 	},
 	requestTimeout: 5 * 1000,
 	serializer,
 	circuitBreaker: {
-		enabled: false,
+		enabled: false
 	},
 	metrics: true,
 	statistics: true,
 	maxCallLevel: 10,
 	heartbeatInterval: 2,
-	heartbeatTimeout: 8,
+	heartbeatTimeout: 8
 });
 
 Promise.all([server.start(), client.start()])
 	.then(() => client.waitForServices("server"))
 	.then(() => {
-		client.call("server.getABigBuffer", { size: 128 * 1024 }).then((res) => {
+		client.call("server.getABigBuffer", { size: 128 * 1024 }).then(res => {
 			client.logger.info("got", inspect(res));
 		});
 	});
-
 
 function inspect(x) {
 	let rv = "";

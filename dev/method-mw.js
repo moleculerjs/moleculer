@@ -7,10 +7,12 @@ const MW = {
 	// Wrap local method calls
 	localMethod(handler, method) {
 		return params => {
-			console.log(`The '${method.name}' method is called in '${method.service.fullName}' service.`, params);
+			console.log(
+				`The '${method.name}' method is called in '${method.service.fullName}' service.`,
+				params
+			);
 			const res = handler(params);
-			if (method.uppercase)
-				return res.toUpperCase();
+			if (method.uppercase) return res.toUpperCase();
 
 			return res;
 		};
@@ -21,7 +23,6 @@ const broker = new ServiceBroker({
 	nodeID: "mw",
 	middlewares: [MW]
 });
-
 
 const svc = broker.createService({
 	name: "test",
@@ -43,12 +44,11 @@ const svc = broker.createService({
 	}
 });
 
-
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => {
-		broker.call("test.hello", { name: "John" })
-			.then(res => broker.logger.info("Res:", res));
+		broker.call("test.hello", { name: "John" }).then(res => broker.logger.info("Res:", res));
 
 		broker.logger.info("Svc", svc.hello({ name: "Jane" }));
 	});

@@ -4,7 +4,7 @@ let ServiceBroker = require("../src/service-broker");
 
 let broker = new ServiceBroker({
 	logger: true,
-	logLevel: "debug",
+	logLevel: "debug"
 });
 
 broker.createService({
@@ -38,5 +38,4 @@ broker.createService({
 	}
 });
 
-broker.start()
-	.then(() => broker.emit("ES.user.created", { name: "John" }));
+broker.start().then(() => broker.emit("ES.user.created", { name: "John" }));

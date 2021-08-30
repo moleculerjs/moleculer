@@ -4,7 +4,7 @@ module.exports = {
 		commonjs: true,
 		es6: true
 	},
-	extends: ["eslint:recommended"],
+	extends: ["eslint:recommended", "plugin:security/recommended", "plugin:prettier/recommended"],
 	parserOptions: {
 		sourceType: "module",
 		ecmaVersion: 2018

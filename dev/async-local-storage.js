@@ -7,15 +7,15 @@
  * Please note it works only >= Node 14.
  */
 
-const  ServiceBroker = require("../src/service-broker");
+const ServiceBroker = require("../src/service-broker");
 const { AsyncLocalStorage } = require("async_hooks");
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
 const AsyncLocalStorageMiddleware = {
 	localAction(handler) {
-		return (ctx) => asyncLocalStorage.run(ctx, () => handler(ctx));
-	},
+		return ctx => asyncLocalStorage.run(ctx, () => handler(ctx));
+	}
 };
 
 // Create broker
@@ -42,7 +42,8 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.then(res => broker.logger.info("Result:", res))
 	.catch(err => broker.logger.error(err))

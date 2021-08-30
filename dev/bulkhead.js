@@ -8,7 +8,7 @@ const broker = new ServiceBroker({
 	bulkhead: {
 		enabled: false,
 		concurrency: 3,
-		maxQueueSize: 100,
+		maxQueueSize: 100
 	},
 	metrics: {
 		enabled: true,
@@ -16,8 +16,7 @@ const broker = new ServiceBroker({
 			type: "Console",
 			options: {
 				onlyChanges: true,
-				includes: "moleculer.**.bulkhead.**",
-
+				includes: "moleculer.**.bulkhead.**"
 			}
 		}
 	}
@@ -32,7 +31,6 @@ broker.createService({
 				concurrency: 1
 			},
 			async handler(ctx) {
-
 				await this.Promise.delay(_.random(500, 2500));
 
 				this.logger.info("First called.", ctx.params);
@@ -47,14 +45,13 @@ broker.createService({
 				concurrency: 1
 			},
 			async handler(ctx) {
-
 				await this.Promise.delay(_.random(500, 2500));
 
 				this.logger.info("Second called.", ctx.params);
 
 				return ctx.params;
 			}
-		},
+		}
 	},
 
 	events: {
@@ -81,13 +78,16 @@ broker.createService({
 });
 
 let id = 1;
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => {
-		return broker.Promise.all(_.times(10, id => {
-			return broker.call("test.second", { id });
-			//return broker.emit("user.created", { id });
-		}));
+		return broker.Promise.all(
+			_.times(10, id => {
+				return broker.call("test.second", { id });
+				//return broker.emit("user.created", { id });
+			})
+		);
 	})
 	/*.then(() => {
 		setInterval(() => broker.call("test.second", { id: id++ }), 200);

@@ -15,12 +15,14 @@ broker.createService({
 let c = 0;
 function work() {
 	c++;
-	broker.call("math.add", { a: 5, b: 3 })
+	broker
+		.call("math.add", { a: 5, b: 3 })
 		.then(() => setImmediate(work))
 		.catch(broker.logger.error);
 }
 
-broker.start()
+broker
+	.start()
 	.then(() => {
 		let startTime = Date.now();
 		setInterval(() => {

@@ -17,7 +17,6 @@ const broker1 = new ServiceBroker({
 	serializer
 });
 
-
 // Create broker #2
 const broker2 = new ServiceBroker({
 	namespace: "streaming",
@@ -60,7 +59,6 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 
 			callAES();
 		});
-
 	});
 
 let count = 0;
@@ -70,7 +68,8 @@ function callAES() {
 
 	const stream = fs.createReadStream(fileName);
 
-	broker1.call("aes.encrypt", stream)
+	broker1
+		.call("aes.encrypt", stream)
 		.then(stream => broker1.call("aes.decrypt", stream))
 		.then(stream => {
 			const s = fs.createWriteStream(fileName2);
@@ -79,13 +78,26 @@ function callAES() {
 				const duration = Date.now() - startTime;
 				getSHA(fileName2).then(hash => {
 					if (hash != origHash) {
-						broker1.logger.error(count, kleur.red().bold("Hash mismatch!"), "Time:", duration, "ms. Received SHA:", hash);
+						broker1.logger.error(
+							count,
+							kleur.red().bold("Hash mismatch!"),
+							"Time:",
+							duration,
+							"ms. Received SHA:",
+							hash
+						);
 					} else {
-						broker1.logger.info(count, kleur.green().bold("Hash OK!"), "Time:", duration, "ms. Received SHA:", hash);
+						broker1.logger.info(
+							count,
+							kleur.green().bold("Hash OK!"),
+							"Time:",
+							duration,
+							"ms. Received SHA:",
+							hash
+						);
 					}
 
-					if (++count < 10)
-						setTimeout(() => callAES(), 100);
+					if (++count < 10) setTimeout(() => callAES(), 100);
 					else {
 						broker1.stop();
 						broker2.stop();

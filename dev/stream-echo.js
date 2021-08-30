@@ -21,6 +21,4 @@ broker.createService({
 	}
 });
 
-broker.start()
-	.then(() => broker.repl());
-
+broker.start().then(() => broker.repl());

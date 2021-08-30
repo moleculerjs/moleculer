@@ -43,10 +43,10 @@ const broker = new ServiceBroker({
 			{
 				type: "Console",
 				options: {
-					includes: "moleculer.discoverer.**",
+					includes: "moleculer.discoverer.**"
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},
+			}
 			/*{
 				type: "Datadog",
 				options: {
@@ -84,15 +84,20 @@ broker.createService({
 			//fallback: "fakeResult",
 			handler(ctx) {
 				const wait = _.random(500, 1500);
-				this.logger.info(_.padEnd(`${ctx.meta.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
+				this.logger.info(
+					_.padEnd(`${ctx.meta.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20),
+					`(from: ${ctx.nodeID})`
+				);
 				if (_.random(100) > 80)
-					return this.Promise.reject(new MoleculerRetryableError("Random error!", 510, "RANDOM_ERROR"));
+					return this.Promise.reject(
+						new MoleculerRetryableError("Random error!", 510, "RANDOM_ERROR")
+					);
 
-				return this.Promise.resolve()./*delay(wait).*/then(() => ({
+				return this.Promise.resolve()./*delay(wait).*/ then(() => ({
 					res: Number(ctx.params.a) + Number(ctx.params.b)
 				}));
 			}
-		},
+		}
 	},
 
 	methods: {
@@ -107,7 +112,9 @@ broker.createService({
 
 	events: {
 		"echo.event"(data, sender) {
-			this.logger.info(`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`);
+			this.logger.info(
+				`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`
+			);
 			this.broker.emit("reply.event", data);
 		}
 	},
@@ -121,8 +128,10 @@ broker.createService({
 	name: "metrics",
 	events: {
 		"$node.pong"({ nodeID, elapsedTime, timeDiff }) {
-			this.logger.info(`PING '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
-		},
+			this.logger.info(
+				`PING '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`
+			);
+		}
 		/*"metrics.circuit-breaker.opened"(payload, sender) {
 			this.logger.warn(kleur.yellow().bold(`---  Circuit breaker opened on '${sender} -> ${payload.nodeID}:${payload.action} action'!`));
 		},
@@ -135,9 +144,8 @@ broker.createService({
 	}
 });
 
-broker.start()
-	.then(() => {
-		broker.repl();
-		setInterval(() => broker.ping(), 10 * 1000);
-		//setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
-	});
+broker.start().then(() => {
+	broker.repl();
+	setInterval(() => broker.ping(), 10 * 1000);
+	//setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
+});

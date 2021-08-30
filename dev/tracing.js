@@ -1,23 +1,21 @@
 "use strict";
 
-
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	url: "http://192.168.0.181:8126",
 	debug: true,
-	samplingPriority: "USER_KEEP",
+	samplingPriority: "USER_KEEP"
 });
 
 tracer.use("http");
 tracer.use("ioredis");
 
-
 const ServiceBroker = require("../src/service-broker");
-"use strict";
+("use strict");
 
-const { MoleculerError } 	= require("../src/errors");
-const _ 					= require("lodash");
-const { inspect }			= require("util");
+const { MoleculerError } = require("../src/errors");
+const _ = require("lodash");
+const { inspect } = require("util");
 
 const THROW_ERR = false;
 
@@ -33,7 +31,7 @@ const broker = new ServiceBroker({
 		events: true,
 		stackTrace: true,
 		sampling: {
-			rate: 1,
+			rate: 1
 			//tracesPerSecond: 1
 		},
 		exporter: [
@@ -50,7 +48,7 @@ const broker = new ServiceBroker({
 				options: {
 					tracer
 				}
-			},
+			}
 			/*{
 				type: "Zipkin",
 				options: {
@@ -104,7 +102,7 @@ broker.createService({
 const POSTS = [
 	{ id: 1, title: "First post", content: "Content of first post", author: 2 },
 	{ id: 2, title: "Second post", content: "Content of second post", author: 1 },
-	{ id: 3, title: "3rd post", content: "Content of 3rd post", author: 2 },
+	{ id: 3, title: "3rd post", content: "Content of 3rd post", author: 2 }
 ];
 
 broker.createService({
@@ -156,16 +154,22 @@ broker.createService({
 				const span2 = ctx.startSpan("populate posts");
 				//await this.Promise.delay(10);
 				const res = await this.Promise.mapSeries(posts, async post => {
-					const span3 = ctx.startSpan("populate #" + post.id, { tags: {
-						id: post.id
-					} });
+					const span3 = ctx.startSpan("populate #" + post.id, {
+						tags: {
+							id: post.id
+						}
+					});
 					//await this.Promise.delay(15);
 
 					span2.log("Populating", { postID: post.id });
 
 					const res = await this.Promise.all([
-						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
-						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
+						ctx
+							.call("users.get", { id: post.author })
+							.then(author => (post.author = author)),
+						ctx
+							.call("votes.count", { postID: post.id })
+							.then(votes => (post.votes = votes))
 					]);
 
 					ctx.finishSpan(span3);
@@ -176,7 +180,7 @@ broker.createService({
 				ctx.finishSpan(span2);
 
 				const span4 = ctx.startSpan("sorting");
-				posts.sort((a,b) => a.id - b.id);
+				posts.sort((a, b) => a.id - b.id);
 				ctx.finishSpan(span4);
 				return posts;
 			}
@@ -186,7 +190,7 @@ broker.createService({
 
 const USERS = [
 	{ id: 1, name: "John Doe" },
-	{ id: 2, name: "Jane Doe" },
+	{ id: 2, name: "Jane Doe" }
 ];
 
 broker.createService({
@@ -256,7 +260,9 @@ broker.createService({
 			tracing: true,
 			async handler(ctx) {
 				if (THROW_ERR && ctx.params.userID == 1)
-					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", { userID: ctx.params.userID });
+					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", {
+						userID: ctx.params.userID
+					});
 
 				await this.Promise.delay(_.random(10));
 				return ctx.params.userID * 3;
@@ -349,7 +355,7 @@ broker.createService({
 				});
 				res.setHeader("Content-Type", "application/json; charset=utf-8");
 				res.end(JSON.stringify(data));
-			} catch(err) {
+			} catch (err) {
 				res.statusCode = 500;
 				res.end(err.message);
 			}
@@ -377,5 +383,4 @@ broker.start().then(() => {
 		//.then(console.log)
 		.catch(console.error);
 	//}, 5000);
-
 });

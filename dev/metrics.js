@@ -5,7 +5,7 @@ const CSVReporter = require("../src/metrics/reporters").CSV;
 const util = require("util");
 
 const broker = new ServiceBroker({
-	nodeID: "dev-metrics",// + process.pid,
+	nodeID: "dev-metrics", // + process.pid,
 	logger: {
 		type: "Console",
 		options: {
@@ -22,7 +22,7 @@ const broker = new ServiceBroker({
 				options: {
 					onlyChanges: false,
 					//interval: 1000,
-					includes: ["moleculer.event.received.*", "os.memory.*"],
+					includes: ["moleculer.event.received.*", "os.memory.*"]
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
@@ -66,12 +66,12 @@ const broker = new ServiceBroker({
 			{
 				type: "Datadog",
 				options: {
-					includes: "moleculer.**",
+					includes: "moleculer.**"
 				}
 			}
 		]
 		//defaultQuantiles: [0.1, 0.5, 0.9]
-	},
+	}
 	//logLevel: "debug",
 	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object
 });
@@ -102,18 +102,16 @@ broker.createService({
 	}
 });
 
-broker.start()
-	.then(() => {
-		broker.repl();
+broker.start().then(() => {
+	broker.repl();
 
-		let c = 20;
-		const timer = setInterval(() => {
-			broker.call("greeter.hello")
-				.then(res => broker.logger.info("OK"))
-				.catch(err => broker.logger.error(err));
-			c--;
-			if (c <= 0)
-				clearInterval(timer);
-		}, 1000);
-
-	});
+	let c = 20;
+	const timer = setInterval(() => {
+		broker
+			.call("greeter.hello")
+			.then(res => broker.logger.info("OK"))
+			.catch(err => broker.logger.error(err));
+		c--;
+		if (c <= 0) clearInterval(timer);
+	}, 1000);
+});

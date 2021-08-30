@@ -11,7 +11,6 @@ const broker1 = new ServiceBroker({
 	serializer: "JSON"
 });
 
-
 // Create broker #2
 const broker2 = new ServiceBroker({
 	namespace: "circular",
@@ -42,5 +41,4 @@ broker1.createService({
 	}
 });
 
-Promise.all([broker1.start(), broker2.start()])
-	.then(() => broker1.repl());
+Promise.all([broker1.start(), broker2.start()]).then(() => broker1.repl());

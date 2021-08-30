@@ -12,13 +12,16 @@ const broker = new ServiceBroker({
 		"*": "info"
 	},
 	middlewares: [
-		Middlewares.Transmit.Encryption("12345678901234567890123456789012", "aes-256-cbc", "1234567890123456")
+		Middlewares.Transmit.Encryption(
+			"12345678901234567890123456789012",
+			"aes-256-cbc",
+			"1234567890123456"
+		)
 	]
 });
 
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
-	.then(() => {
-
-	})
+	.then(() => {})
 	.catch(err => broker.logger.error(err));

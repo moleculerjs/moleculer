@@ -4,9 +4,8 @@ const { ServiceBroker } = require("../");
 const { isString } = require("../src/utils");
 
 // --- INTER-NAMESPACE MIDDLEWARE ---
-const InterNamespaceMiddleware = function(opts) {
-	if (!Array.isArray(opts))
-		throw new Error("Must be an Array");
+const InterNamespaceMiddleware = function (opts) {
+	if (!Array.isArray(opts)) throw new Error("Must be an Array");
 
 	let thisBroker;
 	const brokers = {};
@@ -23,7 +22,12 @@ const InterNamespaceMiddleware = function(opts) {
 				const ns = nsOpts.namespace;
 
 				this.logger.info(`Create internamespace broker for '${ns} namespace...'`);
-				const brokerOpts = _.defaultsDeep({}, nsOpts, { nodeID: null, middlewares: null }, broker.options);
+				const brokerOpts = _.defaultsDeep(
+					{},
+					nsOpts,
+					{ nodeID: null, middlewares: null },
+					broker.options
+				);
 				brokers[ns] = new ServiceBroker(brokerOpts);
 			});
 		},
@@ -37,7 +41,7 @@ const InterNamespaceMiddleware = function(opts) {
 		},
 
 		call(next) {
-			return function(actionName, params, opts = {}) {
+			return function (actionName, params, opts = {}) {
 				if (isString(actionName) && actionName.includes("@")) {
 					const [action, namespace] = actionName.split("@");
 
@@ -52,16 +56,15 @@ const InterNamespaceMiddleware = function(opts) {
 
 				return next(actionName, params, opts);
 			};
-		},
+		}
 	};
 };
-
 
 // --- NAMESPACE: ns-mars ---
 const broker1 = new ServiceBroker({
 	namespace: "ns-mars",
 	nodeID: "node-1",
-	transporter: "NATS",
+	transporter: "NATS"
 });
 
 broker1.createService({
@@ -77,7 +80,7 @@ broker1.createService({
 const broker2 = new ServiceBroker({
 	namespace: "ns-venus",
 	nodeID: "node-1",
-	transporter: "NATS",
+	transporter: "NATS"
 });
 
 broker2.createService({
@@ -94,9 +97,7 @@ const broker = new ServiceBroker({
 	namespace: "local",
 	nodeID: "node-1",
 	transporter: "NATS",
-	middlewares: [
-		InterNamespaceMiddleware(["ns-mars", "ns-venus"])
-	]
+	middlewares: [InterNamespaceMiddleware(["ns-mars", "ns-venus"])]
 });
 
 broker.createService({
@@ -108,17 +109,27 @@ broker.createService({
 	}
 });
 
-
 Promise.all([broker1.start(), broker2.start(), broker.start()])
 	.delay(2000)
 	.then(() => {
 		broker.repl();
-
 	})
-	.then(() => broker.call("greeter.hello").then(res => broker.logger.info("Call 'greeter.hello':", res)))
-	.then(() => broker.call("greeter.hello@local").then(res => broker.logger.info("Call 'greeter.hello@local':", res)))
-	.then(() => broker.call("greeter.hello@ns-venus").then(res => broker.logger.info("Call 'greeter.hello@ns-venus':", res)))
-	.then(() => broker.call("greeter.hello@ns-mars").then(res => broker.logger.info("Call 'greeter.hello@ns-mars':", res)))
+	.then(() =>
+		broker.call("greeter.hello").then(res => broker.logger.info("Call 'greeter.hello':", res))
+	)
+	.then(() =>
+		broker
+			.call("greeter.hello@local")
+			.then(res => broker.logger.info("Call 'greeter.hello@local':", res))
+	)
+	.then(() =>
+		broker
+			.call("greeter.hello@ns-venus")
+			.then(res => broker.logger.info("Call 'greeter.hello@ns-venus':", res))
+	)
+	.then(() =>
+		broker
+			.call("greeter.hello@ns-mars")
+			.then(res => broker.logger.info("Call 'greeter.hello@ns-mars':", res))
+	)
 	.catch(err => broker.logger.error(err));
-
-

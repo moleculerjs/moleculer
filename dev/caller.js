@@ -17,14 +17,22 @@ broker1.createService({
 	name: "galaxy",
 	actions: {
 		hello(ctx) {
-			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(
+				`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur
+					.yellow()
+					.bold(ctx.caller)}' of '${ctx.nodeID}'`
+			);
 			return ctx.call("solar.hello");
-		},
+		}
 	},
 
 	events: {
 		async "some.thing"(ctx) {
-			this.logger.info(`The '${kleur.cyan().bold(ctx.event.name)}' event is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(
+				`The '${kleur.cyan().bold(ctx.event.name)}' event is called from '${kleur
+					.yellow()
+					.bold(ctx.caller)}' of '${ctx.nodeID}'`
+			);
 			return ctx.call("planet.welcome");
 		}
 	}
@@ -41,9 +49,13 @@ broker2.createService({
 	name: "solar",
 	actions: {
 		hello(ctx) {
-			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(
+				`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur
+					.yellow()
+					.bold(ctx.caller)}' of '${ctx.nodeID}'`
+			);
 			return ctx.call("planet.hello");
-		},
+		}
 	}
 });
 
@@ -51,15 +63,22 @@ broker2.createService({
 	name: "planet",
 	actions: {
 		async hello(ctx) {
-			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(
+				`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur
+					.yellow()
+					.bold(ctx.caller)}' of '${ctx.nodeID}'`
+			);
 			await ctx.emit("some.thing");
 		},
 		async welcome(ctx) {
-			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
-		},
+			this.logger.info(
+				`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur
+					.yellow()
+					.bold(ctx.caller)}' of '${ctx.nodeID}'`
+			);
+		}
 	}
 });
-
 
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(1000)

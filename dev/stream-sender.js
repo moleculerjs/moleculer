@@ -26,7 +26,10 @@ broker.createService({
 
 			stream.on("data", chunk => {
 				uploadedSize += chunk.length;
-				this.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + `% (${chunk.length})`);
+				this.logger.info(
+					"SEND: ",
+					Number((uploadedSize / stat.size) * 100).toFixed(0) + `% (${chunk.length})`
+				);
 			});
 
 			stream.on("close", () => {
@@ -42,14 +45,18 @@ broker.createService({
 	}
 });
 
-broker.start().then(() => {
-	broker.repl();
+broker
+	.start()
+	.then(() => {
+		broker.repl();
 
-	//require("./stream-receiver");
+		//require("./stream-receiver");
 
-	return broker.waitForServices("file2");
-}).delay(1000).then(() => {
-/*
+		return broker.waitForServices("file2");
+	})
+	.delay(1000)
+	.then(() => {
+		/*
 	const fileName = "d:/src.zip";
 	const stat = fs.statSync(fileName);
 	let uploadedSize = 0;
@@ -70,7 +77,7 @@ broker.start().then(() => {
 	});
 
 	broker.call("file2.save", stream);*/
-});
+	});
 
 function getSHA(fileName) {
 	return new Promise((resolve, reject) => {

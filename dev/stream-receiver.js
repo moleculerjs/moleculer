@@ -27,7 +27,11 @@ broker.createService({
 
 			stream.on("data", chunk => {
 				this.uploadedSize += chunk.length;
-				broker.logger.info("RECV: ", Number(this.uploadedSize / this.stat.size * 100).toFixed(0) + `% (${chunk.length})`);
+				broker.logger.info(
+					"RECV: ",
+					Number((this.uploadedSize / this.stat.size) * 100).toFixed(0) +
+						`% (${chunk.length})`
+				);
 			});
 
 			s.on("close", () => {
@@ -52,19 +56,20 @@ broker.createService({
 	}
 });
 
-broker.start().then(() => {
-	broker.repl();
+broker
+	.start()
+	.then(() => {
+		broker.repl();
 
-	return broker.waitForServices("file");
+		return broker.waitForServices("file");
+	})
+	.delay(1000)
+	.then(() => {
+		const fileName = "d:/src.zip";
+		const stat = fs.statSync(fileName);
+		let uploadedSize = 0;
 
-}).delay(1000).then(() => {
-
-	const fileName = "d:/src.zip";
-	const stat = fs.statSync(fileName);
-	let uploadedSize = 0;
-
-	broker.call("file.get")
-		.then(stream => {
+		broker.call("file.get").then(stream => {
 			const fileName = "d:/received-src.zip";
 			broker.logger.info("Open file");
 			const s = fs.createWriteStream(fileName);
@@ -73,7 +78,10 @@ broker.start().then(() => {
 
 			stream.on("data", chunk => {
 				uploadedSize += chunk.length;
-				broker.logger.info("RECV: ", Number(uploadedSize / stat.size * 100).toFixed(0) + `% (${chunk.length})`);
+				broker.logger.info(
+					"RECV: ",
+					Number((uploadedSize / stat.size) * 100).toFixed(0) + `% (${chunk.length})`
+				);
 			});
 
 			s.on("close", () => {
@@ -89,7 +97,7 @@ broker.start().then(() => {
 				broker.logger.info("Stream error!", err);
 			});
 		});
-});
+	});
 
 function getSHA(fileName) {
 	return new Promise((resolve, reject) => {

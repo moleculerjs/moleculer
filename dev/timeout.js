@@ -4,7 +4,7 @@ const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
 
 const broker = new ServiceBroker({
-	requestTimeout: 5 * 1000,
+	requestTimeout: 5 * 1000
 });
 
 broker.createService({
@@ -16,12 +16,12 @@ broker.createService({
 				await this.Promise.delay(3000);
 				return "OK";
 			}
-		},
+		}
 	}
 });
 
-
-broker.start()
+broker
+	.start()
 	.then(() => broker.repl())
 	.then(() => broker.Promise.delay(1000))
 	.then(() => broker.logger.info("Calling action..."))

@@ -35,10 +35,11 @@ class I18NValidator extends BaseValidator {
 				return function validateContextParams(ctx) {
 					const check = checks[ctx.meta.lang] || checks["en"];
 					const res = check(ctx.params);
-					if (res === true)
-						return handler(ctx);
+					if (res === true) return handler(ctx);
 					else
-						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+						return Promise.reject(
+							new ValidationError("Parameters validation error!", null, res)
+						);
 				};
 			}
 			return handler;
@@ -49,11 +50,11 @@ class I18NValidator extends BaseValidator {
 let broker = new ServiceBroker({
 	logger: true,
 	validator: new I18NValidator({
-		"en": {
-			"string": "The '{field}' field must be a string!"
+		en: {
+			string: "The '{field}' field must be a string!"
 		},
-		"hu": {
-			"string": "A '{field}' mezőnek szövegnek kell lennie!"
+		hu: {
+			string: "A '{field}' mezőnek szövegnek kell lennie!"
 		}
 	})
 });
@@ -74,13 +75,22 @@ broker.createService({
 	}
 });
 
-broker.start()
+broker
+	.start()
 	// No meta lang
 	.then(() => broker.call("greeter.hello", { name: 100 }).then(res => broker.logger.info(res)))
 	.catch(err => broker.logger.error(err.message, err.data))
 	// "hu" lang
-	.then(() => broker.call("greeter.hello", { name: 100 }, { meta: { lang: "hu" }}).then(res => broker.logger.info(res)))
+	.then(() =>
+		broker
+			.call("greeter.hello", { name: 100 }, { meta: { lang: "hu" } })
+			.then(res => broker.logger.info(res))
+	)
 	.catch(err => broker.logger.error(err.message, err.data))
 	// "en" lang
-	.then(() => broker.call("greeter.hello", { name: 100 }, { meta: { lang: "en" }}).then(res => broker.logger.info(res)))
+	.then(() =>
+		broker
+			.call("greeter.hello", { name: 100 }, { meta: { lang: "en" } })
+			.then(res => broker.logger.info(res))
+	)
 	.catch(err => broker.logger.error(err.message, err.data));

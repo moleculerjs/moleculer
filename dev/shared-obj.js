@@ -6,7 +6,6 @@ const ServiceBroker = require("../src/service-broker");
 const { isString } = require("../src/utils");
 const ObservableSlim = require("observable-slim");
 
-
 // Create broker #1
 const broker1 = new ServiceBroker({
 	namespace: "streaming",
@@ -16,7 +15,6 @@ const broker1 = new ServiceBroker({
 	logger: console,
 	logLevel: "info"
 });
-
 
 // Create broker #2
 const broker2 = new ServiceBroker({
@@ -28,12 +26,11 @@ const broker2 = new ServiceBroker({
 	logLevel: "info"
 });
 
-
 function createSharedObj(data, notifier) {
 	return ObservableSlim.create(test, true, notifier);
 }
 
-const SharedObj = function(opts) {
+const SharedObj = function (opts) {
 	let self = null;
 
 	const res = {
@@ -51,13 +48,12 @@ const SharedObj = function(opts) {
 	};
 
 	if (opts) {
-		if (!Array.isArray(opts))
-			opts = [opts];
+		if (!Array.isArray(opts)) opts = [opts];
 
 		opts.forEach(opt => {
 			const name = isString(opt) ? opt : opt.name;
 			sharedObjects[opt] = createSharedObj({}, getOnChanges(opt));
-			res.events[`sharedObject.${name}`] = function(changes) {
+			res.events[`sharedObject.${name}`] = function (changes) {
 				// TODO: apply changes
 				console.log("Received changes:", changes);
 			};
