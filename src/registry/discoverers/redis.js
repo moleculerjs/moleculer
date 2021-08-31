@@ -14,6 +14,7 @@ const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray, isFunction } = require("../../utils");
 const P = require("../../packets");
+const Perf = require("../../perf");
 
 let Redis;
 
@@ -32,6 +33,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		if (typeof opts === "string") opts = { redis: opts };
 
 		super(opts);
+
+		const perf = Perf.start("discoverer - constructor");
 
 		this.opts = _.defaultsDeep(this.opts, {
 			redis: null,
@@ -55,6 +58,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.lastBeatSeq = 0;
 
 		this.reconnecting = false;
+
+		perf.stop();
 	}
 
 	/**
@@ -66,6 +71,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 */
 	init(registry) {
 		super.init(registry);
+
+		const perf = Perf.start("discoverer - init");
 
 		try {
 			Redis = require("ioredis");
@@ -141,6 +148,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.serializer.init(this.broker);
 
 		this.logger.debug("Redis Discoverer created. Prefix:", this.PREFIX);
+
+		perf.stop();
 	}
 
 	/**
@@ -192,6 +201,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 */
 	sendHeartbeat() {
 		//console.log("REDIS - HB 1", localNode.id, this.heartbeatTimer);
+		const perf = Perf.start("discoverer - send heartbeat");
 
 		const timeEnd = this.broker.metrics.timer(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TIME);
 		const data = {
@@ -231,6 +241,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
+				perf.stop();
 			});
 	}
 
@@ -238,6 +249,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Collect online nodes from Redis server.
 	 */
 	collectOnlineNodes() {
+		const perf = Perf.start("discoverer - collect nodes");
 		// Get the current node list so that we can check the disconnected nodes.
 		const prevNodes = this.registry.nodes
 			.list({ onlyAvailable: true, withServices: false })
@@ -323,6 +335,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 					this.remoteNodeDisconnected(nodeID, true);
 				});
 			}
+			perf.stop();
 		});
 	}
 
@@ -332,18 +345,29 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	discoverNode(nodeID) {
-		return this.client.getBuffer(`${this.PREFIX}-INFO:${nodeID}`).then(res => {
-			if (!res) {
-				this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
-				return;
-			}
-			try {
-				const info = this.serializer.deserialize(res, P.PACKET_INFO);
-				return this.processRemoteNodeInfo(nodeID, info);
-			} catch (err) {
-				this.logger.warn("Unable to parse INFO packet", err, res);
-			}
-		});
+		const perf = Perf.start("discoverer - discover node");
+
+		const perf0 = Perf.start("discoverer - fetch INFO");
+		return this.client
+			.getBuffer(`${this.PREFIX}-INFO:${nodeID}`)
+			.then(res => {
+				perf0.stop();
+				if (!res) {
+					this.logger.warn(`No INFO for '${nodeID}' node in registry.`);
+					return;
+				}
+				try {
+					const perf1 = Perf.start("discoverer - deserialize INFO");
+					const info = this.serializer.deserialize(res, P.PACKET_INFO);
+					perf1.stop();
+					const perf2 = Perf.start("discoverer - process INFO");
+					this.processRemoteNodeInfo(nodeID, info);
+					perf2.stop();
+				} catch (err) {
+					this.logger.warn("Unable to parse INFO packet", err, res);
+				}
+			})
+			.then(() => perf.stop());
 	}
 
 	/**
@@ -358,6 +382,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * @param {String} nodeID
 	 */
 	sendLocalNodeInfo(nodeID) {
+		const perf = Perf.start("discoverer - send node info");
+
 		const info = this.broker.getLocalNodeInfo();
 
 		const payload = Object.assign(
@@ -389,7 +415,8 @@ class RedisDiscoverer extends BaseDiscoverer {
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to Redis server", err);
-			});
+			})
+			.then(() => perf.stop());
 	}
 
 	/**

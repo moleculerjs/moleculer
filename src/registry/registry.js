@@ -17,6 +17,7 @@ const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 const ActionEndpoint = require("./endpoint-action");
 const { METRIC } = require("../metrics");
+const perf = require("../perf");
 
 /**
  * Service Registry
@@ -66,6 +67,7 @@ class Registry {
 	registerMoleculerMetrics() {
 		if (!this.broker.isMetricsEnabled()) return;
 
+		const p1 = perf.start("registry - register metrics");
 		this.metrics.register({
 			name: METRIC.MOLECULER_REGISTRY_NODES_TOTAL,
 			type: METRIC.TYPE_GAUGE,
@@ -109,6 +111,7 @@ class Registry {
 			labelNames: ["event"],
 			description: "Number of event endpoints"
 		});
+		p1.stop();
 	}
 
 	/**
@@ -117,6 +120,7 @@ class Registry {
 	updateMetrics() {
 		if (!this.broker.isMetricsEnabled()) return;
 
+		const p1 = perf.start("registry - update metrics");
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_TOTAL, this.nodes.count());
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, this.nodes.onlineCount());
 
@@ -156,6 +160,7 @@ class Registry {
 				{ event: item.name }
 			)
 		);
+		p1.stop();
 	}
 
 	/**
@@ -165,6 +170,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
+		const p1 = perf.start("registry - register local service");
 		if (!this.services.has(svc.fullName, this.broker.nodeID)) {
 			const service = this.services.add(this.nodes.localNode, svc, true);
 
@@ -181,6 +187,7 @@ class Registry {
 			this.broker.servicesChanged(true);
 			this.updateMetrics();
 		}
+		p1.stop();
 	}
 
 	/**
@@ -191,6 +198,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerServices(node, serviceList) {
+		const p1 = perf.start("registry - register services");
 		serviceList.forEach(svc => {
 			if (!svc.fullName)
 				svc.fullName = this.broker.ServiceFactory.getVersionedFullName(
@@ -253,6 +261,7 @@ class Registry {
 				this.unregisterService(service.fullName, node.id);
 			}
 		});
+		p1.stop();
 
 		this.broker.servicesChanged(false);
 		this.updateMetrics();
@@ -294,6 +303,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerActions(node, service, actions) {
+		const p1 = perf.start("registry - register actions");
 		_.forIn(actions, action => {
 			if (!this.checkActionVisibility(action, node)) return;
 
@@ -320,6 +330,7 @@ class Registry {
 			this.actions.add(node, service, action);
 			service.addAction(action);
 		});
+		p1.stop();
 	}
 
 	/**
@@ -414,6 +425,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerEvents(node, service, events) {
+		const p1 = perf.start("registry - register events");
 		_.forIn(events, event => {
 			if (node.local)
 				event.handler = this.broker.middlewares.wrapHandler(
@@ -425,6 +437,7 @@ class Registry {
 			this.events.add(node, service, event);
 			service.addEvent(event);
 		});
+		p1.stop();
 	}
 
 	/**
@@ -444,6 +457,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	regenerateLocalRawInfo(incSeq) {
+		const p1 = perf.start("registry - regenerate local info");
 		let node = this.nodes.localNode;
 		if (incSeq) node.seq++;
 
@@ -462,6 +476,7 @@ class Registry {
 
 		// Make to be safety
 		node.rawInfo = utils.safetyObject(rawInfo, this.broker.options);
+		p1.stop();
 
 		return node.rawInfo;
 	}

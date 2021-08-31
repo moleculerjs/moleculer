@@ -30,6 +30,8 @@ const cpuUsage = require("./cpu-usage");
 const { MetricRegistry, METRIC } = require("./metrics");
 const { Tracer } = require("./tracing");
 
+const perf = require("./perf");
+
 /**
  * Default broker options
  */
@@ -132,6 +134,8 @@ const defaultOptions = {
 	// Promise: null
 };
 
+let initPerf;
+
 /**
  * Service broker class
  *
@@ -146,7 +150,9 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	constructor(options) {
+		initPerf = perf.start("init");
 		try {
+			const perf1 = perf.start("broker.constructor");
 			this.options = _.defaultsDeep(options, defaultOptions);
 
 			// Custom Promise lib
@@ -202,9 +208,11 @@ class ServiceBroker {
 			//this.scope = new AsyncStorage(this);
 
 			// Metrics Registry
+			const perf2 = perf.start("create metrics registry");
 			this.metrics = new MetricRegistry(this, this.options.metrics);
 			this.metrics.init();
 			this.registerMoleculerMetrics();
+			perf2.stop();
 
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);
@@ -213,6 +221,7 @@ class ServiceBroker {
 			this.registry = new Registry(this);
 
 			// Cacher
+			const perf3 = perf.start("create cacher");
 			this.cacher = Cachers.resolve(this.options.cacher);
 			if (this.cacher) {
 				this.cacher.init(this);
@@ -220,6 +229,7 @@ class ServiceBroker {
 				const name = this.getConstructorName(this.cacher);
 				this.logger.info(`Cacher: ${name}`);
 			}
+			perf3.stop();
 
 			// Serializer
 			this.serializer = Serializers.resolve(this.options.serializer);
@@ -230,23 +240,30 @@ class ServiceBroker {
 
 			// Validator
 			if (this.options.validator) {
+				const perf4 = perf.start("create validator");
 				this.validator = Validators.resolve(this.options.validator);
 				if (this.validator) {
 					const validatorName = this.getConstructorName(this.validator);
 					this.logger.info(`Validator: ${validatorName}`);
 					this.validator.init(this);
 				}
+				perf4.stop();
 			}
 
 			// Tracing
+			const perf5 = perf.start("create tracing");
 			this.tracer = new Tracer(this, this.options.tracing);
 			this.tracer.init();
+			perf5.stop();
 
 			// Register middlewares
+			const perf6 = perf.start("register middlewares");
 			this.registerMiddlewares(this.options.middlewares);
+			perf6.stop();
 
 			// Transit & Transporter
 			if (this.options.transporter) {
+				const perf7 = perf.start("create transporter");
 				const tx = Transporters.resolve(this.options.transporter);
 				this.transit = new Transit(this, tx, this.options.transit);
 
@@ -263,6 +280,7 @@ class ServiceBroker {
 						this.options.disableBalancer = false;
 					}
 				}
+				perf7.stop();
 			}
 
 			// Change the call method if balancer is disabled
@@ -276,11 +294,13 @@ class ServiceBroker {
 			if (this.options.internalServices)
 				this.registerInternalServices(this.options.internalServices);
 
+			const perf8 = perf.start("created hooks");
 			// Call `created` event handler in middlewares
 			this.callMiddlewareHookSync("created", [this]);
 
 			// Call `created` event handler from options
 			if (utils.isFunction(this.options.created)) this.options.created(this);
+			perf8.stop();
 
 			// Graceful exit
 			this._closeFn = () => {
@@ -297,6 +317,7 @@ class ServiceBroker {
 				process.on("SIGINT", this._closeFn);
 				process.on("SIGTERM", this._closeFn);
 			}
+			perf1.stop();
 		} catch (err) {
 			if (this.logger) this.fatal("Unable to create ServiceBroker.", err, true);
 			else {
@@ -468,53 +489,55 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	start() {
+	async start() {
 		const startTime = Date.now();
 
-		return this.Promise.resolve()
-			.then(() => {
-				//this.tracer.restartScope();
-				//this.scope.enable();
-			})
-			.then(() => {
-				return this.callMiddlewareHook("starting", [this]);
-			})
-			.then(() => {
-				if (this.transit) return this.transit.connect();
-			})
-			.then(() => {
-				// Call service `started` handlers
-				return this.Promise.all(this.services.map(svc => svc._start.call(svc))).catch(
-					err => {
-						/* istanbul ignore next */
-						this.logger.error("Unable to start all services.", err);
-						throw err;
-					}
-				);
-			})
-			.then(() => {
-				this.started = true;
-				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
-				this.broadcastLocal("$broker.started");
-				this.registry.regenerateLocalRawInfo(true);
-			})
-			.then(() => {
-				if (this.transit) return this.transit.ready();
-			})
-			.then(() => {
-				return this.callMiddlewareHook("started", [this]);
-			})
-			.then(() => {
-				if (utils.isFunction(this.options.started)) return this.options.started(this);
-			})
-			.then(() => {
-				const duration = Date.now() - startTime;
-				this.logger.info(
-					`✔ ServiceBroker with ${
-						this.services.length
-					} service(s) is started successfully in ${utils.humanize(duration)}.`
-				);
-			});
+		const perf1 = perf.start("starting hooks");
+		await this.callMiddlewareHook("starting", [this]);
+		if (this.transit) {
+			await this.transit.connect();
+		}
+		perf1.stop();
+
+		// Call service `started` handlers
+		const perf2 = perf.start("start services");
+		try {
+			await this.Promise.all(this.services.map(svc => svc._start.call(svc)));
+		} catch (err) {
+			/* istanbul ignore next */
+			this.logger.error("Unable to start all services.", err);
+			throw err;
+		}
+		perf2.stop();
+
+		this.started = true;
+		this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
+		this.broadcastLocal("$broker.started");
+		const perf3 = perf.start("generate local info");
+		this.registry.regenerateLocalRawInfo(true);
+		perf3.stop();
+
+		if (this.transit) {
+			const perf4 = perf.start("transit ready");
+			await this.transit.ready();
+			perf4.stop();
+		}
+
+		const perf5 = perf.start("started hooks");
+		await this.callMiddlewareHook("started", [this]);
+
+		if (utils.isFunction(this.options.started)) return this.options.started(this);
+		perf5.stop();
+
+		const duration = Date.now() - startTime;
+		this.logger.info(
+			`✔ ServiceBroker with ${
+				this.services.length
+			} service(s) is started successfully in ${utils.humanize(duration)}.`
+		);
+		initPerf.stop();
+
+		perf.summary();
 	}
 
 	/**
