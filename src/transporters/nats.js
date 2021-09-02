@@ -45,7 +45,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * Chech the installed NATS library version. v1.x.x - legacy
+	 * Check the installed NATS library version. v1.x.x - legacy
 	 * @returns {Boolean}
 	 */
 	isLibLegacy() {
