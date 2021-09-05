@@ -111,7 +111,6 @@
   },
   "dependencies": {
     "args": "^5.0.1",
-    "es6-error": "^4.1.1",
     "eventemitter2": "^6.4.4",
     "fastest-validator": "^1.11.1",
     "glob": "^7.1.7",
@@ -123,11 +122,11 @@
     "recursive-watch": "^1.1.4"
   },
   "peerDependencies": {
-    "amqplib": "^0.7.0",
+    "amqplib": "^0.7.0 || ^0.8.0",
     "avsc": "^5.0.0",
     "bunyan": "^1.0.0",
     "cbor-x": "^0.8.3",
-    "dd-trace": "^0.33.0",
+    "dd-trace": "^0.33.0 || ^0.34.0 || ^0.35.0 || ^0.36.0",
     "debug": "^4.0.0",
     "etcd3": "^1.0.0",
     "ioredis": "^4.0.0",
@@ -137,7 +136,7 @@
     "mqtt": "^4.0.0",
     "msgpack5": "^5.0.0",
     "nats": "^1.0.0 || ^2.0.0",
-    "node-nats-streaming": "^0.0.51 || ^0.3.0",
+    "node-nats-streaming": "^0.0.51 || ^0.2.0 || ^0.3.0",
     "notepack.io": "2.0.0",
     "pino": "^6.0.0",
     "protobufjs": "^6.0.0",
