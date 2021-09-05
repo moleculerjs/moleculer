@@ -7,9 +7,8 @@
 "use strict";
 
 const _ = require("lodash");
-const functionArguments = require("fn-args");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten } = require("./utils");
+const { isObject, isFunction, flatten, functionArguments } = require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.

@@ -41,6 +41,9 @@ jest.mock("../../src/utils", () => ({
 	},
 	polyfillPromise(p) {
 		return polyfillPromise(p);
+	},
+	functionArguments(fn) {
+		return ["ctx"];
 	}
 }));
 polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
