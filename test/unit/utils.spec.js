@@ -793,3 +793,19 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	}
 });
+
+describe("Test utils.functionArguments", () => {
+	it("should detect the arguments of the Function", () => {
+		expect(utils.functionArguments(() => {})).toEqual([]);
+		expect(utils.functionArguments(function () {})).toEqual([]);
+
+		expect(utils.functionArguments(alpha => {})).toEqual(["alpha"]);
+		expect(utils.functionArguments(function (alpha) {})).toEqual(["alpha"]);
+
+		expect(utils.functionArguments((alpha, beta) => {})).toEqual(["alpha", "beta"]);
+		expect(utils.functionArguments(function (alpha, beta) {})).toEqual(["alpha", "beta"]);
+
+		expect(utils.functionArguments(async (alpha, beta) => {})).toEqual(["alpha", "beta"]);
+		expect(utils.functionArguments(async function (alpha, beta) {})).toEqual(["alpha", "beta"]);
+	});
+});
