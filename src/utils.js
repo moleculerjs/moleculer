@@ -10,7 +10,7 @@ const kleur = require("kleur");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
-const ExtendableError = require("es6-error");
+const { ExtendableError } = require("./errors");
 
 const lut = [];
 for (let i = 0; i < 256; i++) {

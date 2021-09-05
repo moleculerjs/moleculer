@@ -498,6 +498,8 @@ function recreateError(err) {
 }
 
 module.exports = {
+	ExtendableError,
+
 	MoleculerError,
 	MoleculerRetryableError,
 	MoleculerServerError,
