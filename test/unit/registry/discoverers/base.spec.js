@@ -306,7 +306,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 33;
+		node.lastHeartbeatTime = Number(process.uptime()) - 13;
 
 		discoverer.checkRemoteNodes();
 
@@ -319,7 +319,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 23;
+		node.lastHeartbeatTime = Number(process.uptime()) - 6;
 
 		discoverer.checkRemoteNodes();
 
@@ -331,7 +331,7 @@ describe("Test BaseDiscoverer 'checkRemoteNodes' method", () => {
 		discoverer.logger.warn.mockClear();
 		registry.nodes.disconnected.mockClear();
 
-		node.lastHeartbeatTime = Number(process.uptime()) - 33;
+		node.lastHeartbeatTime = Number(process.uptime()) - 13;
 		node.available = false;
 
 		discoverer.checkRemoteNodes();

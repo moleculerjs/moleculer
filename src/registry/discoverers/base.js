@@ -160,7 +160,7 @@ class BaseDiscoverer {
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || !node.available) return;
 			if (!node.lastHeartbeatTime) {
-				// Még nem jött be az első heartbeat.
+				// Not received the first heartbeat yet
 				node.lastHeartbeatTime = now;
 				return;
 			}
@@ -182,7 +182,7 @@ class BaseDiscoverer {
 		this.registry.nodes.toArray().forEach(node => {
 			if (node.local || node.available) return;
 			if (!node.lastHeartbeatTime) {
-				// Még nem jött be az első heartbeat.
+				// Not received the first
 				node.lastHeartbeatTime = now;
 				return;
 			}
