@@ -293,14 +293,17 @@ class Cacher {
 	 * Get a cache key by name and params.
 	 * Concatenate the name and the hashed params object
 	 *
-	 * @param {String} name
+	 * @param {String} actionName
 	 * @param {Object} params
 	 * @param {Object} meta
 	 * @param {Array|null} keys
+	 * @param {function?} actionKeygen
 	 * @returns {String}
 	 */
-	getCacheKey(actionName, params, meta, keys) {
-		if (isFunction(this.opts.keygen))
+	getCacheKey(actionName, params, meta, keys, actionKeygen) {
+		if (isFunction(actionKeygen))
+			return actionKeygen.call(this, actionName, params, meta, keys);
+		else if (isFunction(this.opts.keygen))
 			return this.opts.keygen.call(this, actionName, params, meta, keys);
 		else return this.defaultKeygen(actionName, params, meta, keys);
 	}
@@ -343,7 +346,13 @@ class Cacher {
 						return handler(ctx);
 					}
 
-					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, opts.keys);
+					const cacheKey = this.getCacheKey(
+						action.name,
+						ctx.params,
+						ctx.meta,
+						opts.keys,
+						opts.keygen
+					);
 					// Using lock
 					if (opts.lock.enabled !== false) {
 						let cachePromise;

@@ -299,20 +299,25 @@ describe("Test BaseCacher", () => {
 	it("check getCacheKey with custom keygen", () => {
 		let broker = new ServiceBroker({ logger: false });
 		let keygen = jest.fn(() => "custom");
+		let actionKeygen = jest.fn(() => "actionKeygen");
 		let cacher = new Cacher({ keygen });
 
 		cacher.init(broker);
 
-		let res = cacher.getCacheKey("posts.find.model", { limit: 5 }, { user: "bob" }, [
-			"limit",
-			"#user"
-		]);
-		expect(res).toBe("custom");
+		const actionName = "posts.find.model";
+		const params = { limit: 5 };
+		const meta = { user: "bob" };
+		const keys = ["limit", "#user"];
+
+		expect(cacher.getCacheKey(actionName, params, meta, keys)).toBe("custom");
 		expect(keygen).toHaveBeenCalledTimes(1);
-		expect(keygen).toHaveBeenCalledWith("posts.find.model", { limit: 5 }, { user: "bob" }, [
-			"limit",
-			"#user"
-		]);
+		expect(keygen).toHaveBeenCalledWith(actionName, params, meta, keys);
+
+		expect(cacher.getCacheKey(actionName, params, meta, keys, actionKeygen)).toBe(
+			"actionKeygen"
+		);
+		expect(actionKeygen).toHaveBeenCalledTimes(1);
+		expect(actionKeygen).toHaveBeenCalledWith(actionName, params, meta, keys);
 	});
 });
 
