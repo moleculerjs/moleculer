@@ -4,6 +4,8 @@
 
 const kleur = require("kleur");
 const ServiceBroker = require("../../src/service-broker");
+const { polyfillPromise } = require("../../").Utils;
+polyfillPromise(Promise);
 
 const { getDataFile } = require("../utils");
 
@@ -12,7 +14,7 @@ new Benchmarkify("Throughput benchmark").printHeader();
 
 const dataFiles = ["10"]; //, "150", "1k", "10k", "50k", "100k", "1M"];
 
-const MAX = 20 * 1000;
+const MAX = 10 * 1000;
 let received = 0;
 let resolve = null;
 let startTime;
@@ -59,6 +61,12 @@ function createBrokers(transporter) {
 				received++;
 				if (received >= MAX) done();
 			}
+		},
+		events: {
+			"echo.event"() {
+				received++;
+				if (received >= MAX) done();
+			}
 		}
 	});
 
@@ -77,14 +85,17 @@ function measureTP(transporter, dataName) {
 	let payload = JSON.parse(data);
 
 	return createBrokers(transporter).then(([b1, b2]) => {
+		//b1.repl();
 		return new Promise(r => {
 			resolve = r;
 			startTime = Date.now();
 
-			for (let i = 0; i < MAX; i++)
-				b1.call("echo.reply", payload).catch(err =>
+			for (let i = 0; i < MAX; i++) {
+				b2.emit("echo.event", payload);
+				/*b1.call("echo.reply", payload).catch(err =>
 					console.error(transporter, err.message)
-				);
+				);*/
+			}
 		})
 			.delay(500)
 			.then(() => Promise.all([b1.stop(), b2.stop()]));
@@ -94,9 +105,7 @@ function measureTP(transporter, dataName) {
 function runTest(dataName) {
 	return Promise.resolve()
 		.then(() =>
-			Promise.mapSeries(["Fake", "NATS", "Redis", "MQTT", "TCP"], transporter =>
-				measureTP(transporter, dataName)
-			)
+			Promise.mapSeries(["Redis", "AMQP"], transporter => measureTP(transporter, dataName))
 		)
 		.then(() => {
 			if (dataFiles.length > 0) runTest(dataFiles.shift());
