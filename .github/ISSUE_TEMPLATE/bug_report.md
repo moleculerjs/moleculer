@@ -4,7 +4,7 @@ about: Create a report to help us improve
 
 ---
 
-## :octagonal_sign: Do you want to ask a question ?
+## :stop_sign: Do you want to ask a question ?
 
 Please head to the [Discord chat](https://discord.gg/TSEcDRP)
 
