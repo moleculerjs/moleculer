@@ -1,5 +1,24 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.16...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.17...master)
+
+--------------------------------------------------
+<a name="0.14.17"></a>
+# [0.14.17](https://github.com/moleculerjs/moleculer/compare/v0.14.16...v0.14.17) (2021-09-13)
+
+_61 commits from 10 contributors._
+
+## Changes
+- reformat codebase with Prettier.
+- fix binding issue in Pino logger. [#974](https://github.com/moleculerjs/moleculer/pull/974)
+- update d.ts file. [#980](https://github.com/moleculerjs/moleculer/pull/980) [#970](https://github.com/moleculerjs/moleculer/pull/970)
+- transit message handler promises are resolved. [#984](https://github.com/moleculerjs/moleculer/pull/984)
+- fix cacher issue if cacher is not connected. [#987](https://github.com/moleculerjs/moleculer/pull/987)
+- fix Jest open handlers issue. [#989](https://github.com/moleculerjs/moleculer/pull/989)
+- fix cacher cloning issue. [#990](https://github.com/moleculerjs/moleculer/pull/990)
+- add custom headers option to Zipkin trace exporter. [#993](https://github.com/moleculerjs/moleculer/pull/993)
+- fix `heartbeatTimeout` option in BaseDiscoverer. [#985](https://github.com/moleculerjs/moleculer/pull/985)
+- add cacher `keygen` option action definition. [#1004](https://github.com/moleculerjs/moleculer/pull/1004)
+- update dependencies
 
 --------------------------------------------------
 <a name="0.14.16"></a>
