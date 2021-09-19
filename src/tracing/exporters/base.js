@@ -87,6 +87,10 @@ class BaseTraceExporter {
 	flattenTags(obj, convertToString = false, path = "") {
 		if (!obj) return null;
 
+		if (obj.params && obj.params.socket) {
+			delete obj.params.socket;
+		}
+
 		return Object.keys(obj).reduce((res, k) => {
 			const o = obj[k];
 			const pp = (path ? path + "." : "") + k;

@@ -91,6 +91,26 @@ describe("Test Base Reporter class", () => {
 				"myObj.c.h": null
 			});
 		});
+
+		it("should flattening an object without the params.socket key", () => {
+			const objSocket = {
+				...obj,
+				params: {
+					socket: {
+						id: "any"
+					}
+				}
+			};
+
+			expect(exporter.flattenTags(objSocket)).toEqual({
+				a: 5,
+				b: "John",
+				"c.d": "d",
+				"c.e.f": true,
+				"c.e.g": 100,
+				"c.h": null
+			});
+		});
 	});
 
 	describe("Test errorToObject method", () => {
