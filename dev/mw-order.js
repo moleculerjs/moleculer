@@ -2,7 +2,7 @@
 
 const { ServiceBroker, Middlewares } = require("../");
 
-Middlewares.MyMiddleware = {
+Middlewares.register("MyMiddleware", {
 	name: "MyMiddleware",
 	localAction(next, action) {
 		return async ctx => {
@@ -12,7 +12,7 @@ Middlewares.MyMiddleware = {
 			return res;
 		};
 	}
-};
+});
 
 const broker = new ServiceBroker({
 	nodeID: "mw",

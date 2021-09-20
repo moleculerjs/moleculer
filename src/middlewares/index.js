@@ -36,4 +36,8 @@ const Middlewares = {
 	}
 };
 
-module.exports = Middlewares;
+function register(name, value) {
+	Middlewares[name] = value;
+}
+
+module.exports = Object.assign(Middlewares, { register });
