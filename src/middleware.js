@@ -37,7 +37,7 @@ class MiddlewareHandler {
 
 		if (!isObject(mw))
 			throw new BrokerOptionsError(
-				`Invalid middleware type '${typeof mw}'. Accepted only Object or Function.`,
+				`Invalid middleware type '${typeof mw}'. Accept only Object or Function.`,
 				{ type: typeof mw, value: mw }
 			);
 

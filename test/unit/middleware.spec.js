@@ -75,7 +75,7 @@ describe("Test MiddlewareHandler", () => {
 
 		it("should throw error if middleware type is not valid", () => {
 			expect(() => middlewares.add(5)).toThrow(
-				"Invalid middleware type 'number'. Accepted only Object of Function."
+				"Invalid middleware type 'number'. Accept only Object or Function."
 			);
 		});
 	});
