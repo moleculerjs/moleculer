@@ -8,6 +8,7 @@
 
 const Middlewares = {
 	ActionHook: require("./action-hook"),
+	Cacher: require("./cacher"),
 	Bulkhead: require("./bulkhead"),
 	ContextTracker: require("./context-tracker"),
 	CircuitBreaker: require("./circuit-breaker"),
