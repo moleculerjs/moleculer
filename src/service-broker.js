@@ -325,11 +325,7 @@ class ServiceBroker {
 			this.middlewares.add("ActionHook");
 
 			// 1. Validator
-			if (this.validator && utils.isFunction(this.validator.middleware)) {
-				const mw = this.validator.middleware(this);
-				if (utils.isPlainObject(mw)) this.middlewares.add(mw);
-				else this.middlewares.add({ name: "Validator", localAction: mw });
-			}
+			this.middlewares.add("Validator");
 
 			// 2. Bulkhead
 			this.middlewares.add("Bulkhead");

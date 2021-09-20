@@ -8,20 +8,18 @@
 
 const { isFunction, deprecate } = require("../utils");
 
-module.exports = function CacherMiddleware(broker) {
-	if (broker.cacher) {
-		const mw = broker.cacher.middleware();
+module.exports = function ValidatorMiddleware(broker) {
+	if (broker.validator && isFunction(broker.validator.middleware)) {
+		const mw = broker.validator.middleware(broker);
 		if (isFunction(mw)) {
 			deprecate(
 				"Validator middleware returning a Function is deprecated. Return a middleware object instead."
 			);
-
 			return {
-				name: "Cacher",
+				name: "Validator",
 				localAction: mw
 			};
 		}
-
 		return mw;
 	}
 
