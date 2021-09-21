@@ -8,6 +8,8 @@
 
 const Middlewares = {
 	ActionHook: require("./action-hook"),
+	Cacher: require("./cacher"),
+	Validator: require("./validator"),
 	Bulkhead: require("./bulkhead"),
 	ContextTracker: require("./context-tracker"),
 	CircuitBreaker: require("./circuit-breaker"),
@@ -34,4 +36,8 @@ const Middlewares = {
 	}
 };
 
-module.exports = Middlewares;
+function register(name, value) {
+	Middlewares[name] = value;
+}
+
+module.exports = Object.assign(Middlewares, { register });

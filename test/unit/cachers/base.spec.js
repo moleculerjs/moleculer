@@ -345,7 +345,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(response => {
@@ -366,7 +366,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		return cachedHandler(ctx).then(response => {
 			expect(response).toBe(resData);
@@ -391,7 +391,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		return cachedHandler(ctx).then(response => {
 			expect(response).toBe(resData);
@@ -417,7 +417,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(action.handler, action);
+		let cachedHandler = cacher.middleware().localAction(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(() => {
@@ -442,7 +442,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(action.handler, action);
+		let cachedHandler = cacher.middleware().localAction(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(() => {
@@ -467,7 +467,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(action.handler, action);
+		let cachedHandler = cacher.middleware().localAction(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(() => {
@@ -502,7 +502,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(action.handler, action);
+		let cachedHandler = cacher.middleware().localAction(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(() => {
@@ -538,7 +538,7 @@ describe("Test middleware", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(action.handler, action);
+		let cachedHandler = cacher.middleware().localAction(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
 		return cachedHandler(ctx).then(response => {
@@ -579,7 +579,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
 		return cachedHandler(ctx).then(response => {
@@ -605,7 +605,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(0); //Check the cache key and ttl
 
@@ -634,7 +634,7 @@ describe("Test middleware with lock enabled", () => {
 		ctx.setParams(params);
 
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 
@@ -661,7 +661,7 @@ describe("Test middleware with lock enabled", () => {
 		ctx.setParams(params);
 
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
@@ -690,7 +690,7 @@ describe("Test middleware with lock enabled", () => {
 		ctx.setParams(params);
 
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
@@ -727,7 +727,7 @@ describe("Test middleware with lock enabled", () => {
 		ctx.setParams(params);
 
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		function call() {
 			let ctx = new Context();
@@ -766,7 +766,7 @@ describe("Test middleware with lock enabled", () => {
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
 		const unlockFn = jest.fn(() => Promise.resolve());
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(new Context()).catch(e => {
 			expect(e).toBe(err);
 			expect(unlockFn).toHaveBeenCalledTimes(1);
@@ -792,7 +792,7 @@ describe("Test middleware with lock enabled", () => {
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
 		broker.cacher.tryLock = jest.fn(() => Promise.resolve(unlockFn));
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return new Promise(function (resolve, reject) {
 			cachedHandler(new Context()).then(response => {
 				expect(response).toBe(cachedData);
@@ -825,7 +825,7 @@ describe("Test middleware with lock enabled", () => {
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
 		broker.cacher.tryLock = jest.fn(() => Promise.resolve(unlockFn));
 
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(new Context()).then(response => {
 			expect(response).toBe(cachedData);
 			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
@@ -858,7 +858,7 @@ describe("Test middleware with lock enabled", () => {
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
 		broker.cacher.tryLock = jest.fn(() => Promise.resolve(unlockFn));
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		const ctx = new Context();
 		ctx.setParams(params);

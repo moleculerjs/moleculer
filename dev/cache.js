@@ -5,9 +5,9 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	logLevel: "info",
+	logLevel: "debug",
 	cacher: {
-		type: "Redis",
+		type: "Memory",
 		options: {
 			max: 100,
 			ttl: 3
@@ -41,7 +41,7 @@ broker
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false } }))
 
 	.then(async () => {
-		for (let i = 0; i < 1000; i++) {
+		/*for (let i = 0; i < 1000; i++) {
 			broker.cacher.set(`key-${i}`, i);
 			if (i % 10 == 0) {
 				broker.cacher.get(`key-${100}`);
@@ -50,14 +50,14 @@ broker
 				broker.cacher.get(`key-${400}`);
 				broker.cacher.get(`key-${300}`);
 			}
-		}
+		}*/
 
 		const keys = await broker.cacher.getCacheKeys();
 		broker.logger.info("Length:", keys.length);
 		broker.logger.info("keys:", keys);
 	})
 
-	.delay(5 * 1000)
+	.delay(35 * 1000)
 	.then(async () => {
 		broker.logger.info("=========================================");
 		const keys = await broker.cacher.getCacheKeys();

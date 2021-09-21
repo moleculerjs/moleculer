@@ -33,11 +33,12 @@ class MiddlewareHandler {
 		}
 
 		if (isFunction(mw)) mw = mw.call(this.broker, this.broker);
+		if (!mw) return;
 
 		if (!isObject(mw))
 			throw new BrokerOptionsError(
-				`Invalid middleware type '${typeof mw}'. Accepted only Object of Function.`,
-				{ type: typeof mw }
+				`Invalid middleware type '${typeof mw}'. Accept only Object or Function.`,
+				{ type: typeof mw, value: mw }
 			);
 
 		Object.keys(mw).forEach(key => {

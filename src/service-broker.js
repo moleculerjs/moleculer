@@ -316,34 +316,22 @@ class ServiceBroker {
 		// Register user middlewares
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0) {
 			_.compact(userMiddlewares).forEach(mw => this.middlewares.add(mw));
-
-			this.logger.info(`Registered ${this.middlewares.count()} custom middleware(s).`);
 		}
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
 
-			const prevCount = this.middlewares.count();
-
 			// 0. ActionHook
 			this.middlewares.add("ActionHook");
 
 			// 1. Validator
-			if (this.validator && utils.isFunction(this.validator.middleware)) {
-				const mw = this.validator.middleware(this);
-				if (utils.isPlainObject(mw)) this.middlewares.add(mw);
-				else this.middlewares.add({ name: "Validator", localAction: mw });
-			}
+			this.middlewares.add("Validator");
 
 			// 2. Bulkhead
 			this.middlewares.add("Bulkhead");
 
 			// 3. Cacher
-			if (this.cacher && utils.isFunction(this.cacher.middleware)) {
-				const mw = this.cacher.middleware();
-				if (utils.isPlainObject(mw)) this.middlewares.add(mw);
-				else this.middlewares.add({ name: "Cacher", localAction: mw });
-			}
+			this.middlewares.add("Cacher");
 
 			// 4. Context tracker
 			this.middlewares.add("ContextTracker");
@@ -379,11 +367,8 @@ class ServiceBroker {
 				// 14. Hot Reload
 				this.middlewares.add("HotReload");
 			}
-
-			this.logger.info(
-				`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`
-			);
 		}
+		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
 
 		this.createService = this.wrapMethod("createService", this.createService);
 		this.registerLocalService = this.wrapMethod(
