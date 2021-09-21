@@ -49,7 +49,7 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 - built-in caching solution (Memory, MemoryLRU, Redis)
 - pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
 - pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka, AMQP 0.9, AMQP 1.0)
-- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
+- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift, CBOR, Notepack)
 - pluggable parameter validator
 - multiple services on a node/server
 - master-less architecture, all nodes are equal
