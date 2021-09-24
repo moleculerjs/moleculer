@@ -1263,14 +1263,14 @@ declare namespace Moleculer {
 	}
 
 	const Serializers: {
-		Base: Serializer,
-		JSON: Serializer,
-		Avro: Serializer,
-		CBOR: Serializer,
-		MsgPack: Serializer,
-		ProtoBuf: Serializer,
-		Thrift: Serializer,
-		Notepack: Serializer,
+		Base: typeof Serializer,
+		JSON: typeof Serializer,
+		Avro: typeof Serializer,
+		CBOR: typeof Serializer,
+		MsgPack: typeof Serializer,
+		ProtoBuf: typeof Serializer,
+		Thrift: typeof Serializer,
+		Notepack: typeof Serializer,
 		resolve: (type: string | GenericObject | Serializer) => Serializer,
 	};
 
