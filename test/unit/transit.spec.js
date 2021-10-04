@@ -1163,6 +1163,49 @@ describe("Test Transit._createErrFromPayload", () => {
 		expect(err.nodeID).toBe("node-1234");
 		expect(err.stack).toBe("error stack");
 	});
+
+	it("should create a custom error from payload", () => {
+		class MyCustomError {
+			constructor(name, code, type, data) {
+				this.name = name;
+				this.code = code;
+				this.type = type;
+				this.data = data;
+			}
+		}
+
+		const customRecreateError = function (err) {
+			switch (err.name) {
+				case "MyCustomError":
+					return new MyCustomError(err.name, err.code, err.type, err.data);
+			}
+		};
+		const broker = new ServiceBroker({
+			logger: false,
+			nodeID: "node1",
+			recreateError: customRecreateError,
+			transporter: new FakeTransporter()
+		});
+		const transit = broker.transit;
+		const err = transit._createErrFromPayload({
+			name: "MyCustomError",
+			code: 456,
+			type: "NOTHING",
+			data: { b: 5 },
+			retryable: true,
+			nodeID: "node-1234",
+			stack: "error stack"
+		});
+
+		expect(err).toBeInstanceOf(MyCustomError);
+		expect(err.name).toBe("MyCustomError");
+		expect(err.code).toBe(456);
+		expect(err.type).toBe("NOTHING");
+		expect(err.data).toEqual({ b: 5 });
+		expect(err.retryable).toBe(true);
+		expect(err.nodeID).toBe("node-1234");
+		expect(err.stack).toBe("error stack");
+	});
 });
 
 describe("Test Transit.responseHandler", () => {
