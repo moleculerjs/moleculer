@@ -42,6 +42,8 @@ const defaultOptions = {
 
 	transporter: null, //"TCP",
 
+	recreateError: null,
+
 	requestTimeout: 0 * 1000,
 	retryPolicy: {
 		enabled: false,

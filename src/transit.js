@@ -38,6 +38,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 		this.discoverer = broker.registry.discoverer;
+		this.customRecreateError = broker.options.recreateError;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -610,6 +611,7 @@ class Transit {
 	 */
 	_createErrFromPayload(error, sender) {
 		let err = E.recreateError(error);
+		if (!err && this.customRecreateError) err = this.customRecreateError(error);
 		if (!err) {
 			err = new Error(error.message);
 			err.name = error.name;
