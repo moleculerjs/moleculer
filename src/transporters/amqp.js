@@ -208,6 +208,7 @@ class AmqpTransporter extends Transporter {
 							this.connected = false;
 							return reject(err);
 						});
+					return null;
 				})
 				.catch(err => {
 					/* istanbul ignore next*/
