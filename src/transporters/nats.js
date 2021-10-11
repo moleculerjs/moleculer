@@ -60,6 +60,7 @@ class NatsTransporter extends Transporter {
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
+            console.log("\n\nUse forked moleculer project\n");
 			let Nats;
 			try {
 				Nats = require("nats");
