@@ -12,6 +12,7 @@ const {
 	PACKET_REQUEST,
 	PACKET_EVENT,
 } = require("../packets");
+var sizeof = require('object-sizeof')
 
 /**
  * Transporter for NATS
@@ -229,7 +230,10 @@ class NatsTransporter extends Transporter {
 		return new Promise(resolve => {
 			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 			const data = this.serialize(packet);
-
+            const dataSize = sizeof(data);
+            if(dataSize > 1000000) {
+              console.log(`\n\n---- Large payload data ${dataSize} bytes: ${data}`);
+            }
 			this.incStatSent(data.length);
 			this.client.publish(topic, data, resolve);
 		});
@@ -249,7 +253,10 @@ class NatsTransporter extends Transporter {
 		return new Promise(resolve => {
 			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 			const data = this.serialize(packet);
-
+            const dataSize = sizeof(data);
+            if(dataSize > 1000000) {
+                console.log(`\n\n---- Large balanced payload data ${dataSize} bytes: ${data}`);
+              }
 			this.incStatSent(data.length);
 			this.client.publish(topic, data, resolve);
 		});
