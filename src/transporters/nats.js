@@ -139,8 +139,23 @@ class NatsTransporter extends Transporter {
 			});
 		} else {
 			// NATS v2
-			if (this.opts.url)
-				this.opts.servers = this.opts.url.split(",").map(server => new URL(server).host);
+			if (this.opts.url) {
+				Object.assign(
+					this.opts,
+					this.opts.url.split(",").reduce((acc, cur) => {
+						const url = new URL(cur);
+
+						acc.servers = Array.isArray(acc.servers)
+							? acc.servers.concat(url.host)
+							: [url.host];
+						acc.user = acc.user || url.username || undefined;
+						acc.pass = acc.pass || url.password || undefined;
+
+						return acc;
+					}, Object.create(null))
+				);
+			}
+
 			return Nats.connect(this.opts)
 				.then(client => {
 					this.client = client;

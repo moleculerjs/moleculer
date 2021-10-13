@@ -507,7 +507,7 @@ describe("Tests Nats V2.x", () => {
 
 		beforeEach(() => {
 			transporter = new NatsTransporter(
-				"nats://server1:4222,nats://server2:4222,nats://server3:4222"
+				"nats://myuser:mypass@server1:4222,nats://server2:4222,nats://server3:4222"
 			);
 			transporter.isLibLegacy = jest.fn(() => false);
 			transporter.init(transit, msgHandler);
@@ -524,8 +524,10 @@ describe("Tests Nats V2.x", () => {
 					expect(Nats.connect).toHaveBeenLastCalledWith({
 						preserveBuffers: true,
 						maxReconnectAttempts: -1,
-						url: "nats://server1:4222,nats://server2:4222,nats://server3:4222",
-						servers: ["server1:4222", "server2:4222", "server3:4222"]
+						url: "nats://myuser:mypass@server1:4222,nats://server2:4222,nats://server3:4222",
+						servers: ["server1:4222", "server2:4222", "server3:4222"],
+						user: "myuser",
+						pass: "mypass"
 					});
 				});
 
