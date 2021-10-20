@@ -94,6 +94,8 @@ function createNode(nodeID, brokerOpts = {}) {
 		process.env.DISABLEBALANCER != null ? process.env.DISABLEBALANCER == "true" : false;
 	const discoverer = process.env.DISCOVERER || "Local";
 
+	const serializer = process.env.SERIALIZER || "JSON";
+
 	const broker = new ServiceBroker(
 		_.defaultsDeep(brokerOpts, {
 			namespace: process.env.NAMESPACE,
@@ -101,9 +103,14 @@ function createNode(nodeID, brokerOpts = {}) {
 			logLevel: process.env.LOGLEVEL || "warn",
 			transporter,
 			disableBalancer,
-			serializer: process.env.SERIALIZER || "JSON",
+			serializer,
 			registry: {
-				discoverer
+				discoverer: {
+					type: discoverer,
+					options: {
+						serializer
+					}
+				}
 			}
 		})
 	);

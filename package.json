@@ -58,7 +58,6 @@
     "@types/bunyan": "^1.8.7",
     "@types/ioredis": "^4.27.8",
     "@types/node": "^16.11.1",
-    "@types/pino": "^6.3.12",
     "amqplib": "^0.8.0",
     "avsc": "^5.7.3",
     "benchmarkify": "^3.0.0",

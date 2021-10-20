@@ -12,7 +12,6 @@ _20 commits from 7 contributors._
 - expose Cacher and Validator middlewares. [#1012](https://github.com/moleculerjs/moleculer/pull/1012)
 - update d.ts file. [#1013](https://github.com/moleculerjs/moleculer/pull/1013)
 - parse user & password from NATS server urls. [#1021](https://github.com/moleculerjs/moleculer/pull/1021)
-- update dependencies
  
 --------------------------------------------------
 <a name="0.14.17"></a>
