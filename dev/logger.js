@@ -74,8 +74,8 @@ Promise.resolve()
 		logging(broker);
 
 		brk = broker;
-	}) /*
-	.then(async function() {
+	})
+	.then(async function () {
 		console.log(kleur.yellow().bold("\n--- BUNYAN LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "bunyan",
@@ -93,7 +93,7 @@ Promise.resolve()
 
 		logging(broker);
 	})
-	.then(async function() {
+	.then(async function () {
 		console.log(kleur.yellow().bold("\n--- PINO LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "pino",
@@ -104,7 +104,7 @@ Promise.resolve()
 					pino: {
 						options: {
 							base: null
-						},
+						}
 						//destination: "d:/pino.log"
 					}
 				}
@@ -114,7 +114,7 @@ Promise.resolve()
 
 		logging(broker);
 	})
-	.then(async function() {
+	.then(async function () {
 		console.log(kleur.yellow().bold("\n--- WINSTON LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "winston",
@@ -124,7 +124,7 @@ Promise.resolve()
 					level: "trace",
 					winston: {
 						transports: [
-							new winston.transports.Console(),
+							new winston.transports.Console()
 							//new winston.transports.File({ filename: "./logs/winston.log" })
 						]
 					}
@@ -135,8 +135,10 @@ Promise.resolve()
 
 		logging(broker);
 	})
-	.then(async function() {
-		console.log(kleur.yellow().bold("\n--- DEBUG LOGGER (should set `DEBUG=moleculer:*` env var) ---"));
+	.then(async function () {
+		console.log(
+			kleur.yellow().bold("\n--- DEBUG LOGGER (should set `DEBUG=moleculer:*` env var) ---")
+		);
 		const broker = createBroker({
 			nodeID: "debug",
 			logger: {
@@ -150,7 +152,7 @@ Promise.resolve()
 
 		logging(broker);
 	})
-	.then(async function() {
+	.then(async function () {
 		console.log(kleur.yellow().bold("\n--- Log4JS LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "log4js",
@@ -163,7 +165,7 @@ Promise.resolve()
 							app: { type: "file", filename: "./logs/log4js.log" }
 						},
 						categories: {
-							default: { appenders: [ "app" ], level: "debug" }
+							default: { appenders: ["app"], level: "debug" }
 						}
 					}
 				}
@@ -172,6 +174,6 @@ Promise.resolve()
 		await broker.start();
 
 		logging(broker);
-	})*/
+	})
 	.then(() => console.log(kleur.yellow().bold("-----------------\n")))
 	.then(() => brk.repl());

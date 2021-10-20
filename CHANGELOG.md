@@ -1,6 +1,19 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.17...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.18...master)
 
+--------------------------------------------------
+<a name="0.14.18"></a>
+# [0.14.18](https://github.com/moleculerjs/moleculer/compare/v0.14.17...v0.14.18) (2021-10-20)
+
+_20 commits from 7 contributors._
+
+## Changes
+- update dependencies.
+- expose Cacher and Validator middlewares. [#1012](https://github.com/moleculerjs/moleculer/pull/1012)
+- update d.ts file. [#1013](https://github.com/moleculerjs/moleculer/pull/1013)
+- parse user & password from NATS server urls. [#1021](https://github.com/moleculerjs/moleculer/pull/1021)
+- update dependencies
+ 
 --------------------------------------------------
 <a name="0.14.17"></a>
 # [0.14.17](https://github.com/moleculerjs/moleculer/compare/v0.14.16...v0.14.17) (2021-09-13)
