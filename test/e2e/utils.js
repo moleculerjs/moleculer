@@ -108,7 +108,9 @@ function createNode(nodeID, brokerOpts = {}) {
 				discoverer: {
 					type: discoverer,
 					options: {
-						serializer
+						serializer: ["JSON", "MsgPack", "Notepack", "CBOR"].includes(serializer)
+							? serializer
+							: "JSON"
 					}
 				}
 			}
