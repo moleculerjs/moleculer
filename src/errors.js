@@ -502,21 +502,21 @@ class Regenerator {
 		this.broker = broker;
 	}
 
-	restore(plainError, sender) {
-		let err = this.restoreCustomError(plainError);
+	restore(plainError, payload) {
+		let err = this.restoreCustomError(plainError, payload);
 		if (!err) {
 			err = recreateError(plainError);
 		}
 		if (!err) {
 			err = this._createDefaultError(plainError);
 		}
-		this._restoreMoleculerErrorFields(plainError, err, sender);
+		this._restoreMoleculerErrorFields(plainError, err, payload);
 		this._restoreStack(plainError, err);
 
 		return err;
 	}
 
-	extractPlainError(err) {
+	extractPlainError(err, payload) {
 		return {
 			name: err.name,
 			message: err.message,
@@ -529,7 +529,7 @@ class Regenerator {
 		};
 	}
 
-	restoreCustomError(plainError) {
+	restoreCustomError(plainError, payload) {
 		return undefined;
 	}
 
@@ -543,9 +543,9 @@ class Regenerator {
 		return err;
 	}
 
-	_restoreMoleculerErrorFields(plainError, err, sender) {
+	_restoreMoleculerErrorFields(plainError, err, payload) {
 		err.retryable = plainError.retryable;
-		err.nodeID = plainError.nodeID || sender;
+		err.nodeID = plainError.nodeID || payload.sender;
 	}
 
 	_restoreStack(plainError, err) {

@@ -1129,7 +1129,7 @@ describe("Test Transit._createErrFromPayload", () => {
 				retryable: true,
 				stack: "error stack"
 			},
-			"node-999"
+			{ sender: "node-999" }
 		);
 
 		expect(err).toBeInstanceOf(E.MoleculerError);
