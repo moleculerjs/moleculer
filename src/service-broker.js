@@ -228,8 +228,8 @@ class ServiceBroker {
 			this.serializer = Serializers.resolve(this.options.serializer);
 			this.serializer.init(this);
 
-			// Errors regenerator TODO: create resolve method
-			this.errorsRegenerator = this.options.errorsRegenerator || new Errors.Regenerator();
+			// Errors regenerator
+			this.errorsRegenerator = Errors.resolveRegenerator(this.options.errorsRegenerator);
 			this.errorsRegenerator.init(this);
 
 			const serializerName = this.getConstructorName(this.serializer);

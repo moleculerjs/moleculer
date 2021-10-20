@@ -553,6 +553,14 @@ class Regenerator {
 	}
 }
 
+function resolveRegenerator(opt) {
+	if (opt instanceof Regenerator) {
+		return opt;
+	}
+
+	return new Regenerator();
+}
+
 module.exports = {
 	ExtendableError,
 
@@ -581,5 +589,6 @@ module.exports = {
 	BrokerDisconnectedError,
 
 	recreateError,
+	resolveRegenerator,
 	Regenerator
 };
