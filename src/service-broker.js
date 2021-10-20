@@ -23,6 +23,7 @@ const Validators = require("./validators");
 const Cachers = require("./cachers");
 const Transporters = require("./transporters");
 const Serializers = require("./serializers");
+const Errors = require("./errors");
 const H = require("./health");
 const MiddlewareHandler = require("./middleware");
 const cpuUsage = require("./cpu-usage");
@@ -42,7 +43,7 @@ const defaultOptions = {
 
 	transporter: null, //"TCP",
 
-	recreateError: null,
+	errorsRegenerator: null,
 
 	requestTimeout: 0 * 1000,
 	retryPolicy: {
@@ -226,6 +227,10 @@ class ServiceBroker {
 			// Serializer
 			this.serializer = Serializers.resolve(this.options.serializer);
 			this.serializer.init(this);
+
+			// Errors regenerator TODO: create resolve method
+			this.errorsRegenerator = this.options.errorsRegenerator || new Errors.Regenerator();
+			this.errorsRegenerator.init(this);
 
 			const serializerName = this.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);

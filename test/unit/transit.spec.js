@@ -1173,17 +1173,23 @@ describe("Test Transit._createErrFromPayload", () => {
 				this.data = data;
 			}
 		}
-
-		const customRecreateError = function (err) {
-			switch (err.name) {
-				case "MyCustomError":
-					return new MyCustomError(err.name, err.code, err.type, err.data);
+		class MyErrorsRegenerator extends E.Regenerator {
+			restoreCustomError(plainError) {
+				if (plainError.name === "MyCustomError") {
+					return new MyCustomError(
+						plainError.name,
+						plainError.code,
+						plainError.type,
+						plainError.data
+					);
+				}
 			}
-		};
+		}
+
 		const broker = new ServiceBroker({
 			logger: false,
 			nodeID: "node1",
-			recreateError: customRecreateError,
+			errorsRegenerator: new MyErrorsRegenerator(),
 			transporter: new FakeTransporter()
 		});
 		const transit = broker.transit;

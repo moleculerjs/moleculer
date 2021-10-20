@@ -497,6 +497,62 @@ function recreateError(err) {
 	}
 }
 
+class Regenerator {
+	init(broker) {
+		this.broker = broker;
+	}
+
+	restore(plainError, sender) {
+		let err = this.restoreCustomError(plainError);
+		if (!err) {
+			err = recreateError(plainError);
+		}
+		if (!err) {
+			err = this._createDefaultError(plainError);
+		}
+		this._restoreMoleculerErrorFields(plainError, err, sender);
+		this._restoreStack(plainError, err);
+
+		return err;
+	}
+
+	extractPlainError(err) {
+		return {
+			name: err.name,
+			message: err.message,
+			nodeID: err.nodeID || this.broker.nodeID,
+			code: err.code,
+			type: err.type,
+			retryable: err.retryable,
+			stack: err.stack,
+			data: err.data
+		};
+	}
+
+	restoreCustomError(plainError) {
+		return undefined;
+	}
+
+	_createDefaultError(plainError) {
+		const err = new Error(plainError.message);
+		err.name = plainError.name;
+		err.code = plainError.code;
+		err.type = plainError.type;
+		err.data = plainError.data;
+
+		return err;
+	}
+
+	_restoreMoleculerErrorFields(plainError, err, sender) {
+		err.retryable = plainError.retryable;
+		err.nodeID = plainError.nodeID || sender;
+	}
+
+	_restoreStack(plainError, err) {
+		if (plainError.stack) err.stack = plainError.stack;
+	}
+}
+
 module.exports = {
 	ExtendableError,
 
@@ -524,5 +580,6 @@ module.exports = {
 
 	BrokerDisconnectedError,
 
-	recreateError
+	recreateError,
+	Regenerator
 };

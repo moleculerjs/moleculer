@@ -205,7 +205,7 @@ describe("Test ServiceBroker constructor", () => {
 				}
 			},
 			logLevel: null,
-			recreateError: null,
+			errorsRegenerator: null,
 			cacher: null,
 			serializer: null,
 			transporter: null,

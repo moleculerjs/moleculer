@@ -38,7 +38,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 		this.discoverer = broker.registry.discoverer;
-		this.customRecreateError = broker.options.recreateError;
+		this.errorsRegenerator = broker.errorsRegenerator;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -610,21 +610,7 @@ class Transit {
 	 * @param {String} sender
 	 */
 	_createErrFromPayload(error, sender) {
-		let err = E.recreateError(error);
-		if (!err && this.customRecreateError) err = this.customRecreateError(error);
-		if (!err) {
-			err = new Error(error.message);
-			err.name = error.name;
-			err.code = error.code;
-			err.type = error.type;
-			err.data = error.data;
-		}
-		err.retryable = error.retryable;
-		err.nodeID = error.nodeID || sender;
-
-		if (error.stack) err.stack = error.stack;
-
-		return err;
+		return this.errorsRegenerator.restore(error, sender);
 	}
 
 	/**
@@ -1032,16 +1018,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_createPayloadErrorField(err) {
-		return {
-			name: err.name,
-			message: err.message,
-			nodeID: err.nodeID || this.nodeID,
-			code: err.code,
-			type: err.type,
-			retryable: err.retryable,
-			stack: err.stack,
-			data: err.data
-		};
+		return this.errorsRegenerator.extractPlainError(err);
 	}
 
 	/**
