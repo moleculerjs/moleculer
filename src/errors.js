@@ -497,11 +497,30 @@ function recreateError(err) {
 	}
 }
 
+/**
+ * Error Regenerator
+ * @class Regenerator
+ */
 class Regenerator {
+	/**
+	 * Init Regenerator
+	 * @param {ServiceBroker} broker
+	 *
+	 * @memberof Regenerator
+	 */
 	init(broker) {
 		this.broker = broker;
 	}
 
+	/**
+	 * Restore Error object
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} payload
+	 * @return {Error}
+	 *
+	 * @memberof Regenerator
+	 */
 	restore(plainError, payload) {
 		let err = this.restoreCustomError(plainError, payload);
 		if (!err) {
@@ -516,7 +535,16 @@ class Regenerator {
 		return err;
 	}
 
-	extractPlainError(err, payload) {
+	/**
+	 * Extract plain error object from Error object
+	 *
+	 * @param {MoleculerError & { nodeID?: string }} err
+	 * @param {Object} payload
+	 * @return {Object} plain error
+	 *
+	 * @memberof Regenerator
+	 */
+	extractPlainError(err) {
 		return {
 			name: err.name,
 			message: err.message,
@@ -529,7 +557,16 @@ class Regenerator {
 		};
 	}
 
-	restoreCustomError(plainError, payload) {
+	/**
+	 * Hook to restore a custom error in a child class
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} payload
+	 * @return {Error | undefined}
+	 *
+	 * @memberof Regenerator
+	 */
+	restoreCustomError() {
 		return undefined;
 	}
 
@@ -553,6 +590,12 @@ class Regenerator {
 	}
 }
 
+/**
+ * Resolve regenerator option
+ *
+ * @param {Regenerator} opt
+ * @return {Regenerator}
+ */
 function resolveRegenerator(opt) {
 	if (opt instanceof Regenerator) {
 		return opt;
