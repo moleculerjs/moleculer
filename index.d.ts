@@ -1431,6 +1431,17 @@ declare namespace Moleculer {
 		class InvalidPacketDataError extends MoleculerError {
 			constructor(data: any);
 		}
+
+		interface PlainMoleculerError extends MoleculerError {
+			nodeID?: string;
+		}
+
+		class Regenerator {
+			init(broker: ServiceBroker): void;
+			restore(plainError: PlainMoleculerError, payload: GenericObject): Error;
+			extractPlainError(err: Error): PlainMoleculerError;
+			restoreCustomError(plainError: PlainMoleculerError, payload: GenericObject): Error | undefined;
+		}
 	}
 
 	interface TransitRequest {
