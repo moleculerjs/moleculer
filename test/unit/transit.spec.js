@@ -1173,7 +1173,7 @@ describe("Test Transit._createErrFromPayload", () => {
 				this.data = data;
 			}
 		}
-		class MyErrorsRegenerator extends E.Regenerator {
+		class MyErrorRegenerator extends E.Regenerator {
 			restoreCustomError(plainError) {
 				if (plainError.name === "MyCustomError") {
 					return new MyCustomError(
@@ -1189,7 +1189,7 @@ describe("Test Transit._createErrFromPayload", () => {
 		const broker = new ServiceBroker({
 			logger: false,
 			nodeID: "node1",
-			errorsRegenerator: new MyErrorsRegenerator(),
+			errorRegenerator: new MyErrorRegenerator(),
 			transporter: new FakeTransporter()
 		});
 		const transit = broker.transit;

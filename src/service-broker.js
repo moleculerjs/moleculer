@@ -43,7 +43,7 @@ const defaultOptions = {
 
 	transporter: null, //"TCP",
 
-	errorsRegenerator: null,
+	errorRegenerator: null,
 
 	requestTimeout: 0 * 1000,
 	retryPolicy: {
@@ -228,9 +228,9 @@ class ServiceBroker {
 			this.serializer = Serializers.resolve(this.options.serializer);
 			this.serializer.init(this);
 
-			// Errors regenerator
-			this.errorsRegenerator = Errors.resolveRegenerator(this.options.errorsRegenerator);
-			this.errorsRegenerator.init(this);
+			// Error regenerator
+			this.errorRegenerator = Errors.resolveRegenerator(this.options.errorRegenerator);
+			this.errorRegenerator.init(this);
 
 			const serializerName = this.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);

@@ -38,7 +38,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 		this.discoverer = broker.registry.discoverer;
-		this.errorsRegenerator = broker.errorsRegenerator;
+		this.errorRegenerator = broker.errorRegenerator;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -610,7 +610,7 @@ class Transit {
 	 * @param {Object} payload
 	 */
 	_createErrFromPayload(error, payload) {
-		return this.errorsRegenerator.restore(error, payload);
+		return this.errorRegenerator.restore(error, payload);
 	}
 
 	/**
@@ -1019,7 +1019,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_createPayloadErrorField(err, payload) {
-		return this.errorsRegenerator.extractPlainError(err, payload);
+		return this.errorRegenerator.extractPlainError(err, payload);
 	}
 
 	/**
