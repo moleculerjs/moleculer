@@ -700,4 +700,77 @@ describe("Test Errors.Regenerator", () => {
 			expect(err.stack).toBe("error stack");
 		});
 	});
+
+	describe("Restore custom error", () => {
+		class MyCustomError extends errors.MoleculerError {
+			constructor(name, code, type, data, custom) {
+				super(name, code, type, data);
+				this.custom = custom;
+			}
+		}
+		class MyErrorRegenerator extends errors.Regenerator {
+			restoreCustomError({ name, code, type, data, custom }) {
+				if (name === "MyCustomError") {
+					return new MyCustomError(name, code, type, data, custom);
+				}
+			}
+		}
+
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false });
+			regenerator = new MyErrorRegenerator();
+			regenerator.init(broker);
+		});
+
+		it("should create a custom error", () => {
+			let plainError = {
+				name: "MyCustomError",
+				code: 456,
+				type: "CUSTOM_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack",
+				custom: { a: 5, b: 6 }
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(MyCustomError);
+			expect(err.name).toBe("MyCustomError");
+			expect(err.code).toBe(456);
+			expect(err.type).toBe("CUSTOM_TYPE");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+			expect(err.custom).toEqual({ a: 5, b: 6 });
+		});
+
+		it("should prefer a custom error over a built-in one", () => {
+			regenerator.restoreCustomError = function ({ name, code, type, data, custom }) {
+				if (name === "MoleculerRetryableError") {
+					return new MyCustomError(name, code, type, data, custom);
+				}
+			};
+			let plainError = {
+				name: "MoleculerRetryableError",
+				code: 456,
+				type: "CUSTOM_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack",
+				custom: { a: 5, b: 6 }
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(MyCustomError);
+		});
+	});
 });
