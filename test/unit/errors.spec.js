@@ -1,6 +1,7 @@
 "use strict";
 
 let errors = require("../../src/errors");
+const ServiceBroker = require("../../src/service-broker");
 
 describe("Test Errors", () => {
 	it("test MoleculerError", () => {
@@ -577,5 +578,26 @@ describe("Test Errors.recreateError", () => {
 			data: { a: 5 }
 		});
 		expect(err).toBeUndefined();
+	});
+});
+
+describe("Test Errors.Regenerator", () => {
+	describe("Initialization", () => {
+		it("check constructor", () => {
+			let regenerator = new errors.Regenerator();
+			expect(regenerator).toBeDefined();
+			expect(regenerator.init).toBeDefined();
+			expect(regenerator.restore).toBeDefined();
+			expect(regenerator.extractPlainError).toBeDefined();
+			expect(regenerator.restoreCustomError).toBeDefined();
+		});
+
+		it("check init", () => {
+			let broker = new ServiceBroker({ logger: false });
+			let regenerator = new errors.Regenerator();
+
+			regenerator.init(broker);
+			expect(regenerator.broker).toBe(broker);
+		});
 	});
 });
