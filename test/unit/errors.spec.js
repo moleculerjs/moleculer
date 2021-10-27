@@ -821,3 +821,30 @@ describe("Test Errors.Regenerator", () => {
 		});
 	});
 });
+
+describe("Test Errors.resolveRegenerator", () => {
+	it("should resolve to a custom regenerator when option is an instance of Errors.Regenerator", () => {
+		class CustomRegenerator extends errors.Regenerator {}
+
+		const result = errors.resolveRegenerator(CustomRegenerator);
+
+		expect(result).toBeInstanceOf(CustomRegenerator);
+	});
+
+	it("should resolve to Errors.Regenerator when option isn't an instance of Errors.Regenerator", () => {
+		class CustomRegenerator {}
+
+		const result = errors.resolveRegenerator(CustomRegenerator);
+
+		expect(result).toBeInstanceOf(errors.Regenerator);
+	});
+
+	it.each([-1, 0, 1, "", "custom", {}, null, undefined, [], true, false, () => {}])(
+		"should resolve to Errors.Regenerator when option is '%p'",
+		option => {
+			const result = errors.resolveRegenerator(option);
+
+			expect(result).toBeInstanceOf(errors.Regenerator);
+		}
+	);
+});
