@@ -773,4 +773,51 @@ describe("Test Errors.Regenerator", () => {
 			expect(err).toBeInstanceOf(MyCustomError);
 		});
 	});
+
+	describe("Extract plain error", () => {
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false, nodeID: "broker-node-id" });
+			regenerator = new errors.Regenerator();
+			regenerator.init(broker);
+		});
+
+		it("should extract from a built-in error", () => {
+			const err = new errors.MoleculerRetryableError("Msg", 456, "TYPE", { a: 5 });
+			err.stack = "custom stack";
+			err.nodeID = "node1";
+
+			const res = regenerator.extractPlainError(err);
+
+			expect(res).toEqual({
+				name: "MoleculerRetryableError",
+				message: "Msg",
+				nodeID: "node1",
+				code: 456,
+				type: "TYPE",
+				retryable: true,
+				stack: "custom stack",
+				data: { a: 5 }
+			});
+		});
+
+		it("should select nodeID from broker when input error doesn't have nodeID", () => {
+			const err = new errors.MoleculerRetryableError("Msg", 456, "TYPE", { a: 5 });
+			err.stack = "custom stack";
+
+			const res = regenerator.extractPlainError(err);
+
+			expect(res).toEqual({
+				name: "MoleculerRetryableError",
+				message: "Msg",
+				nodeID: regenerator.broker.nodeID,
+				code: 456,
+				type: "TYPE",
+				retryable: true,
+				stack: "custom stack",
+				data: { a: 5 }
+			});
+		});
+	});
 });
