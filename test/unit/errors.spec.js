@@ -600,4 +600,104 @@ describe("Test Errors.Regenerator", () => {
 			expect(regenerator.broker).toBe(broker);
 		});
 	});
+
+	describe("Restore error", () => {
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false });
+			regenerator = new errors.Regenerator();
+			regenerator.init(broker);
+		});
+
+		it("should call restoreCustomError hook", () => {
+			let plainError = {
+				name: "MoleculerError",
+				message: "Something went wrong",
+				code: 501,
+				type: "SOMETHING_ERROR",
+				data: { a: 5 }
+			};
+			let payload = {};
+			regenerator.restoreCustomError = jest.fn();
+
+			regenerator.restore(plainError, payload);
+
+			expect(regenerator.restoreCustomError).toHaveBeenCalled();
+			expect(regenerator.restoreCustomError).toHaveBeenCalledWith(plainError, payload);
+		});
+
+		it("should restore built-in error", () => {
+			let plainError = {
+				name: "ServiceNotFoundError",
+				code: 404,
+				type: "SERVICE_NOT_FOUND",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(errors.MoleculerError);
+			expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+			expect(err.name).toBe("ServiceNotFoundError");
+			expect(err.code).toBe(404);
+			expect(err.type).toBe("SERVICE_NOT_FOUND");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+		});
+
+		it("should pick nodeID from payload.sender when nodeID is absent in plain error", () => {
+			let plainError = {
+				name: "ServiceNotFoundError",
+				code: 404,
+				type: "SERVICE_NOT_FOUND",
+				data: { a: 5 },
+				retryable: true,
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(errors.MoleculerError);
+			expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+			expect(err.name).toBe("ServiceNotFoundError");
+			expect(err.code).toBe(404);
+			expect(err.type).toBe("SERVICE_NOT_FOUND");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("payload-sender");
+			expect(err.stack).toBe("error stack");
+		});
+
+		it("should restore unknown error", () => {
+			let plainError = {
+				name: "UnknownError",
+				code: 456,
+				type: "UNKNOWN_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(Error);
+			expect(err.name).toBe("UnknownError");
+			expect(err.code).toBe(456);
+			expect(err.type).toBe("UNKNOWN_TYPE");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+		});
+	});
 });
