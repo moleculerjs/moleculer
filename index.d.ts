@@ -427,11 +427,12 @@ declare namespace Moleculer {
 	}
 
 	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
+	type ActionCacheKeygenFuncType<P = Record<string, any>, M = any, K = any[]|null> = (actionName: string, params: P, meta: M, defaultKeys: K) => string;
 
-	interface ActionCacheOptions {
+	interface ActionCacheOptions<P = Record<string, any>, M = any, K = any[]|null> {
 		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
-		keys?: Array<string>;
+		keys?: string[] | ActionCacheKeygenFuncType<P, M, K>;
 		lock?: {
 			enabled?: boolean;
 			staleTime?: number;
