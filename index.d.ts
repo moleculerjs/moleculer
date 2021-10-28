@@ -22,7 +22,7 @@ declare namespace Moleculer {
 		init(opts: LoggerConfig | Array<LoggerConfig>): void;
 		stop(): void;
 		getLogger(bindings: GenericObject): LoggerInstance;
-		getBindingsKey(bindings: GenericObject): String;
+		getBindingsKey(bindings: GenericObject): string;
 
 		broker: ServiceBroker;
 	}
@@ -251,7 +251,7 @@ declare namespace Moleculer {
 
 		lastSnapshot: GenericObject | null;
 		dirty: boolean;
-		values: Map<String, GenericObject>;
+		values: Map<string, GenericObject>;
 
 		constructor(opts: BaseMetricOptions, registry: MetricRegistry);
 		setDirty(): void;
@@ -358,7 +358,7 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		dirty: boolean;
-		store: Map<String, BaseMetric>;
+		store: Map<string, BaseMetric>;
 		reporter: Array<MetricBaseReporter>;
 
 		constructor(broker: ServiceBroker, opts?: MetricRegistryOptions);
@@ -440,7 +440,7 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
-	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
+	type ActionHookBefore = (ctx: Context<any, any>) => Promise<any> | any;
 	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
 	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 
@@ -520,7 +520,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = unknown, M extends object = {}> {
+	class Context<P = any, M extends object = any> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
@@ -672,7 +672,7 @@ declare namespace Moleculer {
 		version?: string | number;
 		settings?: S;
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
-		metadata?: GenericObject;
+		metadata?: GenericObject | any;
 		actions?: ServiceActionsSchema;
 		mixins?: Array<Partial<ServiceSchema>>;
 		methods?: ServiceMethods;
@@ -1523,8 +1523,8 @@ declare namespace Moleculer {
 		show(): this;
 		hide(): this;
 		find(command: string): Vorpal.Command;
-		exec(command: string): Promise<{}>;
-		execSync(command: string): Promise<{}>;
+		exec(command: string): Promise<any>;
+		execSync(command: string): Promise<any>;
 		log(value: string, ...values: string[]): this;
 		history(id: string): this;
 		localStorage(id: string): object;
