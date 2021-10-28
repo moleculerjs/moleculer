@@ -71,7 +71,8 @@ const {
 	MoleculerError,
 	MoleculerServerError,
 	ServiceNotFoundError,
-	ServiceNotAvailableError
+	ServiceNotAvailableError,
+	Regenerator
 } = require("../../src/errors");
 
 jest.spyOn(Registry.prototype, "init");
@@ -124,6 +125,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.cacher).toBeNull();
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.validator).toBeInstanceOf(Validators.Fastest);
+		expect(broker.errorRegenerator).toBeInstanceOf(Regenerator);
 		expect(broker.transit).toBeUndefined();
 
 		expect(broker.getLocalService("$node")).toBeDefined();
@@ -323,6 +325,20 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.cacher).toBe(cacher);
 		expect(cacher.init).toHaveBeenCalledTimes(1);
 		expect(cacher.init).toHaveBeenCalledWith(broker);
+	});
+
+	it("should create errorRegenerator and call init", () => {
+		let errorRegenerator = new Regenerator();
+		errorRegenerator.init = jest.fn();
+		broker = new ServiceBroker({
+			logger: false,
+			errorRegenerator
+		});
+
+		expect(broker).toBeDefined();
+		expect(broker.errorRegenerator).toBe(errorRegenerator);
+		expect(errorRegenerator.init).toHaveBeenCalledTimes(1);
+		expect(errorRegenerator.init).toHaveBeenCalledWith(broker);
 	});
 
 	it("should set serializer and call init", () => {
