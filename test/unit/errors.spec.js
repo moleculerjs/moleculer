@@ -826,7 +826,7 @@ describe("Test Errors.resolveRegenerator", () => {
 	it("should resolve to a custom regenerator when option is an instance of Errors.Regenerator", () => {
 		class CustomRegenerator extends errors.Regenerator {}
 
-		const result = errors.resolveRegenerator(CustomRegenerator);
+		const result = errors.resolveRegenerator(new CustomRegenerator());
 
 		expect(result).toBeInstanceOf(CustomRegenerator);
 	});
@@ -834,7 +834,7 @@ describe("Test Errors.resolveRegenerator", () => {
 	it("should resolve to Errors.Regenerator when option isn't an instance of Errors.Regenerator", () => {
 		class CustomRegenerator {}
 
-		const result = errors.resolveRegenerator(CustomRegenerator);
+		const result = errors.resolveRegenerator(new CustomRegenerator());
 
 		expect(result).toBeInstanceOf(errors.Regenerator);
 	});
