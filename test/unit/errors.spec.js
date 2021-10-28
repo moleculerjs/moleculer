@@ -583,8 +583,9 @@ describe("Test Errors.recreateError", () => {
 
 describe("Test Errors.Regenerator", () => {
 	describe("Initialization", () => {
-		it("check constructor", () => {
+		it("should create an instance", () => {
 			let regenerator = new errors.Regenerator();
+
 			expect(regenerator).toBeDefined();
 			expect(regenerator.init).toBeDefined();
 			expect(regenerator.restore).toBeDefined();
@@ -592,11 +593,12 @@ describe("Test Errors.Regenerator", () => {
 			expect(regenerator.restoreCustomError).toBeDefined();
 		});
 
-		it("check init", () => {
+		it("should initialize an instance", () => {
 			let broker = new ServiceBroker({ logger: false });
 			let regenerator = new errors.Regenerator();
 
 			regenerator.init(broker);
+
 			expect(regenerator.broker).toBe(broker);
 		});
 	});
@@ -627,7 +629,7 @@ describe("Test Errors.Regenerator", () => {
 			expect(regenerator.restoreCustomError).toHaveBeenCalledWith(plainError, payload);
 		});
 
-		it("should restore built-in error", () => {
+		it("should restore a built-in error", () => {
 			let plainError = {
 				name: "ServiceNotFoundError",
 				code: 404,
@@ -652,7 +654,7 @@ describe("Test Errors.Regenerator", () => {
 			expect(err.stack).toBe("error stack");
 		});
 
-		it("should pick nodeID from payload.sender when nodeID is absent in plain error", () => {
+		it("should pick nodeID from payload.sender when nodeID is absent in a plain error", () => {
 			let plainError = {
 				name: "ServiceNotFoundError",
 				code: 404,
@@ -676,7 +678,7 @@ describe("Test Errors.Regenerator", () => {
 			expect(err.stack).toBe("error stack");
 		});
 
-		it("should restore unknown error", () => {
+		it("should restore an unknown error", () => {
 			let plainError = {
 				name: "UnknownError",
 				code: 456,
@@ -802,7 +804,7 @@ describe("Test Errors.Regenerator", () => {
 			});
 		});
 
-		it("should select nodeID from broker when input error doesn't have nodeID", () => {
+		it("should select nodeID from a broker when input error doesn't have nodeID", () => {
 			const err = new errors.MoleculerRetryableError("Msg", 456, "TYPE", { a: 5 });
 			err.stack = "custom stack";
 
