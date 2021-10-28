@@ -503,7 +503,8 @@ function recreateError(err) {
  */
 class Regenerator {
 	/**
-	 * Init Regenerator
+	 * Initializes Regenerator
+	 *
 	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof Regenerator
@@ -513,7 +514,7 @@ class Regenerator {
 	}
 
 	/**
-	 * Restore Error object
+	 * Restores an Error object
 	 *
 	 * @param {Object} plainError
 	 * @param {Object} payload
@@ -529,16 +530,16 @@ class Regenerator {
 		if (!err) {
 			err = this._createDefaultError(plainError);
 		}
-		this._restoreMoleculerErrorFields(plainError, err, payload);
+		this._restoreExternalFields(plainError, err, payload);
 		this._restoreStack(plainError, err);
 
 		return err;
 	}
 
 	/**
-	 * Extract plain error object from Error object
+	 * Extracts a plain error object from Error object
 	 *
-	 * @param {MoleculerError & { nodeID?: string }} err
+	 * @param {Error} err
 	 * @param {Object} payload
 	 * @return {Object} plain error
 	 *
@@ -571,7 +572,7 @@ class Regenerator {
 	}
 
 	/**
-	 * Create a default error if not found
+	 * Creates a default error if not found
 	 *
 	 * @param {Object} plainError
 	 * @return {Error}
@@ -590,7 +591,7 @@ class Regenerator {
 	}
 
 	/**
-	 * Restore common Moleculer error fields
+	 * Restores external error fields
 	 *
 	 * @param {Object} plainError
 	 * @param {Object} err
@@ -599,13 +600,13 @@ class Regenerator {
 	 *
 	 * @memberof Regenerator
 	 */
-	_restoreMoleculerErrorFields(plainError, err, payload) {
+	_restoreExternalFields(plainError, err, payload) {
 		err.retryable = plainError.retryable;
 		err.nodeID = plainError.nodeID || payload.sender;
 	}
 
 	/**
-	 * Restore error stack
+	 * Restores an error stack
 	 *
 	 * @param {Object} plainError
 	 * @param {Object} err
@@ -619,7 +620,7 @@ class Regenerator {
 }
 
 /**
- * Resolve regenerator option
+ * Resolves a regenerator option
  *
  * @param {Regenerator} opt
  * @return {Regenerator}
