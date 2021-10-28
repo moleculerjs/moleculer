@@ -1090,15 +1090,18 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 });
 
 describe("Test Transit._createErrFromPayload", () => {
-	const broker = new ServiceBroker({
-		logger: false,
-		nodeID: "node1",
-		transporter: new FakeTransporter()
-	});
-	const transit = broker.transit;
+	let broker;
 
-	it("should create original error from payload", () => {
-		const err = transit._createErrFromPayload({
+	beforeEach(() => {
+		broker = new ServiceBroker({
+			logger: false,
+			nodeID: "node1",
+			transporter: new FakeTransporter()
+		});
+	});
+
+	it("should call errorRegenerator.restore method", () => {
+		const plainError = {
 			name: "ServiceNotFoundError",
 			code: 404,
 			type: "SERVICE_NOT_FOUND",
@@ -1106,111 +1109,14 @@ describe("Test Transit._createErrFromPayload", () => {
 			retryable: true,
 			nodeID: "node-1234",
 			stack: "error stack"
-		});
+		};
+		const payload = {};
+		broker.errorRegenerator.restore = jest.fn();
 
-		expect(err).toBeInstanceOf(E.MoleculerError);
-		expect(err).toBeInstanceOf(E.ServiceNotFoundError);
-		expect(err.name).toBe("ServiceNotFoundError");
-		expect(err.code).toBe(404);
-		expect(err.type).toBe("SERVICE_NOT_FOUND");
-		expect(err.data).toEqual({ a: 5 });
-		expect(err.retryable).toBe(true);
-		expect(err.nodeID).toBe("node-1234");
-		expect(err.stack).toBe("error stack");
-	});
+		broker.transit._createErrFromPayload(plainError, payload);
 
-	it("should create original error from payload with other sender", () => {
-		const err = transit._createErrFromPayload(
-			{
-				name: "ServiceNotFoundError",
-				code: 404,
-				type: "SERVICE_NOT_FOUND",
-				data: { a: 5 },
-				retryable: true,
-				stack: "error stack"
-			},
-			{ sender: "node-999" }
-		);
-
-		expect(err).toBeInstanceOf(E.MoleculerError);
-		expect(err).toBeInstanceOf(E.ServiceNotFoundError);
-		expect(err.name).toBe("ServiceNotFoundError");
-		expect(err.code).toBe(404);
-		expect(err.type).toBe("SERVICE_NOT_FOUND");
-		expect(err.data).toEqual({ a: 5 });
-		expect(err.retryable).toBe(true);
-		expect(err.nodeID).toBe("node-999");
-		expect(err.stack).toBe("error stack");
-	});
-
-	it("should create a common error from payload", () => {
-		const err = transit._createErrFromPayload({
-			name: "MyCustomError",
-			code: 456,
-			type: "NOTHING",
-			data: { b: 5 },
-			retryable: true,
-			nodeID: "node-1234",
-			stack: "error stack"
-		});
-
-		expect(err).toBeInstanceOf(Error);
-		expect(err.name).toBe("MyCustomError");
-		expect(err.code).toBe(456);
-		expect(err.type).toBe("NOTHING");
-		expect(err.data).toEqual({ b: 5 });
-		expect(err.retryable).toBe(true);
-		expect(err.nodeID).toBe("node-1234");
-		expect(err.stack).toBe("error stack");
-	});
-
-	it("should create a custom error from payload", () => {
-		class MyCustomError {
-			constructor(name, code, type, data) {
-				this.name = name;
-				this.code = code;
-				this.type = type;
-				this.data = data;
-			}
-		}
-		class MyErrorRegenerator extends E.Regenerator {
-			restoreCustomError(plainError) {
-				if (plainError.name === "MyCustomError") {
-					return new MyCustomError(
-						plainError.name,
-						plainError.code,
-						plainError.type,
-						plainError.data
-					);
-				}
-			}
-		}
-
-		const broker = new ServiceBroker({
-			logger: false,
-			nodeID: "node1",
-			errorRegenerator: new MyErrorRegenerator(),
-			transporter: new FakeTransporter()
-		});
-		const transit = broker.transit;
-		const err = transit._createErrFromPayload({
-			name: "MyCustomError",
-			code: 456,
-			type: "NOTHING",
-			data: { b: 5 },
-			retryable: true,
-			nodeID: "node-1234",
-			stack: "error stack"
-		});
-
-		expect(err).toBeInstanceOf(MyCustomError);
-		expect(err.name).toBe("MyCustomError");
-		expect(err.code).toBe(456);
-		expect(err.type).toBe("NOTHING");
-		expect(err.data).toEqual({ b: 5 });
-		expect(err.retryable).toBe(true);
-		expect(err.nodeID).toBe("node-1234");
-		expect(err.stack).toBe("error stack");
+		expect(broker.errorRegenerator.restore).toHaveBeenCalled();
+		expect(broker.errorRegenerator.restore).toHaveBeenCalledWith(plainError, payload);
 	});
 });
 
@@ -2492,28 +2398,26 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 });
 
 describe("Test Transit._createPayloadErrorField", () => {
-	const broker = new ServiceBroker({
-		logger: false,
-		nodeID: "node1",
-		transporter: new FakeTransporter()
-	});
-	const transit = broker.transit;
+	let broker;
 
-	it("should create payload from Error", () => {
+	beforeEach(() => {
+		broker = new ServiceBroker({
+			logger: false,
+			nodeID: "node1",
+			transporter: new FakeTransporter()
+		});
+	});
+
+	it("should call errorRegenerator.extractPlainError method", () => {
+		const payload = {};
 		const err = new E.MoleculerRetryableError("Something went wrong", 456, "CUSTOM", { a: 5 });
 		err.stack = "custom stack";
+		broker.errorRegenerator.extractPlainError = jest.fn();
 
-		const res = transit._createPayloadErrorField(err);
-		expect(res).toEqual({
-			name: "MoleculerRetryableError",
-			message: "Something went wrong",
-			nodeID: "node1",
-			code: 456,
-			type: "CUSTOM",
-			retryable: true,
-			stack: "custom stack",
-			data: { a: 5 }
-		});
+		broker.transit._createPayloadErrorField(err, payload);
+
+		expect(broker.errorRegenerator.extractPlainError).toHaveBeenCalled();
+		expect(broker.errorRegenerator.extractPlainError).toHaveBeenCalledWith(err, payload);
 	});
 });
 
