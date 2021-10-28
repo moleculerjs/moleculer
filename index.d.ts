@@ -844,6 +844,7 @@ declare namespace Moleculer {
 		cacher?: boolean | Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
 		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions;
+		errorRegenerator?: Errors.Regenerator;
 
 		metrics?: boolean | MetricRegistryOptions;
 		tracing?: boolean | TracerOptions;
@@ -1034,6 +1035,7 @@ declare namespace Moleculer {
 		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: BaseValidator;
+		errorRegenerator?: Errors.Regenerator;
 
 		tracer: Tracer;
 
@@ -1434,6 +1436,8 @@ declare namespace Moleculer {
 
 		interface PlainMoleculerError extends MoleculerError {
 			nodeID?: string;
+
+			[key: string]: any;
 		}
 
 		class Regenerator {
