@@ -570,6 +570,15 @@ class Regenerator {
 		return undefined;
 	}
 
+	/**
+	 * Create a default error if not found
+	 *
+	 * @param {Object} plainError
+	 * @return {Error}
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
 	_createDefaultError(plainError) {
 		const err = new Error(plainError.message);
 		err.name = plainError.name;
@@ -580,11 +589,30 @@ class Regenerator {
 		return err;
 	}
 
+	/**
+	 * Restore common Moleculer error fields
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} err
+	 * @param {Object} payload
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
 	_restoreMoleculerErrorFields(plainError, err, payload) {
 		err.retryable = plainError.retryable;
 		err.nodeID = plainError.nodeID || payload.sender;
 	}
 
+	/**
+	 * Restore error stack
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} err
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
 	_restoreStack(plainError, err) {
 		if (plainError.stack) err.stack = plainError.stack;
 	}
