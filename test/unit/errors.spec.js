@@ -1,6 +1,7 @@
 "use strict";
 
 let errors = require("../../src/errors");
+const ServiceBroker = require("../../src/service-broker");
 
 describe("Test Errors", () => {
 	it("test MoleculerError", () => {
@@ -578,4 +579,274 @@ describe("Test Errors.recreateError", () => {
 		});
 		expect(err).toBeUndefined();
 	});
+});
+
+describe("Test Errors.Regenerator", () => {
+	describe("Initialization", () => {
+		it("should create an instance", () => {
+			let regenerator = new errors.Regenerator();
+
+			expect(regenerator).toBeDefined();
+			expect(regenerator.init).toBeDefined();
+			expect(regenerator.restore).toBeDefined();
+			expect(regenerator.extractPlainError).toBeDefined();
+			expect(regenerator.restoreCustomError).toBeDefined();
+		});
+
+		it("should initialize an instance", () => {
+			let broker = new ServiceBroker({ logger: false });
+			let regenerator = new errors.Regenerator();
+
+			regenerator.init(broker);
+
+			expect(regenerator.broker).toBe(broker);
+		});
+	});
+
+	describe("Restore error", () => {
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false });
+			regenerator = new errors.Regenerator();
+			regenerator.init(broker);
+		});
+
+		it("should call restoreCustomError hook", () => {
+			let plainError = {
+				name: "MoleculerError",
+				message: "Something went wrong",
+				code: 501,
+				type: "SOMETHING_ERROR",
+				data: { a: 5 }
+			};
+			let payload = {};
+			regenerator.restoreCustomError = jest.fn();
+
+			regenerator.restore(plainError, payload);
+
+			expect(regenerator.restoreCustomError).toHaveBeenCalled();
+			expect(regenerator.restoreCustomError).toHaveBeenCalledWith(plainError, payload);
+		});
+
+		it("should restore a built-in error", () => {
+			let plainError = {
+				name: "ServiceNotFoundError",
+				code: 404,
+				type: "SERVICE_NOT_FOUND",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(errors.MoleculerError);
+			expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+			expect(err.name).toBe("ServiceNotFoundError");
+			expect(err.code).toBe(404);
+			expect(err.type).toBe("SERVICE_NOT_FOUND");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+		});
+
+		it("should pick nodeID from payload.sender when nodeID is absent in a plain error", () => {
+			let plainError = {
+				name: "ServiceNotFoundError",
+				code: 404,
+				type: "SERVICE_NOT_FOUND",
+				data: { a: 5 },
+				retryable: true,
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(errors.MoleculerError);
+			expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+			expect(err.name).toBe("ServiceNotFoundError");
+			expect(err.code).toBe(404);
+			expect(err.type).toBe("SERVICE_NOT_FOUND");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("payload-sender");
+			expect(err.stack).toBe("error stack");
+		});
+
+		it("should restore an unknown error", () => {
+			let plainError = {
+				name: "UnknownError",
+				code: 456,
+				type: "UNKNOWN_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack"
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(Error);
+			expect(err.name).toBe("UnknownError");
+			expect(err.code).toBe(456);
+			expect(err.type).toBe("UNKNOWN_TYPE");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+		});
+	});
+
+	describe("Restore custom error", () => {
+		class MyCustomError extends errors.MoleculerError {
+			constructor(name, code, type, data, custom) {
+				super(name, code, type, data);
+				this.custom = custom;
+			}
+		}
+		class MyErrorRegenerator extends errors.Regenerator {
+			restoreCustomError({ name, code, type, data, custom }) {
+				if (name === "MyCustomError") {
+					return new MyCustomError(name, code, type, data, custom);
+				}
+			}
+		}
+
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false });
+			regenerator = new MyErrorRegenerator();
+			regenerator.init(broker);
+		});
+
+		it("should create a custom error", () => {
+			let plainError = {
+				name: "MyCustomError",
+				code: 456,
+				type: "CUSTOM_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack",
+				custom: { a: 5, b: 6 }
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(MyCustomError);
+			expect(err.name).toBe("MyCustomError");
+			expect(err.code).toBe(456);
+			expect(err.type).toBe("CUSTOM_TYPE");
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.retryable).toBe(true);
+			expect(err.nodeID).toBe("node-1234");
+			expect(err.stack).toBe("error stack");
+			expect(err.custom).toEqual({ a: 5, b: 6 });
+		});
+
+		it("should prefer a custom error over a built-in one", () => {
+			regenerator.restoreCustomError = function ({ name, code, type, data, custom }) {
+				if (name === "MoleculerRetryableError") {
+					return new MyCustomError(name, code, type, data, custom);
+				}
+			};
+			let plainError = {
+				name: "MoleculerRetryableError",
+				code: 456,
+				type: "CUSTOM_TYPE",
+				data: { a: 5 },
+				retryable: true,
+				nodeID: "node-1234",
+				stack: "error stack",
+				custom: { a: 5, b: 6 }
+			};
+			let payload = { sender: "payload-sender" };
+
+			let err = regenerator.restore(plainError, payload);
+
+			expect(err).toBeInstanceOf(MyCustomError);
+		});
+	});
+
+	describe("Extract plain error", () => {
+		let regenerator;
+
+		beforeEach(() => {
+			let broker = new ServiceBroker({ logger: false, nodeID: "broker-node-id" });
+			regenerator = new errors.Regenerator();
+			regenerator.init(broker);
+		});
+
+		it("should extract from a built-in error", () => {
+			const err = new errors.MoleculerRetryableError("Msg", 456, "TYPE", { a: 5 });
+			err.stack = "custom stack";
+			err.nodeID = "node1";
+
+			const res = regenerator.extractPlainError(err);
+
+			expect(res).toEqual({
+				name: "MoleculerRetryableError",
+				message: "Msg",
+				nodeID: "node1",
+				code: 456,
+				type: "TYPE",
+				retryable: true,
+				stack: "custom stack",
+				data: { a: 5 }
+			});
+		});
+
+		it("should select nodeID from a broker when input error doesn't have nodeID", () => {
+			const err = new errors.MoleculerRetryableError("Msg", 456, "TYPE", { a: 5 });
+			err.stack = "custom stack";
+
+			const res = regenerator.extractPlainError(err);
+
+			expect(res).toEqual({
+				name: "MoleculerRetryableError",
+				message: "Msg",
+				nodeID: regenerator.broker.nodeID,
+				code: 456,
+				type: "TYPE",
+				retryable: true,
+				stack: "custom stack",
+				data: { a: 5 }
+			});
+		});
+	});
+});
+
+describe("Test Errors.resolveRegenerator", () => {
+	it("should resolve to a custom regenerator when option is an instance of Errors.Regenerator", () => {
+		class CustomRegenerator extends errors.Regenerator {}
+
+		const result = errors.resolveRegenerator(new CustomRegenerator());
+
+		expect(result).toBeInstanceOf(CustomRegenerator);
+	});
+
+	it("should resolve to Errors.Regenerator when option isn't an instance of Errors.Regenerator", () => {
+		class CustomRegenerator {}
+
+		const result = errors.resolveRegenerator(new CustomRegenerator());
+
+		expect(result).toBeInstanceOf(errors.Regenerator);
+	});
+
+	it.each([-1, 0, 1, "", "custom", {}, null, undefined, [], true, false, () => {}])(
+		"should resolve to Errors.Regenerator when option is '%p'",
+		option => {
+			const result = errors.resolveRegenerator(option);
+
+			expect(result).toBeInstanceOf(errors.Regenerator);
+		}
+	);
 });

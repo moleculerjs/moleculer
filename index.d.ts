@@ -844,6 +844,7 @@ declare namespace Moleculer {
 		cacher?: boolean | Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
 		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions;
+		errorRegenerator?: Errors.Regenerator;
 
 		metrics?: boolean | MetricRegistryOptions;
 		tracing?: boolean | TracerOptions;
@@ -1034,6 +1035,7 @@ declare namespace Moleculer {
 		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: BaseValidator;
+		errorRegenerator?: Errors.Regenerator;
 
 		tracer: Tracer;
 
@@ -1430,6 +1432,19 @@ declare namespace Moleculer {
 
 		class InvalidPacketDataError extends MoleculerError {
 			constructor(data: any);
+		}
+
+		interface PlainMoleculerError extends MoleculerError {
+			nodeID?: string;
+
+			[key: string]: any;
+		}
+
+		class Regenerator {
+			init(broker: ServiceBroker): void;
+			restore(plainError: PlainMoleculerError, payload: GenericObject): Error;
+			extractPlainError(err: Error): PlainMoleculerError;
+			restoreCustomError(plainError: PlainMoleculerError, payload: GenericObject): Error | undefined;
 		}
 	}
 

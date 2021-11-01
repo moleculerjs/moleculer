@@ -497,6 +497,142 @@ function recreateError(err) {
 	}
 }
 
+/**
+ * Error Regenerator
+ * @class Regenerator
+ */
+class Regenerator {
+	/**
+	 * Initializes Regenerator
+	 *
+	 * @param {ServiceBroker} broker
+	 *
+	 * @memberof Regenerator
+	 */
+	init(broker) {
+		this.broker = broker;
+	}
+
+	/**
+	 * Restores an Error object
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} payload
+	 * @return {Error}
+	 *
+	 * @memberof Regenerator
+	 */
+	restore(plainError, payload) {
+		let err = this.restoreCustomError(plainError, payload);
+		if (!err) {
+			err = recreateError(plainError);
+		}
+		if (!err) {
+			err = this._createDefaultError(plainError);
+		}
+		this._restoreExternalFields(plainError, err, payload);
+		this._restoreStack(plainError, err);
+
+		return err;
+	}
+
+	/**
+	 * Extracts a plain error object from Error object
+	 *
+	 * @param {Error} err
+	 * @param {Object} payload
+	 * @return {Object} plain error
+	 *
+	 * @memberof Regenerator
+	 */
+	extractPlainError(err) {
+		return {
+			name: err.name,
+			message: err.message,
+			nodeID: err.nodeID || this.broker.nodeID,
+			code: err.code,
+			type: err.type,
+			retryable: err.retryable,
+			stack: err.stack,
+			data: err.data
+		};
+	}
+
+	/**
+	 * Hook to restore a custom error in a child class
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} payload
+	 * @return {Error | undefined}
+	 *
+	 * @memberof Regenerator
+	 */
+	restoreCustomError() {
+		return undefined;
+	}
+
+	/**
+	 * Creates a default error if not found
+	 *
+	 * @param {Object} plainError
+	 * @return {Error}
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
+	_createDefaultError(plainError) {
+		const err = new Error(plainError.message);
+		err.name = plainError.name;
+		err.code = plainError.code;
+		err.type = plainError.type;
+		err.data = plainError.data;
+
+		return err;
+	}
+
+	/**
+	 * Restores external error fields
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} err
+	 * @param {Object} payload
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
+	_restoreExternalFields(plainError, err, payload) {
+		err.retryable = plainError.retryable;
+		err.nodeID = plainError.nodeID || payload.sender;
+	}
+
+	/**
+	 * Restores an error stack
+	 *
+	 * @param {Object} plainError
+	 * @param {Object} err
+	 * @private
+	 *
+	 * @memberof Regenerator
+	 */
+	_restoreStack(plainError, err) {
+		if (plainError.stack) err.stack = plainError.stack;
+	}
+}
+
+/**
+ * Resolves a regenerator option
+ *
+ * @param {Regenerator} opt
+ * @return {Regenerator}
+ */
+function resolveRegenerator(opt) {
+	if (opt instanceof Regenerator) {
+		return opt;
+	}
+
+	return new Regenerator();
+}
+
 module.exports = {
 	ExtendableError,
 
@@ -524,5 +660,7 @@ module.exports = {
 
 	BrokerDisconnectedError,
 
-	recreateError
+	recreateError,
+	resolveRegenerator,
+	Regenerator
 };

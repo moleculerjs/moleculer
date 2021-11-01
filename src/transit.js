@@ -38,6 +38,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 		this.discoverer = broker.registry.discoverer;
+		this.errorRegenerator = broker.errorRegenerator;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -562,7 +563,7 @@ class Transit {
 				if (payload.meta && payload.meta["$streamError"]) {
 					pass.emit(
 						"error",
-						this._createErrFromPayload(payload.meta["$streamError"], payload.sender)
+						this._createErrFromPayload(payload.meta["$streamError"], payload)
 					);
 				}
 
@@ -606,23 +607,10 @@ class Transit {
 	/**
 	 * Create an Error instance from payload ata
 	 * @param {Object} error
-	 * @param {String} sender
+	 * @param {Object} payload
 	 */
-	_createErrFromPayload(error, sender) {
-		let err = E.recreateError(error);
-		if (!err) {
-			err = new Error(error.message);
-			err.name = error.name;
-			err.code = error.code;
-			err.type = error.type;
-			err.data = error.data;
-		}
-		err.retryable = error.retryable;
-		err.nodeID = error.nodeID || sender;
-
-		if (error.stack) err.stack = error.stack;
-
-		return err;
+	_createErrFromPayload(error, payload) {
+		return this.errorRegenerator.restore(error, payload);
 	}
 
 	/**
@@ -665,7 +653,7 @@ class Transit {
 		this.removePendingRequest(id);
 
 		if (!packet.success) {
-			req.reject(this._createErrFromPayload(packet.error, packet.sender));
+			req.reject(this._createErrFromPayload(packet.error, packet));
 		} else {
 			req.resolve(packet.data);
 		}
@@ -724,7 +712,7 @@ class Transit {
 			if (!packet.stream) {
 				// Received error?
 				if (!packet.success)
-					pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
+					pass.emit("error", this._createErrFromPayload(packet.error, packet));
 
 				this.logger.debug(
 					`<= Stream closing is received from '${packet.sender}'. Seq: ${packet.seq}`
@@ -919,7 +907,7 @@ class Transit {
 						const copy = Object.assign({}, payload);
 						copy.seq = ++payload.seq;
 						copy.stream = false;
-						copy.meta["$streamError"] = this._createPayloadErrorField(err);
+						copy.meta["$streamError"] = this._createPayloadErrorField(err, payload);
 						copy.params = null;
 
 						this.logger.debug(
@@ -1026,20 +1014,12 @@ class Transit {
 	 * Create error field in outgoing payload
 	 *
 	 * @param {Error} err
+	 * @param {Object} payload
 	 * @returns {Object}
 	 * @memberof Transit
 	 */
-	_createPayloadErrorField(err) {
-		return {
-			name: err.name,
-			message: err.message,
-			nodeID: err.nodeID || this.nodeID,
-			code: err.code,
-			type: err.type,
-			retryable: err.retryable,
-			stack: err.stack,
-			data: err.data
-		};
+	_createPayloadErrorField(err, payload) {
+		return this.errorRegenerator.extractPlainError(err, payload);
 	}
 
 	/**
@@ -1062,7 +1042,7 @@ class Transit {
 			data: data
 		};
 
-		if (err) payload.error = this._createPayloadErrorField(err);
+		if (err) payload.error = this._createPayloadErrorField(err, payload);
 
 		const publishCatch = /* istanbul ignore next */ err =>
 			this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
@@ -1136,7 +1116,7 @@ class Transit {
 				copy.seq = ++payload.seq;
 				if (err) {
 					copy.success = false;
-					copy.error = this._createPayloadErrorField(err);
+					copy.error = this._createPayloadErrorField(err, payload);
 				}
 
 				this.logger.debug(`=> Send stream error to ${nodeID} node.`, copy.error);

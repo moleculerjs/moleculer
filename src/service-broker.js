@@ -23,6 +23,7 @@ const Validators = require("./validators");
 const Cachers = require("./cachers");
 const Transporters = require("./transporters");
 const Serializers = require("./serializers");
+const Errors = require("./errors");
 const H = require("./health");
 const MiddlewareHandler = require("./middleware");
 const cpuUsage = require("./cpu-usage");
@@ -41,6 +42,8 @@ const defaultOptions = {
 	logLevel: null,
 
 	transporter: null, //"TCP",
+
+	errorRegenerator: null,
 
 	requestTimeout: 0 * 1000,
 	retryPolicy: {
@@ -224,6 +227,10 @@ class ServiceBroker {
 			// Serializer
 			this.serializer = Serializers.resolve(this.options.serializer);
 			this.serializer.init(this);
+
+			// Error regenerator
+			this.errorRegenerator = Errors.resolveRegenerator(this.options.errorRegenerator);
+			this.errorRegenerator.init(this);
 
 			const serializerName = this.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);
