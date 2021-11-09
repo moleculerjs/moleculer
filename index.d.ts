@@ -673,7 +673,7 @@ declare namespace Moleculer {
 		version?: string | number;
 		settings?: S;
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
-		metadata?: GenericObject | any;
+		metadata?: any;
 		actions?: ServiceActionsSchema;
 		mixins?: Array<Partial<ServiceSchema>>;
 		methods?: ServiceMethods;
