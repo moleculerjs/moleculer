@@ -427,12 +427,12 @@ declare namespace Moleculer {
 	}
 
 	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
-	type ActionCacheKeygenFuncType<P = Record<string, any>, M = any, K = any[]|null> = (actionName: string, params: P, meta: M, defaultKeys: K) => string;
 
 	interface ActionCacheOptions<P = Record<string, any>, M = any, K = any[]|null> {
 		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
-		keys?: string[] | ActionCacheKeygenFuncType<P, M, K>;
+		keys?: Array<string>;
+		keygen?: CacherKeygenFuncType<P, M, K>;
 		lock?: {
 			enabled?: boolean;
 			staleTime?: number;
@@ -1196,9 +1196,10 @@ declare namespace Moleculer {
 		deserialize(type: string, data: Buffer): Packet;
 	}
 
+	type CacherKeygenFuncType<P = Record<string, any>, M = any, K = any[]|null> = (actionName: string, params: P, meta: M, defaultKeys: K) => string;
 	interface CacherOptions {
 		ttl?: number;
-		keygen?: Function;
+		keygen?: CacherKeygenFuncType;
 		maxParamsLength?: number;
 		[key: string]: any;
 	}
