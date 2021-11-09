@@ -441,7 +441,7 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
-	type ActionHookBefore = (ctx: Context<any, any>) => Promise<any> | any;
+	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
 	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
 	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 
@@ -1524,8 +1524,8 @@ declare namespace Moleculer {
 		show(): this;
 		hide(): this;
 		find(command: string): Vorpal.Command;
-		exec(command: string): Promise<any>;
-		execSync(command: string): Promise<any>;
+		exec(command: string): Promise<{}>;
+		execSync(command: string): Promise<{}>;
 		log(value: string, ...values: string[]): this;
 		history(id: string): this;
 		localStorage(id: string): object;
