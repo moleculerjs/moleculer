@@ -1196,7 +1196,7 @@ declare namespace Moleculer {
 		deserialize(type: string, data: Buffer): Packet;
 	}
 
-	type CacherKeygenFunc<P = Record<string, unknown>, M = unknown> = (actionName: string, params: P, meta: M, defaultKeys?: string[]) => string;
+	type CacherKeygenFunc<P = Record<string, unknown>, M = unknown> = (actionName: string, params: P, meta: M, keys?: string[]) => string;
 	interface CacherOptions {
 		ttl?: number;
 		keygen?: CacherKeygenFunc;
