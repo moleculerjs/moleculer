@@ -22,7 +22,7 @@ declare namespace Moleculer {
 		init(opts: LoggerConfig | Array<LoggerConfig>): void;
 		stop(): void;
 		getLogger(bindings: GenericObject): LoggerInstance;
-		getBindingsKey(bindings: GenericObject): String;
+		getBindingsKey(bindings: GenericObject): string;
 
 		broker: ServiceBroker;
 	}
@@ -251,7 +251,7 @@ declare namespace Moleculer {
 
 		lastSnapshot: GenericObject | null;
 		dirty: boolean;
-		values: Map<String, GenericObject>;
+		values: Map<string, GenericObject>;
 
 		constructor(opts: BaseMetricOptions, registry: MetricRegistry);
 		setDirty(): void;
@@ -358,7 +358,7 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		dirty: boolean;
-		store: Map<String, BaseMetric>;
+		store: Map<string, BaseMetric>;
 		reporter: Array<MetricBaseReporter>;
 
 		constructor(broker: ServiceBroker, opts?: MetricRegistryOptions);
@@ -428,10 +428,11 @@ declare namespace Moleculer {
 
 	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
 
-	interface ActionCacheOptions {
+	interface ActionCacheOptions<P = Record<string, unknown>, M = unknown> {
 		enabled?: boolean | ActionCacheEnabledFuncType;
 		ttl?: number;
 		keys?: Array<string>;
+		keygen?: CacherKeygenFunc<P, M>;
 		lock?: {
 			enabled?: boolean;
 			staleTime?: number;
@@ -672,7 +673,7 @@ declare namespace Moleculer {
 		version?: string | number;
 		settings?: S;
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
-		metadata?: GenericObject;
+		metadata?: any;
 		actions?: ServiceActionsSchema;
 		mixins?: Array<Partial<ServiceSchema>>;
 		methods?: ServiceMethods;
@@ -1197,9 +1198,10 @@ declare namespace Moleculer {
 		deserialize(type: string, data: Buffer): Packet;
 	}
 
+	type CacherKeygenFunc<P = Record<string, unknown>, M = unknown> = (actionName: string, params: P, meta: M, keys?: string[]) => string;
 	interface CacherOptions {
 		ttl?: number;
-		keygen?: Function;
+		keygen?: CacherKeygenFunc;
 		maxParamsLength?: number;
 		[key: string]: any;
 	}
