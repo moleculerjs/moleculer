@@ -1005,42 +1005,68 @@ class ServiceBroker {
 		serviceNames = _.uniq(
 			_.compact(
 				serviceNames.map(x => {
-					if (utils.isPlainObject(x) && x.name)
-						return this.ServiceFactory.getVersionedFullName(x.name, x.version);
-
-					if (utils.isString(x)) return x;
+					if (utils.isPlainObject(x) && x.name) {
+						if (Array.isArray(x.version)) {
+							return x.version.map(v =>
+								this.ServiceFactory.getVersionedFullName(x.name, v)
+							);
+						} else {
+							return this.ServiceFactory.getVersionedFullName(x.name, x.version);
+						}
+					} else if (utils.isString(x)) {
+						return x;
+					}
 				})
 			)
 		);
 
 		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
 
-		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
+		logger.info(
+			`Waiting for service(s) '${serviceNames
+				.map(n => (Array.isArray(n) ? n.join(" OR ") : n))
+				.join(", ")}'...`
+		);
 
 		const startTime = Date.now();
 		return new this.Promise((resolve, reject) => {
 			const check = () => {
-				const serviceStatuses = serviceNames.map(serviceName => {
-					return {
-						name: serviceName,
-						available: this.registry.hasService(serviceName)
-					};
+				const serviceStatuses = serviceNames.map(name => {
+					if (Array.isArray(name)) {
+						return name.map(n => ({
+							name: n,
+							available: this.registry.hasService(n)
+						}));
+					} else {
+						return {
+							name,
+							available: this.registry.hasService(name)
+						};
+					}
 				});
+				const flattenedStatuses = serviceStatuses.flatMap(s => s);
+				const names = flattenedStatuses.map(s => s.name);
+				const availableServices = flattenedStatuses.filter(s => s.available);
 
-				const availableServices = serviceStatuses.filter(s => s.available);
-
-				if (availableServices.length == serviceNames.length) {
-					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
-					return resolve({ services: serviceNames, statuses: serviceStatuses });
+				const isReady = serviceStatuses.every(status =>
+					Array.isArray(status) ? status.some(n => n.available) : status.available
+				);
+				if (isReady) {
+					logger.info(
+						`Service(s) '${availableServices
+							.map(s => s.name)
+							.join(", ")}' are available.`
+					);
+					return resolve({ services: names, statuses: flattenedStatuses });
 				}
 
-				const unavailableServices = serviceStatuses.filter(s => !s.available);
+				const unavailableServices = flattenedStatuses.filter(s => !s.available);
 				logger.debug(
 					format(
 						"%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...",
 						availableServices.length,
 						availableServices.map(s => s.name).join(", "),
-						serviceNames.length,
+						serviceStatuses.length,
 						unavailableServices.length,
 						unavailableServices.map(s => s.name).join(", ")
 					)
@@ -1052,7 +1078,7 @@ class ServiceBroker {
 							"Services waiting is timed out.",
 							500,
 							"WAITFOR_SERVICES",
-							{ services: serviceNames, statuses: serviceStatuses }
+							{ services: names, statuses: flattenedStatuses }
 						)
 					);
 

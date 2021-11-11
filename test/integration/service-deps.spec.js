@@ -39,4 +39,56 @@ describe("Test Service dependencies", () => {
 				expect(startedMath).toHaveBeenCalledTimes(1);
 			});
 	});
+
+	describe("mutually exclusive dependencies", () => {
+		let broker;
+		let startedFn;
+
+		beforeEach(() => {
+			jest.resetAllMocks();
+
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "node-3",
+				transporter: "fake"
+			});
+			startedFn = jest.fn();
+
+			broker.createService({
+				name: "other",
+				dependencies: [{ name: "thing", version: [1, 2] }],
+				started: startedFn
+			});
+		});
+
+		afterEach(async () => {
+			await broker.stop();
+		});
+
+		it.each([1, 2])("fulfils dependency with v%d", async version => {
+			await broker.Promise.delay(500);
+			expect(startedFn).not.toBeCalled();
+
+			broker.createService({
+				name: "thing",
+				version
+			});
+			await broker.start();
+
+			expect(startedFn).toBeCalled();
+		});
+
+		it("does not fulfil dependency with other version", async () => {
+			await broker.Promise.delay(500);
+			expect(startedFn).not.toBeCalled();
+
+			broker.createService({
+				name: "thing",
+				version: 10
+			});
+
+			await broker.Promise.delay(500);
+			expect(startedFn).not.toBeCalled();
+		});
+	});
 });
