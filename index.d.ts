@@ -12,6 +12,64 @@ declare namespace Moleculer {
 	 *     type Promise<T> = Bluebird<T>;
 	 *   }
 	 */
+	// from @types/bluebird
+	interface PromiseLike<R> {
+		/**
+		 * Same as calling `Promise.delay(ms, this)`.
+		 */
+		delay(ms: number): PromiseLike<R>;
+
+		/**
+		 * Returns a promise that will be fulfilled with this promise's fulfillment value or rejection reason.
+		 *  However, if this promise is not fulfilled or rejected within ms milliseconds, the returned promise
+		 *  is rejected with a TimeoutError or the error as the reason.
+		 *
+		 * You may specify a custom error message with the `message` parameter.
+		 */
+		timeout(ms: number, message?: string | Error): PromiseLike<R>;
+	}
+
+	type Resolvable<R> = R | PromiseLike<R>;
+	type IterateFunction<T, R> = (item: T, index: number, arrayLength: number) => Resolvable<R>;
+
+	interface PromiseConstructorPolyfill extends PromiseConstructor {
+		/**
+		 * Returns a new function that wraps the given function `fn`.
+		 * The new function will always return a promise that is fulfilled with the original functions return values or rejected with thrown exceptions from the original function.
+		 * This method is convenient when a function can sometimes return synchronously or throw synchronously.
+		 */
+		method<R>(fn: () => Resolvable<R>): () => PromiseLike<R>;
+		method<R, A1>(fn: (arg1: A1) => Resolvable<R>): (arg1: A1) => PromiseLike<R>;
+		method<R, A1, A2>(fn: (arg1: A1, arg2: A2) => Resolvable<R>): (arg1: A1, arg2: A2) => PromiseLike<R>;
+		method<R, A1, A2, A3>(fn: (arg1: A1, arg2: A2, arg3: A3) => Resolvable<R>): (arg1: A1, arg2: A2, arg3: A3) => PromiseLike<R>;
+		method<R, A1, A2, A3, A4>(fn: (arg1: A1, arg2: A2, arg3: A3, arg4: A4) => Resolvable<R>): (arg1: A1, arg2: A2, arg3: A3, arg4: A4) => PromiseLike<R>;
+		method<R, A1, A2, A3, A4, A5>(fn: (arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5) => Resolvable<R>): (arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5) => PromiseLike<R>;
+		method<R>(fn: (...args: any[]) => Resolvable<R>): (...args: any[]) => PromiseLike<R>;
+
+		/**
+		 * Returns a promise that will be resolved with value (or undefined) after given ms milliseconds.
+		 * If value is a promise, the delay will start counting down when it is fulfilled and the returned
+		 *  promise will be fulfilled with the fulfillment value of the value promise.
+		 */
+		delay<R>(ms: number, value: Resolvable<R>): PromiseLike<R>;
+		delay(ms: number): PromiseLike<void>;
+
+		/**
+		 * Given an Iterable(arrays are Iterable), or a promise of an Iterable, which produces promises (or a mix of promises and values),
+		 * iterate over all the values in the Iterable into an array and iterate over the array serially, in-order.
+		 *
+		 * Returns a promise for an array that contains the values returned by the iterator function in their respective positions.
+		 * The iterator won't be called for an item until its previous item, and the promise returned by the iterator for that item are fulfilled.
+		 * This results in a mapSeries kind of utility but it can also be used simply as a side effect iterator similar to Array#forEach.
+		 *
+		 * If any promise in the input array is rejected or any promise returned by the iterator function is rejected, the result will be rejected as well.
+		 */
+		mapSeries<R, U>(
+			values: Resolvable<Iterable<Resolvable<R>>>,
+			iterator: IterateFunction<R, U>
+		): PromiseLike<U[]>;
+	}
+	// end - from @types/bluebird
 
 	type GenericObject = { [name: string]: any };
 
@@ -714,7 +772,7 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions: ServiceActions;
-		Promise: PromiseConstructorLike;
+		Promise: PromiseConstructorPolyfill;
 		//currentContext: Context | null;
 
 		_init(): void;
@@ -1010,7 +1068,7 @@ declare namespace Moleculer {
 
 		options: BrokerOptions;
 
-		Promise: PromiseConstructorLike;
+		Promise: PromiseConstructorPolyfill;
 		ServiceFactory: typeof Service;
 		ContextFactory: typeof Context;
 
@@ -1114,7 +1172,7 @@ declare namespace Moleculer {
 		static MOLECULER_VERSION: string;
 		static PROTOCOL_VERSION: string;
 		static defaultOptions: BrokerOptions;
-		static Promise: PromiseConstructorLike;
+		static Promise: PromiseConstructorPolyfill;
 	}
 
 	class Packet {
