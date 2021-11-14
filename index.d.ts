@@ -642,7 +642,7 @@ declare namespace Moleculer {
 		callHandlers(method: string, args: any[], opts: MiddlewareCallHandlerOptions): Promise<void>;
 		callSyncHandlers(method: string, args: any[], opts: MiddlewareCallHandlerOptions): void;
 		count(): number;
-		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
+		wrapMethod(method: string, handler: ActionHandler, bindTo?: any, opts?: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
 	interface ServiceHooksBefore {
@@ -1049,7 +1049,7 @@ declare namespace Moleculer {
 
 		errorHandler(err: Error, info: GenericObject): void;
 
-		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
+		wrapMethod(method: string, handler: ActionHandler, bindTo?: any, opts?: MiddlewareCallHandlerOptions): typeof handler;
 		callMiddlewareHookSync(name: string, args: any[], opts: MiddlewareCallHandlerOptions): Promise<void>;
 		callMiddlewareHook(name: string, args: any[], opts: MiddlewareCallHandlerOptions): void;
 
@@ -1262,8 +1262,8 @@ declare namespace Moleculer {
 	class Serializer {
 		constructor(opts?: any);
 		init(broker: ServiceBroker): void;
-		serialize(obj: GenericObject, type: string): Buffer;
-		deserialize(buf: Buffer, type: string): GenericObject;
+		serialize(obj: GenericObject, type?: string): Buffer;
+		deserialize(buf: Buffer, type?: string): GenericObject;
 	}
 
 	const Serializers: {
