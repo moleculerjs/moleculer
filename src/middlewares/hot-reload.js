@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -139,7 +139,8 @@ module.exports = function HotReloadMiddleware(broker) {
 					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
-					require.cache.length = 0;
+					Object.keys(require.cache).forEach(key => delete require.cache[key]);
+
 					return broker.runner.restartBroker();
 				} else if (watchItem.allServices) {
 					// Reload all services
@@ -255,7 +256,7 @@ module.exports = function HotReloadMiddleware(broker) {
 			// It is not a service dependency, it is a global middleware. We should reload all services if this file has changed.
 			if (parents) {
 				const watchItem = getWatchItem(fName);
-				watchItem.allServices = true;
+				watchItem.brokerRestart = true;
 				watchItem.others = _.uniq([].concat(watchItem.others, parents || []));
 			}
 		}
