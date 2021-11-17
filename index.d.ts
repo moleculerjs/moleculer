@@ -879,6 +879,8 @@ declare namespace Moleculer {
 		 * You have to register this manually and stop broker in this case!
 		 */
 		skipProcessEventRegistration?: boolean;
+
+		maxSafeObjectSize?: number;
 	}
 
 	interface NodeHealthStatus {
