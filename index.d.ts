@@ -675,7 +675,7 @@ declare namespace Moleculer {
 		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
 		metadata?: any;
 		actions?: ServiceActionsSchema;
-		mixins?: Array<Partial<ServiceSchema>> | Array<Partial<ServiceSchema>, ThisType<Service>>;
+		mixins?: Array<Partial<ServiceSchema>> | Array<Partial<ServiceSchema> & ThisType<Service>>;
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
