@@ -1115,6 +1115,7 @@ declare namespace Moleculer {
 
 		static MOLECULER_VERSION: string;
 		static PROTOCOL_VERSION: string;
+		static INTERNAL_MIDDLEWARES: Array<string>;
 		static defaultOptions: BrokerOptions;
 		static Promise: PromiseConstructorLike;
 	}

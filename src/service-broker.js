@@ -135,6 +135,23 @@ const defaultOptions = {
 	// Promise: null
 };
 
+const INTERNAL_MIDDLEWARES = [
+	"ActionHook",
+	"Validator",
+	"Bulkhead",
+	"Cacher",
+	"ContextTracker",
+	"CircuitBreaker",
+	"Timeout",
+	"Retry",
+	"Fallback",
+	"ErrorHandler",
+	"Tracing",
+	"Metrics",
+	"Debounce",
+	"Throttle"
+];
+
 /**
  * Service broker class
  *
@@ -327,48 +344,7 @@ class ServiceBroker {
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
-
-			// 0. ActionHook
-			this.middlewares.add("ActionHook");
-
-			// 1. Validator
-			this.middlewares.add("Validator");
-
-			// 2. Bulkhead
-			this.middlewares.add("Bulkhead");
-
-			// 3. Cacher
-			this.middlewares.add("Cacher");
-
-			// 4. Context tracker
-			this.middlewares.add("ContextTracker");
-
-			// 5. CircuitBreaker
-			this.middlewares.add("CircuitBreaker");
-
-			// 6. Timeout
-			this.middlewares.add("Timeout");
-
-			// 7. Retry
-			this.middlewares.add("Retry");
-
-			// 8. Fallback
-			this.middlewares.add("Fallback");
-
-			// 9. Error handler
-			this.middlewares.add("ErrorHandler");
-
-			// 10. Tracing
-			this.middlewares.add("Tracing");
-
-			// 11. Metrics
-			this.middlewares.add("Metrics");
-
-			// 12. Debounce
-			this.middlewares.add("Debounce");
-
-			// 13. Throttle
-			this.middlewares.add("Throttle");
+			INTERNAL_MIDDLEWARES.forEach(mw => this.middlewares.add(mw));
 
 			if (this.options.hotReload) {
 				// 14. Hot Reload
@@ -1747,6 +1723,11 @@ ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
  */
 ServiceBroker.PROTOCOL_VERSION = "4";
 ServiceBroker.prototype.PROTOCOL_VERSION = ServiceBroker.PROTOCOL_VERSION;
+
+/**
+ * Internal middlewares (order)
+ */
+ServiceBroker.INTERNAL_MIDDLEWARES = INTERNAL_MIDDLEWARES;
 
 /**
  * Default configuration
