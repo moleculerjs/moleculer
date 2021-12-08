@@ -97,7 +97,7 @@ class MoleculerRetryableError extends MoleculerError {
 }
 
 /**
- * Moleculer Error class for Broker disconnections which is retryable.
+ * Moleculer Error class for Broker disconnections which are retryable.
  *
  * @class MoleculerServerError
  * @extends {MoleculerRetryableError}
@@ -115,7 +115,7 @@ class BrokerDisconnectedError extends MoleculerRetryableError {
 }
 
 /**
- * Moleculer Error class for server error which is retryable.
+ * Moleculer Error class for server errors which are retryable.
  *
  * @class MoleculerServerError
  * @extends {MoleculerRetryableError}
@@ -123,7 +123,7 @@ class BrokerDisconnectedError extends MoleculerRetryableError {
 class MoleculerServerError extends MoleculerRetryableError {}
 
 /**
- * Moleculer Error class for client errors which is not retryable.
+ * Moleculer Error class for client errors which are not retryable.
  *
  * @class MoleculerClientError
  * @extends {MoleculerError}
