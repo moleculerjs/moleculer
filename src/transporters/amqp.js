@@ -146,6 +146,12 @@ class AmqpTransporter extends Transporter {
 							// No need to reject here since close event will be fired after
 							// if not connected at all connection promise will be rejected
 							this.logger.error("AMQP connection error.", err);
+
+							this.broker.broadcastLocal("$transporter.error", {
+								error: err,
+								module: "transporter",
+								type: "connection"
+							});
 						})
 						.on("close", err => {
 							this.connected = false;
@@ -183,6 +189,12 @@ class AmqpTransporter extends Transporter {
 								.on("error", err => {
 									// No need to reject here since close event will be fired after
 									this.logger.error("AMQP channel error.", err);
+
+									this.broker.broadcastLocal("$transporter.error", {
+										error: err,
+										module: "transporter",
+										type: "channel"
+									});
 								})
 								.on("drain", () => {
 									this.logger.info("AMQP channel is drained.");

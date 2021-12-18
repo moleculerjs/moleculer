@@ -127,6 +127,12 @@ class NatsTransporter extends Transporter {
 					this.logger.error("NATS error.", e.message);
 					this.logger.debug(e);
 
+					this.broker.broadcastLocal("$transporter.error", {
+						error: e,
+						module: "transporter",
+						type: "clientError"
+					});
+
 					if (!client.connected) reject(e);
 				});
 
@@ -179,6 +185,13 @@ class NatsTransporter extends Transporter {
 					/* istanbul ignore next */ err => {
 						this.logger.error("NATS error.", err.message);
 						this.logger.debug(err);
+
+						this.broker.broadcastLocal("$transporter.error", {
+							error: err,
+							module: "transporter",
+							type: "connection"
+						});
+
 						throw err;
 					}
 				);

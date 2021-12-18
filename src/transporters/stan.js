@@ -96,6 +96,12 @@ class StanTransporter extends Transporter {
 				this.logger.error("NATS error.", e.message);
 				this.logger.debug(e);
 
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: "clientError"
+				});
+
 				if (!client.connected) reject(e);
 			});
 

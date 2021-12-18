@@ -187,7 +187,15 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			)
 			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
-			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
+			.catch(err => {
+				this.logger.error("Error occurred while collect etcd keys.", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: "failedCollectKeys"
+				});
+			})
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL);
@@ -363,6 +371,12 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to etcd server", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: "failedSendInfo"
+				});
 			});
 	}
 

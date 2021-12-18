@@ -167,6 +167,12 @@ class Amqp10Transporter extends Transporter {
 							if (this.connection) {
 								delivery.reject();
 							}
+
+							this.broker.broadcastLocal("$transporter.error", {
+								error,
+								module: "transporter",
+								type: "requestAck"
+							});
 						});
 				} else {
 					if (this.connection) {
@@ -227,6 +233,12 @@ class Amqp10Transporter extends Transporter {
 					(this.connection && this.connection.error) || ""
 				);
 				errorCallback && errorCallback(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: "disconnected"
+				});
 			}
 		});
 
@@ -252,6 +264,12 @@ class Amqp10Transporter extends Transporter {
 				this.logger.info("AMQP10 is disconnected.");
 				this.connected = false;
 				errorCallback && errorCallback(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: "connection"
+				});
 			});
 	}
 
@@ -270,7 +288,15 @@ class Amqp10Transporter extends Transporter {
 					this.session = null;
 					this.receivers = [];
 				})
-				.catch(error => this.logger.error(error));
+				.catch(error => {
+					this.logger.error(error);
+
+					this.broker.broadcastLocal("$transporter.error", {
+						error,
+						module: "transporter",
+						type: "disconnected"
+					});
+				});
 		}
 	}
 
@@ -457,7 +483,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: "publish"
+				});
+			});
 	}
 
 	/**
@@ -496,7 +530,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: "publishBalancedEvent"
+				});
+			});
 	}
 
 	/**
@@ -535,7 +577,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: "publishBalancedRequest"
+				});
+			});
 	}
 }
 

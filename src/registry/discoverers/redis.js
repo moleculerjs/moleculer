@@ -125,6 +125,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.client.on("error", err => {
 			/* istanbul ignore next */
 			this.logger.error(err);
+
+			this.broker.broadcastLocal("$discoverer.error", {
+				error: err,
+				module: "discoverer",
+				type: "connection"
+			});
 		});
 
 		if (this.opts.monitor && isFunction(this.client.monitor)) {
@@ -227,7 +233,15 @@ class RedisDiscoverer extends BaseDiscoverer {
 			})
 			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
-			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
+			.catch(err => {
+				this.logger.error("Error occurred while scanning Redis keys.", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: "failedKeyScan"
+				});
+			})
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
@@ -389,6 +403,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to Redis server", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: "failedInfoSend"
+				});
 			});
 	}
 

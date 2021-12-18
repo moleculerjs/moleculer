@@ -480,7 +480,7 @@ class ServiceBroker {
 				this.logger.info(
 					`✔ ServiceBroker with ${
 						this.services.length
-					} service(s) is started successfully in ${utils.humanize(duration)}.`
+					} service(s) started successfully in ${utils.humanize(duration)}.`
 				);
 			});
 	}
@@ -509,6 +509,12 @@ class ServiceBroker {
 					err => {
 						/* istanbul ignore next */
 						this.logger.error("Unable to stop all services.", err);
+
+						this.broadcastLocal("$broker.error", {
+							error: err,
+							module: "broker",
+							type: "failedStoppingServices"
+						});
 					}
 				);
 			})
@@ -785,6 +791,11 @@ class ServiceBroker {
 			return svc;
 		} catch (e) {
 			this.logger.error(`Failed to load service '${filePath}'`, e);
+			this.broadcastLocal("$broker.error", {
+				error: err,
+				module: "broker",
+				type: "failedServiceLoad"
+			});
 			throw e;
 		}
 	}
@@ -826,9 +837,15 @@ class ServiceBroker {
 	 * @private
 	 */
 	_restartService(service) {
-		return service._start
-			.call(service)
-			.catch(err => this.logger.error("Unable to start service.", err));
+		return service._start.call(service).catch(err => {
+			this.logger.error("Unable to start service.", err);
+
+			this.broadcastLocal("$broker.error", {
+				error: err,
+				module: "broker",
+				type: "failedServiceRestart"
+			});
+		});
 	}
 
 	/**
@@ -882,6 +899,12 @@ class ServiceBroker {
 			.catch(err => {
 				/* istanbul ignore next */
 				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
+
+				this.broadcastLocal("$broker.error", {
+					error: err,
+					module: "broker",
+					type: "failedServiceDestruction"
+				});
 			})
 			.then(() => {
 				utils.removeFromArray(this.services, service);

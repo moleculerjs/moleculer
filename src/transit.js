@@ -401,6 +401,12 @@ class Transit {
 			return this.Promise.resolve(true);
 		} catch (err) {
 			this.logger.error(err, cmd, packet);
+
+			this.broker.broadcastLocal("$transit.error", {
+				error: err,
+				module: "transit",
+				type: "failedProcessingPacket"
+			});
 		}
 		return this.Promise.resolve(false);
 	}
@@ -830,11 +836,18 @@ class Transit {
 		const nodeName = ctx.nodeID ? `'${ctx.nodeID}'` : "someone";
 		this.logger.debug(`=> Send '${ctx.action.name}' request to ${nodeName} node.`);
 
-		const publishCatch = /* istanbul ignore next */ err =>
+		const publishCatch = /* istanbul ignore next */ err => {
 			this.logger.error(
 				`Unable to send '${ctx.action.name}' request to ${nodeName} node.`,
 				err
 			);
+
+			this.broker.broadcastLocal("$transit.error", {
+				error: err,
+				module: "transit",
+				type: "failedSendRequestPacket"
+			});
+		};
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -964,8 +977,15 @@ class Transit {
 				needAck: ctx.needAck
 			})
 		).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error(`Unable to send '${ctx.eventName}' event to groups.`, err)
+			/* istanbul ignore next */ err => {
+				this.logger.error(`Unable to send '${ctx.eventName}' event to groups.`, err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedSendEventPacket"
+				});
+			}
 		);
 	}
 
@@ -1044,8 +1064,15 @@ class Transit {
 
 		if (err) payload.error = this._createPayloadErrorField(err, payload);
 
-		const publishCatch = /* istanbul ignore next */ err =>
+		const publishCatch = /* istanbul ignore next */ err => {
 			this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
+
+			this.broker.broadcastLocal("$transit.error", {
+				error: err,
+				module: "transit",
+				type: "failedSendResponsePacket"
+			});
+		};
 
 		if (
 			data &&
@@ -1144,8 +1171,15 @@ class Transit {
 	 */
 	discoverNodes() {
 		return this.publish(new Packet(P.PACKET_DISCOVER)).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error("Unable to send DISCOVER packet.", err)
+			/* istanbul ignore next */ err => {
+				this.logger.error("Unable to send DISCOVER packet.", err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedNodesDiscovery"
+				});
+			}
 		);
 	}
 
@@ -1156,8 +1190,15 @@ class Transit {
 	 */
 	discoverNode(nodeID) {
 		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID)).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err)
+			/* istanbul ignore next */ err => {
+				this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedNodeDiscovery"
+				});
+			}
 		);
 	}
 
@@ -1181,8 +1222,15 @@ class Transit {
 				seq: info.seq
 			})
 		).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err)
+			/* istanbul ignore next */ err => {
+				this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedSendInfoPacket"
+				});
+			}
 		);
 	}
 
@@ -1201,8 +1249,15 @@ class Transit {
 				id: id || this.broker.generateUid()
 			})
 		).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err)
+			/* istanbul ignore next */ err => {
+				this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedSendPingPacket"
+				});
+			}
 		);
 	}
 
@@ -1221,8 +1276,15 @@ class Transit {
 				arrived: Date.now()
 			})
 		).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err)
+			/* istanbul ignore next */ err => {
+				this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedSendPongPacket"
+				});
+			}
 		);
 	}
 
@@ -1267,8 +1329,15 @@ class Transit {
 				cpu: localNode.cpu
 			})
 		).catch(
-			/* istanbul ignore next */ err =>
-				this.logger.error("Unable to send HEARTBEAT packet.", err)
+			/* istanbul ignore next */ err => {
+				this.logger.error("Unable to send HEARTBEAT packet.", err);
+
+				this.broker.broadcastLocal("$transit.error", {
+					error: err,
+					module: "transit",
+					type: "failedSendHeartbeatPacket"
+				});
+			}
 		);
 	}
 

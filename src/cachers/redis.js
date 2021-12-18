@@ -84,6 +84,12 @@ class RedisCacher extends BaseCacher {
 		this.client.on("error", err => {
 			this.connected = false;
 
+			this.broker.broadcastLocal("$cacher.error", {
+				error: err,
+				module: "cacher",
+				type: "clientError"
+			});
+
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -135,6 +141,12 @@ class RedisCacher extends BaseCacher {
 					})
 					.catch(err => {
 						this.connected = false;
+
+						this.broker.broadcastLocal("$cacher.error", {
+							error: err,
+							module: "cacher",
+							type: "failedSendPing"
+						});
 
 						this.logger.error("Failed to send PING to Redis Server", err);
 					});

@@ -61,6 +61,12 @@ class RedisTransporter extends Transporter {
 					this.logger.error("Redis-pub error", e.message);
 					this.logger.debug(e);
 
+					this.broker.broadcastLocal("$transporter.error", {
+						error: e,
+						module: "transporter",
+						type: "publisherError"
+					});
+
 					if (!this.connected) reject(e);
 				});
 
@@ -81,6 +87,12 @@ class RedisTransporter extends Transporter {
 			clientSub.on("error", e => {
 				this.logger.error("Redis-sub error", e.message);
 				this.logger.debug(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: "consumerError"
+				});
 			});
 
 			/* istanbul ignore next */
