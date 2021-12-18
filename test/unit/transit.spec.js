@@ -299,6 +299,7 @@ describe("Test Transit.makeSubscriptions", () => {
 describe("Test Transit.messageHandler", () => {
 	let broker;
 	let transit;
+	let broadcastLocalMock = jest.fn();
 
 	// transit.subscribe = jest.fn();
 
@@ -308,23 +309,51 @@ describe("Test Transit.messageHandler", () => {
 			nodeID: "node1",
 			transporter: new FakeTransporter()
 		});
+
+		broker.broadcastLocal = broadcastLocalMock;
+
 		transit = broker.transit;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
 	});
 
 	it("should throw Error if msg not valid", async () => {
 		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		const res = await transit.messageHandler("EVENT");
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new TypeError("Cannot read property 'payload' of undefined"),
+			module: "transit",
+			type: "failedProcessingPacket"
+		});
 	});
 
 	it("should throw Error if no version", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: {} });
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new E.ProtocolVersionMismatchError(),
+			module: "transit",
+			type: "failedProcessingPacket"
+		});
 	});
 
 	it("should throw Error if version mismatch", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: { ver: "1" } });
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new E.ProtocolVersionMismatchError(),
+			module: "transit",
+			type: "failedProcessingPacket"
+		});
 	});
 
 	it("should not throw Error if version mismatch & disableVersionCheck is true", async () => {
