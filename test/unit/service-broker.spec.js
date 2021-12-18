@@ -852,8 +852,13 @@ describe("Test broker.stop", () => {
 
 				expect(broker.started).toBe(false);
 
-				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(2);
+				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$broker.error", {
+					error: "Can't stop!",
+					module: "broker",
+					type: "failedStoppingServices"
+				});
+				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$broker.stopped");
 
 				// expect(broker.scope.stop).toHaveBeenCalledTimes(1);
 

@@ -169,7 +169,7 @@ class Amqp10Transporter extends Transporter {
 							}
 
 							this.broker.broadcastLocal("$transporter.error", {
-								error,
+								error: err,
 								module: "transporter",
 								type: "requestAck"
 							});
