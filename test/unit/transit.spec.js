@@ -305,7 +305,7 @@ describe("Test Transit.messageHandler", () => {
 
 	beforeEach(() => {
 		broker = new ServiceBroker({
-			logger: false,
+			logger: true,
 			nodeID: "node1",
 			transporter: new FakeTransporter()
 		});
@@ -326,7 +326,7 @@ describe("Test Transit.messageHandler", () => {
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
-			error: new TypeError("Cannot read property 'payload' of undefined"),
+			error: expect.any(Error),
 			module: "transit",
 			type: "failedProcessingPacket"
 		});
