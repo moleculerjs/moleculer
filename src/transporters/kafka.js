@@ -280,7 +280,7 @@ class KafkaTransporter extends Transporter {
 						this.logger.error("Publish error", err);
 
 						this.broker.broadcastLocal("$transporter.error", {
-							error: e,
+							error: err,
 							module: "transporter",
 							type: "publisherError"
 						});

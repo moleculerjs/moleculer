@@ -792,7 +792,7 @@ class ServiceBroker {
 		} catch (e) {
 			this.logger.error(`Failed to load service '${filePath}'`, e);
 			this.broadcastLocal("$broker.error", {
-				error: err,
+				error: e,
 				module: "broker",
 				type: "failedServiceLoad"
 			});
