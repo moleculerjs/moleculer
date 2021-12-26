@@ -161,6 +161,35 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 		return p;
 	});
 
+	it("check connect - should throw error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().then(() => {
+			expect(transporter.clientSub).toBeDefined();
+			expect(transporter.clientPub).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(2);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: "publisherError"
+			});
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: "consumerError"
+			});
+		});
+
+		transporter._clientSub.onCallbacks.connect();
+		transporter._clientPub.onCallbacks.connect();
+		// Trigger an error
+		transporter._clientPub.onCallbacks.error(new Error("Ups"));
+		transporter._clientSub.onCallbacks.error(new Error("Ups"));
+
+		return p;
+	});
+
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		let p = transporter.connect().then(() => {

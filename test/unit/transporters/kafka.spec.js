@@ -126,6 +126,27 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 		return p;
 	});
 
+	it("check connect - should throw error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().catch(() => {
+			expect(transporter.producer).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: "publisherError"
+			});
+		});
+
+		// Trigger an error
+		const error = new Error("Ups");
+		transporter.producer.callbacks.error(error);
+
+		return p;
+	});
+
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		let p = transporter.connect().then(() => {
@@ -214,6 +235,51 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		});
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", '{ ver: "3" }');
+	});
+
+	it("check makeSubscriptions - should throw a producer error", () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb(new Error("Ups!")));
+		const p = transporter
+			.makeSubscriptions([
+				{ cmd: "REQ", nodeID: "node" },
+				{ cmd: "RES", nodeID: "node" }
+			])
+			.then(() => transporter.consumer.callbacks.connect())
+			.catch(() => {
+				expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(transporter.broker.broadcastLocal).toHaveBeenNthCalledWith(
+					1,
+					"$transporter.error",
+					{
+						error: new Error("Ups!"),
+						module: "transporter",
+						type: "unableCreateTopics"
+					}
+				);
+			});
+
+		return p;
+	});
+
+	it.skip("check makeSubscriptions - should throw a consumer error", async () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb());
+		transporter.makeSubscriptions([
+			{ cmd: "REQ", nodeID: "node" },
+			{ cmd: "RES", nodeID: "node" }
+		]);
+
+		transporter.consumer.callbacks.error(new Error("Ups!"));
+
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+			error: new Error("Ups!"),
+			module: "transporter",
+			type: "consumerError"
+		});
 	});
 });
 

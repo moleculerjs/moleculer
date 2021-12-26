@@ -111,6 +111,27 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 		return p;
 	});
 
+	it("check connect - should throw error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().catch(() => {
+			expect(transporter._client).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: "clientError"
+			});
+		});
+
+		// Trigger an error
+		const error = new Error("Ups");
+		transporter._client.callbacks.error(error);
+
+		return p;
+	});
+
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		let p = transporter
