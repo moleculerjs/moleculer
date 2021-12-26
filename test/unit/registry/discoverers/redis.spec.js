@@ -204,6 +204,22 @@ describe("Test RedisDiscoverer 'init' method", () => {
 			expect(Redis.prototype.on).toHaveBeenCalledWith("error", expect.any(Function));
 		});
 
+		it("should broadcast an error", () => {
+			broker.broadcastLocal = jest.fn();
+			Redis.prototype.on.mockClear();
+			// ---- ^ SETUP ^ ---
+			discoverer.init(broker.registry);
+
+			redisCallbacks.error(new Error("Ups!"));
+
+			expect(discoverer.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
+				error: expect.any(Error),
+				module: "discoverer",
+				type: "connection"
+			});
+		});
+
 		it("should not call sendLocalNodeInfo", () => {
 			Redis.prototype.on.mockClear();
 			discoverer.sendLocalNodeInfo = jest.fn();
@@ -426,6 +442,23 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 
 		expect(broker.metrics.increment).toBeCalledTimes(1);
 		expect(broker.metrics.increment).toBeCalledWith("moleculer.discoverer.redis.collect.total");
+	});
+
+	it("should broadcast an error", async () => {
+		discoverer.collectOnlineNodes = jest.fn(() => Promise.reject(new Error("Ups!")));
+
+		broker.broadcastLocal = jest.fn();
+
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendHeartbeat();
+
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
+			error: expect.any(Error),
+			module: "discoverer",
+			type: "failedKeyScan"
+		});
 	});
 });
 
@@ -835,6 +868,24 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 
 		expect(discoverer.logger.error).toBeCalledTimes(1);
 		expect(discoverer.logger.error).toBeCalledWith("Unable to send INFO to Redis server", err);
+	});
+
+	it("should broadcast an error", async () => {
+		const err = new Error("Something happened");
+		discoverer.client.setex = jest.fn(() => Promise.reject(err));
+
+		broker.broadcastLocal = jest.fn();
+
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendLocalNodeInfo();
+
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
+			error: err,
+			module: "discoverer",
+			type: "failedInfoSend"
+		});
 	});
 });
 

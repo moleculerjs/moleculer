@@ -886,7 +886,7 @@ describe("Test broker.stop", () => {
 
 		service._stop = jest.fn(() => Promise.reject(new Error(`${service.name}`)));
 
-		it("should throw an error when stop", async () => {
+		it("should broadcast an error when stop", async () => {
 			broker.broadcastLocal = jest.fn();
 
 			await broker.stop(service);
@@ -1223,7 +1223,7 @@ describe("Test broker.loadService", () => {
 		expect(broker._restartService).toHaveBeenCalledTimes(0);
 	});
 
-	it("should throw error when loading service", () => {
+	it("should broadcast error when loading service", () => {
 		broker.broadcastLocal = jest.fn();
 
 		jest.spyOn(broker, "normalizeSchemaConstructor").mockImplementation(() => {
@@ -1356,7 +1356,7 @@ describe("Test broker.__restartService", () => {
 
 	service._start = jest.fn(() => Promise.reject(new Error("Ups!")));
 
-	it("should throw an error when restarting", async () => {
+	it("should broadcast an error when restarting", async () => {
 		broker.broadcastLocal = jest.fn();
 
 		await broker._restartService(service);
@@ -1493,7 +1493,7 @@ describe("Test broker.destroyService", () => {
 				});
 		});
 
-		it("should throw error while destroying service", async () => {
+		it("should broadcast error while destroying service", async () => {
 			broker.broadcastLocal = jest.fn();
 
 			jest.spyOn(service, "_stop").mockImplementation(() => {

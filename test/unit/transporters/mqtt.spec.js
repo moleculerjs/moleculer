@@ -69,7 +69,7 @@ describe("Test MqttTransporter connect & disconnect", () => {
 		return p;
 	});
 
-	it("check connect - should throw error", () => {
+	it("check connect - should broadcast error", () => {
 		broker.broadcastLocal = jest.fn();
 
 		let p = transporter.connect().catch(() => {

@@ -126,7 +126,7 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 		return p;
 	});
 
-	it("check connect - should throw error", () => {
+	it("check connect - should broadcast error", () => {
 		broker.broadcastLocal = jest.fn();
 
 		let p = transporter.connect().catch(() => {
@@ -237,7 +237,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", '{ ver: "3" }');
 	});
 
-	it("check makeSubscriptions - should throw a producer error", () => {
+	it("check makeSubscriptions - should broadcast a producer error", () => {
 		transporter.broker.broadcastLocal = jest.fn();
 
 		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb(new Error("Ups!")));
@@ -263,7 +263,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		return p;
 	});
 
-	it.skip("check makeSubscriptions - should throw a consumer error", async () => {
+	it("check makeSubscriptions - should broadcast a consumer error", async () => {
 		transporter.broker.broadcastLocal = jest.fn();
 
 		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb());

@@ -319,7 +319,7 @@ describe("Test Transit.messageHandler", () => {
 		broadcastLocalMock.mockClear();
 	});
 
-	it("should throw Error if msg not valid", async () => {
+	it("should broadcast Error if msg not valid", async () => {
 		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		const res = await transit.messageHandler("EVENT");
 		expect(res).toBe(false);
@@ -332,7 +332,7 @@ describe("Test Transit.messageHandler", () => {
 		});
 	});
 
-	it("should throw Error if no version", async () => {
+	it("should broadcast Error if no version", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: {} });
 		expect(res).toBe(false);
 
@@ -344,7 +344,7 @@ describe("Test Transit.messageHandler", () => {
 		});
 	});
 
-	it("should throw Error if version mismatch", async () => {
+	it("should broadcast Error if version mismatch", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: { ver: "1" } });
 		expect(res).toBe(false);
 
@@ -1776,7 +1776,7 @@ describe("Test Transit._sendRequest", () => {
 				});
 		});
 
-		it("should throw an error", async () => {
+		it("should broadcast an error", async () => {
 			// Mock an error
 			transit.publish = jest.fn(() =>
 				Promise.reject(new Error("Error during failedSendRequestPacket!"))
@@ -2383,7 +2383,7 @@ describe("Test Transit.sendEvent", () => {
 		});
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedSendEventPacket!"))
@@ -2568,7 +2568,7 @@ describe("Test Transit.sendResponse", () => {
 			expect(packet.payload.error.data).toEqual({ a: "Too small" });
 		});
 
-		it("should throw an error", async () => {
+		it("should broadcast an error", async () => {
 			// Mock an error
 			transit.publish = jest.fn(() =>
 				Promise.reject(new Error("Error during failedSendResponsePacket!"))
@@ -2840,7 +2840,7 @@ describe("Test Transit.discoverNodes", () => {
 		expect(packet.payload).toEqual({});
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedNodesDiscovery!"))
@@ -2886,7 +2886,7 @@ describe("Test Transit.discoverNode", () => {
 		expect(packet.payload).toEqual({});
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedNodeDiscovery!"))
@@ -2985,7 +2985,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		});
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedSendInfoPacket!"))
@@ -3032,7 +3032,7 @@ describe("Test Transit.sendPing", () => {
 		expect(packet.payload).toEqual({ time: expect.any(Number), id: expect.any(String) });
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedSendPingPacket!"))
@@ -3079,7 +3079,7 @@ describe("Test Transit.sendPong", () => {
 		expect(packet.payload).toEqual({ time: 123456, arrived: expect.any(Number) });
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedSendPongPacket!"))
@@ -3148,7 +3148,7 @@ describe("Test Transit.sendHeartbeat", () => {
 		expect(packet.payload.cpu).toBe(12);
 	});
 
-	it("should throw an error", async () => {
+	it("should broadcast an error", async () => {
 		// Mock an error
 		transit.publish = jest.fn(() =>
 			Promise.reject(new Error("Error during failedSendHeartbeatPacket!"))

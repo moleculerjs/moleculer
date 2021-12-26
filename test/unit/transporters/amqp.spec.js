@@ -130,6 +130,42 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 			});
 	});
 
+	it("check connect - should broadcast a connection error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.connection.connectionOnCallbacks.error(new Error("Ups"));
+
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+					error: new Error("Ups"),
+					module: "transporter",
+					type: "connection"
+				});
+			});
+	});
+
+	it("check connect - should broadcast a channel error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.channel.channelOnCallbacks.error(new Error("Ups"));
+
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+					error: new Error("Ups"),
+					module: "transporter",
+					type: "channel"
+				});
+			});
+	});
+
 	it("check onConnected after connect", () => {
 		// Because onConnected is mocked, makeSubscriptions isn't called for initial connections
 		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
