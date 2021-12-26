@@ -305,7 +305,7 @@ describe("Test Transit.messageHandler", () => {
 
 	beforeEach(() => {
 		broker = new ServiceBroker({
-			logger: true,
+			logger: false,
 			nodeID: "node1",
 			transporter: new FakeTransporter()
 		});
