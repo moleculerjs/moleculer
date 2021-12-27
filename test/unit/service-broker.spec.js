@@ -7,6 +7,8 @@ kleur.enabled = false;
 const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
+const C = require("../../src/constants");
+
 let polyfillPromise;
 jest.mock("../../src/utils", () => ({
 	getNodeID() {
@@ -852,14 +854,52 @@ describe("Test broker.stop", () => {
 
 				expect(broker.started).toBe(false);
 
-				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(2);
+				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$broker.error", {
+					error: "Can't stop!",
+					module: "broker",
+					type: C.FAILED_STOPPING_SERVICES
+				});
+				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$broker.stopped");
 
 				// expect(broker.scope.stop).toHaveBeenCalledTimes(1);
 
 				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
 			});
+		});
+	});
+
+	describe("Test throw error during service stop", () => {
+		let broker = new ServiceBroker({ logger: false });
+
+		const schema = {
+			name: "test",
+			actions: {
+				test: {
+					handler() {
+						return test;
+					}
+				}
+			}
+		};
+
+		const service = broker.createService(schema);
+
+		service._stop = jest.fn(() => Promise.reject(new Error(`${service.name}`)));
+
+		it("should broadcast an error when stop", async () => {
+			broker.broadcastLocal = jest.fn();
+
+			await broker.stop(service);
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(2);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$broker.error", {
+				error: new Error("test"),
+				module: "broker",
+				type: C.FAILED_STOPPING_SERVICES
+			});
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$broker.stopped");
 		});
 	});
 });
@@ -1184,6 +1224,25 @@ describe("Test broker.loadService", () => {
 		expect(broker.createService).toHaveBeenCalledTimes(0);
 		expect(broker._restartService).toHaveBeenCalledTimes(0);
 	});
+
+	it("should broadcast error when loading service", () => {
+		broker.broadcastLocal = jest.fn();
+
+		jest.spyOn(broker, "normalizeSchemaConstructor").mockImplementation(() => {
+			throw new Error("Ups!");
+		});
+
+		expect(() => {
+			broker.loadService("./test/services/math.service.js");
+		}).toThrow();
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
+			error: new Error("Ups!"),
+			module: "broker",
+			type: C.FAILED_LOAD_SERVICE
+		});
+	});
 });
 
 describe("Test broker.loadService after broker started", () => {
@@ -1278,6 +1337,38 @@ describe("Test broker.createService", () => {
 		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
 		let service = broker.createService(es6Service);
 		expect(service).toBeInstanceOf(es6Service);
+	});
+});
+
+describe("Test broker.__restartService", () => {
+	let broker = new ServiceBroker({ logger: false });
+
+	const schema = {
+		name: "test",
+		actions: {
+			test: {
+				handler() {
+					return test;
+				}
+			}
+		}
+	};
+
+	const service = broker.createService(schema);
+
+	service._start = jest.fn(() => Promise.reject(new Error("Ups!")));
+
+	it("should broadcast an error when restarting", async () => {
+		broker.broadcastLocal = jest.fn();
+
+		await broker._restartService(service);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
+			error: new Error("Ups!"),
+			module: "broker",
+			type: C.FAILED_RESTART_SERVICE
+		});
 	});
 });
 
@@ -1402,6 +1493,23 @@ describe("Test broker.destroyService", () => {
 						0
 					);
 				});
+		});
+
+		it("should broadcast error while destroying service", async () => {
+			broker.broadcastLocal = jest.fn();
+
+			jest.spyOn(service, "_stop").mockImplementation(() => {
+				throw new Error("Ups!");
+			});
+
+			await broker.destroyService(service);
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
+				error: new Error("Ups!"),
+				module: "broker",
+				type: C.FAILED_DESTRUCTION_SERVICE
+			});
 		});
 	});
 

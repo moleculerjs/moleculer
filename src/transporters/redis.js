@@ -9,6 +9,7 @@
 const { MoleculerError } = require("../errors");
 const Transporter = require("./base");
 const { BrokerOptionsError } = require("../errors");
+const C = require("../constants");
 
 /**
  * Transporter for Redis
@@ -61,6 +62,12 @@ class RedisTransporter extends Transporter {
 					this.logger.error("Redis-pub error", e.message);
 					this.logger.debug(e);
 
+					this.broker.broadcastLocal("$transporter.error", {
+						error: e,
+						module: "transporter",
+						type: C.FAILED_PUBLISHER_ERROR
+					});
+
 					if (!this.connected) reject(e);
 				});
 
@@ -81,6 +88,12 @@ class RedisTransporter extends Transporter {
 			clientSub.on("error", e => {
 				this.logger.error("Redis-sub error", e.message);
 				this.logger.debug(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.FAILED_CONSUMER_ERROR
+				});
 			});
 
 			/* istanbul ignore next */

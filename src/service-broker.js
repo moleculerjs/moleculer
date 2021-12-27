@@ -30,6 +30,7 @@ const cpuUsage = require("./cpu-usage");
 
 const { MetricRegistry, METRIC } = require("./metrics");
 const { Tracer } = require("./tracing");
+const C = require("./constants");
 
 /**
  * Default broker options
@@ -480,7 +481,7 @@ class ServiceBroker {
 				this.logger.info(
 					`✔ ServiceBroker with ${
 						this.services.length
-					} service(s) is started successfully in ${utils.humanize(duration)}.`
+					} service(s) started successfully in ${utils.humanize(duration)}.`
 				);
 			});
 	}
@@ -509,6 +510,12 @@ class ServiceBroker {
 					err => {
 						/* istanbul ignore next */
 						this.logger.error("Unable to stop all services.", err);
+
+						this.broadcastLocal("$broker.error", {
+							error: err,
+							module: "broker",
+							type: C.FAILED_STOPPING_SERVICES
+						});
 					}
 				);
 			})
@@ -785,6 +792,11 @@ class ServiceBroker {
 			return svc;
 		} catch (e) {
 			this.logger.error(`Failed to load service '${filePath}'`, e);
+			this.broadcastLocal("$broker.error", {
+				error: e,
+				module: "broker",
+				type: C.FAILED_LOAD_SERVICE
+			});
 			throw e;
 		}
 	}
@@ -826,9 +838,15 @@ class ServiceBroker {
 	 * @private
 	 */
 	_restartService(service) {
-		return service._start
-			.call(service)
-			.catch(err => this.logger.error("Unable to start service.", err));
+		return service._start.call(service).catch(err => {
+			this.logger.error("Unable to start service.", err);
+
+			this.broadcastLocal("$broker.error", {
+				error: err,
+				module: "broker",
+				type: C.FAILED_RESTART_SERVICE
+			});
+		});
 	}
 
 	/**
@@ -882,6 +900,12 @@ class ServiceBroker {
 			.catch(err => {
 				/* istanbul ignore next */
 				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
+
+				this.broadcastLocal("$broker.error", {
+					error: err,
+					module: "broker",
+					type: C.FAILED_DESTRUCTION_SERVICE
+				});
 			})
 			.then(() => {
 				utils.removeFromArray(this.services, service);

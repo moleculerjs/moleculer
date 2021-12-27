@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 // const lolex = require("@sinonjs/fake-timers");
@@ -144,6 +145,27 @@ describe("Test Nats V1.x", () => {
 				});
 
 			transporter._client.onCallbacks.connect();
+
+			return p;
+		});
+
+		it("check connect - should broadcast error", () => {
+			broker.broadcastLocal = jest.fn();
+
+			let p = transporter.connect().catch(() => {
+				expect(transporter._client).toBeDefined();
+
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+					error: new Error("Ups"),
+					module: "transporter",
+					type: C.CLIENT_ERROR
+				});
+			});
+
+			// Trigger an error
+			const error = new Error("Ups");
+			transporter._client.onCallbacks.error(error);
 
 			return p;
 		});

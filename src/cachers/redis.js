@@ -12,6 +12,7 @@ const _ = require("lodash");
 const { METRIC } = require("../metrics");
 const { BrokerOptionsError } = require("../errors");
 const Serializers = require("../serializers");
+const C = require("../constants");
 
 /**
  * Cacher factory for Redis
@@ -84,6 +85,12 @@ class RedisCacher extends BaseCacher {
 		this.client.on("error", err => {
 			this.connected = false;
 
+			this.broker.broadcastLocal("$cacher.error", {
+				error: err,
+				module: "cacher",
+				type: C.CLIENT_ERROR
+			});
+
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -135,6 +142,12 @@ class RedisCacher extends BaseCacher {
 					})
 					.catch(err => {
 						this.connected = false;
+
+						this.broker.broadcastLocal("$cacher.error", {
+							error: err,
+							module: "cacher",
+							type: C.FAILED_SEND_PING
+						});
 
 						this.logger.error("Failed to send PING to Redis Server", err);
 					});

@@ -8,6 +8,7 @@
 
 const { defaultsDeep } = require("lodash");
 const Transporter = require("./base");
+const C = require("../constants");
 
 /**
  * Lightweight transporter for Kafka
@@ -122,6 +123,12 @@ class KafkaTransporter extends Transporter {
 				this.logger.error("Kafka Producer error", e.message);
 				this.logger.debug(e);
 
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.FAILED_PUBLISHER_ERROR
+				});
+
 				if (!this.connected) reject(e);
 			});
 		});
@@ -162,6 +169,13 @@ class KafkaTransporter extends Transporter {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Unable to create topics!", topics, err);
+
+					this.broker.broadcastLocal("$transporter.error", {
+						error: err,
+						module: "transporter",
+						type: C.FAILED_TOPIC_CREATION
+					});
+
 					return reject(err);
 				}
 
@@ -183,6 +197,12 @@ class KafkaTransporter extends Transporter {
 				this.consumer.on("error", e => {
 					this.logger.error("Kafka Consumer error", e.message);
 					this.logger.debug(e);
+
+					this.broker.broadcastLocal("$transporter.error", {
+						error: e,
+						module: "transporter",
+						type: C.FAILED_CONSUMER_ERROR
+					});
 
 					if (!this.connected) reject(e);
 				});
@@ -259,6 +279,13 @@ class KafkaTransporter extends Transporter {
 					/* istanbul ignore next */
 					if (err) {
 						this.logger.error("Publish error", err);
+
+						this.broker.broadcastLocal("$transporter.error", {
+							error: err,
+							module: "transporter",
+							type: C.FAILED_PUBLISHER_ERROR
+						});
+
 						reject(err);
 					}
 					resolve();

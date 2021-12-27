@@ -14,6 +14,7 @@ const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray, isFunction } = require("../../utils");
 const P = require("../../packets");
+const C = require("../../constants");
 
 let Redis;
 
@@ -125,6 +126,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 		this.client.on("error", err => {
 			/* istanbul ignore next */
 			this.logger.error(err);
+
+			this.broker.broadcastLocal("$discoverer.error", {
+				error: err,
+				module: "discoverer",
+				type: C.CLIENT_ERROR
+			});
 		});
 
 		if (this.opts.monitor && isFunction(this.client.monitor)) {
@@ -227,7 +234,15 @@ class RedisDiscoverer extends BaseDiscoverer {
 			})
 			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
-			.catch(err => this.logger.error("Error occured while scanning Redis keys.", err))
+			.catch(err => {
+				this.logger.error("Error occurred while scanning Redis keys.", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: C.FAILED_KEY_SCAN
+				});
+			})
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_REDIS_COLLECT_TOTAL);
@@ -389,6 +404,12 @@ class RedisDiscoverer extends BaseDiscoverer {
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to Redis server", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: C.FAILED_SEND_INFO
+				});
 			});
 	}
 

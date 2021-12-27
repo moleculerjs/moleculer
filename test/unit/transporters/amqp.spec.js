@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 jest.mock("amqplib");
@@ -127,6 +128,42 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 				expect(transporter.channel.on).toHaveBeenCalledWith("drain", expect.any(Function));
 				expect(transporter.channel.prefetch).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.prefetch).toHaveBeenCalledWith(3);
+			});
+	});
+
+	it("check connect - should broadcast a connection error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.connection.connectionOnCallbacks.error(new Error("Ups"));
+
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+					error: new Error("Ups"),
+					module: "transporter",
+					type: C.FAILED_CONNECTION_ERROR
+				});
+			});
+	});
+
+	it("check connect - should broadcast a channel error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				transporter.channel.channelOnCallbacks.error(new Error("Ups"));
+
+				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+					error: new Error("Ups"),
+					module: "transporter",
+					type: C.FAILED_CHANNEL_ERROR
+				});
 			});
 	});
 

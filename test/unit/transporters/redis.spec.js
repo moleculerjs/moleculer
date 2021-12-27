@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { BrokerOptionsError } = require("../../../src/errors");
 const { protectReject } = require("../utils");
 
@@ -157,6 +158,35 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 
 		transporter._clientSub.onCallbacks.connect();
 		transporter._clientPub.onCallbacks.connect();
+
+		return p;
+	});
+
+	it("check connect - should broadcast error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().then(() => {
+			expect(transporter.clientSub).toBeDefined();
+			expect(transporter.clientPub).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(2);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: C.FAILED_PUBLISHER_ERROR
+			});
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: C.FAILED_CONSUMER_ERROR
+			});
+		});
+
+		transporter._clientSub.onCallbacks.connect();
+		transporter._clientPub.onCallbacks.connect();
+		// Trigger an error
+		transporter._clientPub.onCallbacks.error(new Error("Ups"));
+		transporter._clientSub.onCallbacks.error(new Error("Ups"));
 
 		return p;
 	});

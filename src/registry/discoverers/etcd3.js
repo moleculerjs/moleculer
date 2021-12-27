@@ -13,6 +13,7 @@ const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray } = require("../../utils");
 const P = require("../../packets");
+const C = require("../../constants");
 
 let ETCD3;
 
@@ -187,7 +188,15 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			)
 			.then(() => (this.lastBeatSeq = seq))
 			.then(() => this.collectOnlineNodes())
-			.catch(err => this.logger.error("Error occured while collect etcd keys.", err))
+			.catch(err => {
+				this.logger.error("Error occurred while collect etcd keys.", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: C.FAILED_COLLECT_KEYS
+				});
+			})
 			.then(() => {
 				timeEnd();
 				this.broker.metrics.increment(METRIC.MOLECULER_DISCOVERER_ETCD_COLLECT_TOTAL);
@@ -363,6 +372,12 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			})
 			.catch(err => {
 				this.logger.error("Unable to send INFO to etcd server", err);
+
+				this.broker.broadcastLocal("$discoverer.error", {
+					error: err,
+					module: "discoverer",
+					type: C.FAILED_SEND_INFO
+				});
 			});
 	}
 

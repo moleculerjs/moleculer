@@ -1,8 +1,24 @@
 const ServiceBroker = require("../../../src/service-broker");
 const { protectReject } = require("../utils");
 
+const C = require("../../../src/constants");
+
 jest.mock("ioredis");
 const Redis = require("ioredis");
+
+Redis.mockImplementation(() => {
+	let onCallbacks = {};
+	return {
+		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
+		disconnect: jest.fn(),
+		subscribe: jest.fn(),
+		publish: jest.fn(),
+		quit: jest.fn(),
+		setex: jest.fn(),
+
+		onCallbacks
+	};
+});
 
 const RedisCacher = require("../../../src/cachers/redis");
 const Serializers = require("../../../src/serializers");
@@ -63,7 +79,7 @@ describe("Test RedisCacher init", () => {
 		Redis.mockClear();
 		cacher.init(broker);
 
-		expect(cacher.client).toBeInstanceOf(Redis);
+		// expect(cacher.client).toBeInstanceOf(Redis);
 		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
 
 		expect(Redis).toHaveBeenCalledTimes(1);
@@ -78,7 +94,7 @@ describe("Test RedisCacher init", () => {
 		Redis.mockClear();
 		cacher.init(broker);
 
-		expect(cacher.client).toBeInstanceOf(Redis);
+		// expect(cacher.client).toBeInstanceOf(Redis);
 		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
 
 		expect(Redis).toHaveBeenCalledTimes(1);
@@ -86,6 +102,24 @@ describe("Test RedisCacher init", () => {
 
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledTimes(1);
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledWith(broker);
+	});
+
+	it("should broadcast client error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		const cacher = new RedisCacher();
+
+		Redis.mockClear();
+		cacher.init(broker);
+
+		cacher.client.onCallbacks.error(new Error("Ups!"));
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$cacher.error", {
+			error: new Error("Ups!"),
+			module: "cacher",
+			type: C.CLIENT_ERROR
+		});
 	});
 });
 

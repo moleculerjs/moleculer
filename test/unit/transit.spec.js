@@ -7,6 +7,7 @@ const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const E = require("../../src/errors");
 const P = require("../../src/packets");
+const C = require("../../src/constants");
 const { Transform } = require("stream");
 const Stream = require("stream");
 const crypto = require("crypto");
@@ -299,6 +300,7 @@ describe("Test Transit.makeSubscriptions", () => {
 describe("Test Transit.messageHandler", () => {
 	let broker;
 	let transit;
+	let broadcastLocalMock = jest.fn();
 
 	// transit.subscribe = jest.fn();
 
@@ -308,23 +310,51 @@ describe("Test Transit.messageHandler", () => {
 			nodeID: "node1",
 			transporter: new FakeTransporter()
 		});
+
+		broker.broadcastLocal = broadcastLocalMock;
+
 		transit = broker.transit;
 	});
 
-	it("should throw Error if msg not valid", async () => {
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+	});
+
+	it("should broadcast Error if msg not valid", async () => {
 		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		const res = await transit.messageHandler("EVENT");
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: expect.any(Error),
+			module: "transit",
+			type: C.FAILED_PROCESSING_PACKET
+		});
 	});
 
-	it("should throw Error if no version", async () => {
+	it("should broadcast Error if no version", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: {} });
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new E.ProtocolVersionMismatchError(),
+			module: "transit",
+			type: C.FAILED_PROCESSING_PACKET
+		});
 	});
 
-	it("should throw Error if version mismatch", async () => {
+	it("should broadcast Error if version mismatch", async () => {
 		const res = await transit.messageHandler("EVENT", { payload: { ver: "1" } });
 		expect(res).toBe(false);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new E.ProtocolVersionMismatchError(),
+			module: "transit",
+			type: C.FAILED_PROCESSING_PACKET
+		});
 	});
 
 	it("should not throw Error if version mismatch & disableVersionCheck is true", async () => {
@@ -1680,6 +1710,17 @@ describe("Test Transit._sendRequest", () => {
 	const id = "12345";
 
 	describe("without Stream", () => {
+		const broadcastLocalMock = jest.fn();
+
+		beforeEach(() => {
+			broker.broadcastLocal = broadcastLocalMock;
+		});
+
+		afterEach(() => {
+			broadcastLocalMock.mockClear();
+			transit.publish = jest.fn(() => Promise.resolve());
+		});
+
 		let ctx = new Context(broker, { action: { name: "users.find" } });
 		ctx.nodeID = "remote";
 		ctx.params = { a: 5 };
@@ -1734,6 +1775,22 @@ describe("Test Transit._sendRequest", () => {
 						stream: false
 					});
 				});
+		});
+
+		it("should broadcast an error", async () => {
+			// Mock an error
+			transit.publish = jest.fn(() =>
+				Promise.reject(new Error("Error during failedSendRequestPacket!"))
+			);
+
+			await transit._sendRequest(ctx, resolve, reject);
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+				error: new Error("Error during failedSendRequestPacket!"),
+				module: "transit",
+				type: C.FAILED_SEND_REQUEST_PACKET
+			});
 		});
 	});
 
@@ -2241,6 +2298,16 @@ describe("Test Transit.sendEvent", () => {
 
 	transit.publish = jest.fn(() => Promise.resolve());
 
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+	});
+
 	const ep = {
 		id: "node2",
 		event: {
@@ -2314,6 +2381,23 @@ describe("Test Transit.sendEvent", () => {
 				caller: null,
 				needAck: null
 			}
+		});
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedSendEventPacket!"))
+		);
+
+		ctx.eventGroups = ["users", "mail"];
+		await transit.sendEvent(ctx);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedSendEventPacket!"),
+			module: "transit",
+			type: C.FAILED_SEND_EVENT_PACKET
 		});
 	});
 });
@@ -2433,6 +2517,17 @@ describe("Test Transit.sendResponse", () => {
 	const meta = { headers: ["header"] };
 
 	describe("without Stream", () => {
+		const broadcastLocalMock = jest.fn();
+
+		beforeEach(() => {
+			broker.broadcastLocal = broadcastLocalMock;
+		});
+
+		afterEach(() => {
+			broadcastLocalMock.mockClear();
+			transit.publish = jest.fn(() => Promise.resolve());
+		});
+
 		it("should call publish with the data", () => {
 			const data = { id: 1, name: "John Doe" };
 			transit.sendResponse("node2", "12345", meta, data);
@@ -2472,6 +2567,23 @@ describe("Test Transit.sendResponse", () => {
 			expect(packet.payload.error.type).toBe("ERR_INVALID_A_PARAM");
 			expect(packet.payload.error.nodeID).toBe("node1");
 			expect(packet.payload.error.data).toEqual({ a: "Too small" });
+		});
+
+		it("should broadcast an error", async () => {
+			// Mock an error
+			transit.publish = jest.fn(() =>
+				Promise.reject(new Error("Error during failedSendResponsePacket!"))
+			);
+
+			const data = { id: 1, name: "John Doe" };
+			await transit.sendResponse("node2", "12345", meta, data);
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+				error: new Error("Error during failedSendResponsePacket!"),
+				module: "transit",
+				type: C.FAILED_SEND_RESPONSE_PACKET
+			});
 		});
 	});
 
@@ -2708,15 +2820,40 @@ describe("Test Transit.discoverNodes", () => {
 	});
 	const transit = broker.transit;
 
-	transit.publish = jest.fn(() => Promise.resolve());
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+	});
 
 	it("should call publish with correct params", () => {
+		transit.publish = jest.fn(() => Promise.resolve());
+
 		transit.discoverNodes();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.Packet);
 		expect(packet.type).toBe(P.PACKET_DISCOVER);
 		expect(packet.payload).toEqual({});
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedNodesDiscovery!"))
+		);
+
+		await transit.discoverNodes();
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedNodesDiscovery!"),
+			module: "transit",
+			type: C.FAILED_NODES_DISCOVERY
+		});
 	});
 });
 
@@ -2728,9 +2865,19 @@ describe("Test Transit.discoverNode", () => {
 	});
 	const transit = broker.transit;
 
-	transit.publish = jest.fn(() => Promise.resolve());
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+	});
 
 	it("should call publish with correct params", () => {
+		transit.publish = jest.fn(() => Promise.resolve());
+
 		transit.discoverNode("node-2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
@@ -2738,6 +2885,21 @@ describe("Test Transit.discoverNode", () => {
 		expect(packet.type).toBe(P.PACKET_DISCOVER);
 		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toEqual({});
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedNodeDiscovery!"))
+		);
+
+		await transit.discoverNode();
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedNodeDiscovery!"),
+			module: "transit",
+			type: C.FAILED_NODE_DISCOVERY
+		});
 	});
 });
 
@@ -2760,6 +2922,17 @@ describe("Test Transit.sendNodeInfo", () => {
 
 	transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn(() => Promise.resolve());
+
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+		transit.publish = jest.fn(() => Promise.resolve());
+	});
 
 	it("should not call publish while not connected", () => {
 		return transit.sendNodeInfo(localNodeInfo, "node2").then(() => {
@@ -2812,6 +2985,21 @@ describe("Test Transit.sendNodeInfo", () => {
 			});
 		});
 	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedSendInfoPacket!"))
+		);
+
+		await transit.sendNodeInfo(localNodeInfo, "node2");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedSendInfoPacket!"),
+			module: "transit",
+			type: C.FAILED_SEND_INFO_PACKET
+		});
+	});
 });
 
 describe("Test Transit.sendPing", () => {
@@ -2824,6 +3012,17 @@ describe("Test Transit.sendPing", () => {
 
 	transit.publish = jest.fn(() => Promise.resolve());
 
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+		transit.publish = jest.fn(() => Promise.resolve());
+	});
+
 	it("should call publish with correct params", () => {
 		transit.sendPing("node-2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
@@ -2832,6 +3031,21 @@ describe("Test Transit.sendPing", () => {
 		expect(packet.type).toBe(P.PACKET_PING);
 		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toEqual({ time: expect.any(Number), id: expect.any(String) });
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedSendPingPacket!"))
+		);
+
+		await transit.sendPing("node-2");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedSendPingPacket!"),
+			module: "transit",
+			type: C.FAILED_SEND_PING_PACKET
+		});
 	});
 });
 
@@ -2845,6 +3059,17 @@ describe("Test Transit.sendPong", () => {
 
 	transit.publish = jest.fn(() => Promise.resolve());
 
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+		transit.publish = jest.fn(() => Promise.resolve());
+	});
+
 	it("should call publish with correct params", () => {
 		transit.sendPong({ sender: "node-2", time: 123456 });
 		expect(transit.publish).toHaveBeenCalledTimes(1);
@@ -2853,6 +3078,21 @@ describe("Test Transit.sendPong", () => {
 		expect(packet.type).toBe(P.PACKET_PONG);
 		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toEqual({ time: 123456, arrived: expect.any(Number) });
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedSendPongPacket!"))
+		);
+
+		await transit.sendPong({ sender: "node-2", time: 123456 });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedSendPongPacket!"),
+			module: "transit",
+			type: C.FAILED_SEND_PONG_PACKET
+		});
 	});
 });
 
@@ -2889,6 +3129,17 @@ describe("Test Transit.sendHeartbeat", () => {
 
 	transit.publish = jest.fn(() => Promise.resolve());
 
+	const broadcastLocalMock = jest.fn();
+
+	beforeEach(() => {
+		broker.broadcastLocal = broadcastLocalMock;
+	});
+
+	afterEach(() => {
+		broadcastLocalMock.mockClear();
+		transit.publish = jest.fn(() => Promise.resolve());
+	});
+
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat({ cpu: 12 });
 		expect(transit.publish).toHaveBeenCalledTimes(1);
@@ -2896,6 +3147,21 @@ describe("Test Transit.sendHeartbeat", () => {
 		expect(packet).toBeInstanceOf(P.Packet);
 		expect(packet.type).toBe(P.PACKET_HEARTBEAT);
 		expect(packet.payload.cpu).toBe(12);
+	});
+
+	it("should broadcast an error", async () => {
+		// Mock an error
+		transit.publish = jest.fn(() =>
+			Promise.reject(new Error("Error during failedSendHeartbeatPacket!"))
+		);
+
+		await transit.sendHeartbeat({ cpu: 12 });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
+			error: new Error("Error during failedSendHeartbeatPacket!"),
+			module: "transit",
+			type: C.FAILED_SEND_HEARTBEAT_PACKET
+		});
 	});
 });
 
