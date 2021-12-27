@@ -7,6 +7,8 @@ kleur.enabled = false;
 const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
+const C = require("../../src/constants");
+
 let polyfillPromise;
 jest.mock("../../src/utils", () => ({
 	getNodeID() {
@@ -856,7 +858,7 @@ describe("Test broker.stop", () => {
 				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$broker.error", {
 					error: "Can't stop!",
 					module: "broker",
-					type: "failedStoppingServices"
+					type: C.FAILED_STOPPING_SERVICES
 				});
 				expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$broker.stopped");
 
@@ -895,7 +897,7 @@ describe("Test broker.stop", () => {
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$broker.error", {
 				error: new Error("test"),
 				module: "broker",
-				type: "failedStoppingServices"
+				type: C.FAILED_STOPPING_SERVICES
 			});
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$broker.stopped");
 		});
@@ -1238,7 +1240,7 @@ describe("Test broker.loadService", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
 			error: new Error("Ups!"),
 			module: "broker",
-			type: "failedServiceLoad"
+			type: C.FAILED_LOAD_SERVICE
 		});
 	});
 });
@@ -1365,7 +1367,7 @@ describe("Test broker.__restartService", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
 			error: new Error("Ups!"),
 			module: "broker",
-			type: "failedServiceRestart"
+			type: C.FAILED_RESTART_SERVICE
 		});
 	});
 });
@@ -1506,7 +1508,7 @@ describe("Test broker.destroyService", () => {
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.error", {
 				error: new Error("Ups!"),
 				module: "broker",
-				type: "failedServiceDestruction"
+				type: C.FAILED_DESTRUCTION_SERVICE
 			});
 		});
 	});

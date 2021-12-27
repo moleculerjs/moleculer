@@ -7,6 +7,7 @@ const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const E = require("../../src/errors");
 const P = require("../../src/packets");
+const C = require("../../src/constants");
 const { Transform } = require("stream");
 const Stream = require("stream");
 const crypto = require("crypto");
@@ -328,7 +329,7 @@ describe("Test Transit.messageHandler", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: expect.any(Error),
 			module: "transit",
-			type: "failedProcessingPacket"
+			type: C.FAILED_PROCESSING_PACKET
 		});
 	});
 
@@ -340,7 +341,7 @@ describe("Test Transit.messageHandler", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new E.ProtocolVersionMismatchError(),
 			module: "transit",
-			type: "failedProcessingPacket"
+			type: C.FAILED_PROCESSING_PACKET
 		});
 	});
 
@@ -352,7 +353,7 @@ describe("Test Transit.messageHandler", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new E.ProtocolVersionMismatchError(),
 			module: "transit",
-			type: "failedProcessingPacket"
+			type: C.FAILED_PROCESSING_PACKET
 		});
 	});
 
@@ -1788,7 +1789,7 @@ describe("Test Transit._sendRequest", () => {
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 				error: new Error("Error during failedSendRequestPacket!"),
 				module: "transit",
-				type: "failedSendRequestPacket"
+				type: C.FAILED_SEND_REQUEST_PACKET
 			});
 		});
 	});
@@ -2396,7 +2397,7 @@ describe("Test Transit.sendEvent", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedSendEventPacket!"),
 			module: "transit",
-			type: "failedSendEventPacket"
+			type: C.FAILED_SEND_EVENT_PACKET
 		});
 	});
 });
@@ -2581,7 +2582,7 @@ describe("Test Transit.sendResponse", () => {
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 				error: new Error("Error during failedSendResponsePacket!"),
 				module: "transit",
-				type: "failedSendResponsePacket"
+				type: C.FAILED_SEND_RESPONSE_PACKET
 			});
 		});
 	});
@@ -2851,7 +2852,7 @@ describe("Test Transit.discoverNodes", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedNodesDiscovery!"),
 			module: "transit",
-			type: "failedNodesDiscovery"
+			type: C.FAILED_NODES_DISCOVERY
 		});
 	});
 });
@@ -2897,7 +2898,7 @@ describe("Test Transit.discoverNode", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedNodeDiscovery!"),
 			module: "transit",
-			type: "failedNodeDiscovery"
+			type: C.FAILED_NODE_DISCOVERY
 		});
 	});
 });
@@ -2996,7 +2997,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedSendInfoPacket!"),
 			module: "transit",
-			type: "failedSendInfoPacket"
+			type: C.FAILED_SEND_INFO_PACKET
 		});
 	});
 });
@@ -3043,7 +3044,7 @@ describe("Test Transit.sendPing", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedSendPingPacket!"),
 			module: "transit",
-			type: "failedSendPingPacket"
+			type: C.FAILED_SEND_PING_PACKET
 		});
 	});
 });
@@ -3090,7 +3091,7 @@ describe("Test Transit.sendPong", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedSendPongPacket!"),
 			module: "transit",
-			type: "failedSendPongPacket"
+			type: C.FAILED_SEND_PONG_PACKET
 		});
 	});
 });
@@ -3159,7 +3160,7 @@ describe("Test Transit.sendHeartbeat", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
 			error: new Error("Error during failedSendHeartbeatPacket!"),
 			module: "transit",
-			type: "failedSendHeartbeatPacket"
+			type: C.FAILED_SEND_HEARTBEAT_PACKET
 		});
 	});
 });

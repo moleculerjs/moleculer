@@ -14,6 +14,7 @@ const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray, isFunction } = require("../../utils");
 const P = require("../../packets");
+const C = require("../../constants");
 
 let Redis;
 
@@ -129,7 +130,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.broker.broadcastLocal("$discoverer.error", {
 				error: err,
 				module: "discoverer",
-				type: "connection"
+				type: C.CLIENT_ERROR
 			});
 		});
 
@@ -239,7 +240,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 				this.broker.broadcastLocal("$discoverer.error", {
 					error: err,
 					module: "discoverer",
-					type: "failedKeyScan"
+					type: C.FAILED_KEY_SCAN
 				});
 			})
 			.then(() => {
@@ -407,7 +408,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 				this.broker.broadcastLocal("$discoverer.error", {
 					error: err,
 					module: "discoverer",
-					type: "failedInfoSend"
+					type: C.FAILED_SEND_INFO
 				});
 			});
 	}

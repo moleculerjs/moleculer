@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { BrokerOptionsError } = require("../../../src/errors");
 const { protectReject } = require("../utils");
 
@@ -172,12 +173,12 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
 				error: new Error("Ups"),
 				module: "transporter",
-				type: "publisherError"
+				type: C.FAILED_PUBLISHER_ERROR
 			});
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(2, "$transporter.error", {
 				error: new Error("Ups"),
 				module: "transporter",
-				type: "consumerError"
+				type: C.FAILED_CONSUMER_ERROR
 			});
 		});
 

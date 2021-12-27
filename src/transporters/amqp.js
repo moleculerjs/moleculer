@@ -9,6 +9,7 @@
 const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
+const C = require("../constants");
 
 const {
 	PACKET_REQUEST,
@@ -150,7 +151,7 @@ class AmqpTransporter extends Transporter {
 							this.broker.broadcastLocal("$transporter.error", {
 								error: err,
 								module: "transporter",
-								type: "connection"
+								type: C.FAILED_CONNECTION_ERROR
 							});
 						})
 						.on("close", err => {
@@ -193,7 +194,7 @@ class AmqpTransporter extends Transporter {
 									this.broker.broadcastLocal("$transporter.error", {
 										error: err,
 										module: "transporter",
-										type: "channel"
+										type: C.FAILED_CHANNEL_ERROR
 									});
 								})
 								.on("drain", () => {

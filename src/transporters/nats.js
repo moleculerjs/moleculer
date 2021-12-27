@@ -8,6 +8,7 @@
 
 const Transporter = require("./base");
 const { PACKET_REQUEST, PACKET_EVENT } = require("../packets");
+const C = require("../constants");
 
 /**
  * Transporter for NATS
@@ -130,7 +131,7 @@ class NatsTransporter extends Transporter {
 					this.broker.broadcastLocal("$transporter.error", {
 						error: e,
 						module: "transporter",
-						type: "clientError"
+						type: C.CLIENT_ERROR
 					});
 
 					if (!client.connected) reject(e);
@@ -189,7 +190,7 @@ class NatsTransporter extends Transporter {
 						this.broker.broadcastLocal("$transporter.error", {
 							error: err,
 							module: "transporter",
-							type: "connection"
+							type: C.CLIENT_ERROR
 						});
 
 						throw err;

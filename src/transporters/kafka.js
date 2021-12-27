@@ -8,6 +8,7 @@
 
 const { defaultsDeep } = require("lodash");
 const Transporter = require("./base");
+const C = require("../constants");
 
 /**
  * Lightweight transporter for Kafka
@@ -125,7 +126,7 @@ class KafkaTransporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error: e,
 					module: "transporter",
-					type: "publisherError"
+					type: C.FAILED_PUBLISHER_ERROR
 				});
 
 				if (!this.connected) reject(e);
@@ -172,7 +173,7 @@ class KafkaTransporter extends Transporter {
 					this.broker.broadcastLocal("$transporter.error", {
 						error: err,
 						module: "transporter",
-						type: "unableCreateTopics"
+						type: C.FAILED_TOPIC_CREATION
 					});
 
 					return reject(err);
@@ -200,7 +201,7 @@ class KafkaTransporter extends Transporter {
 					this.broker.broadcastLocal("$transporter.error", {
 						error: e,
 						module: "transporter",
-						type: "consumerError"
+						type: C.FAILED_CONSUMER_ERROR
 					});
 
 					if (!this.connected) reject(e);
@@ -282,7 +283,7 @@ class KafkaTransporter extends Transporter {
 						this.broker.broadcastLocal("$transporter.error", {
 							error: err,
 							module: "transporter",
-							type: "publisherError"
+							type: C.FAILED_PUBLISHER_ERROR
 						});
 
 						reject(err);

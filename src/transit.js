@@ -12,6 +12,7 @@ const E = require("./errors");
 
 const { Transform } = require("stream");
 const { METRIC } = require("./metrics");
+const C = require("./constants");
 
 /**
  * Transit class
@@ -405,7 +406,7 @@ class Transit {
 			this.broker.broadcastLocal("$transit.error", {
 				error: err,
 				module: "transit",
-				type: "failedProcessingPacket"
+				type: C.FAILED_PROCESSING_PACKET
 			});
 		}
 		return this.Promise.resolve(false);
@@ -845,7 +846,7 @@ class Transit {
 			this.broker.broadcastLocal("$transit.error", {
 				error: err,
 				module: "transit",
-				type: "failedSendRequestPacket"
+				type: C.FAILED_SEND_REQUEST_PACKET
 			});
 		};
 
@@ -983,7 +984,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedSendEventPacket"
+					type: C.FAILED_SEND_EVENT_PACKET
 				});
 			}
 		);
@@ -1070,7 +1071,7 @@ class Transit {
 			this.broker.broadcastLocal("$transit.error", {
 				error: err,
 				module: "transit",
-				type: "failedSendResponsePacket"
+				type: C.FAILED_SEND_RESPONSE_PACKET
 			});
 		};
 
@@ -1177,7 +1178,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedNodesDiscovery"
+					type: C.FAILED_NODES_DISCOVERY
 				});
 			}
 		);
@@ -1196,7 +1197,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedNodeDiscovery"
+					type: C.FAILED_NODE_DISCOVERY
 				});
 			}
 		);
@@ -1228,7 +1229,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedSendInfoPacket"
+					type: C.FAILED_SEND_INFO_PACKET
 				});
 			}
 		);
@@ -1255,7 +1256,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedSendPingPacket"
+					type: C.FAILED_SEND_PING_PACKET
 				});
 			}
 		);
@@ -1282,7 +1283,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedSendPongPacket"
+					type: C.FAILED_SEND_PONG_PACKET
 				});
 			}
 		);
@@ -1335,7 +1336,7 @@ class Transit {
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
 					module: "transit",
-					type: "failedSendHeartbeatPacket"
+					type: C.FAILED_SEND_HEARTBEAT_PACKET
 				});
 			}
 		);

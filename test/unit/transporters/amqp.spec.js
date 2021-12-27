@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 jest.mock("amqplib");
@@ -143,7 +144,7 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
 					error: new Error("Ups"),
 					module: "transporter",
-					type: "connection"
+					type: C.FAILED_CONNECTION_ERROR
 				});
 			});
 	});
@@ -161,7 +162,7 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
 					error: new Error("Ups"),
 					module: "transporter",
-					type: "channel"
+					type: C.FAILED_CHANNEL_ERROR
 				});
 			});
 	});

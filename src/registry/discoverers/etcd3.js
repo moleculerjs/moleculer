@@ -13,6 +13,7 @@ const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
 const { removeFromArray } = require("../../utils");
 const P = require("../../packets");
+const C = require("../../constants");
 
 let ETCD3;
 
@@ -193,7 +194,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				this.broker.broadcastLocal("$discoverer.error", {
 					error: err,
 					module: "discoverer",
-					type: "failedCollectKeys"
+					type: C.FAILED_COLLECT_KEYS
 				});
 			})
 			.then(() => {
@@ -375,7 +376,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 				this.broker.broadcastLocal("$discoverer.error", {
 					error: err,
 					module: "discoverer",
-					type: "failedSendInfo"
+					type: C.FAILED_SEND_INFO
 				});
 			});
 	}

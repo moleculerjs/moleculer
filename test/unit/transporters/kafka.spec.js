@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 
 jest.mock("kafka-node");
 
@@ -136,7 +137,7 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
 				error: new Error("Ups"),
 				module: "transporter",
-				type: "publisherError"
+				type: C.FAILED_PUBLISHER_ERROR
 			});
 		});
 
@@ -255,7 +256,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 					{
 						error: new Error("Ups!"),
 						module: "transporter",
-						type: "unableCreateTopics"
+						type: C.FAILED_TOPIC_CREATION
 					}
 				);
 			});
@@ -278,7 +279,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		expect(transporter.broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
 			error: new Error("Ups!"),
 			module: "transporter",
-			type: "consumerError"
+			type: C.FAILED_CONSUMER_ERROR
 		});
 	});
 });

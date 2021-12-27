@@ -1,6 +1,8 @@
 const ServiceBroker = require("../../../src/service-broker");
 const { protectReject } = require("../utils");
 
+const C = require("../../../src/constants");
+
 jest.mock("ioredis");
 const Redis = require("ioredis");
 
@@ -116,7 +118,7 @@ describe("Test RedisCacher init", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$cacher.error", {
 			error: new Error("Ups!"),
 			module: "cacher",
-			type: "clientError"
+			type: C.CLIENT_ERROR
 		});
 	});
 });

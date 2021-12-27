@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const MqttTransporter = require("../../../src/transporters/mqtt");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 jest.mock("mqtt");
@@ -79,7 +80,7 @@ describe("Test MqttTransporter connect & disconnect", () => {
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
 				error: new Error("Ups"),
 				module: "transporter",
-				type: "clientError"
+				type: C.CLIENT_ERROR
 			});
 		});
 

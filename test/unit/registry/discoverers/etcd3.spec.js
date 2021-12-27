@@ -8,6 +8,7 @@ const Etcd3Discoverer = require("../../../../src/registry/discoverers").Etcd3;
 const ServiceBroker = require("../../../../src/service-broker");
 const Serializers = require("../../../../src/serializers");
 const P = require("../../../../src/packets");
+const C = require("../../../../src/constants");
 
 describe("Test Etcd3Discoverer constructor", () => {
 	const broker = new ServiceBroker({ logger: false });
@@ -378,7 +379,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
 			error: expect.any(Error),
 			module: "discoverer",
-			type: "failedCollectKeys"
+			type: C.FAILED_COLLECT_KEYS
 		});
 	});
 });
@@ -822,7 +823,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
 			error: err,
 			module: "discoverer",
-			type: "failedSendInfo"
+			type: C.FAILED_SEND_INFO
 		});
 	});
 });

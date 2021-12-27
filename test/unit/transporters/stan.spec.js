@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 // const lolex = require("@sinonjs/fake-timers");
@@ -121,7 +122,7 @@ describe("Test StanTransporter connect & disconnect & reconnect", () => {
 			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
 				error: new Error("Ups"),
 				module: "transporter",
-				type: "clientError"
+				type: C.CLIENT_ERROR
 			});
 		});
 

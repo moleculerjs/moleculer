@@ -9,6 +9,7 @@
 const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
+const C = require("../constants");
 
 const {
 	PACKET_REQUEST,
@@ -171,7 +172,7 @@ class Amqp10Transporter extends Transporter {
 							this.broker.broadcastLocal("$transporter.error", {
 								error: err,
 								module: "transporter",
-								type: "requestAck"
+								type: C.FAILED_REQUEST_ACK
 							});
 						});
 				} else {
@@ -237,7 +238,7 @@ class Amqp10Transporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error: e,
 					module: "transporter",
-					type: "disconnected"
+					type: C.FAILED_DISCONNECTION
 				});
 			}
 		});
@@ -268,7 +269,7 @@ class Amqp10Transporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error: e,
 					module: "transporter",
-					type: "connection"
+					type: C.FAILED_DISCONNECTION
 				});
 			});
 	}
@@ -294,7 +295,7 @@ class Amqp10Transporter extends Transporter {
 					this.broker.broadcastLocal("$transporter.error", {
 						error,
 						module: "transporter",
-						type: "disconnected"
+						type: C.FAILED_DISCONNECTION
 					});
 				});
 		}
@@ -489,7 +490,7 @@ class Amqp10Transporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error,
 					module: "transporter",
-					type: "publish"
+					type: C.FAILED_PUBLISHER_ERROR
 				});
 			});
 	}
@@ -536,7 +537,7 @@ class Amqp10Transporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error,
 					module: "transporter",
-					type: "publishBalancedEvent"
+					type: C.FAILED_PUBLISH_BALANCED_EVENT
 				});
 			});
 	}
@@ -583,7 +584,7 @@ class Amqp10Transporter extends Transporter {
 				this.broker.broadcastLocal("$transporter.error", {
 					error,
 					module: "transporter",
-					type: "publishBalancedRequest"
+					type: C.FAILED_PUBLISH_BALANCED_REQUEST
 				});
 			});
 	}
