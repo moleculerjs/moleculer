@@ -147,6 +147,10 @@ Tidelift will coordinate the fix and disclosure.
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 <a href="https://github.com/moleculerjs/moleculer/graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=882&button=false" /></a>
 
+## Project activity
+
+![Alt](https://repobeats.axiom.co/api/embed/f4cb6da776e9edc2d8118aff4e0c1ae9afe37896.svg "Repobeats analytics image")
+
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
