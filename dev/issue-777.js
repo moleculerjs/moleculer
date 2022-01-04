@@ -52,14 +52,14 @@ const broker = new ServiceBroker({
 			{
 				type: "Zipkin",
 				options: {
-					safetyTags: true,
+					safetyTags: false,
 					baseURL: "http://127.0.0.1:9411"
 				}
 			},
 			{
 				type: "Jaeger",
 				options: {
-					safetyTags: true,
+					safetyTags: false,
 					endpoint: "http://localhost:14268/api/traces"
 				}
 			}
@@ -79,6 +79,9 @@ broker.createService({
 	name: "greeter",
 	actions: {
 		hello: {
+			tracing: {
+				safetyTags: true
+			},
 			handler(ctx) {
 				return `Hello!`;
 			}
