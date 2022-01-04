@@ -145,12 +145,12 @@ module.exports = function actionHookMiddleware(broker) {
 				...(beforeHookMatches ? beforeHookMatches : [])
 			]);
 			broker.logger.debug(`Service Level 'After' Hooks of '${name}' action:`, [
-				...(afterAllHook ? ["*"] : []),
-				...(afterHookMatches ? afterHookMatches : [])
+				...(afterHookMatches ? afterHookMatches : []),
+				...(afterAllHook ? ["*"] : [])
 			]);
 			broker.logger.debug(`Service Level 'Error' Hooks of '${name}' action:`, [
-				...(errorAllHook ? ["*"] : []),
-				...(errorHookMatches ? errorHookMatches : [])
+				...(errorHookMatches ? errorHookMatches : []),
+				...(errorAllHook ? ["*"] : [])
 			]);
 
 			if (
