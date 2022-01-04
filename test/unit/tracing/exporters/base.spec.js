@@ -8,7 +8,7 @@ describe("Test Base Reporter class", () => {
 		it("should create with default options", () => {
 			const exporter = new BaseExporter();
 
-			expect(exporter.opts).toEqual({});
+			expect(exporter.opts).toEqual({ safetyTags: false });
 		});
 
 		it("should create with custom options", () => {
@@ -18,6 +18,7 @@ describe("Test Base Reporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				some: "thing",
 				a: 5
 			});
@@ -89,6 +90,43 @@ describe("Test Base Reporter class", () => {
 				"myObj.c.e.f": true,
 				"myObj.c.e.g": 100,
 				"myObj.c.h": null
+			});
+		});
+	});
+
+	describe("Test flattenTags method with cyclic tags", () => {
+		const exporter = new BaseExporter({ safetyTags: true });
+
+		const nasty = {
+			evil: true
+		};
+
+		const obj = {
+			a: 5,
+			b: "John",
+			c: {
+				d: "d",
+				e: {
+					f: true,
+					g: 100
+				},
+				h: null,
+				i: undefined
+			},
+			j: nasty
+		};
+
+		nasty.devil = obj; // Cyclic reference
+
+		it("should flattening an object skipping the cyclic properties", () => {
+			expect(exporter.flattenTags(obj)).toEqual({
+				a: 5,
+				b: "John",
+				"c.d": "d",
+				"c.e.f": true,
+				"c.e.g": 100,
+				"c.h": null,
+				"j.evil": true
 			});
 		});
 	});

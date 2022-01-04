@@ -49,6 +49,7 @@ describe("Test Datadog tracing exporter class", () => {
 			const exporter = new DatadogTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
 				env: process.env.DD_ENVIRONMENT || null,
 				samplingPriority: "AUTO_KEEP",
@@ -77,6 +78,7 @@ describe("Test Datadog tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				tracer: fakeDdTracer,
 				agentUrl: "http://datadog-agent:8126",
 				env: "testing",

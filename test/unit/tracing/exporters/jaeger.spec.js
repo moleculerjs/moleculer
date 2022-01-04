@@ -47,6 +47,7 @@ describe("Test Jaeger tracing exporter class", () => {
 			const exporter = new JaegerTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				endpoint: null,
 				host: "127.0.0.1",
 				port: 6832,
@@ -80,6 +81,7 @@ describe("Test Jaeger tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				endpoint: "http://jaeger:9411",
 				host: "127.0.0.1",
 				port: 6832,

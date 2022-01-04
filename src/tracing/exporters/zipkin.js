@@ -11,10 +11,6 @@ const { isFunction } = require("../../utils");
  * API v2: https://zipkin.io/zipkin-api/#/
  * API v1: https://zipkin.io/pages/data_model.html
  *
- * Running Zipkin in Docker:
- *
- * 	 docker run -d -p 9411:9411 --name=zipkin openzipkin/zipkin
- *
  * @class ZipkinTraceExporter
  */
 class ZipkinTraceExporter extends BaseTraceExporter {
