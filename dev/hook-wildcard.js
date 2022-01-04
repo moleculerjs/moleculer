@@ -11,66 +11,36 @@ broker.createService({
 
 	hooks: {
 		before: {
+			"*"(ctx) {
+				broker.logger.info("GLOBAL BEFORE HOOK");
+			},
 			// Applies to all actions that start with "create-"
 			"create-*"(ctx) {
 				broker.logger.info("BEFORE HOOK: create-*");
 			},
-
-			// Applies to all actions that end with "-user"
-			"*-user": [
-				ctx => {
-					broker.logger.info("BEFORE HOOK: *-user");
-				}
-			],
-
-			"*-create": [
-				ctx => {
-					broker.logger.info("BEFORE HOOK: *-create");
-				}
-			],
-
-			"*-create-*": [
-				ctx => {
-					broker.logger.info("BEFORE HOOK: *-create-*");
-				}
-			],
-
-			generate: [
-				ctx => {
-					broker.logger.info("BEFORE HOOK: generate");
-				}
-			]
+			"create-account"(ctx) {
+				broker.logger.info("BEFORE HOOK: create-account");
+			},
+			// Applies to all actions that ends with "-account"
+			"*-account"(ctx) {
+				broker.logger.info("BEFORE HOOK: *-account");
+			}
 		},
 		after: {
+			"*"(ctx) {
+				broker.logger.info("GLOBAL AFTER HOOK");
+			},
 			// Applies to all actions that start with "create-"
 			"create-*"(ctx) {
 				broker.logger.info("AFTER HOOK: create-*");
 			},
-
-			// Applies to all actions that end with "-user"
-			"*-user": [
-				ctx => {
-					broker.logger.info("AFTER HOOK: *-user");
-				}
-			],
-
-			"*-create": [
-				ctx => {
-					broker.logger.info("AFTER HOOK: *-create");
-				}
-			],
-
-			"*-create-*": [
-				ctx => {
-					broker.logger.info("AFTER HOOK: *-create-*");
-				}
-			],
-
-			generate: [
-				ctx => {
-					broker.logger.info("AFTER HOOK: generate");
-				}
-			]
+			"create-account"(ctx) {
+				broker.logger.info("AFTER HOOK: create-account");
+			},
+			// Applies to all actions that ends with "-account"
+			"*-account"(ctx) {
+				broker.logger.info("AFTER HOOK: *-account");
+			}
 		},
 		error: {
 			"*"(ctx, err) {
@@ -78,34 +48,19 @@ broker.createService({
 				throw err;
 			},
 			// Applies to all actions that start with "create-"
-			"create-*"(ctx, err) {
+			"create-*"(ctx) {
 				broker.logger.info("ERROR HOOK: create-*");
+				throw err;
 			},
-
-			// Applies to all actions that end with "-user"
-			"*-user": [
-				(ctx, err) => {
-					broker.logger.info("ERROR HOOK: *-user");
-				}
-			],
-
-			"*-create": [
-				(ctx, err) => {
-					broker.logger.info("ERROR HOOK: *-create");
-				}
-			],
-
-			"*-create-*": [
-				(ctx, err) => {
-					broker.logger.info("ERROR HOOK: *-create-*");
-				}
-			],
-
-			generate: [
-				(ctx, err) => {
-					broker.logger.info("ERROR HOOK: generate");
-				}
-			]
+			"create-error"(ctx) {
+				broker.logger.info("ERROR HOOK: create-error");
+				throw err;
+			},
+			// Applies to all actions that ends with "-account"
+			"*-error"(ctx) {
+				broker.logger.info("ERROR HOOK: *-error");
+				throw err;
+			}
 		}
 	},
 
@@ -115,24 +70,9 @@ broker.createService({
 				broker.logger.info("ACTION: create-account");
 			}
 		},
-		"update-user": {
+		"create-error": {
 			handler() {
-				broker.logger.info("ACTION: update-user");
-			}
-		},
-		"table-create": {
-			handler() {
-				broker.logger.info("ACTION: table-create");
-			}
-		},
-		"test-create-test": {
-			handler() {
-				broker.logger.info("ACTION: test-create-test");
-			}
-		},
-		generate: {
-			handler() {
-				broker.logger.info("ACTION: generate");
+				throw new Error("An error occurred!");
 			}
 		}
 	}

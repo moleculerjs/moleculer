@@ -56,9 +56,6 @@ module.exports = function actionHookMiddleware(broker) {
 	}
 
 	function wrapActionHookMiddleware(handler, action) {
-		/*if (action.service.name == "hook") {
-			console.log("AAA");
-		}*/
 		const name = action.rawName || action.name;
 		const hooks = action.service && action.service.schema ? action.service.schema.hooks : null;
 		if (hooks || action.hooks) {
