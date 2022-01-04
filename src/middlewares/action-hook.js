@@ -139,6 +139,20 @@ module.exports = function actionHookMiddleware(broker) {
 					? sanitizeHooks(action.hooks.error, action.service)
 					: null;
 
+			// Show info for debugging purposes
+			broker.logger.debug(`Service Level 'Before' Hooks of '${name}' action:`, [
+				...(beforeAllHook ? ["*"] : []),
+				...(beforeHookMatches ? beforeHookMatches : [])
+			]);
+			broker.logger.debug(`Service Level 'After' Hooks of '${name}' action:`, [
+				...(afterAllHook ? ["*"] : []),
+				...(afterHookMatches ? afterHookMatches : [])
+			]);
+			broker.logger.debug(`Service Level 'Error' Hooks of '${name}' action:`, [
+				...(errorAllHook ? ["*"] : []),
+				...(errorHookMatches ? errorHookMatches : [])
+			]);
+
 			if (
 				beforeAllHook ||
 				beforeHook ||

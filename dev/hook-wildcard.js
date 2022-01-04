@@ -3,7 +3,9 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
-	nodeID: "wildcard-hooks"
+	nodeID: "wildcard-hooks",
+
+	logLevel: "debug"
 });
 
 broker.createService({
