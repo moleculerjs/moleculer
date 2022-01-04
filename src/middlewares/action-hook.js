@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isFunction, isString } = require("../utils");
+const { isFunction, isString, match } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
 	function callHook(hook, service, ctx, res) {
@@ -56,6 +56,9 @@ module.exports = function actionHookMiddleware(broker) {
 	}
 
 	function wrapActionHookMiddleware(handler, action) {
+		/*if (action.service.name == "hook") {
+			console.log("AAA");
+		}*/
 		const name = action.rawName || action.name;
 		const hooks = action.service && action.service.schema ? action.service.schema.hooks : null;
 		if (hooks || action.hooks) {
@@ -68,10 +71,32 @@ module.exports = function actionHookMiddleware(broker) {
 				hooks && hooks.error ? sanitizeHooks(hooks.error["*"], action.service) : null;
 
 			// Hooks in service
+			// Find matching hooks
+			const beforeHookMatches =
+				hooks && hooks.before
+					? Object.keys(hooks.before).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
+
+							return match(name, hookName);
+					  })
+					: null;
+
+			// Sanitize matching hooks
+			const beforeHook =
+				beforeHookMatches && beforeHookMatches.length > 0
+					? beforeHookMatches.map(hookName =>
+							sanitizeHooks(hooks.before[hookName], action.service)
+					  )
+					: null;
+
+			/*
 			const beforeHook =
 				hooks && hooks.before ? sanitizeHooks(hooks.before[name], action.service) : null;
+			*/
 			const afterHook =
 				hooks && hooks.after ? sanitizeHooks(hooks.after[name], action.service) : null;
+
 			const errorHook =
 				hooks && hooks.error ? sanitizeHooks(hooks.error[name], action.service) : null;
 
@@ -107,7 +132,12 @@ module.exports = function actionHookMiddleware(broker) {
 					if (beforeAllHook) p = p.then(() => callHook(beforeAllHook, ctx.service, ctx));
 
 					// Before hook
-					if (beforeHook) p = p.then(() => callHook(beforeHook, ctx.service, ctx));
+					if (beforeHook) {
+						// p = p.then(() => callHook(beforeHook, ctx.service, ctx));
+						beforeHook.forEach(fnHook => {
+							p = p.then(() => callHook(fnHook, ctx.service, ctx));
+						});
+					}
 
 					// Before hook in action definition
 					if (actionBeforeHook)
