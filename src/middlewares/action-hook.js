@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isFunction, isString } = require("../utils");
+const { isFunction, isString, match } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
 	function callHook(hook, service, ctx, res) {
@@ -68,12 +68,62 @@ module.exports = function actionHookMiddleware(broker) {
 				hooks && hooks.error ? sanitizeHooks(hooks.error["*"], action.service) : null;
 
 			// Hooks in service
+			/** @type {Array<String>?} List of hooks names that match the action name */
+			const beforeHookMatches =
+				hooks && hooks.before
+					? Object.keys(hooks.before).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
+
+							return match(name, hookName);
+					  })
+					: null;
+
+			/** @type {Array<Function>?} List of hooks that match the action name */
 			const beforeHook =
-				hooks && hooks.before ? sanitizeHooks(hooks.before[name], action.service) : null;
+				beforeHookMatches && beforeHookMatches.length > 0
+					? beforeHookMatches.map(hookName =>
+							sanitizeHooks(hooks.before[hookName], action.service)
+					  )
+					: null;
+
+			/** @type {Array<String>?} List of hooks names that match the action name */
+			const afterHookMatches =
+				hooks && hooks.after
+					? Object.keys(hooks.after).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
+
+							return match(name, hookName);
+					  })
+					: null;
+
+			/** @type {Array<Function>?} List of hooks that match the action name */
 			const afterHook =
-				hooks && hooks.after ? sanitizeHooks(hooks.after[name], action.service) : null;
+				afterHookMatches && afterHookMatches.length > 0
+					? afterHookMatches.map(hookName =>
+							sanitizeHooks(hooks.after[hookName], action.service)
+					  )
+					: null;
+
+			/** @type {Array<String>?} List of hooks names that match the action name */
+			const errorHookMatches =
+				hooks && hooks.error
+					? Object.keys(hooks.error).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
+
+							return match(name, hookName);
+					  })
+					: null;
+
+			/** @type {Array<Function>?} List of hooks that match the action name */
 			const errorHook =
-				hooks && hooks.error ? sanitizeHooks(hooks.error[name], action.service) : null;
+				errorHookMatches && errorHookMatches.length > 0
+					? errorHookMatches.map(hookName =>
+							sanitizeHooks(hooks.error[hookName], action.service)
+					  )
+					: null;
 
 			// Hooks in action definition
 			const actionBeforeHook =
@@ -88,6 +138,20 @@ module.exports = function actionHookMiddleware(broker) {
 				action.hooks && action.hooks.error
 					? sanitizeHooks(action.hooks.error, action.service)
 					: null;
+
+			// Show info for debugging purposes
+			broker.logger.debug(`Service Level 'Before' Hooks of '${name}' action:`, [
+				...(beforeAllHook ? ["*"] : []),
+				...(beforeHookMatches ? beforeHookMatches : [])
+			]);
+			broker.logger.debug(`Service Level 'After' Hooks of '${name}' action:`, [
+				...(afterAllHook ? ["*"] : []),
+				...(afterHookMatches ? afterHookMatches : [])
+			]);
+			broker.logger.debug(`Service Level 'Error' Hooks of '${name}' action:`, [
+				...(errorAllHook ? ["*"] : []),
+				...(errorHookMatches ? errorHookMatches : [])
+			]);
 
 			if (
 				beforeAllHook ||
@@ -107,7 +171,11 @@ module.exports = function actionHookMiddleware(broker) {
 					if (beforeAllHook) p = p.then(() => callHook(beforeAllHook, ctx.service, ctx));
 
 					// Before hook
-					if (beforeHook) p = p.then(() => callHook(beforeHook, ctx.service, ctx));
+					if (beforeHook) {
+						beforeHook.forEach(fnHook => {
+							p = p.then(() => callHook(fnHook, ctx.service, ctx));
+						});
+					}
 
 					// Before hook in action definition
 					if (actionBeforeHook)
@@ -121,7 +189,11 @@ module.exports = function actionHookMiddleware(broker) {
 						p = p.then(res => callHook(actionAfterHook, ctx.service, ctx, res));
 
 					// After hook
-					if (afterHook) p = p.then(res => callHook(afterHook, ctx.service, ctx, res));
+					if (afterHook) {
+						afterHook.forEach(fnHook => {
+							p = p.then(res => callHook(fnHook, ctx.service, ctx, res));
+						});
+					}
 
 					// After hook all
 					if (afterAllHook)
@@ -132,8 +204,11 @@ module.exports = function actionHookMiddleware(broker) {
 						p = p.catch(err => callErrorHook(actionErrorHook, ctx.service, ctx, err));
 
 					// Error hook
-					if (errorHook)
-						p = p.catch(err => callErrorHook(errorHook, ctx.service, ctx, err));
+					if (errorHook) {
+						errorHook.forEach(fnHook => {
+							p = p.catch(err => callErrorHook(fnHook, ctx.service, ctx, err));
+						});
+					}
 
 					// Error hook all
 					if (errorAllHook)
