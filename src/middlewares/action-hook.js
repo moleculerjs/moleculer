@@ -71,7 +71,7 @@ module.exports = function actionHookMiddleware(broker) {
 				hooks && hooks.error ? sanitizeHooks(hooks.error["*"], action.service) : null;
 
 			// Hooks in service
-			// Find matching hooks
+			/** @type {Array<String>?} List of hooks names that match the action name */
 			const beforeHookMatches =
 				hooks && hooks.before
 					? Object.keys(hooks.before).filter(hookName => {
@@ -82,7 +82,7 @@ module.exports = function actionHookMiddleware(broker) {
 					  })
 					: null;
 
-			// Sanitize matching hooks
+			/** @type {Array<Function>?} List of hooks that match the action name */
 			const beforeHook =
 				beforeHookMatches && beforeHookMatches.length > 0
 					? beforeHookMatches.map(hookName =>
@@ -90,15 +90,43 @@ module.exports = function actionHookMiddleware(broker) {
 					  )
 					: null;
 
-			/*
-			const beforeHook =
-				hooks && hooks.before ? sanitizeHooks(hooks.before[name], action.service) : null;
-			*/
-			const afterHook =
-				hooks && hooks.after ? sanitizeHooks(hooks.after[name], action.service) : null;
+			/** @type {Array<String>?} List of hooks names that match the action name */
+			const afterHookMatches =
+				hooks && hooks.after
+					? Object.keys(hooks.after).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
 
+							return match(name, hookName);
+					  })
+					: null;
+
+			/** @type {Array<Function>?} List of hooks that match the action name */
+			const afterHook =
+				afterHookMatches && afterHookMatches.length > 0
+					? afterHookMatches.map(hookName =>
+							sanitizeHooks(hooks.after[hookName], action.service)
+					  )
+					: null;
+
+			/** @type {Array<String>?} List of hooks names that match the action name */
+			const errorHookMatches =
+				hooks && hooks.error
+					? Object.keys(hooks.error).filter(hookName => {
+							// Global hook. Skip it
+							if (hookName === "*") return false;
+
+							return match(name, hookName);
+					  })
+					: null;
+
+			/** @type {Array<Function>?} List of hooks that match the action name */
 			const errorHook =
-				hooks && hooks.error ? sanitizeHooks(hooks.error[name], action.service) : null;
+				errorHookMatches && errorHookMatches.length > 0
+					? errorHookMatches.map(hookName =>
+							sanitizeHooks(hooks.error[hookName], action.service)
+					  )
+					: null;
 
 			// Hooks in action definition
 			const actionBeforeHook =
@@ -133,7 +161,6 @@ module.exports = function actionHookMiddleware(broker) {
 
 					// Before hook
 					if (beforeHook) {
-						// p = p.then(() => callHook(beforeHook, ctx.service, ctx));
 						beforeHook.forEach(fnHook => {
 							p = p.then(() => callHook(fnHook, ctx.service, ctx));
 						});
@@ -151,7 +178,11 @@ module.exports = function actionHookMiddleware(broker) {
 						p = p.then(res => callHook(actionAfterHook, ctx.service, ctx, res));
 
 					// After hook
-					if (afterHook) p = p.then(res => callHook(afterHook, ctx.service, ctx, res));
+					if (afterHook) {
+						afterHook.forEach(fnHook => {
+							p = p.then(res => callHook(fnHook, ctx.service, ctx, res));
+						});
+					}
 
 					// After hook all
 					if (afterAllHook)
@@ -162,8 +193,11 @@ module.exports = function actionHookMiddleware(broker) {
 						p = p.catch(err => callErrorHook(actionErrorHook, ctx.service, ctx, err));
 
 					// Error hook
-					if (errorHook)
-						p = p.catch(err => callErrorHook(errorHook, ctx.service, ctx, err));
+					if (errorHook) {
+						errorHook.forEach(fnHook => {
+							p = p.catch(err => callErrorHook(fnHook, ctx.service, ctx, err));
+						});
+					}
 
 					// Error hook all
 					if (errorAllHook)
