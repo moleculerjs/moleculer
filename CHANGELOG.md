@@ -1,6 +1,106 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.18...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.19...master)
 
+--------------------------------------------------
+<a name="0.14.19"></a>
+# [0.14.19](https://github.com/moleculerjs/moleculer/compare/v0.14.18...v0.14.19) (2022-01-08)
+
+_69 commits from 7 contributors._
+
+## Custom error recreation feature [#1017](https://github.com/moleculerjs/moleculer/pull/1017)
+You can create a custom `Regenerator` class which is able to serialize and deserialize your custom errors. It's necessary when the custom error is created on a remote node and must be serialized to be able to sent back to the caller.
+
+**Create a custom Regenerator**
+```js
+const { Regenerator, MoleculerError } = require("moleculer").Errors;
+
+class TimestampedError extends MoleculerError {
+    constructor(message, code, type, data, timestamp) {
+        super(message, code, type, data);
+        this.timestamp = timestamp;
+    }
+}
+
+class CustomRegenerator extends Regenerator {
+    restoreCustomError(plainError, payload) {
+        const { name, message, code, type, data, timestamp } = plainError;
+        switch (name) {
+            case "TimestampedError":
+                return new TimestampedError(message, code, type, data, timestamp);
+        }
+    }
+    extractPlainError(err) {
+        return {
+            ...super.extractPlainError(err),
+            timestamp: err.timestamp
+        };
+    }
+}
+module.exports = CustomRegenerator;
+```
+
+**Use it in broker options**
+```js
+// moleculer.config.js
+const CustomRegenerator = require("./custom-regenerator");
+module.exports = {
+    errorRegenerator: new CustomRegenerator()
+}
+```
+
+## Error events [#1048](https://github.com/moleculerjs/moleculer/pull/1048)
+When an error occured inside ServiceBroker, it's printed to the console, but there was no option that you can process it programatically (e.g. transfer to an external monitoring service). This feature solves it. Every error inside ServiceBroker broadcasts a **local** (not transported) event (`$transporter.error`, `$broker.error`, `$transit.error`, `$cacher.error`, `$discoverer.error`) what you can listen in your dedicated service or in a middleware.
+
+**Example to listen in an error-tracker service**
+```js
+module.exports = {
+    name: "error-tracker",
+
+    events: {
+        "$**.error": {
+            handler(ctx) {
+                // Send the error to the tracker
+                this.sendError(ctx.params.error);
+            }
+        }
+    }
+}
+```
+
+**Example to listen in a middleware or in broker options**
+```js
+module.exports = {
+    created(broker) {
+        broker.localBus.on("*.error", payload => {
+            // Send the error to the tracker
+            this.sendError(payload.error);
+        });
+    }
+}
+```
+
+## Wildcards in Action Hooks [#1051](https://github.com/moleculerjs/moleculer/pull/1051)
+You can use `*` wildcard in action names when you use it in Action Hooks.
+
+**Example**
+```js
+hooks: {
+    before: {
+        // Applies to all actions that start with "create-"
+        "create-*": [],
+        
+        // Applies to all actions that end with "-user"
+        "*-user": [],
+    }
+}
+```
+
+
+## Other Changes
+- update dependencies.
+- update d.ts file. [#1025](https://github.com/moleculerjs/moleculer/pull/1025), [#1028](https://github.com/moleculerjs/moleculer/pull/1028), [#1032](https://github.com/moleculerjs/moleculer/pull/1032)
+- add `safetyTags` option to tracing exporters. [#1052](https://github.com/moleculerjs/moleculer/pull/1052)
+ 
 --------------------------------------------------
 <a name="0.14.18"></a>
 # [0.14.18](https://github.com/moleculerjs/moleculer/compare/v0.14.17...v0.14.18) (2021-10-20)
