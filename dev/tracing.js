@@ -2,8 +2,8 @@
 
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
-	url: "http://192.168.0.181:8126",
-	debug: true,
+	url: "http://localhost:8126",
+	debug: false,
 	samplingPriority: "USER_KEEP"
 });
 
@@ -48,19 +48,20 @@ const broker = new ServiceBroker({
 				options: {
 					tracer
 				}
-			}
-			/*{
+			},
+			{
 				type: "Zipkin",
 				options: {
-					baseURL: "http://192.168.0.181:9411",
+					baseURL: "http://localhost:9411"
 				}
 			},
 			{
 				type: "Jaeger",
 				options: {
-					host: "192.168.0.181",
+					endpoint: "http://localhost:14268/api/traces"
+					//host: "localhost",
 				}
-			},*/
+			}
 			/*{
 				type: "Event",
 				options: {

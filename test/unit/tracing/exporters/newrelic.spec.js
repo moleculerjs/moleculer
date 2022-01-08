@@ -18,6 +18,7 @@ describe("Test NewRelic tracing exporter class", () => {
 			const exporter = new NewRelicTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				baseURL: "https://trace-api.newrelic.com",
 				defaultTags: null,
 				insertKey: "",
@@ -46,6 +47,7 @@ describe("Test NewRelic tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				baseURL: "https://trace-api.newrelic.com",
 				interval: 10,
 				insertKey: "mock-newrelic-insert-key",

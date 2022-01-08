@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isFunction, isPlainObject } = require("../utils");
+const { isFunction, isPlainObject, safetyObject } = require("../utils");
 
 module.exports = function TracingMiddleware(broker) {
 	const tracer = broker.tracer;
@@ -22,7 +22,7 @@ module.exports = function TracingMiddleware(broker) {
 				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
 				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
-				const tags = {
+				let tags = {
 					callingLevel: ctx.level,
 					action: ctx.action
 						? {
@@ -67,6 +67,10 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
 					else if (Array.isArray(actionTags.meta))
 						tags.meta = _.pick(ctx.meta, actionTags.meta);
+				}
+
+				if (opts.safetyTags) {
+					tags = safetyObject(tags);
 				}
 
 				let spanName = `action '${ctx.action.name}'`;
@@ -144,7 +148,7 @@ module.exports = function TracingMiddleware(broker) {
 				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
 				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
-				const tags = {
+				let tags = {
 					event: {
 						name: event.name,
 						group: event.group
@@ -186,6 +190,10 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
 					else if (Array.isArray(eventTags.meta))
 						tags.meta = _.pick(ctx.meta, eventTags.meta);
+				}
+
+				if (opts.safetyTags) {
+					tags = safetyObject(tags);
 				}
 
 				let spanName = `event '${ctx.eventName}' in '${service.fullName}'`;

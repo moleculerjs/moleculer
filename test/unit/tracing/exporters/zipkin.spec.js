@@ -18,6 +18,7 @@ describe("Test Zipkin tracing exporter class", () => {
 			const exporter = new ZipkinTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				baseURL: "http://localhost:9411",
 				defaultTags: null,
 				interval: 5,
@@ -52,6 +53,7 @@ describe("Test Zipkin tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				baseURL: "http://zipkin-server:9411",
 				interval: 10,
 				payloadOptions: {

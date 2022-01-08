@@ -5,10 +5,6 @@ const BaseTraceExporter = require("./base");
 const asyncHooks = require("async_hooks");
 const { isFunction } = require("../../utils");
 
-/*
-	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
-*/
-
 let DatadogSpanContext;
 let DatadogID;
 

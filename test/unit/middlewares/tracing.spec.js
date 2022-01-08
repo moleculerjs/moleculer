@@ -676,6 +676,77 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
 		});
 
+		it("should create a span with cyclic-object params", async () => {
+			action.tracing = {
+				safetyTags: true,
+				tags: {
+					params: true
+				}
+			};
+
+			const mw = Middleware(broker);
+			const newHandler = mw.localAction.call(broker, handler, action);
+
+			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
+			fakeSpan.addTags.mockClear();
+			fakeSpan.setError.mockClear();
+			fakeSpan.finish.mockClear();
+
+			const nasty = {
+				evil: true
+			};
+
+			ctx.params = {
+				a: 5,
+				b: "John",
+				c: nasty
+			};
+
+			nasty.devil = ctx.params; // Cyclic reference
+
+			await newHandler(ctx);
+
+			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+				id: "ctx-id",
+				type: "action",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
+				service: null,
+				tags: {
+					action: {
+						name: "posts.find",
+						rawName: "find"
+					},
+					callerNodeID: "server-1",
+					callingLevel: 3,
+					nodeID: "server-1",
+					options: {
+						retries: 3,
+						timeout: 5
+					},
+					requestID: "tracer-trace-id",
+					remoteCall: false,
+
+					params: {
+						a: 5,
+						b: "John",
+						c: {
+							evil: true,
+							devil: {
+								a: 5,
+								b: "John"
+							}
+						}
+					}
+				},
+				sampled: false
+			});
+
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+		});
+
 		describe("global action tags", () => {
 			let action;
 			beforeEach(() => {
@@ -1765,6 +1836,83 @@ describe("Test TracingMiddleware localEvent", () => {
 					requestID: "tracer-trace-id",
 
 					params: "Moleculer"
+				},
+				sampled: false
+			});
+
+			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
+
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
+
+			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
+		});
+		it("should create a span with cyclic-object params", async () => {
+			event.tracing = {
+				safetyTags: true,
+				tags: {
+					params: true
+				}
+			};
+
+			const mw = Middleware(broker);
+			const newHandler = mw.localEvent.call(broker, handler, event);
+
+			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
+			fakeSpan.addTags.mockClear();
+			fakeSpan.setError.mockClear();
+			fakeSpan.finish.mockClear();
+
+			const nasty = {
+				evil: true
+			};
+
+			ctx.params = {
+				a: 5,
+				b: "John",
+				c: nasty
+			};
+
+			nasty.devil = ctx.params; // Cyclic reference
+
+			await newHandler(ctx);
+
+			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
+				id: "ctx-id",
+				type: "event",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
+				service: {
+					fullName: "v1.posts",
+					name: "posts",
+					version: 1
+				},
+				tags: {
+					event: {
+						name: "user.created",
+						group: "posts"
+					},
+					eventName: "user.created",
+					eventType: "emit",
+					callerNodeID: "server-1",
+					callingLevel: 3,
+					nodeID: "server-1",
+					remoteCall: false,
+					requestID: "tracer-trace-id",
+
+					params: {
+						a: 5,
+						b: "John",
+						c: {
+							evil: true,
+							devil: {
+								a: 5,
+								b: "John"
+							}
+						}
+					}
 				},
 				sampled: false
 			});
