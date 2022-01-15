@@ -110,6 +110,38 @@ describe("Test ActionLogger", () => {
 				expect.any(Function)
 			);
 		});
+
+		it("should log published packet to file with circular payload", async () => {
+			fs.writeFile.mockClear();
+			Date.now = jest.fn(() => 123456);
+			const mw = createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
+
+			const next = jest.fn();
+			const payload = {
+				a: 5,
+				b: {}
+			};
+			payload.b.c = payload;
+			const packet = { type: "REQUEST", target: "server-2", payload };
+			mw.transitPublish(next)(packet);
+
+			expect(next).toBeCalledTimes(1);
+			expect(next).toBeCalledWith(packet);
+
+			expect(fs.writeFile).toBeCalledTimes(1);
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-send-REQUEST-to-server-2.log"),
+				stringify({ a: 5, b: {} }),
+				expect.any(Function)
+			);
+		});
 	});
 
 	describe("Test logging received packets", () => {
