@@ -202,6 +202,84 @@ describe("Test ActionLogger", () => {
 			await broker.stop();
 		});
 
+		it("should log request with params 'null'", async () => {
+			fs.writeFile.mockClear();
+			Date.now = jest.fn(() => 123456);
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
+
+			const res = await broker.call("test.ok", null);
+
+			expect(fs.writeFile).toBeCalledTimes(1);
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-call-test.ok-request.log"),
+				"null",
+				expect.any(Function)
+			);
+
+			await broker.stop();
+		});
+
+		it("should log request with circular params", async () => {
+			fs.writeFile.mockClear();
+			Date.now = jest.fn(() => 123456);
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
+
+			const obj = {
+				a: 5,
+				b: {}
+			};
+			obj.b.c = obj;
+
+			const res = await broker.call("test.ok", obj);
+
+			expect(fs.writeFile).toBeCalledTimes(1);
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-call-test.ok-request.log"),
+				stringify({ a: 5, b: {} }),
+				expect.any(Function)
+			);
+
+			await broker.stop();
+		});
+
+		it("should log request without params", async () => {
+			fs.writeFile.mockClear();
+			Date.now = jest.fn(() => 123456);
+			const broker = await createMW({
+				logger,
+				colors: false,
+				folder: "./logs",
+				extension: ".log",
+				logParams: true
+			});
+
+			const res = await broker.call("test.ok");
+
+			expect(fs.writeFile).toBeCalledTimes(1);
+			expect(fs.writeFile).toHaveBeenNthCalledWith(
+				1,
+				path.join("logs", "server-1", "123456-call-test.ok-request.log"),
+				"<undefined>",
+				expect.any(Function)
+			);
+
+			await broker.stop();
+		});
+
 		it("should log response", async () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);

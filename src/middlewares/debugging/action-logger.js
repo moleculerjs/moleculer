@@ -10,7 +10,7 @@ const _ = require("lodash");
 const kleur = require("kleur");
 const fs = require("fs");
 const path = require("path");
-const { makeDirs, match, isObject } = require("../../utils");
+const { makeDirs, match, isObject, safetyObject } = require("../../utils");
 
 module.exports = function ActionLoggerMiddleware(opts) {
 	opts = _.defaultsDeep(opts, {
@@ -37,11 +37,25 @@ module.exports = function ActionLoggerMiddleware(opts) {
 	let targetFolder;
 
 	function saveToFile(filename, payload) {
-		const data = JSON.stringify(
-			payload,
-			payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
-			4
-		);
+		let data;
+		if (payload === undefined) {
+			data = "<undefined>";
+		} else {
+			try {
+				data = JSON.stringify(
+					payload,
+					payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
+					4
+				);
+			} catch (err) {
+				data = JSON.stringify(
+					safetyObject(payload),
+					payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
+					4
+				);
+			}
+		}
+
 		fs.writeFile(path.join(targetFolder, filename), data, () => {
 			/* Silent error */
 		});
