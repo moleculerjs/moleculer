@@ -8,7 +8,7 @@
 _69 commits from 7 contributors._
 
 ## Custom error recreation feature [#1017](https://github.com/moleculerjs/moleculer/pull/1017)
-You can create a custom `Regenerator` class which is able to serialize and deserialize your custom errors. It's necessary when the custom error is created on a remote node and must be serialized to be able to sent back to the caller.
+You can create a custom `Regenerator` class that is able to serialize and deserialize your custom errors. It's necessary when the custom error is created on a remote node and must be serialized to be able to send it back to the caller.
 
 **Create a custom Regenerator**
 ```js
@@ -49,7 +49,7 @@ module.exports = {
 ```
 
 ## Error events [#1048](https://github.com/moleculerjs/moleculer/pull/1048)
-When an error occured inside ServiceBroker, it's printed to the console, but there was no option that you can process it programatically (e.g. transfer to an external monitoring service). This feature solves it. Every error inside ServiceBroker broadcasts a **local** (not transported) event (`$transporter.error`, `$broker.error`, `$transit.error`, `$cacher.error`, `$discoverer.error`) what you can listen in your dedicated service or in a middleware.
+When an error occurred inside ServiceBroker, it's printed to the console, but there was no option that you can process it programmatically (e.g. transfer to an external monitoring service). This feature solves it. Every error inside ServiceBroker broadcasts a **local** (not transported) event (`$transporter.error`, `$broker.error`, `$transit.error`, `$cacher.error`, `$discoverer.error`) what you can listen in your dedicated service or in a middleware.
 
 **Example to listen in an error-tracker service**
 ```js
@@ -230,7 +230,7 @@ _The transporter automatically detects the version of the library and uses the c
 
 ### Async custom validator functions and `ctx` as metadata
 Since `fastest-validator@1.11.0`, the FastestValidator supports async custom validators and you can [pass metadata for custom validator functions](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#meta-information-for-custom-validators).
-In Moleculer, the `FastestValidator` passes the `ctx` as metadata. It means you can access to the current context, service, broker and you can make async calls (e.g calling another service) in custom checker functions.
+In Moleculer, the `FastestValidator` passes the `ctx` as metadata. It means you can access the current context, service, broker and you can make async calls (e.g calling another service) in custom checker functions.
 
 **Example**
 ```js
@@ -303,7 +303,7 @@ _62 commits from 12 contributors._
 # [0.14.11](https://github.com/moleculerjs/moleculer/compare/v0.14.10...v0.14.11) (2020-09-27)
 
 ## New `merged` service lifecycle hook
-Service has a new `merged` lifecycle hook which is called after the service schemas (including mixins) has been merged but before service is registered. It means you can manipulate the merged service schema before it's processed.
+Service has a new `merged` lifecycle hook which is called after the service schemas (including mixins) have been merged but before service is registered. It means you can manipulate the merged service schema before it's processed.
 
 **Example**
 ```js
@@ -351,7 +351,7 @@ module.exports = {
 # [0.14.9](https://github.com/moleculerjs/moleculer/compare/v0.14.8...v0.14.9) (2020-08-06)
 
 ## Register method in module resolver
-If you create a custom module (e.g. serializer), you can register it into the built-in modules with the `register` method. This method is also available in all other built-in module resolver.
+If you create a custom module (e.g. serializer), you can register it into the built-in modules with the `register` method. This method is also available in all other built-in module resolvers.
 
 **Example**
 ```js
@@ -441,11 +441,11 @@ module.exports = {
 # [0.14.8](https://github.com/moleculerjs/moleculer/compare/v0.14.7...v0.14.8) (2020-06-27)
 
 ## Github Sponsoring is available for Moleculer :tada:
-We have been approved in Github Sponsors program, so you can sponsor the Moleculer project via [Github Sponsors](https://github.com/sponsors/moleculerjs).
+We have been approved in the Github Sponsors program, so you can sponsor the Moleculer project via [Github Sponsors](https://github.com/sponsors/moleculerjs).
 _If you have taxing problem with Patreon, change to Github Sponsors._
 
 ## New Validator configuration
-The `validator` has the same module configuration in broker options like other modules. It means you can configure the validation constructor options via broker options (moleculer.config.js).
+The `validator` has the same module configuration in broker options as other modules. It means you can configure the validation constructor options via broker options (moleculer.config.js).
 
 **Default usage:**
 ```js
@@ -516,7 +516,7 @@ Added the following new metrics:
 # [0.14.7](https://github.com/moleculerjs/moleculer/compare/v0.14.6...v0.14.7) (2020-05-22)
 
 ## New Discoverer module
-The Discoverer is a new built-in module in Moleculer framework. It's responsible for that all Moleculer nodes can discover each other and check them with heartbeats. In previous versions, it was an integrated module inside `ServiceRegistry` & `Transit` modules. In this version, the discovery logic has been extracted to a separated built-in module. It means you can replace it to other built-in implementations or a custom one. The current discovery & heartbeat logic is moved to the `Local` Discoverer. 
+The Discoverer is a new built-in module in Moleculer framework. It's responsible for that all Moleculer nodes can discover each other and check them with heartbeats. In previous versions, it was an integrated module inside `ServiceRegistry` & `Transit` modules. In this version, the discovery logic has been extracted to a separated built-in module. It means you can replace it with other built-in implementations or a custom one. The current discovery & heartbeat logic is moved to the `Local` Discoverer. 
 
 Nevertheless, this version also contains other discoverers, like Redis & etcd3 discoverers. Both of them require an external server to make them work. 
 One of the main advantages of the external discoverers, the node discovery & heartbeat packets don't overload the communication on the transporter. The transporter transfers only the request, response, event packets.
@@ -730,8 +730,8 @@ You can create your custom Discoverer. We recommend to copy the source of Redis 
 - fixed multiple heartbeat sending issue at transporter reconnecting.
 - the `heartbeatInterval` default value has been changed to `10` seconds.
 - the `heartbeatTimeout` default value has been changed to `30` seconds.
-- the heartbeat check logics use process uptime instead of timestamps in order to avoid issues with time synchronization or daylight saving.
-- Notepack serializer initialization issue fixed. It caused problem when Redis cacher uses Notepack serializer.
+- the heartbeat check logics uses process uptime instead of timestamps in order to avoid issues with time synchronization or daylight saving.
+- Notepack serializer initialization issue fixed. It caused a problem when Redis cacher uses Notepack serializer.
 - new `removeFromArray` function in Utils.
 - `mcall` method definition fixed in Typescript definition.
 - dependencies updated.
@@ -764,7 +764,7 @@ Thanks for [@jalerg](https://github.com/jalerg), there is a NewRelic tracing exp
                         // Set `shared` property in payload.
                         shared: false,
                     },
-                    // Default tags. They will be added into all span tags.
+                    // Default tags. They will be added to all span tags.
                     defaultTags: null,
                 },
             },
@@ -803,7 +803,7 @@ module.exports = {
 ```
 
 ## Schema for service methods
-Similar for action schema, you can define service methods with schema. It can be useful when middleware wraps service methods.
+Similar to action schema, you can define service methods with schema. It can be useful when middleware wraps service methods.
 
 **Example for new method schema**
 ```js
@@ -911,11 +911,11 @@ Fastest-validator, the default validation has been upgraded to the 1.0.0 version
 If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/releases/tag/v1.0.0-beta1)
 
 ## Logger settings changed
-The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes. You can't use some old custom logger configuration form. The new configuration same as the other Moleculer module configurations. This new version supports all famous loggers like [Pino](https://github.com/pinojs/pino), [Winston](https://github.com/winstonjs/winston), [Bunyan](https://github.com/trentm/node-bunyan), [Debug](https://github.com/visionmedia/debug) & [Log4js](https://github.com/log4js-node/log4js-node).
+The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes. You can't use some old custom logger configuration form. The new configuration is same as the other Moleculer module configurations. This new version supports all famous loggers like [Pino](https://github.com/pinojs/pino), [Winston](https://github.com/winstonjs/winston), [Bunyan](https://github.com/trentm/node-bunyan), [Debug](https://github.com/visionmedia/debug) & [Log4js](https://github.com/log4js-node/log4js-node).
 
 _If you are using the built-in default console logger, this breaking change doesn't affect you._
 
-The `logFormatter` and `logObjectPrinter` broker options has been removed and moved into the `Console` and `File` logger options.
+The `logFormatter` and `logObjectPrinter` broker options have been removed and moved into the `Console` and `File` logger options.
 
 **Not changed usable configurations**
 ```js
@@ -947,7 +947,7 @@ module.exports = {
 ```
 
 ### Console logger
-This logger prints all log messags to the `console`. It supports several built-in formatters or you can use your custom formatter, as well.
+This logger prints all log messages to the `console`. It supports several built-in formatters or you can use your custom formatter, as well.
 
 **Shorthand configuration with default options**
 ```js
