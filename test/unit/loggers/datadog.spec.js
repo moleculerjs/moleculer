@@ -367,7 +367,7 @@ describe("Test Datadog logger class", () => {
 				{
 					method: "post",
 					headers: {
-						"Content-Type": "application/json"
+						"Content-Type": "application/json",
 						"DD-API-KEY": "datadog-api-key"
 					},
 					body: '[{"timestamp":0,"level":"fatal","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"},{"timestamp":0,"level":"error","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"}]'
