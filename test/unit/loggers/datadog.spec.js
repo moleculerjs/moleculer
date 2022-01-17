@@ -24,7 +24,7 @@ describe("Test Datadog logger class", () => {
 			expect(logger.opts).toEqual({
 				createLogger: null,
 				level: "info",
-				url: "https://http-intake.logs.datadoghq.com/v1/input/",
+				url: "https://http-intake.logs.datadoghq.com/api/v2/logs/",
 				apiKey: "datadog-api-key",
 				ddSource: "moleculer",
 				env: undefined,
@@ -51,7 +51,7 @@ describe("Test Datadog logger class", () => {
 			expect(logger.opts).toEqual({
 				createLogger: expect.any(Function),
 				level: "debug",
-				url: "https://http-intake.logs.datadoghq.com/v1/input/",
+				url: "https://http-intake.logs.datadoghq.com/api/v2/logs/",
 				apiKey: "datadog-api-key",
 				ddSource: "my-app",
 				env: "production",
@@ -363,11 +363,12 @@ describe("Test Datadog logger class", () => {
 
 			expect(fetch).toHaveBeenCalledTimes(1);
 			expect(fetch).toHaveBeenCalledWith(
-				"https://http-intake.logs.datadoghq.com/v1/input/datadog-api-key",
+				"https://http-intake.logs.datadoghq.com/api/v2/logs/",
 				{
 					method: "post",
 					headers: {
 						"Content-Type": "application/json"
+						"DD-API-KEY": "datadog-api-key"
 					},
 					body: '[{"timestamp":0,"level":"fatal","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"},{"timestamp":0,"level":"error","message":"message { a: 5 }","nodeID":"node-1","ddsource":"moleculer","ddtags":"env:,nodeID:node-1,namespace:undefined","hostname":"my-host"}]'
 				}
