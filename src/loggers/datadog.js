@@ -36,7 +36,7 @@ class DatadogLogger extends BaseLogger {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			url: "https://http-intake.logs.datadoghq.com/v1/input/",
+			url: "https://http-intake.logs.datadoghq.com/api/v2/logs/",
 			apiKey: process.env.DATADOG_API_KEY,
 			ddSource: "moleculer",
 			env: undefined,
@@ -159,10 +159,11 @@ class DatadogLogger extends BaseLogger {
 				};
 			});
 
-			return fetch(this.opts.url + this.opts.apiKey, {
+			return fetch(this.opts.url, {
 				method: "post",
 				body: JSON.stringify(data),
 				headers: {
+					"DD-API-KEY": this.opts.apiKey,
 					"Content-Type": "application/json"
 				}
 			})
