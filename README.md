@@ -102,17 +102,17 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     $ npx moleculer-cli -c moleculer init project moleculer-demo
     ```
     
-2. Open project folder
+2. Open the project folder
     ```bash
     $ cd moleculer-demo
     ```
     
-3. Start project
+3. Start the project
     ```bash
     $ npm run dev
     ```
 
-4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page which contains many information about your project & you can test the generated services.
+4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page that contains more information about your project & you can test the generated services.
 
 :tada: **Congratulations! Your first Moleculer-based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
@@ -143,7 +143,7 @@ To report a security vulnerability, please use the [Tidelift security contact](h
 Tidelift will coordinate the fix and disclosure.
 
 # Contributions
-We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
+We welcome you to join in the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 <a href="https://github.com/moleculerjs/moleculer/graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=882&button=false" /></a>
 
 ## Project activity
