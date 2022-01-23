@@ -317,9 +317,12 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	spanFinished(span) {
-		//this.removeCurrentSpan(span);
-
-		if (span.sampled) this.invokeExporter("spanFinished", [span]);
+		if (span.sampled) {
+			if (this.opts.exclude && this.opts.exclude.length != 0 && this.opts.exclude.indexOf(span.tags.action.name) != -1) return;
+			if (this.opts.excludeByRest && this.opts.excludeByRest.length != 0 && this.opts.excludeByRest.indexOf(span.name) != -1) return;
+			
+			this.invokeExporter("spanFinished", [span]);
+		}
 	}
 }
 
