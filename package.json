@@ -18,8 +18,6 @@
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "memleak": "node benchmark/memleak-test.js",
-    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
-    "thrift": "thrift -gen js:node -o src\\serializers\\thrift src\\serializers\\thrift\\packets.thrift",
     "test": "jest --coverage --forceExit",
     "test:unit": "jest --testMatch \"**/unit/**/*.spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
@@ -60,7 +58,6 @@
     "@types/node": "^16.11.1",
     "@types/pino": "^6.3.12",
     "amqplib": "^0.8.0",
-    "avsc": "^5.7.3",
     "benchmarkify": "^3.0.0",
     "bunyan": "^1.8.15",
     "cbor-x": "^0.9.4",
@@ -97,11 +94,9 @@
     "npm-check": "^5.9.2",
     "pino": "^6.13.3",
     "prettier": "^2.5.1",
-    "protobufjs": "^6.11.2",
     "redlock": "^4.2.0",
     "rhea-promise": "^2.1.0",
     "supertest": "^6.1.6",
-    "thrift": "^0.12.0",
     "ts-node": "^10.4.0",
     "tsd": "^0.13.1",
     "typescript": "^4.5.4",
@@ -123,7 +118,6 @@
   },
   "peerDependencies": {
     "amqplib": "^0.7.0 || ^0.8.0",
-    "avsc": "^5.0.0",
     "bunyan": "^1.0.0",
     "cbor-x": "^0.8.3 || ^0.9.0",
     "dd-trace": "^0.33.0 || ^0.34.0 || ^0.35.0 || ^0.36.0 || >=1.0.0 <1.6.0",
@@ -139,17 +133,12 @@
     "node-nats-streaming": "^0.0.51 || ^0.2.0 || ^0.3.0",
     "notepack.io": "^2.0.0",
     "pino": "^6.0.0 || ^7.0.0",
-    "protobufjs": "^6.0.0",
     "redlock": "^4.0.0",
     "rhea-promise": "^1.0.0 || ^2.0.0",
-    "thrift": "^0.12.0",
     "winston": "^3.0.0"
   },
   "peerDependenciesMeta": {
     "amqplib": {
-      "optional": true
-    },
-    "avsc": {
       "optional": true
     },
     "bunyan": {
@@ -197,16 +186,10 @@
     "pino": {
       "optional": true
     },
-    "protobufjs": {
-      "optional": true
-    },
     "redlock": {
       "optional": true
     },
     "rhea-promise": {
-      "optional": true
-    },
-    "thrift": {
       "optional": true
     },
     "winston": {
@@ -214,7 +197,7 @@
     }
   },
   "engines": {
-    "node": ">= 10.x.x"
+    "node": ">= 14.x.x"
   },
   "types": "./index.d.ts",
   "tsd": {
@@ -229,9 +212,7 @@
       "/node_modules/",
       "/test/services/",
       "/test/typescript/",
-      "/test/unit/utils.js",
-      "/src/serializers/proto/",
-      "/src/serializers/thrift/"
+      "/test/unit/utils.js"
     ],
     "transform": {},
     "testEnvironment": "node",

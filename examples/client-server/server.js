@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	namespace: "multi",
 	nodeID: process.argv[2] || "server-" + process.pid,
 	transporter,
-	//serializer: "ProtoBuf",
+	//serializer: "CBOR",
 
 	logger: console,
 	logLevel: process.env.LOGLEVEL

@@ -9,7 +9,7 @@ const crypto = require("crypto");
 const broker = new ServiceBroker({
 	nodeID: "streaming-receiver-" + process.pid,
 	transporter: "TCP",
-	serializer: "ProtoBuf",
+	serializer: "CBOR",
 	logger: console,
 	logLevel: "info"
 });

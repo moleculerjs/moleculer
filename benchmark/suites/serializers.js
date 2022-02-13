@@ -22,18 +22,12 @@ function runTest(dataName) {
 	const broker = new ServiceBroker({ logger: false });
 
 	let JsonSer = new Serializers.JSON();
-	let AvroSer = new Serializers.Avro();
 	let MsgPackSer = new Serializers.MsgPack();
-	let protoBufSer = new Serializers.ProtoBuf();
-	let thriftSer = new Serializers.Thrift();
 	let notepackSer = new Serializers.Notepack();
 	let cborSer = new Serializers.CBOR();
 
 	JsonSer.init(broker);
-	AvroSer.init(broker);
 	MsgPackSer.init(broker);
-	protoBufSer.init(broker);
-	thriftSer.init(broker);
 	notepackSer.init(broker);
 	cborSer.init(broker);
 
@@ -95,21 +89,6 @@ function runTest(dataName) {
 		return circularSerialize(packet.payload, packet.type);
 	});*/
 
-	bench1.add("Avro", () => {
-		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver: "4",
-			sender: "node-100",
-			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
-			event: "user.created",
-			data: payload,
-			broadcast: true,
-			meta: {},
-			level: 1,
-			needAck: false
-		});
-		return AvroSer.serialize(packet.payload, packet.type);
-	});
-
 	bench1.add("MsgPack", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver: "4",
@@ -123,36 +102,6 @@ function runTest(dataName) {
 			needAck: false
 		});
 		return MsgPackSer.serialize(packet.payload, packet.type);
-	});
-
-	bench1.add("ProtoBuf", () => {
-		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver: "4",
-			sender: "node-100",
-			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
-			event: "user.created",
-			data: payload,
-			broadcast: true,
-			meta: {},
-			level: 1,
-			needAck: false
-		});
-		return protoBufSer.serialize(packet.payload, packet.type);
-	});
-
-	bench1.add("Thrift", () => {
-		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver: "4",
-			sender: "node-100",
-			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
-			event: "user.created",
-			data: payload,
-			broadcast: true,
-			meta: {},
-			level: 1,
-			needAck: false
-		});
-		return thriftSer.serialize(packet.payload, packet.type);
 	});
 
 	bench1.add("Notepack", () => {
@@ -186,18 +135,9 @@ function runTest(dataName) {
 	});
 
 	console.log("JSON length:", JsonSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
-	console.log("Avro length:", AvroSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 	console.log(
 		"MsgPack length:",
 		MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length
-	);
-	console.log(
-		"ProtoBuf length:",
-		protoBufSer.serialize(_.cloneDeep(packet.payload), packet.type).length
-	);
-	console.log(
-		"Thrift length:",
-		thriftSer.serialize(_.cloneDeep(packet.payload), packet.type).length
 	);
 	console.log(
 		"Notepack length:",

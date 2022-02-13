@@ -5,10 +5,7 @@ const ServiceBroker = require("../src/service-broker");
 let serializer = null;
 
 // serializer = require('./serializer'); // NOPE
-// serializer = 'Avro'; // NOPE
-// serializer = "MsgPack"; // YES
-serializer = "ProtoBuf"; // NOPE
-// serializer = 'Thrift'; // NOPE
+serializer = "MsgPack"; // YES
 
 // Create server broker
 const server = new ServiceBroker({

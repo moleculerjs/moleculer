@@ -1272,11 +1272,8 @@ declare namespace Moleculer {
 	const Serializers: {
 		Base: typeof Serializer,
 		JSON: typeof Serializer,
-		Avro: typeof Serializer,
 		CBOR: typeof Serializer,
 		MsgPack: typeof Serializer,
-		ProtoBuf: typeof Serializer,
-		Thrift: typeof Serializer,
 		Notepack: typeof Serializer,
 		resolve: (type: string | GenericObject | Serializer) => Serializer,
 	};

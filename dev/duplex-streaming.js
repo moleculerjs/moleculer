@@ -7,7 +7,7 @@ const kleur = require("kleur");
 const crypto = require("crypto");
 
 const transporter = "TCP";
-const serializer = "ProtoBuf";
+const serializer = "CBOR";
 
 // Create broker #1
 const broker1 = new ServiceBroker({

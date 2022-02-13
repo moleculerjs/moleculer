@@ -4,7 +4,7 @@ const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
 
 const transporter = "NATS";
-const serializer = "Thrift";
+const serializer = "CBOR";
 
 // Create broker #1
 const broker1 = new ServiceBroker({

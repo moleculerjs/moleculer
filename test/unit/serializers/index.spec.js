@@ -17,11 +17,6 @@ describe("Test Serializers resolver", () => {
 		expect(serializer).toBeInstanceOf(Serializers.JSON);
 	});
 
-	it("should resolve AvroSerializer from string with Avro type", () => {
-		let serializer = Serializers.resolve("avro");
-		expect(serializer).toBeInstanceOf(Serializers.Avro);
-	});
-
 	it("should throw error if type if not correct", () => {
 		expect(() => {
 			Serializers.resolve("xyz");

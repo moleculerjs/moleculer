@@ -12,10 +12,7 @@ const { BrokerOptionsError } = require("../errors");
 const Serializers = {
 	Base: require("./base"),
 	JSON: require("./json"),
-	Avro: require("./avro"),
 	MsgPack: require("./msgpack"),
-	ProtoBuf: require("./protobuf"),
-	Thrift: require("./thrift"),
 	Notepack: require("./notepack"),
 	CBOR: require("./cbor")
 };
