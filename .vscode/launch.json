@@ -92,7 +92,11 @@
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"
-            ]
+            ],
+			"outFiles": [
+				"${workspaceFolder}/**/*.js",
+				"!**/node_modules/**"
+			]
 		},
 		{
 			"type": "node",

@@ -22,11 +22,13 @@ function runTest(dataName) {
 	const broker = new ServiceBroker({ logger: false });
 
 	let JsonSer = new Serializers.JSON();
+	let JsonExtSer = new Serializers.JSONExt();
 	let MsgPackSer = new Serializers.MsgPack();
 	let notepackSer = new Serializers.Notepack();
 	let cborSer = new Serializers.CBOR();
 
 	JsonSer.init(broker);
+	JsonExtSer.init(broker);
 	MsgPackSer.init(broker);
 	notepackSer.init(broker);
 	cborSer.init(broker);
@@ -58,6 +60,21 @@ function runTest(dataName) {
 			needAck: false
 		});
 		return JsonSer.serialize(packet.payload, packet.type);
+	});
+
+	bench1.add("JSONExt", () => {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver: "4",
+			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
+			event: "user.created",
+			data: payload,
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
+		});
+		return JsonExtSer.serialize(packet.payload, packet.type);
 	});
 
 	/*function circularSerialize(obj) {
@@ -135,6 +152,10 @@ function runTest(dataName) {
 	});
 
 	console.log("JSON length:", JsonSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log(
+		"JSONExt length:",
+		JsonExtSer.serialize(_.cloneDeep(packet.payload), packet.type).length
+	);
 	console.log(
 		"MsgPack length:",
 		MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length
