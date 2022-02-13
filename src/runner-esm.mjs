@@ -176,18 +176,11 @@ export default class MoleculerRunner {
 				case ".mjs":
 				case ".ts": {
 					const mod = await import("/" + filePath);
-					const content = mod.default;
+					let content = mod.default;
 
-					return Promise.resolve()
-						.then(() => {
-							if (utils.isFunction(content)) return content.call(this);
-							else return content;
-						})
-						.then(
-							res =>
-								(this.configFile =
-									res.default != null && res.__esModule ? res.default : res)
-						);
+					if (utils.isFunction(content)) content = await content.call(this);
+					this.configFile = content;
+					break;
 				}
 				default:
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
@@ -368,46 +361,41 @@ export default class MoleculerRunner {
 					const skipping = p[0] == "!";
 					if (skipping) p = p.slice(1);
 
-					if (p.startsWith("npm:")) {
-						// Load NPM module
-						this.loadNpmModule(p.slice(4));
+					let files;
+					const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
+					// Check is it a directory?
+					if (this.isDirectory(svcPath)) {
+						if (this.config.hotReload) {
+							this.watchFolders.push(svcPath);
+						}
+						files = glob.sync(svcPath + "/" + fileMask, { absolute: true });
+						if (files.length == 0)
+							return this.broker.logger.warn(
+								kleur
+									.yellow()
+									.bold(
+										`There is no service files in directory: '${svcPath}'`
+									)
+							);
+					} else if (this.isServiceFile(svcPath)) {
+						files = [svcPath.replace(/\\/g, "/")];
+					} else if (this.isServiceFile(svcPath + ".service.js")) {
+						files = [svcPath.replace(/\\/g, "/") + ".service.js"];
 					} else {
-						let files;
-						const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
-						// Check is it a directory?
-						if (this.isDirectory(svcPath)) {
-							if (this.config.hotReload) {
-								this.watchFolders.push(svcPath);
-							}
-							files = glob.sync(svcPath + "/" + fileMask, { absolute: true });
-							if (files.length == 0)
-								return this.broker.logger.warn(
-									kleur
-										.yellow()
-										.bold(
-											`There is no service files in directory: '${svcPath}'`
-										)
-								);
-						} else if (this.isServiceFile(svcPath)) {
-							files = [svcPath.replace(/\\/g, "/")];
-						} else if (this.isServiceFile(svcPath + ".service.js")) {
-							files = [svcPath.replace(/\\/g, "/") + ".service.js"];
-						} else {
-							// Load with glob
-							files = glob.sync(p, { cwd: svcDir, absolute: true });
-							if (files.length == 0)
-								this.broker.logger.warn(
-									kleur
-										.yellow()
-										.bold(`There is no matched file for pattern: '${p}'`)
-								);
-						}
+						// Load with glob
+						files = glob.sync(p, { cwd: svcDir, absolute: true });
+						if (files.length == 0)
+							this.broker.logger.warn(
+								kleur
+									.yellow()
+									.bold(`There is no matched file for pattern: '${p}'`)
+							);
+					}
 
-						if (files && files.length > 0) {
-							if (skipping)
-								serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
-							else serviceFiles.push(...files);
-						}
+					if (files && files.length > 0) {
+						if (skipping)
+							serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
+						else serviceFiles.push(...files);
 					}
 				});
 
@@ -459,17 +447,6 @@ export default class MoleculerRunner {
 				});
 			});
 		});
-	}
-
-	/**
-	 * Load service from NPM module
-	 *
-	 * @param {String} name
-	 * @returns {Service}
-	 */
-	loadNpmModule(name) {
-		let svc = require(name);
-		return this.broker.createService(svc);
 	}
 
 	/**
