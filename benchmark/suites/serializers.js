@@ -181,141 +181,124 @@ runTest(dataFiles.shift());
 
 Platform info:
 ==============
-   Windows_NT 6.1.7601 x64
-   Node.JS: 8.11.0
-   V8: 6.2.414.50
-   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+   Windows_NT 10.0.19043 x64
+   Node.JS: 14.19.0
+   V8: 8.4.371.23-node.85
+   CPU: Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+   Memory: 32 GB
 
 JSON length: 169
-Avro length: 87
+JSONExt length: 169
 MsgPack length: 126
-ProtoBuf length: 90
-Thrift length: 134
 Notepack length: 126
+CBOR length: 133
 Suite: Serialize packet with 10bytes
-√ JSON               579,367 rps
-√ Avro               310,125 rps
-√ MsgPack             44,379 rps
-√ ProtoBuf           389,871 rps
-√ Thrift              62,683 rps
-√ Notepack           427,605 rps
+√ JSON               521 065 rps
+√ JSONExt            221 927 rps
+√ MsgPack             91 100 rps
+√ Notepack           581 182 rps
+√ CBOR             1 096 399 rps
 
-   JSON (#)            0%        (579,367 rps)   (avg: 1μs)
-   Avro           -46.47%        (310,125 rps)   (avg: 3μs)
-   MsgPack        -92.34%         (44,379 rps)   (avg: 22μs)
-   ProtoBuf       -32.71%        (389,871 rps)   (avg: 2μs)
-   Thrift         -89.18%         (62,683 rps)   (avg: 15μs)
-   Notepack       -26.19%        (427,605 rps)   (avg: 2μs)
+   JSON (#)            0%        (521 065 rps)   (avg: 1μs)
+   JSONExt        -57,41%        (221 927 rps)   (avg: 4μs)
+   MsgPack        -82,52%         (91 100 rps)   (avg: 10μs)
+   Notepack       +11,54%        (581 182 rps)   (avg: 1μs)
+   CBOR          +110,42%      (1 096 399 rps)   (avg: 912ns)
 -----------------------------------------------------------------------
 
 JSON length: 1211
-Avro length: 1130
+JSONExt length: 1211
 MsgPack length: 1081
-ProtoBuf length: 1133
-Thrift length: 1176
 Notepack length: 1081
+CBOR length: 1096
 Suite: Serialize packet with 1kbytes
-√ JSON               146,389 rps
-√ Avro               101,556 rps
-√ MsgPack             14,739 rps
-√ ProtoBuf           116,900 rps
-√ Thrift              45,601 rps
-√ Notepack           102,082 rps
+√ JSON               144 653 rps
+√ JSONExt             64 124 rps
+√ MsgPack             17 516 rps
+√ Notepack           135 953 rps
+√ CBOR               218 752 rps
 
-   JSON (#)            0%        (146,389 rps)   (avg: 6μs)
-   Avro           -30.63%        (101,556 rps)   (avg: 9μs)
-   MsgPack        -89.93%         (14,739 rps)   (avg: 67μs)
-   ProtoBuf       -20.14%        (116,900 rps)   (avg: 8μs)
-   Thrift         -68.85%         (45,601 rps)   (avg: 21μs)
-   Notepack       -30.27%        (102,082 rps)   (avg: 9μs)
+   JSON (#)            0%        (144 653 rps)   (avg: 6μs)
+   JSONExt        -55,67%         (64 124 rps)   (avg: 15μs)
+   MsgPack        -87,89%         (17 516 rps)   (avg: 57μs)
+   Notepack        -6,01%        (135 953 rps)   (avg: 7μs)
+   CBOR           +51,23%        (218 752 rps)   (avg: 4μs)
 -----------------------------------------------------------------------
 
 JSON length: 50681
-Avro length: 50601
+JSONExt length: 50681
 MsgPack length: 46725
-ProtoBuf length: 50604
-Thrift length: 50646
 Notepack length: 46725
+CBOR length: 47155
 Suite: Serialize packet with 50kbytes
-√ JSON                 4,337 rps
-√ Avro                 3,863 rps
-√ MsgPack                472 rps
-√ ProtoBuf             3,881 rps
-√ Thrift               3,671 rps
-√ Notepack             2,670 rps
+√ JSON                 4 892 rps
+√ JSONExt              2 129 rps
+√ MsgPack                511 rps
+√ Notepack             3 904 rps
+√ CBOR                 6 197 rps
 
-   JSON (#)            0%          (4,337 rps)   (avg: 230μs)
-   Avro           -10.92%          (3,863 rps)   (avg: 258μs)
-   MsgPack        -89.12%            (472 rps)   (avg: 2ms)
-   ProtoBuf       -10.51%          (3,881 rps)   (avg: 257μs)
-   Thrift         -15.34%          (3,671 rps)   (avg: 272μs)
-   Notepack       -38.44%          (2,670 rps)   (avg: 374μs)
+   JSON (#)            0%          (4 892 rps)   (avg: 204μs)
+   JSONExt        -56,47%          (2 129 rps)   (avg: 469μs)
+   MsgPack        -89,55%            (511 rps)   (avg: 1ms)
+   Notepack       -20,19%          (3 904 rps)   (avg: 256μs)
+   CBOR           +26,68%          (6 197 rps)   (avg: 161μs)
 -----------------------------------------------------------------------
 
 JSON length: 101180
-Avro length: 101100
+JSONExt length: 101180
 MsgPack length: 93311
-ProtoBuf length: 101103
-Thrift length: 101145
 Notepack length: 93311
+CBOR length: 94166
 Suite: Serialize packet with 100kbytes
-√ JSON                 2,213 rps
-√ Avro                 1,997 rps
-√ MsgPack                234 rps
-√ ProtoBuf             2,014 rps
-√ Thrift               1,954 rps
-√ Notepack             1,341 rps
+√ JSON                 2 553 rps
+√ JSONExt              1 101 rps
+√ MsgPack                248 rps
+√ Notepack             2 007 rps
+√ CBOR                 3 176 rps
 
-   JSON (#)            0%          (2,213 rps)   (avg: 451μs)
-   Avro            -9.78%          (1,997 rps)   (avg: 500μs)
-   MsgPack        -89.42%            (234 rps)   (avg: 4ms)
-   ProtoBuf        -8.99%          (2,014 rps)   (avg: 496μs)
-   Thrift         -11.71%          (1,954 rps)   (avg: 511μs)
-   Notepack       -39.43%          (1,341 rps)   (avg: 745μs)
+   JSON (#)            0%          (2 553 rps)   (avg: 391μs)
+   JSONExt        -56,88%          (1 101 rps)   (avg: 908μs)
+   MsgPack        -90,29%            (248 rps)   (avg: 4ms)
+   Notepack       -21,38%          (2 007 rps)   (avg: 498μs)
+   CBOR           +24,44%          (3 176 rps)   (avg: 314μs)
 -----------------------------------------------------------------------
 
-JSON length: 36772
-Avro length: 10319
+JSON length: 36873
+JSONExt length: 13823
 MsgPack length: 10364
-ProtoBuf length: 10321
-Thrift length: 10364
 Notepack length: 10364
+CBOR length: 10368
 Suite: Serialize packet with buf-10240bytes
-√ JSON                 2,222 rps
-√ Avro                88,351 rps
-√ MsgPack             29,847 rps
-√ ProtoBuf            91,665 rps
-√ Thrift              49,646 rps
-√ Notepack           115,223 rps
+√ JSON                 2 042 rps
+√ JSONExt             14 457 rps
+√ MsgPack             67 665 rps
+√ Notepack           277 208 rps
+√ CBOR               431 623 rps
 
-   JSON (#)            0%          (2,222 rps)   (avg: 450μs)
-   Avro          +3,876.92%         (88,351 rps)   (avg: 11μs)
-   MsgPack       +1,243.49%         (29,847 rps)   (avg: 33μs)
-   ProtoBuf      +4,026.09%         (91,665 rps)   (avg: 10μs)
-   Thrift        +2,134.72%         (49,646 rps)   (avg: 20μs)
-   Notepack      +5,086.54%        (115,223 rps)   (avg: 8μs)
+   JSON (#)            0%          (2 042 rps)   (avg: 489μs)
+   JSONExt       +608,16%         (14 457 rps)   (avg: 69μs)
+   MsgPack       +3 214,42%         (67 665 rps)   (avg: 14μs)
+   Notepack      +13 478,41%        (277 208 rps)   (avg: 3μs)
+   CBOR          +21 042,1%        (431 623 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
-JSON length: 365804
-Avro length: 102479
+JSON length: 365507
+JSONExt length: 136703
 MsgPack length: 102526
-ProtoBuf length: 102482
-Thrift length: 102524
 Notepack length: 102526
+CBOR length: 102530
 Suite: Serialize packet with buf-102400bytes
-√ JSON                   202 rps
-√ Avro                13,727 rps
-√ MsgPack              7,190 rps
-√ ProtoBuf            14,791 rps
-√ Thrift              11,875 rps
-√ Notepack            14,714 rps
+√ JSON                   192 rps
+√ JSONExt                949 rps
+√ MsgPack             23 916 rps
+√ Notepack            72 199 rps
+√ CBOR                81 746 rps
 
-   JSON (#)            0%            (202 rps)   (avg: 4ms)
-   Avro          +6,707.38%         (13,727 rps)   (avg: 72μs)
-   MsgPack       +3,465.35%          (7,190 rps)   (avg: 139μs)
-   ProtoBuf      +7,234.99%         (14,791 rps)   (avg: 67μs)
-   Thrift        +5,789.03%         (11,875 rps)   (avg: 84μs)
-   Notepack      +7,196.84%         (14,714 rps)   (avg: 67μs)
+   JSON (#)            0%            (192 rps)   (avg: 5ms)
+   JSONExt       +394,75%            (949 rps)   (avg: 1ms)
+   MsgPack       +12 370,6%         (23 916 rps)   (avg: 41μs)
+   Notepack      +37 547,1%         (72 199 rps)   (avg: 13μs)
+   CBOR          +42 524,7%         (81 746 rps)   (avg: 12μs)
 -----------------------------------------------------------------------
 
 

@@ -63,17 +63,19 @@ class JSONExtSerializer extends BaseSerializer {
 	 */
 	reviver(key, value) {
 		if (typeof value === "string" && value.charAt(0) === "[") {
-			if (value.startsWith(PREFIX_BIGINT)) {
-				return BigInt(value.slice(PREFIX_BIGINT.length));
-			} else if (value.startsWith(PREFIX_DATE)) {
-				return new Date(Number(value.slice(PREFIX_DATE.length)));
-			} else if (value.startsWith(PREFIX_REGEXP)) {
-				const p = value.slice(PREFIX_REGEXP.length).split("|");
-				const flags = p.shift();
-				// eslint-disable-next-line security/detect-non-literal-regexp
-				return new RegExp(p.join("|"), flags);
-			} else if (value.startsWith(PREFIX_BUFFER)) {
-				return Buffer.from(value.slice(PREFIX_BUFFER.length), "base64");
+			switch (value.slice(0, 6)) {
+				case PREFIX_BIGINT:
+					return BigInt(value.slice(6));
+				case PREFIX_DATE:
+					return new Date(Number(value.slice(6)));
+				case PREFIX_BUFFER:
+					return Buffer.from(value.slice(6), "base64");
+				case PREFIX_REGEXP: {
+					const p = value.slice(6).split("|");
+					const flags = p.shift();
+					// eslint-disable-next-line security/detect-non-literal-regexp
+					return new RegExp(p.join("|"), flags);
+				}
 			}
 		}
 		return value;
