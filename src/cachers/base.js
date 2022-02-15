@@ -199,16 +199,19 @@ class Cacher {
 
 	/**
 	 * Get a value from params or meta by `key`.
-	 * If the key starts with `#` it reads from `meta`, otherwise from `params`.
+	 * If the key starts with `#` it reads from `meta`.
+	 * If the key starts with `@` it reads from `headers`.
 	 *
 	 * @param {String} key
 	 * @param {Object} params
 	 * @param {Object} meta
+	 * @param {Object} headers
 	 * @returns {any}
 	 * @memberof Cacher
 	 */
-	getParamMetaValue(key, params, meta) {
+	getParamMetaValue(key, params, meta, headers) {
 		if (key.startsWith("#") && meta != null) return _.get(meta, key.slice(1));
+		if (key.startsWith("@") && headers != null) return _.get(headers, key.slice(1));
 		else if (params != null) return _.get(params, key);
 	}
 
@@ -219,16 +222,17 @@ class Cacher {
 	 * @param {Object|null} params
 	 * @param {Object} meta
 	 * @param {Array|null} keys
+	 * @param {Object} headers
 	 * @returns {String}
 	 * @memberof Cacher
 	 */
-	defaultKeygen(actionName, params, meta, keys) {
+	defaultKeygen(actionName, params, meta, keys, headers) {
 		if (params || meta) {
 			const keyPrefix = actionName + ":";
 			if (keys) {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
-					const val = this.getParamMetaValue(keys[0], params, meta);
+					const val = this.getParamMetaValue(keys[0], params, meta, headers);
 					return (
 						keyPrefix +
 						this._hashedKey(
@@ -242,7 +246,7 @@ class Cacher {
 						keyPrefix +
 						this._hashedKey(
 							keys.reduce((a, key, i) => {
-								const val = this.getParamMetaValue(key, params, meta);
+								const val = this.getParamMetaValue(key, params, meta, headers);
 								return (
 									a +
 									(i ? "|" : "") +
@@ -298,14 +302,15 @@ class Cacher {
 	 * @param {Object} meta
 	 * @param {Array|null} keys
 	 * @param {function?} actionKeygen
+	 * @param {Object} headers
 	 * @returns {String}
 	 */
-	getCacheKey(actionName, params, meta, keys, actionKeygen) {
+	getCacheKey(actionName, params, meta, keys, actionKeygen, headers) {
 		if (isFunction(actionKeygen))
-			return actionKeygen.call(this, actionName, params, meta, keys);
+			return actionKeygen.call(this, actionName, params, meta, keys, headers);
 		else if (isFunction(this.opts.keygen))
-			return this.opts.keygen.call(this, actionName, params, meta, keys);
-		else return this.defaultKeygen(actionName, params, meta, keys);
+			return this.opts.keygen.call(this, actionName, params, meta, keys, headers);
+		else return this.defaultKeygen(actionName, params, meta, keys, headers);
 	}
 
 	/**
@@ -353,7 +358,8 @@ class Cacher {
 							ctx.params,
 							ctx.meta,
 							opts.keys,
-							opts.keygen
+							opts.keygen,
+							ctx.headers
 						);
 						// Using lock
 						if (opts.lock.enabled !== false) {

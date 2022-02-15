@@ -83,6 +83,8 @@ class Context {
 
 		this.params = null;
 		this.meta = {};
+		this.headers = {};
+		this.responseHeaders = {};
 		this.locals = {};
 
 		this.requestID = this.id;
@@ -139,6 +141,11 @@ class Context {
 			ctx.meta = Object.assign({}, opts.parentCtx.meta || {}, opts.meta || {});
 		else if (opts.meta != null) ctx.meta = opts.meta;
 
+		// Headers
+		if (opts.headers) {
+			ctx.headers = opts.headers;
+		}
+
 		// ParentID, Level, Caller, Tracing
 		if (opts.parentCtx != null) {
 			ctx.tracing = opts.parentCtx.tracing;
@@ -186,6 +193,8 @@ class Context {
 		newCtx.level = this.level;
 		newCtx.params = this.params;
 		newCtx.meta = this.meta;
+		newCtx.headers = this.headers;
+		newCtx.responseHeaders = this.responseHeaders;
 		newCtx.locals = this.locals;
 		newCtx.requestID = this.requestID;
 		newCtx.tracing = this.tracing;
@@ -461,6 +470,8 @@ class Context {
 			"level",
 			"params",
 			"meta",
+			"headers",
+			"responseHeaders",
 			//"locals",
 			"requestID",
 			"tracing",

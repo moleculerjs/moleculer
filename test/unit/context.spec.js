@@ -36,6 +36,8 @@ describe("Test Context", () => {
 
 		expect(ctx.params).toBeNull();
 		expect(ctx.meta).toEqual({});
+		expect(ctx.headers).toEqual({});
+		expect(ctx.responseHeaders).toEqual({});
 		expect(ctx.locals).toEqual({});
 
 		expect(ctx.requestID).toBe(ctx.id);
@@ -93,6 +95,8 @@ describe("Test Context.create", () => {
 
 		expect(ctx.params).toEqual({ a: 5 });
 		expect(ctx.meta).toEqual({});
+		expect(ctx.headers).toEqual({});
+		expect(ctx.responseHeaders).toEqual({});
 
 		expect(ctx.options).toEqual({});
 
@@ -119,6 +123,9 @@ describe("Test Context.create", () => {
 			meta: {
 				user: "John",
 				c: 200
+			},
+			headers: {
+				contentType: "json"
 			},
 			parentCtx: {
 				id: 100,
@@ -158,6 +165,10 @@ describe("Test Context.create", () => {
 			user: "John",
 			c: 200
 		});
+		expect(ctx.headers).toEqual({
+			contentType: "json"
+		});
+		expect(ctx.responseHeaders).toEqual({});
 
 		expect(ctx.options).toEqual(opts);
 
@@ -192,6 +203,9 @@ describe("Test Context.create", () => {
 			meta: {
 				user: "John",
 				c: 200
+			},
+			headers: {
+				contentType: "json"
 			},
 			parentCtx: {
 				id: 100,
@@ -232,6 +246,10 @@ describe("Test Context.create", () => {
 			user: "John",
 			c: 200
 		});
+		expect(ctx.headers).toEqual({
+			contentType: "json"
+		});
+		expect(ctx.responseHeaders).toEqual({});
 
 		expect(ctx.options).toEqual(opts);
 
@@ -305,6 +323,12 @@ describe("Test copy", () => {
 				user: "John",
 				c: 200
 			},
+			headers: {
+				contentType: "json"
+			},
+			responseHeaders: {
+				valid: true
+			},
 			locals: {
 				entity: "entity"
 			},
@@ -342,6 +366,8 @@ describe("Test copy", () => {
 
 		expect(ctx.params).toEqual(baseCtx.params);
 		expect(ctx.meta).toEqual(baseCtx.meta);
+		expect(ctx.headers).toEqual(baseCtx.headers);
+		expect(ctx.responseHeaders).toEqual(baseCtx.responseHeaders);
 		expect(ctx.locals).toEqual(baseCtx.locals);
 
 		expect(ctx.options).toEqual(baseCtx.options);
@@ -391,6 +417,8 @@ describe("Test copy", () => {
 
 		expect(ctx.params).toEqual(baseCtx.params);
 		expect(ctx.meta).toEqual(baseCtx.meta);
+		expect(ctx.headers).toEqual(baseCtx.headers);
+		expect(ctx.responseHeaders).toEqual(baseCtx.responseHeaders);
 
 		expect(ctx.options).toEqual(baseCtx.options);
 
@@ -524,13 +552,21 @@ describe("Test call method", () => {
 		ctx.level = 4;
 
 		let p = { id: 5 };
-		let opts = { timeout: 2500 };
+		let opts = {
+			timeout: 2500,
+			headers: {
+				contentType: "json"
+			}
+		};
 		ctx.call("posts.find", p, opts);
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, {
 			parentCtx: ctx,
-			timeout: 2500
+			timeout: 2500,
+			headers: {
+				contentType: "json"
+			}
 		});
 		expect(broker.call.mock.calls[0][2]).not.toBe(opts);
 		expect(opts.parentCtx).toBeUndefined();
@@ -899,12 +935,18 @@ describe("Test emit method", () => {
 		const data = { id: 5 };
 		broker.emit.mockClear();
 		ctx.emit("request.rest", data, {
-			groups: ["mail"]
+			groups: ["mail"],
+			headers: {
+				contentType: "json"
+			}
 		});
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", data, {
 			parentCtx: ctx,
-			groups: ["mail"]
+			groups: ["mail"],
+			headers: {
+				contentType: "json"
+			}
 		});
 	});
 });
@@ -960,12 +1002,18 @@ describe("Test broadcast method", () => {
 		const data = { id: 5 };
 		broker.broadcast.mockClear();
 		ctx.broadcast("request.rest", data, {
-			groups: ["mail"]
+			groups: ["mail"],
+			headers: {
+				contentType: "json"
+			}
 		});
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
 		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", data, {
 			parentCtx: ctx,
-			groups: ["mail"]
+			groups: ["mail"],
+			headers: {
+				contentType: "json"
+			}
 		});
 	});
 });
@@ -1080,6 +1128,9 @@ describe("Test toJSON method", () => {
 				user: "John",
 				c: 200
 			},
+			headers: {
+				contentType: "json"
+			},
 			locals: {
 				entity: "entity"
 			},
@@ -1103,6 +1154,9 @@ describe("Test toJSON method", () => {
 	ctx.eventGroups = ["users", "mail"];
 	ctx.needAck = true;
 	ctx.ackID = "ACK-123";
+	ctx.responseHeaders = {
+		valid: true
+	};
 
 	it("should generate POJO", () => {
 		expect(ctx.toJSON()).toEqual({
@@ -1126,6 +1180,12 @@ describe("Test toJSON method", () => {
 				token: "123456",
 				c: 200,
 				user: "John"
+			},
+			headers: {
+				contentType: "json"
+			},
+			responseHeaders: {
+				valid: true
 			},
 			options: ctx.options,
 			params: {

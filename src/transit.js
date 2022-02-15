@@ -442,6 +442,7 @@ class Transit {
 		ctx.eventGroups = payload.groups;
 		ctx.eventType = payload.broadcast ? "broadcast" : "emit";
 		ctx.meta = payload.meta || {};
+		ctx.headers = payload.headers || {};
 		ctx.level = payload.level;
 		ctx.tracing = !!payload.tracing;
 		ctx.parentID = payload.parentID;
@@ -492,6 +493,7 @@ class Transit {
 			ctx.requestID = payload.requestID;
 			ctx.caller = payload.caller;
 			ctx.meta = payload.meta || {};
+			ctx.headers = payload.headers || {};
 			ctx.level = payload.level;
 			ctx.tracing = payload.tracing;
 			ctx.nodeID = payload.sender;
@@ -503,8 +505,26 @@ class Transit {
 			p.ctx = ctx;
 
 			return p
-				.then(res => this.sendResponse(payload.sender, payload.id, ctx.meta, res, null))
-				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+				.then(res =>
+					this.sendResponse(
+						payload.sender,
+						payload.id,
+						ctx.responseHeaders,
+						ctx.meta,
+						res,
+						null
+					)
+				)
+				.catch(err =>
+					this.sendResponse(
+						payload.sender,
+						payload.id,
+						ctx.responseHeaders,
+						ctx.meta,
+						null,
+						err
+					)
+				);
 		} catch (err) {
 			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
 		}
@@ -650,6 +670,9 @@ class Transit {
 
 		// Merge response meta with original meta
 		Object.assign(req.ctx.meta || {}, packet.meta || {});
+
+		// Headers
+		req.ctx.headers = packet.headers || {};
 
 		// Handle stream response
 		if (packet.stream != null) {
@@ -812,6 +835,7 @@ class Transit {
 			action: ctx.action.name,
 			params: isStream ? null : ctx.params,
 			meta: ctx.meta,
+			headers: ctx.headers,
 			timeout: ctx.options.timeout,
 			level: ctx.level,
 			tracing: ctx.tracing,
@@ -970,6 +994,7 @@ class Transit {
 				groups,
 				broadcast: ctx.eventType == "broadcast",
 				meta: ctx.meta,
+				headers: ctx.headers,
 				level: ctx.level,
 				tracing: ctx.tracing,
 				parentID: ctx.parentID,
@@ -1059,6 +1084,7 @@ class Transit {
 		const payload = {
 			id: id,
 			meta: meta,
+			headers: {},
 			success: err == null,
 			data: data
 		};
