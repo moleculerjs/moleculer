@@ -54,7 +54,7 @@ describe("Test JSONExtSerializer", () => {
 		};
 
 		const s = serializer.serialize(obj);
-		expect(s.toString()).toBe(`{"a":"[[BUFF]]${base64}"}`);
+		expect(s.toString()).toBe(`{"a":"[[BF]]${base64}"}`);
 
 		const res = serializer.deserialize(s);
 		expect(res).not.toBe(obj);

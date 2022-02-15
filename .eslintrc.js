@@ -2,6 +2,7 @@ module.exports = {
 	root: true,
 	env: {
 		node: true,
+		es2020: true,
 		commonjs: true,
 		es6: true,
 		jquery: false,
@@ -11,7 +12,7 @@ module.exports = {
 	extends: ["eslint:recommended", "plugin:security/recommended", "plugin:prettier/recommended"],
 	parserOptions: {
 		sourceType: "module",
-		ecmaVersion: "2018"
+		ecmaVersion: "2020"
 	},
 	plugins: ["node", "promise", "security"],
 	rules: {
