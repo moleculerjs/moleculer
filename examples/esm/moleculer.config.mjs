@@ -1,7 +1,7 @@
 /**
  * Test:
  *
- * 	node bin/moleculer-runner.mjs -e --config examples/esm/moleculer.config.mjs examples/esm/greeter.service.mjs
+ * 	node bin/moleculer-runner.mjs -e --repl --hot --config examples/esm/moleculer.config.mjs examples/esm/greeter.service.mjs examples/esm/welcome.service.cjs
  */
 export default {
 	namespace: "bbb",

@@ -403,7 +403,8 @@ export default class MoleculerRunner {
 				const mod = await import("/" + f);
 				const content = mod.default;
 
-				this.broker.createService(content);
+				const svc = this.broker.createService(content);
+				svc.__filename = f;
 			}));
 		}
 	}
@@ -452,7 +453,7 @@ export default class MoleculerRunner {
 	/**
 	 * Start Moleculer broker
 	 */
-	startBroker() {
+	async startBroker() {
 		this.worker = cluster.worker;
 
 		if (this.worker) {
@@ -465,7 +466,7 @@ export default class MoleculerRunner {
 		this.broker = new ServiceBroker(Object.assign({}, this.config));
 		this.broker.runner = this;
 
-		this.loadServices();
+		await this.loadServices();
 
 		if (this.watchFolders.length > 0) this.broker.runner.folders = this.watchFolders;
 

@@ -1,7 +1,5 @@
-import { Errors } from "../../index.mjs";
-
-export default {
-	name: "greeter",
+module.exports = {
+	name: "welcome",
 
 	/**
 	 * Settings
@@ -18,23 +16,18 @@ export default {
 	 */
 	actions: {
 		/**
-		 * Say a 'Hello' action.
+		 * Welcome, a username
 		 *
-		 * @returns
+		 * @param {String} name - User name
 		 */
-		hello: {
-			rest: {
-				method: "GET",
-				path: "/hello"
+		welcome: {
+			rest: "/welcome",
+			params: {
+				name: "string"
 			},
-			async handler() {
-				return "Hello Moleculer";
-			}
-		},
-
-		danger: {
-			handler() {
-				throw new Errors.MoleculerError("Danger!", 500);
+			/** @param {Context} ctx  */
+			async handler(ctx) {
+				return `Welcome, ${ctx.params.name}`;
 			}
 		}
 	},
@@ -58,7 +51,7 @@ export default {
 	 * Service started lifecycle event handler
 	 */
 	async started() {
-		this.logger.info("ESM service loaded.");
+		this.logger.info("CJS service loaded.");
 	},
 
 	/**
