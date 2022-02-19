@@ -509,8 +509,8 @@ class Transit {
 					this.sendResponse(
 						payload.sender,
 						payload.id,
-						ctx.responseHeaders,
 						ctx.meta,
+						ctx.responseHeaders,
 						res,
 						null
 					)
@@ -519,14 +519,14 @@ class Transit {
 					this.sendResponse(
 						payload.sender,
 						payload.id,
-						ctx.responseHeaders,
 						ctx.meta,
+						ctx.responseHeaders,
 						null,
 						err
 					)
 				);
 		} catch (err) {
-			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
+			return this.sendResponse(payload.sender, payload.id, payload.meta, null, null, err);
 		}
 	}
 
@@ -1073,18 +1073,19 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 * @param {String} id
-	 * @param {any} meta
+	 * @param {Object} meta
+	 * @param {Object} headers
 	 * @param {any} data
 	 * @param {Error} err
 	 *
 	 * @memberof Transit
 	 */
-	sendResponse(nodeID, id, meta, data, err) {
+	sendResponse(nodeID, id, meta, headers, data, err) {
 		// Publish the response
 		const payload = {
 			id: id,
 			meta: meta,
-			headers: {},
+			headers,
 			success: err == null,
 			data: data
 		};

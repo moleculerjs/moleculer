@@ -13,7 +13,7 @@ broker1.createService({
 	actions: {
 		async doThing(ctx) {
 			this.logger.info("Received headers:", ctx.headers);
-			const res = await ctx.call("svc-b.doThing", "", {
+			const res = await ctx.call("svc-b.doThing", ctx.params + "A", {
 				headers: {
 					a: "aa"
 				}
@@ -43,7 +43,7 @@ broker1.createService({
 			const headers = {
 				b: "bb"
 			};
-			const res = await ctx.call("svc-c.doThing", "", { headers });
+			const res = await ctx.call("svc-c.doThing", ctx.params + "B", { headers });
 			//ctx.responseHeaders.fromB = "from-b";
 			return res;
 		}
@@ -71,7 +71,7 @@ broker2.createService({
 	actions: {
 		async doThing(ctx) {
 			this.logger.info("Received headers:", ctx.headers);
-			const res = await ctx.call("svc-d.doThing", "", {
+			const res = await ctx.call("svc-d.doThing", ctx.params + "C", {
 				headers: {
 					c: "cc"
 				}
@@ -98,6 +98,7 @@ broker2.createService({
 		async doThing(ctx) {
 			this.logger.info("Received headers:", ctx.headers);
 			//ctx.responseHeaders.fromD = "from-d";
+			return ctx.params + "D";
 		}
 	},
 	events: {
@@ -112,11 +113,13 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(1000)
 	.then(() => {
 		broker1.logger.info("-------------------------");
-		return broker1.call("svc-a.doThing", "data", {
-			headers: {
-				from: "repl"
-			}
-		});
+		return broker1
+			.call("svc-a.doThing", "!", {
+				headers: {
+					from: "repl"
+				}
+			})
+			.then(res => broker1.logger.info("Response", res));
 	})
 	.delay(1000)
 	.then(() => {
