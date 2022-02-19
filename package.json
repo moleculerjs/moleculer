@@ -33,7 +33,7 @@
     "test:leak": "jest --testMatch \"**/leak-detection/**/*.spc.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "esm-wrapper": "gen-esm-wrapper . ./index.mjs",
-    "prepack": "npm run esm-wrapper",
+    "prerelease": "npm run esm-wrapper",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"
   },
