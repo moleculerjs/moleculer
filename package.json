@@ -32,6 +32,7 @@
     "test:e2e": "cd test/e2e && ./start.sh",
     "test:leak": "jest --testMatch \"**/leak-detection/**/*.spc.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
+    "test:esm": "node bin/moleculer-runner.mjs -c test/esm/moleculer.config.mjs test/esm/*.service.*js",
     "esm-wrapper": "gen-esm-wrapper . ./index.mjs",
     "prerelease": "npm run esm-wrapper",
     "release": "npm publish --access public && git push --tags",
