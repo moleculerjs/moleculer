@@ -158,6 +158,9 @@ export default class MoleculerRunner {
 				? this.flags.config
 				: path.resolve(process.cwd(), this.flags.config);
 		}
+		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.mjs"))) {
+			filePath = path.resolve(process.cwd(), "moleculer.config.mjs");
+		}
 		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {
 			filePath = path.resolve(process.cwd(), "moleculer.config.js");
 		}
