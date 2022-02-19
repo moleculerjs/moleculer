@@ -671,8 +671,8 @@ class Transit {
 		// Merge response meta with original meta
 		Object.assign(req.ctx.meta || {}, packet.meta || {});
 
-		// Headers
-		req.ctx.headers = packet.headers || {};
+		// Headers (it overwrites the original headers in ctx)
+		// req.ctx.headers = packet.headers || {};
 
 		// Handle stream response
 		if (packet.stream != null) {
