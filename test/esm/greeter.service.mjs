@@ -17,5 +17,12 @@ export default {
 				return `Welcome, ${name}!`;
 			}
 		}
+	},
+
+	started() {
+		if (this.broker.namespace != "esm") {
+			this.broker.logger.error("Configuration is not loaded correctly!");
+			process.exit(1);
+		}
 	}
 };
