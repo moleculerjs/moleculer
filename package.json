@@ -56,7 +56,8 @@
   },
   "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
   "bin": {
-    "moleculer-runner": "./bin/moleculer-runner.js"
+    "moleculer-runner": "./bin/moleculer-runner.js",
+    "moleculer-runner-esm": "./bin/moleculer-runner.mjs"
   },
   "author": "MoleculerJS",
   "license": "MIT",
