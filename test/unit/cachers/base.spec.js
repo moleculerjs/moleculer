@@ -308,16 +308,17 @@ describe("Test BaseCacher", () => {
 		const params = { limit: 5 };
 		const meta = { user: "bob" };
 		const keys = ["limit", "#user"];
+		const headers = { auth: false };
 
-		expect(cacher.getCacheKey(actionName, params, meta, keys)).toBe("custom");
+		expect(cacher.getCacheKey(actionName, params, meta, keys, null, headers)).toBe("custom");
 		expect(keygen).toHaveBeenCalledTimes(1);
-		expect(keygen).toHaveBeenCalledWith(actionName, params, meta, keys);
+		expect(keygen).toHaveBeenCalledWith(actionName, params, meta, keys, headers);
 
-		expect(cacher.getCacheKey(actionName, params, meta, keys, actionKeygen)).toBe(
+		expect(cacher.getCacheKey(actionName, params, meta, keys, actionKeygen, headers)).toBe(
 			"actionKeygen"
 		);
 		expect(actionKeygen).toHaveBeenCalledTimes(1);
-		expect(actionKeygen).toHaveBeenCalledWith(actionName, params, meta, keys);
+		expect(actionKeygen).toHaveBeenCalledWith(actionName, params, meta, keys, headers);
 	});
 });
 
