@@ -1,5 +1,6 @@
 import { EventEmitter2 } from "eventemitter2";
 import { REPLServer } from "repl";
+import { Context as VMContext } from 'vm'
 
 declare namespace Moleculer {
 	/**
