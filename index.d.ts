@@ -992,6 +992,17 @@ declare namespace Moleculer {
 		version?: string|number;
 	}
 
+	interface MoleculerRepl extends REPLServer {
+		context: ReplContext
+	}
+
+	interface ReplContext extends VMContext {
+		/**
+		 * Moleculer Service Broker instance
+		 */
+		broker: ServiceBroker
+	}
+
 	namespace Loggers {
 		class Base {
 			constructor(opts?: GenericObject);
@@ -1042,7 +1053,7 @@ declare namespace Moleculer {
 		start(): Promise<void>;
 		stop(): Promise<void>;
 
-		repl(): REPLServer;
+		repl(): MoleculerRepl;
 
 		errorHandler(err: Error, info: GenericObject): void;
 
