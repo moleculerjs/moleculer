@@ -1,5 +1,4 @@
 import { EventEmitter2 } from "eventemitter2";
-import { Context as VMContext } from 'vm'
 
 declare namespace Moleculer {
 	/**
