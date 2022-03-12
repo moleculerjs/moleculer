@@ -810,6 +810,16 @@ declare namespace Moleculer {
 		options?: GenericObject
 	}
 
+	interface ReplCommand {
+		command: string;
+		description: string;
+		alias?: string;
+		options: Array<object>,
+		types: object,
+		allowUnknownOptions?: boolean;
+		action: (broker: ServiceBroker, opts: any) => any;
+	}
+
 	interface BrokerOptions {
 		namespace?: string;
 		nodeID?: string;
@@ -878,6 +888,8 @@ declare namespace Moleculer {
 		skipProcessEventRegistration?: boolean;
 
 		maxSafeObjectSize?: number;
+
+		replCommands?: Array<ReplCommand>;
 	}
 
 	interface NodeHealthStatus {
