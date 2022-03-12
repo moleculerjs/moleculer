@@ -749,7 +749,7 @@ declare namespace Moleculer {
 		static mergeSchemaUnknown(src: GenericObject, target: GenericObject): GenericObject;
 	}
 
-	type CheckRetryable = (err: Error) => boolean;
+	type CheckRetryable = (err: MoleculerError) => boolean;
 
 	interface BrokerCircuitBreakerOptions {
 		enabled?: boolean,
