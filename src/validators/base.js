@@ -77,8 +77,8 @@ class BaseValidator {
 					const check = self.compile(action[paramName]);
 					return function validateContextParams(ctx) {
 						const params = ctx.params != null ? ctx.params : {};
-                        const res = check(params, { meta: ctx });
-                        ctx.params = params;
+						const res = check(params, { meta: ctx });
+						ctx.params = params;
 						if (check.async)
 							return res.then(res =>
 								processCheckResponse(ctx, handler, res, {
