@@ -76,7 +76,9 @@ class BaseValidator {
 				if (action[paramName] && typeof action[paramName] === "object") {
 					const check = self.compile(action[paramName]);
 					return function validateContextParams(ctx) {
-						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
+						const params = ctx.params != null ? ctx.params : {};
+                        const res = check(params, { meta: ctx });
+                        ctx.params = params;
 						if (check.async)
 							return res.then(res =>
 								processCheckResponse(ctx, handler, res, {
@@ -99,8 +101,9 @@ class BaseValidator {
 				if (event[paramName] && typeof event[paramName] === "object") {
 					const check = self.compile(event[paramName]);
 					return function validateContextParams(ctx) {
-						const res = check(ctx.params != null ? ctx.params : {}, { meta: ctx });
-
+						const params = ctx.params != null ? ctx.params : {};
+						const res = check(params, { meta: ctx });
+						ctx.params = params;
 						if (check.async)
 							return res.then(res =>
 								processCheckResponse(ctx, handler, res, {
