@@ -521,7 +521,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = unknown, M extends object = {}, L extends object = GenericObject> {
+	class Context<P = unknown, M extends object = {}, L = GenericObject> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
