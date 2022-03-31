@@ -593,7 +593,9 @@ class Service {
 	 */
 	static mergeSchemas(dstSchema, srcSchema) {
 		const dst = _.cloneDeep(dstSchema);
+		if (!srcSchema) return dst;
 		const src = _.cloneDeep(srcSchema);
+		if (!dstSchema) return src;
 
 		Object.keys(src).forEach(key => {
 			if (["name", "version"].indexOf(key) !== -1 && src[key] !== undefined) {
