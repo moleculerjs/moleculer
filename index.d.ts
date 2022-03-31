@@ -736,7 +736,7 @@ declare namespace Moleculer {
 		[name: string]: any;
 
 		static applyMixins(schema: ServiceSchema): ServiceSchema;
-		static mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
+		static mergeSchemas(dstSchema: Partial<ServiceSchema>, srcSchema: Partial<ServiceSchema>): Partial<ServiceSchema>;
 		static mergeSchemaSettings(src: GenericObject, target: GenericObject): GenericObject;
 		static mergeSchemaMetadata(src: GenericObject, target: GenericObject): GenericObject;
 		static mergeSchemaMixins(src: GenericObject, target: GenericObject): GenericObject;
@@ -1053,7 +1053,7 @@ declare namespace Moleculer {
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
 		loadServiceSchema(schema: ServiceSchema): Service;
-		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
+		createService(schema: ServiceSchema, schemaMods?: Partial<ServiceSchema>): Service;
 		destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
 
 		getLocalService(name: string | ServiceSearchObj): Service;

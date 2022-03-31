@@ -567,10 +567,10 @@ class Service {
 			if (mixins.length > 0) {
 				const mixedSchema = Array.from(mixins)
 					.reverse()
-					.reduce((s, mixin) => {
+					.reduce((dstSchema, mixin) => {
 						if (mixin.mixins) mixin = Service.applyMixins(mixin);
 
-						return s ? Service.mergeSchemas(s, mixin) : mixin;
+						return dstSchema ? Service.mergeSchemas(dstSchema, mixin) : mixin;
 					}, null);
 
 				return Service.mergeSchemas(mixedSchema, schema);
@@ -585,58 +585,58 @@ class Service {
 	 * Merge two Service schema
 	 *
 	 * @static
-	 * @param {Object} mixinSchema		Mixin schema
-	 * @param {Object} svcSchema 		Service schema
+	 * @param {Object} dstSchema		Destination schema
+	 * @param {Object} srcSchema 		Source schema
 	 * @returns {Object} Mixed schema
 	 *
 	 * @memberof Service
 	 */
-	static mergeSchemas(mixinSchema, svcSchema) {
-		const res = _.cloneDeep(mixinSchema);
-		const mods = _.cloneDeep(svcSchema);
+	static mergeSchemas(dstSchema, srcSchema) {
+		const dst = _.cloneDeep(dstSchema);
+		const src = _.cloneDeep(srcSchema);
 
-		Object.keys(mods).forEach(key => {
-			if (["name", "version"].indexOf(key) !== -1 && mods[key] !== undefined) {
+		Object.keys(src).forEach(key => {
+			if (["name", "version"].indexOf(key) !== -1 && src[key] !== undefined) {
 				// Simple overwrite
-				res[key] = mods[key];
+				dst[key] = src[key];
 			} else if (key == "settings") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaSettings(mods[key], res[key]);
+				dst[key] = Service.mergeSchemaSettings(src[key], dst[key]);
 			} else if (key == "metadata") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaMetadata(mods[key], res[key]);
+				dst[key] = Service.mergeSchemaMetadata(src[key], dst[key]);
 			} else if (key == "hooks") {
 				// Merge & concat
-				res[key] = Service.mergeSchemaHooks(mods[key], res[key] || {});
+				dst[key] = Service.mergeSchemaHooks(src[key], dst[key] || {});
 			} else if (key == "actions") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaActions(mods[key], res[key] || {});
+				dst[key] = Service.mergeSchemaActions(src[key], dst[key] || {});
 			} else if (key == "methods") {
 				// Overwrite
-				res[key] = Service.mergeSchemaMethods(mods[key], res[key]);
+				dst[key] = Service.mergeSchemaMethods(src[key], dst[key]);
 			} else if (key == "events") {
 				// Merge & concat by groups
-				res[key] = Service.mergeSchemaEvents(mods[key], res[key] || {});
+				dst[key] = Service.mergeSchemaEvents(src[key], dst[key] || {});
 			} else if (["merged", "created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
-				res[key] = Service.mergeSchemaLifecycleHandlers(mods[key], res[key]);
+				dst[key] = Service.mergeSchemaLifecycleHandlers(src[key], dst[key]);
 			} else if (key == "mixins") {
 				// Concat mixins
-				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
+				dst[key] = Service.mergeSchemaUniqArray(src[key], dst[key]);
 			} else if (key == "dependencies") {
-				// Concat mixins
-				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
+				// Concat dependencies
+				dst[key] = Service.mergeSchemaUniqArray(src[key], dst[key]);
 			} else {
 				const customFnName = "mergeSchema" + key.replace(/./, key[0].toUpperCase()); // capitalize first letter
 				if (isFunction(Service[customFnName])) {
-					res[key] = Service[customFnName](mods[key], res[key]);
+					dst[key] = Service[customFnName](src[key], dst[key]);
 				} else {
-					res[key] = Service.mergeSchemaUnknown(mods[key], res[key]);
+					dst[key] = Service.mergeSchemaUnknown(src[key], dst[key]);
 				}
 			}
 		});
 
-		return res;
+		return dst;
 	}
 
 	/**
