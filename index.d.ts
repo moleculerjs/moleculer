@@ -1052,6 +1052,7 @@ declare namespace Moleculer {
 
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
+		loadServiceSchema(schema: ServiceSchema): Service;
 		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 		destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
 

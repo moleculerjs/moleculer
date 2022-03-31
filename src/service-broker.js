@@ -748,8 +748,8 @@ class ServiceBroker {
 	/**
 	 * Load a service from file
 	 *
-	 * @param {string} 		Path of service
-	 * @returns	{Service}	Loaded service
+	 * @param {string} filePath Path of service
+	 * @returns	{Service} Loaded service
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -763,27 +763,7 @@ class ServiceBroker {
 			const r = require(fName);
 			schema = r.default != null ? r.default : r;
 
-			let svc;
-			schema = this.normalizeSchemaConstructor(schema);
-			if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
-				// Service implementation
-				svc = new schema(this);
-
-				// If broker is started, call the started lifecycle event of service
-				if (this.started) this._restartService(svc);
-			} else if (utils.isFunction(schema)) {
-				// Function
-				svc = schema(this);
-				if (!(svc instanceof this.ServiceFactory)) {
-					svc = this.createService(svc);
-				} else {
-					// If broker is started, call the started lifecycle event of service
-					if (this.started) this._restartService(svc);
-				}
-			} else if (schema) {
-				// Schema object
-				svc = this.createService(schema);
-			}
+			const svc = this.loadServiceSchema(schema);
 
 			if (svc) {
 				svc.__filename = fName;
@@ -799,6 +779,39 @@ class ServiceBroker {
 			});
 			throw e;
 		}
+	}
+
+	/**
+	 * Load a service from ServiceSchema
+	 * @param {ServiceSchema} schema service schema
+	 * @return {Service} Loaded service
+	 *
+	 * @memberof ServiceBroker
+	 */
+	loadServiceSchema(schema) {
+		let svc;
+		schema = this.normalizeSchemaConstructor(schema);
+		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
+			// Service implementation
+			svc = new schema(this);
+
+			// If broker is started, call the started lifecycle event of service
+			if (this.started) this._restartService(svc);
+		} else if (utils.isFunction(schema)) {
+			// Function
+			svc = schema(this);
+			if (!(svc instanceof this.ServiceFactory)) {
+				svc = this.createService(svc);
+			} else {
+				// If broker is started, call the started lifecycle event of service
+				if (this.started) this._restartService(svc);
+			}
+		} else if (schema) {
+			// Schema object
+			svc = this.createService(schema);
+		}
+
+		return svc;
 	}
 
 	/**
