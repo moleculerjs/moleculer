@@ -739,8 +739,9 @@ declare namespace Moleculer {
 		static mergeSchemas(dstSchema: Partial<ServiceSchema>, srcSchema: Partial<ServiceSchema>): Partial<ServiceSchema>;
 		static mergeSchemaSettings(src: GenericObject, target: GenericObject): GenericObject;
 		static mergeSchemaMetadata(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaMixins(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaDependencies(src: GenericObject, target: GenericObject): GenericObject;
+		// does not exist
+		// static mergeSchemaMixins(src: GenericObject, target: GenericObject): GenericObject;
+		static mergeSchemaDependencies(src: string | string[], target: string | string[]): string[];
 		static mergeSchemaHooks(src: GenericObject, target: GenericObject): GenericObject;
 		static mergeSchemaActions(src: GenericObject, target: GenericObject): GenericObject;
 		static mergeSchemaMethods(src: GenericObject, target: GenericObject): GenericObject;
