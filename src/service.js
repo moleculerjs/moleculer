@@ -94,13 +94,13 @@ class Service {
 			);
 		}
 
-		this.name = schema.name;
+		this["name"] = schema.name;
 		this.version = schema.version;
 		this.settings = schema.settings || {};
 		this.metadata = schema.metadata || {};
 		this.schema = schema;
 
-		this.fullName = Service.getVersionedFullName(
+		this["fullName"] = Service.getVersionedFullName(
 			this.name,
 			this.settings.$noVersionPrefix !== true ? this.version : undefined
 		);
