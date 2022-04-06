@@ -440,6 +440,12 @@ class ServiceBroker {
 	start() {
 		const startTime = Date.now();
 
+		// Debounced function that will called after each service has started
+		// Debounce to avoid generating high INFO packet traffic
+		this.debouncedSendPartialNodeInfo = _.debounce(() => this.sendPartialNodeInfo(), 1000, {
+			trailing: true
+		});
+
 		return this.Promise.resolve()
 			.then(() => {
 				//this.tracer.restartScope();
@@ -452,13 +458,6 @@ class ServiceBroker {
 				if (this.transit) return this.transit.connect();
 			})
 			.then(() => {
-				// Debounced function that will called after each service has started
-				// Debounce to avoid generating high INFO packet traffic
-				this.debouncedINFOSender = _.debounce(() => {
-					this.registry.regenerateLocalRawInfo(true);
-					return this.transit.ready();
-				}, 1000);
-
 				// Call service `started` handlers
 				return this.Promise.all(this.services.map(svc => svc._start.call(svc))).catch(
 					err => {
@@ -475,6 +474,8 @@ class ServiceBroker {
 				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
+				this.debouncedSendPartialNodeInfo.cancel();
+
 				if (this.transit) return this.transit.ready();
 			})
 			.then(() => {
@@ -926,6 +927,14 @@ class ServiceBroker {
 					this.services.length
 				);
 			});
+	}
+
+	/**
+	 * Sends INFO packet with the service that are already running
+	 */
+	async sendPartialNodeInfo() {
+		this.registry.regenerateLocalRawInfo(true);
+		return this.transit.ready();
 	}
 
 	/**

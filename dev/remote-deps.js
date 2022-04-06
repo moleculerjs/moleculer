@@ -1,17 +1,42 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
+const Middlewares = require("../src/middlewares");
 
 const broker1 = new ServiceBroker({
 	nodeID: "node-1",
 
-	transporter: "Redis"
+	transporter: "Redis",
+
+	middlewares: [
+		Middlewares.Debugging.TransitLogger({
+			logPacketData: true,
+			folder: null,
+			colors: {
+				send: "magenta",
+				receive: "blue"
+			},
+			packetFilter: ["HEARTBEAT"]
+		})
+	]
 });
 
 const broker2 = new ServiceBroker({
 	nodeID: "node-2",
 
-	transporter: "Redis"
+	transporter: "Redis",
+
+	middlewares: [
+		Middlewares.Debugging.TransitLogger({
+			logPacketData: true,
+			folder: null,
+			colors: {
+				send: "magenta",
+				receive: "blue"
+			},
+			packetFilter: ["HEARTBEAT"]
+		})
+	]
 });
 
 const locationSchema = {
