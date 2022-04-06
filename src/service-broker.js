@@ -452,6 +452,13 @@ class ServiceBroker {
 				if (this.transit) return this.transit.connect();
 			})
 			.then(() => {
+				// Debounced function that will called after each service has started
+				// Debounce to avoid generating high INFO packet traffic
+				this.debouncedINFOSender = _.debounce(() => {
+					this.registry.regenerateLocalRawInfo(true);
+					return this.transit.ready();
+				}, 1000);
+
 				// Call service `started` handlers
 				return this.Promise.all(this.services.map(svc => svc._start.call(svc))).catch(
 					err => {

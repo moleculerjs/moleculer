@@ -304,8 +304,7 @@ class Service {
 				// We need to inform other nodes about it to avoid potential deadlock
 				// More info: https://github.com/moleculerjs/moleculer/issues/1077
 				if (this.broker.transit) {
-					this.broker.registry.regenerateLocalRawInfo(true);
-					return this.broker.transit.ready();
+					return this.broker.debouncedINFOSender();
 				}
 
 				return null;
