@@ -299,6 +299,15 @@ class Service {
 			.then(() => {
 				// Register service
 				this.broker.registerLocalService(this._serviceSpecification);
+
+				// Current service has started
+				// We need to inform other nodes about it to avoid potential deadlock
+				// More info: https://github.com/moleculerjs/moleculer/issues/1077
+				if (this.broker.transit) {
+					this.broker.registry.regenerateLocalRawInfo(true);
+					return this.broker.transit.ready();
+				}
+
 				return null;
 			})
 			.then(() => {

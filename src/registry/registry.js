@@ -457,7 +457,7 @@ class Registry {
 			"seq",
 			"metadata"
 		]);
-		if (this.broker.started) rawInfo.services = this.services.getLocalNodeServices();
+		if (this.broker.started || incSeq) rawInfo.services = this.services.getLocalNodeServices();
 		else rawInfo.services = [];
 
 		// Make to be safety
