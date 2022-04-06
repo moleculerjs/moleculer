@@ -73,7 +73,7 @@ class PinoLogger extends BaseLogger {
 
 		const logger = isFunction(this.opts.createLogger)
 			? this.opts.createLogger(level, bindings)
-			: this.pino.child({}, { level, ...bindings });
+			: this.pino.child(bindings, { level });
 
 		return (type, args) => logger[type](...args);
 	}
