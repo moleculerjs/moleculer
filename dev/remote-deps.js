@@ -75,6 +75,40 @@ broker1.createService(tenantSchema);
 
 // Place asset.service at node-2
 broker2.createService(assetSchema);
+/*broker2.createService({
+	name: "test1",
+	dependencies: ["location", "device"],
+	started() {
+		return this.Promise.delay(2000);
+	}
+});
+broker2.createService({
+	name: "test2",
+	dependencies: ["location", "tenant"],
+	started() {
+		return this.Promise.delay(3000);
+	}
+});
+broker2.createService({
+	name: "test3",
+	dependencies: ["tenant", "device"],
+	started() {
+		return this.Promise.delay(1000);
+	}
+});
+broker2.createService({
+	name: "test4",
+	dependencies: ["test3"],
+	started() {
+		return this.Promise.delay(500);
+	}
+});
+broker2.createService({
+	name: "test5",
+	started() {
+		return this.Promise.delay(2500);
+	}
+});*/
 
 Promise.all([broker1.start(), broker2.start()])
 	.then(() => {

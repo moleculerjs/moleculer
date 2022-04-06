@@ -174,7 +174,7 @@ class Registry {
 
 			this.nodes.localNode.services.push(service);
 
-			this.regenerateLocalRawInfo(this.broker.started);
+			this.regenerateLocalRawInfo(true);
 
 			this.logger.info(`'${svc.name}' service is registered.`);
 

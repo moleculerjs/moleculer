@@ -268,9 +268,9 @@ class BaseDiscoverer {
 	 * Called when the local node is ready (transporter connected)
 	 */
 	localNodeReady() {
-		// Local node has started all local services. We send a new INFO packet
-		// which contains the local services because we are ready to accept incoming requests.
-		return this.sendLocalNodeInfo();
+		// Local node has started all local services.
+		// We do nothing here because INFO packets are sent during the starting process.
+		// return this.sendLocalNodeInfo();
 	}
 
 	/**

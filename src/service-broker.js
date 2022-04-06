@@ -295,6 +295,10 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
+			// Create debounced localServiceChanged
+			const origLocalServiceChanged = this.localServiceChanged;
+			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
+
 			this.registry.init(this);
 
 			// Register internal actions
@@ -440,12 +444,6 @@ class ServiceBroker {
 	start() {
 		const startTime = Date.now();
 
-		// Debounced function that will called after each service has started
-		// Debounce to avoid generating high INFO packet traffic
-		this.debouncedSendPartialNodeInfo = _.debounce(() => this.sendPartialNodeInfo(), 1000, {
-			trailing: true
-		});
-
 		return this.Promise.resolve()
 			.then(() => {
 				//this.tracer.restartScope();
@@ -471,11 +469,8 @@ class ServiceBroker {
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
-				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
-				this.debouncedSendPartialNodeInfo.cancel();
-
 				if (this.transit) return this.transit.ready();
 			})
 			.then(() => {
@@ -877,13 +872,6 @@ class ServiceBroker {
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
 
-		// Current service has started
-		// We need to inform other nodes about it to avoid potential deadlock
-		// More info: https://github.com/moleculerjs/moleculer/issues/1077
-		if (this.transit) {
-			return this.debouncedSendPartialNodeInfo();
-		}
-
 		return null;
 	}
 
@@ -939,26 +927,25 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Sends INFO packet with the services that are already running
-	 */
-	async sendPartialNodeInfo() {
-		this.registry.regenerateLocalRawInfo(true);
-		this.servicesChanged(true, true);
-	}
-
-	/**
 	 * It will be called when a new local or remote service
 	 * is registered or unregistered.
 	 *
 	 * @memberof ServiceBroker
 	 */
-	servicesChanged(localService = false, started = this.started) {
+	servicesChanged(localService = false) {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (started && localService && this.transit) {
-			this.registry.discoverer.sendLocalNodeInfo();
+		if (localService && this.transit) {
+			this.localServiceChanged();
 		}
+	}
+
+	/**
+	 * It's a debounced method to send INFO packets to remote nodes.
+	 */
+	localServiceChanged() {
+		this.registry.discoverer.sendLocalNodeInfo();
 	}
 
 	/**
