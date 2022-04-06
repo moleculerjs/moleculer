@@ -298,16 +298,7 @@ class Service {
 			})
 			.then(() => {
 				// Register service
-				this.broker.registerLocalService(this._serviceSpecification);
-
-				// Current service has started
-				// We need to inform other nodes about it to avoid potential deadlock
-				// More info: https://github.com/moleculerjs/moleculer/issues/1077
-				if (this.broker.transit) {
-					return this.broker.debouncedSendPartialNodeInfo();
-				}
-
-				return null;
+				return this.broker.registerLocalService(this._serviceSpecification);
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);

@@ -876,6 +876,15 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+
+		// Current service has started
+		// We need to inform other nodes about it to avoid potential deadlock
+		// More info: https://github.com/moleculerjs/moleculer/issues/1077
+		if (this.transit) {
+			return this.debouncedSendPartialNodeInfo();
+		}
+
+		return null;
 	}
 
 	/**
