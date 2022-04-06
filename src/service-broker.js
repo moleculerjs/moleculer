@@ -939,11 +939,11 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Sends INFO packet with the service that are already running
+	 * Sends INFO packet with the services that are already running
 	 */
 	async sendPartialNodeInfo() {
 		this.registry.regenerateLocalRawInfo(true);
-		return this.transit.ready();
+		this.servicesChanged(true, true);
 	}
 
 	/**
@@ -952,11 +952,11 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	servicesChanged(localService = false) {
+	servicesChanged(localService = false, started = this.started) {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (this.started && localService && this.transit) {
+		if (started && localService && this.transit) {
 			this.registry.discoverer.sendLocalNodeInfo();
 		}
 	}
