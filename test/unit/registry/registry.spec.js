@@ -171,7 +171,7 @@ describe("Test Registry.registerLocalService", () => {
 		expect(registry.nodes.localNode.seq).toBe(seq);
 
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(false);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(true);
@@ -199,10 +199,9 @@ describe("Test Registry.registerLocalService", () => {
 			.start()
 			.catch(protectReject)
 			.then(() => {
-				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
-				registry.regenerateLocalRawInfo.mockClear();
+				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(0);
 
+				// Register the svc
 				registry.registerLocalService(svc);
 
 				expect(registry.services.add).toHaveBeenCalledTimes(1);
@@ -655,7 +654,8 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(0);
 	});
 
-	it("should increment seq", () => {
+	it("should increment seq even if broker has NOT started yet", () => {
+		registry.services.getLocalNodeServices.mockClear();
 		broker.started = false;
 		expect(registry.regenerateLocalRawInfo(true)).toEqual({
 			client: localNode.client,
@@ -666,13 +666,23 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			metadata: localNode.metadata,
 			port: null,
 			seq: 2,
-			services: []
+			services: [
+				{
+					name: "svc1",
+					prop: {}
+				},
+				{
+					name: "svc2",
+					prop: {}
+				}
+			]
 		});
 
-		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(0);
+		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call registry getLocalNodeServices and return with local rawInfo", () => {
+		registry.services.getLocalNodeServices.mockClear();
 		broker.started = true;
 		expect(registry.regenerateLocalRawInfo()).toEqual({
 			client: localNode.client,

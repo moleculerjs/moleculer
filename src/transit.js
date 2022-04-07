@@ -244,9 +244,9 @@ class Transit {
 	 */
 	ready() {
 		if (this.connected) {
-			// this.isReady = true;
 			this.metrics.set(METRIC.MOLECULER_TRANSIT_READY, 1);
-			return this.discoverer.localNodeReady();
+			// We do nothing here because INFO packets are sent during the starting process.
+			return;
 		}
 	}
 
