@@ -115,7 +115,7 @@ describe("Test service registry", () => {
 
 		return node1
 			.start()
-			.delay(1000)
+			.delay(2000)
 			.then(() => {
 				expect(H.getNode(master, "node-1")).toBeDefined();
 				expect(H.hasService(master, "users")).toBe(true);
@@ -144,7 +144,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.start()
-			.delay(1000)
+			.delay(2000)
 			.then(() => {
 				let node2 = H.getNode(master, "node-2");
 				expect(node2).toBeDefined();
@@ -177,7 +177,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.stop()
-			.delay(1000)
+			.delay(2000)
 			.then(() => {
 				let infoNode2 = H.getNode(master, "node-2");
 				expect(infoNode2).toBeDefined();
@@ -209,7 +209,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.start()
-			.delay(1000)
+			.delay(2000)
 			.then(() => {
 				let infoNode2 = H.getNode(master, "node-2");
 				expect(infoNode2).toBeDefined();
