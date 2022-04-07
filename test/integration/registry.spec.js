@@ -115,7 +115,7 @@ describe("Test service registry", () => {
 
 		return node1
 			.start()
-			.delay(100)
+			.delay(1000)
 			.then(() => {
 				expect(H.getNode(master, "node-1")).toBeDefined();
 				expect(H.hasService(master, "users")).toBe(true);
@@ -144,7 +144,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.start()
-			.delay(100)
+			.delay(1000)
 			.then(() => {
 				let node2 = H.getNode(master, "node-2");
 				expect(node2).toBeDefined();
@@ -177,7 +177,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.stop()
-			.delay(100)
+			.delay(1000)
 			.then(() => {
 				let infoNode2 = H.getNode(master, "node-2");
 				expect(infoNode2).toBeDefined();
@@ -209,7 +209,7 @@ describe("Test service registry", () => {
 
 		return node2
 			.start()
-			.delay(100)
+			.delay(1000)
 			.then(() => {
 				let infoNode2 = H.getNode(master, "node-2");
 				expect(infoNode2).toBeDefined();
@@ -237,7 +237,7 @@ describe("Test service registry", () => {
 		H.addServices(node1, [mailService]);
 
 		return Promise.resolve()
-			.delay(100)
+			.delay(2000)
 			.then(() => {
 				expect(H.hasService(master, "mail")).toBe(true);
 				expect(H.getActionNodes(master, "mail.send")).toEqual(["node-1"]);
@@ -250,7 +250,7 @@ describe("Test service registry", () => {
 		H.removeServices(node1, ["mail"]);
 
 		return Promise.resolve()
-			.delay(100)
+			.delay(2000)
 			.then(() => {
 				expect(H.hasService(master, "mail")).toBe(false);
 				expect(H.getActionNodes(master, "mail.send")).toEqual([]);
@@ -263,7 +263,7 @@ describe("Test action visibilities", () => {
 	const master = H.createNode({ namespace: "second", nodeID: "master" }, []);
 	const node1 = H.createNode({ namespace: "second", nodeID: "node-1" }, [userService]);
 
-	beforeAll(() => Promise.all([master.start(), node1.start()]));
+	beforeAll(() => Promise.all([master.start(), node1.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([master.stop(), node1.stop()]));
 
 	it("should call remotely", () => {

@@ -39,7 +39,7 @@ describe("Test to send stream as ctx.param", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should receive stream on b2", () => {
@@ -114,7 +114,7 @@ describe("Test to receive a stream as response", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should receive stream", () => {
@@ -198,7 +198,7 @@ describe("Test duplex streaming", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should send & receive stream", () => {
@@ -300,7 +300,7 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should receive stream in objectMode on b2", () => {
@@ -388,7 +388,7 @@ describe("Test to receive a stream in objectMode as response", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should receive stream in objectMode", () => {
@@ -494,7 +494,7 @@ describe("Test duplex streaming, result in objectMode", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should send & receive stream in objectMode", () => {

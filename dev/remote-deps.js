@@ -8,6 +8,12 @@ const broker1 = new ServiceBroker({
 
 	transporter: "Redis",
 
+	registry: {
+		discoverer: "Local"
+		// discoverer: "Redis"
+		// discoverer: "Etcd3"
+	},
+
 	middlewares: [
 		Middlewares.Debugging.TransitLogger({
 			logPacketData: true,
@@ -25,6 +31,12 @@ const broker2 = new ServiceBroker({
 	nodeID: "node-2",
 
 	transporter: "Redis",
+
+	registry: {
+		discoverer: "Local"
+		// discoverer: "Redis",
+		// discoverer: "Etcd3"
+	},
 
 	middlewares: [
 		Middlewares.Debugging.TransitLogger({

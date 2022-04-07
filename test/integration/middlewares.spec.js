@@ -781,7 +781,7 @@ describe("Test middleware v2 system", () => {
 		});
 
 		return Promise.all([broker.start(), broker2.start()]).delay(
-			500
+			2000
 		) /*.catch(protectReject).then(() => {
 			expect(FLOW).toEqual([
 
