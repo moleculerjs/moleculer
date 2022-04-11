@@ -54,7 +54,7 @@ describe("Test circuit breaker", () => {
 		return master1
 			.start()
 			.then(() => slave1.start())
-			.delay(100)
+			.delay(2000)
 			.then(() => (clock = lolex.install()));
 	});
 

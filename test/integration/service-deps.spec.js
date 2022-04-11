@@ -33,7 +33,7 @@ describe("Test Service dependencies", () => {
 	it("should call main started if broker2.starts", () => {
 		return broker2
 			.start()
-			.delay(1000)
+			.delay(2000)
 			.then(() => {
 				expect(startedMain).toHaveBeenCalledTimes(1);
 				expect(startedMath).toHaveBeenCalledTimes(1);

@@ -622,23 +622,6 @@ describe("Test BaseDiscoverer 'sendHeartbeat' method", () => {
 	});
 });
 
-describe("Test BaseDiscoverer 'localNodeReady' method", () => {
-	it("should call sendLocalNodeInfo", async () => {
-		const broker = new ServiceBroker({ logger: false });
-		const discoverer = new BaseDiscoverer();
-		discoverer.init(broker.registry);
-
-		discoverer.sendLocalNodeInfo = jest.fn();
-
-		discoverer.localNodeReady();
-
-		expect(discoverer.sendLocalNodeInfo).toBeCalledTimes(1);
-		expect(discoverer.sendLocalNodeInfo).toBeCalledWith();
-
-		await discoverer.stop();
-	});
-});
-
 describe("Test BaseDiscoverer 'localNodeDisconnected' method", () => {
 	it("should do nothing if no transporter", async () => {
 		const broker = new ServiceBroker({ logger: false });

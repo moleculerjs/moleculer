@@ -295,6 +295,10 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
+			// Create debounced localServiceChanged
+			const origLocalServiceChanged = this.localServiceChanged;
+			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
+
 			this.registry.init(this);
 
 			// Register internal actions
@@ -465,7 +469,6 @@ class ServiceBroker {
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
-				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
 				if (this.transit) return this.transit.ready();
@@ -868,6 +871,8 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+
+		return null;
 	}
 
 	/**
@@ -931,9 +936,16 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (this.started && localService && this.transit) {
-			this.registry.discoverer.sendLocalNodeInfo();
+		if (localService && this.transit) {
+			this.localServiceChanged();
 		}
+	}
+
+	/**
+	 * It's a debounced method to send INFO packets to remote nodes.
+	 */
+	localServiceChanged() {
+		this.registry.discoverer.sendLocalNodeInfo();
 	}
 
 	/**

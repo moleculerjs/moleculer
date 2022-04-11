@@ -545,8 +545,6 @@ describe("Test broker.start", () => {
 			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
 			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
-			expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
-			expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
 
 			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
 			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
@@ -576,7 +574,6 @@ describe("Test broker.start", () => {
 			broker.broadcastLocal = jest.fn();
 			broker.metrics.set = jest.fn();
 			broker.callMiddlewareHook = jest.fn();
-			broker.registry.regenerateLocalRawInfo = jest.fn();
 			//broker.scope.enable = jest.fn();
 			//broker.tracer.restartScope = jest.fn();
 
@@ -594,8 +591,6 @@ describe("Test broker.start", () => {
 			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
 			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
-			expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
-			expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
 
 			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
 
@@ -1653,6 +1648,11 @@ describe("Test broker.servicesChanged", () => {
 
 	broker.broadcastLocal = jest.fn();
 	broker.registry.discoverer.sendLocalNodeInfo = jest.fn();
+	// Un-debounce the function
+	// Make it a regular function again
+	broker.localServiceChanged = () => {
+		return broker.registry.discoverer.sendLocalNodeInfo();
+	};
 
 	beforeAll(() => broker.start());
 

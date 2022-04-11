@@ -211,34 +211,6 @@ describe("Test Transit.disconnect", () => {
 	});
 });
 
-describe("Test Transit.ready", () => {
-	const broker = new ServiceBroker({ logger: false });
-	const transporter = new FakeTransporter();
-	const transit = new Transit(broker, transporter, transitOptions);
-
-	transit.discoverer.localNodeReady = jest.fn(() => Promise.resolve());
-
-	it("should not call sendNodeInfo if not connected", () => {
-		expect(transit.isReady).toBe(false);
-		expect(transit.connected).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(0);
-		expect(transit.isReady).toBe(false);
-	});
-
-	it("should call sendNodeInfo if connected", () => {
-		transit.connected = true;
-		expect(transit.isReady).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(1);
-		expect(transit.isReady).toBe(true);
-	});
-});
-
 describe("Test Transit.sendDisconnectPacket", () => {
 	const broker = new ServiceBroker({
 		logger: false,
