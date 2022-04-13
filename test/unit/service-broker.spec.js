@@ -1185,12 +1185,12 @@ describe("Test broker.loadService with service bad syntax", () => {
 
 	it("should load service with bad javascript syntax throw errors", () => {
 		expect(() => {
-			broker.loadService("./test/services/bad-syntax.bad-service.js");
+			broker.loadService("./test/services/bad-syntax.bad-js");
 		}).toThrow();
 	});
 
 	it("should load service with bad javascript syntax doesn't throw errors", () => {
-		expect(hotBroker.loadService("./test/services/bad-syntax.bad-service.js")).toBeUndefined();
+		expect(hotBroker.loadService("./test/services/bad-syntax.bad-js")).toBeUndefined();
 	});
 });
 
