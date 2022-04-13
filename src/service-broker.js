@@ -763,7 +763,17 @@ class ServiceBroker {
 			fName = require.resolve(path.resolve(filePath));
 			this.logger.debug(`Load service '${path.basename(fName)}'...`);
 
-			const r = require(fName);
+			let r;
+			try {
+				r = require(fName);
+			} catch (e) {
+				if (this.options.hotReload) {
+					this.logger.debug(e);
+					return;
+				} else {
+					throw e;
+				}
+			}
 			schema = r.default != null ? r.default : r;
 
 			let svc;
