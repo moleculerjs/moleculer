@@ -6,5 +6,19 @@ module.exports = {
 	singleQuote: false,
 	semi: true,
 	bracketSpacing: true,
-	arrowParens: "avoid"
+	arrowParens: "avoid",
+	overrides: [
+		{
+			files: "*.md",
+			options: {
+				useTabs: false
+			}
+		},
+		{
+			files: "*.json",
+			options: {
+				useTabs: false
+			}
+		}
+	]
 };
