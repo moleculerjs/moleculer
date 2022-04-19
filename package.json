@@ -134,7 +134,7 @@
     "kafka-node": "^5.0.0",
     "log4js": "^6.0.0",
     "mqtt": "^4.0.0",
-    "msgpack5": "^5.0.0",
+    "msgpack5": "^5.0.0 || ^6.0.0",
     "nats": "^1.0.0 || ^2.0.0",
     "node-nats-streaming": "^0.0.51 || ^0.2.0 || ^0.3.0",
     "notepack.io": "^2.0.0",
@@ -142,7 +142,7 @@
     "protobufjs": "^6.0.0",
     "redlock": "^4.0.0",
     "rhea-promise": "^1.0.0 || ^2.0.0",
-    "thrift": "^0.16.0",
+    "thrift": "^0.12.0 || ^0.16.0",
     "winston": "^3.0.0"
   },
   "peerDependenciesMeta": {
