@@ -224,7 +224,7 @@ class MoleculerRunner {
 				.filter(key => key.startsWith(moleculerPrefix))
 				.map(key => ({
 					key,
-					withoutPrefix: key.substr(moleculerPrefix.length)
+					withoutPrefix: key.substring(moleculerPrefix.length)
 				}))
 				.forEach(variable => {
 					const dotted = variable.withoutPrefix
