@@ -5,7 +5,7 @@
 <a name="0.14.20"></a>
 # [0.14.20](https://github.com/moleculerjs/moleculer/compare/v0.14.19...v0.14.20) (2022-04-19)
 
-_39 commits from 7 contributors._
+_52 commits from 8 contributors._
 
 ## Dependency logic changed [#1077](https://github.com/moleculerjs/moleculer/issues/1077)
 
