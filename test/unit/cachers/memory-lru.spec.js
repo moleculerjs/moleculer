@@ -329,7 +329,7 @@ describe("Test MemoryLRUCacher clean", () => {
 });
 
 describe("Test MemoryLRUCacher expired method", () => {
-	let clock = lolex.install();
+	let clock = lolex.install({ shouldClearNativeTimers: true });
 
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({

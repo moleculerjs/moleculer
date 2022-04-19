@@ -55,7 +55,7 @@ describe("Test circuit breaker", () => {
 			.start()
 			.then(() => slave1.start())
 			.delay(2000)
-			.then(() => (clock = lolex.install()));
+			.then(() => (clock = lolex.install({ shouldClearNativeTimers: true })));
 	});
 
 	afterAll(() => {
