@@ -113,7 +113,7 @@
     "args": "^5.0.1",
     "eventemitter2": "^6.4.5",
     "fastest-validator": "^1.12.0",
-    "glob": "^8.0.0",
+    "glob": "^7.2.0",
     "ipaddr.js": "^2.0.1",
     "kleur": "^4.1.4",
     "lodash": "^4.17.21",
