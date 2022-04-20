@@ -427,7 +427,7 @@ class Transit {
 				"."
 		);
 
-		if (!this.broker.started) {
+		if (this.broker.stopping) {
 			this.logger.warn(
 				`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is stopped.`
 			);
@@ -465,7 +465,7 @@ class Transit {
 		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		try {
-			if (!this.broker.started) {
+			if (this.broker.stopping) {
 				this.logger.warn(
 					`Incoming '${payload.action}' request from '${payload.sender}' node is dropped because broker is stopped.`
 				);
