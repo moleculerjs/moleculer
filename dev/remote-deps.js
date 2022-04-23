@@ -6,7 +6,7 @@ const Middlewares = require("../src/middlewares");
 const broker1 = new ServiceBroker({
 	nodeID: "node-1",
 
-	transporter: "Redis",
+	transporter: "TCP",
 
 	registry: {
 		discoverer: "Local"
@@ -30,7 +30,7 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	nodeID: "node-2",
 
-	transporter: "Redis",
+	transporter: "TCP",
 
 	registry: {
 		discoverer: "Local"

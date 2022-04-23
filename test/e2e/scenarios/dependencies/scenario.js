@@ -18,6 +18,15 @@ const locationSchema = {
 const tenantSchema = {
 	name: "tenant",
 
+	actions: {
+		add: {
+			handler(ctx) {
+				FLOW.push("tenant.add action called");
+				return "tenant.add action";
+			}
+		}
+	},
+
 	async started() {
 		FLOW.push("tenant.service started");
 	}
@@ -27,7 +36,13 @@ broker1.createService(locationSchema);
 broker1.createService(tenantSchema);
 
 addScenario("Test service dependency start flow", async () => {
-	assert(FLOW, ["tenant.service started", "device.service started", "location.service started"]);
+	assert(FLOW, [
+		"tenant.service started",
+		"device.service started",
+		"tenant.add action called",
+		"response from tenant: tenant.add action",
+		"location.service started"
+	]);
 });
 
 /////////////// NODE - 2 ///////////////
@@ -40,6 +55,10 @@ const assetSchema = {
 
 	async started() {
 		FLOW.push("device.service started");
+
+		const result = await this.broker.call("tenant.add");
+
+		FLOW.push("response from tenant: " + result);
 	}
 };
 broker2.createService(assetSchema);
