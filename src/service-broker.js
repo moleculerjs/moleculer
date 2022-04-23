@@ -183,6 +183,9 @@ class ServiceBroker {
 			// Broker started flag
 			this.started = false;
 
+			/** @type {Boolean} Broker stopping flag*/
+			this.stopping = false;
+
 			// Class factories
 			this.ServiceFactory = this.options.ServiceFactory || require("./service");
 			this.ContextFactory = this.options.ContextFactory || require("./context");
@@ -496,6 +499,7 @@ class ServiceBroker {
 	 */
 	stop() {
 		this.started = false;
+		this.stopping = true;
 		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {

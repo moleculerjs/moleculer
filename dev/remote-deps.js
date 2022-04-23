@@ -12,19 +12,19 @@ const broker1 = new ServiceBroker({
 		discoverer: "Local"
 		// discoverer: "Redis"
 		// discoverer: "Etcd3"
-	},
+	}
 
-	middlewares: [
-		Middlewares.Debugging.TransitLogger({
-			logPacketData: true,
-			folder: null,
-			colors: {
-				send: "magenta",
-				receive: "blue"
-			},
-			packetFilter: ["HEARTBEAT"]
-		})
-	]
+	// middlewares: [
+	// 	Middlewares.Debugging.TransitLogger({
+	// 		logPacketData: true,
+	// 		folder: null,
+	// 		colors: {
+	// 			send: "magenta",
+	// 			receive: "blue"
+	// 		},
+	// 		packetFilter: ["HEARTBEAT"]
+	// 	})
+	// ]
 });
 
 const broker2 = new ServiceBroker({
@@ -36,19 +36,19 @@ const broker2 = new ServiceBroker({
 		discoverer: "Local"
 		// discoverer: "Redis",
 		// discoverer: "Etcd3"
-	},
+	}
 
-	middlewares: [
-		Middlewares.Debugging.TransitLogger({
-			logPacketData: true,
-			folder: null,
-			colors: {
-				send: "magenta",
-				receive: "blue"
-			},
-			packetFilter: ["HEARTBEAT"]
-		})
-	]
+	// middlewares: [
+	// 	Middlewares.Debugging.TransitLogger({
+	// 		logPacketData: true,
+	// 		folder: null,
+	// 		colors: {
+	// 			send: "magenta",
+	// 			receive: "blue"
+	// 		},
+	// 		packetFilter: ["HEARTBEAT"]
+	// 	})
+	// ]
 });
 
 const locationSchema = {
@@ -65,6 +65,14 @@ const locationSchema = {
 const tenantSchema = {
 	name: "tenant",
 
+	actions: {
+		add: {
+			handler(ctx) {
+				return "tenant.add action";
+			}
+		}
+	},
+
 	async started() {
 		this.logger.info("Tenant Services started");
 	}
@@ -78,6 +86,10 @@ const assetSchema = {
 
 	async started() {
 		this.logger.info("Device Services started");
+
+		const result = await this.broker.call("tenant.add");
+
+		this.logger.info("RESPONSE FROM TENANT =>", result);
 	}
 };
 

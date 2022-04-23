@@ -1,6 +1,9 @@
 <a name="Unreleased"></a>
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.20...master)
 
+# Changed
+- `broker.stopping` property is created to indicate that broker is in stopping state.
+
 --------------------------------------------------
 <a name="0.14.20"></a>
 # [0.14.20](https://github.com/moleculerjs/moleculer/compare/v0.14.19...v0.14.20) (2022-04-19)
