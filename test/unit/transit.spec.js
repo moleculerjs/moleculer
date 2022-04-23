@@ -211,34 +211,6 @@ describe("Test Transit.disconnect", () => {
 	});
 });
 
-describe("Test Transit.ready", () => {
-	const broker = new ServiceBroker({ logger: false });
-	const transporter = new FakeTransporter();
-	const transit = new Transit(broker, transporter, transitOptions);
-
-	transit.discoverer.localNodeReady = jest.fn(() => Promise.resolve());
-
-	it("should not call sendNodeInfo if not connected", () => {
-		expect(transit.isReady).toBe(false);
-		expect(transit.connected).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(0);
-		expect(transit.isReady).toBe(false);
-	});
-
-	it("should call sendNodeInfo if connected", () => {
-		transit.connected = true;
-		expect(transit.isReady).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(1);
-		expect(transit.isReady).toBe(true);
-	});
-});
-
 describe("Test Transit.sendDisconnectPacket", () => {
 	const broker = new ServiceBroker({
 		logger: false,
@@ -559,26 +531,9 @@ describe("Test Transit.eventHandler", () => {
 	const transit = broker.transit;
 	broker.emitLocalServices = jest.fn(() => Promise.resolve());
 
-	it("should not create packet if broker is not started yet", async () => {
-		broker.emitLocalServices.mockClear();
-		broker.started = false;
-		await transit.eventHandler({
-			id: "event-12345",
-			requestID: "event-req-12345",
-			parentID: "event-parent-67890",
-			event: "user.created",
-			data: { a: 5 },
-			groups: ["users"],
-			sender: "node-1",
-			broadcast: true
-		});
-
-		expect(broker.emitLocalServices).toHaveBeenCalledTimes(0);
-	});
-
 	it("should create packet", async () => {
 		broker.emitLocalServices.mockClear();
-		broker.started = true;
+		broker.stopping = false;
 		await transit.eventHandler({
 			id: "event-12345",
 			requestID: "event-req-12345",
@@ -618,6 +573,23 @@ describe("Test Transit.eventHandler", () => {
 			tracing: false
 		});
 	});
+
+	it("should NOT create packet if broker is stopping", async () => {
+		broker.emitLocalServices.mockClear();
+		broker.stopping = true;
+		await transit.eventHandler({
+			id: "event-12345",
+			requestID: "event-req-12345",
+			parentID: "event-parent-67890",
+			event: "user.created",
+			data: { a: 5 },
+			groups: ["users"],
+			sender: "node-1",
+			broadcast: true
+		});
+
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(0);
+	});
 });
 
 describe("Test Transit.requestHandler", () => {
@@ -637,30 +609,6 @@ describe("Test Transit.requestHandler", () => {
 	transit.sendResponse = jest.fn(() => Promise.resolve());
 
 	let id = "12345";
-
-	it("should send back error if broker is not started yet", () => {
-		broker.started = false;
-		return transit
-			.requestHandler({
-				sender: "node2",
-				id,
-				meta: { a: 5 },
-				action: "posts.find"
-			})
-			.catch(protectReject)
-			.then(() => {
-				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-				expect(transit.sendResponse).toHaveBeenCalledWith(
-					"node2",
-					id,
-					{ a: 5 },
-					null,
-					expect.any(Error)
-				);
-				expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(0);
-				broker.started = true;
-			});
-	});
 
 	it("should not call sendResponse if stream chunk is received", () => {
 		transit.sendResponse.mockClear();
@@ -857,6 +805,33 @@ describe("Test Transit.requestHandler", () => {
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("node2", id, { a: 5 }, null, err);
+			});
+	});
+
+	it("should not send back response if broker is stopping", () => {
+		transit.sendResponse.mockClear();
+		transit._handleIncomingRequestStream.mockClear();
+
+		broker.stopping = true;
+		return transit
+			.requestHandler({
+				sender: "node2",
+				id,
+				meta: { a: 5 },
+				action: "posts.find"
+			})
+			.catch(protectReject)
+			.then(() => {
+				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+				expect(transit.sendResponse).toHaveBeenCalledWith(
+					"node2",
+					id,
+					{ a: 5 },
+					null,
+					expect.any(Error)
+				);
+				expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(0);
+				broker.started = true;
 			});
 	});
 });

@@ -71,7 +71,7 @@ describe("Test Tracing feature with actions", () => {
 						await Promise.all(
 							posts.map(async post => {
 								const author = await ctx.call("users.get", { id: post.author });
-						post.author = author; //eslint-disable-line
+								post.author = author; //eslint-disable-line
 								return post;
 							})
 						);
@@ -163,7 +163,13 @@ describe("Test Tracing feature with actions", () => {
 	]);
 
 	beforeAll(() =>
-		Promise.all([broker0.start(), broker1.start(), broker2.start(), broker3.start()])
+		Promise.all([
+			broker0.start(),
+			broker1.start(),
+			broker2.start(),
+			broker3.start(),
+			Promise.resolve().delay(2000)
+		])
 	);
 
 	afterAll(() => Promise.all([broker0.stop(), broker1.stop(), broker2.stop(), broker3.stop()]));

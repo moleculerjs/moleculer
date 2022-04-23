@@ -183,6 +183,9 @@ class ServiceBroker {
 			// Broker started flag
 			this.started = false;
 
+			/** @type {Boolean} Broker stopping flag*/
+			this.stopping = false;
+
 			// Class factories
 			this.ServiceFactory = this.options.ServiceFactory || require("./service");
 			this.ContextFactory = this.options.ContextFactory || require("./context");
@@ -294,6 +297,10 @@ class ServiceBroker {
 			if (this.options.disableBalancer) {
 				this.call = this.callWithoutBalancer;
 			}
+
+			// Create debounced localServiceChanged
+			const origLocalServiceChanged = this.localServiceChanged;
+			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
 
 			this.registry.init(this);
 
@@ -465,7 +472,6 @@ class ServiceBroker {
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
-				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
 				if (this.transit) return this.transit.ready();
@@ -493,6 +499,7 @@ class ServiceBroker {
 	 */
 	stop() {
 		this.started = false;
+		this.stopping = true;
 		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {
@@ -868,6 +875,8 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+
+		return null;
 	}
 
 	/**
@@ -931,9 +940,16 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (this.started && localService && this.transit) {
-			this.registry.discoverer.sendLocalNodeInfo();
+		if (localService && this.transit) {
+			this.localServiceChanged();
 		}
+	}
+
+	/**
+	 * It's a debounced method to send INFO packets to remote nodes.
+	 */
+	localServiceChanged() {
+		this.registry.discoverer.sendLocalNodeInfo();
 	}
 
 	/**

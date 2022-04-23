@@ -298,8 +298,7 @@ class Service {
 			})
 			.then(() => {
 				// Register service
-				this.broker.registerLocalService(this._serviceSpecification);
-				return null;
+				return this.broker.registerLocalService(this._serviceSpecification);
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);

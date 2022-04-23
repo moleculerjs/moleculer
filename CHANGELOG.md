@@ -1,5 +1,28 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.19...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.20...master)
+
+# Changed
+- `broker.stopping` property is created to indicate that broker is in stopping state.
+
+--------------------------------------------------
+<a name="0.14.20"></a>
+# [0.14.20](https://github.com/moleculerjs/moleculer/compare/v0.14.19...v0.14.20) (2022-04-19)
+
+_52 commits from 8 contributors._
+
+## Dependency logic changed [#1077](https://github.com/moleculerjs/moleculer/issues/1077)
+
+In [mixed architecture](https://moleculer.services/docs/0.14/clustering.html#Mixed-architecture), it's not hard to create a circular service dependency that may cause a dead-lock during the start of Moleculer nodes. The problem is that Moleculer node only sends the local service registry to remote nodes after **all** local services started properly. 
+As of 0.14.20, this behavior has changed. The new logic uses a debounced registry sending method which is triggered every time a local service, that the node manages, has `started()`.  
+Note that the new method generates more [INFO packets](https://github.com/moleculer-framework/protocol/blob/master/4.0/PROTOCOL.md#info), than early versions, during the start of the node. The number of INFO packets depends on the number of the services that the node manages. The debounce timeout, between sending INFO packets, is 1 second.
+
+## Other Changes
+- fix ActionLogger and TransitLogger middlewares.
+- update Datadog Logger using v2 API. [#1056](https://github.com/moleculerjs/moleculer/pull/1056)
+- update dependencies.
+- update d.ts file. [#1064](https://github.com/moleculerjs/moleculer/pull/1064), [#1073](https://github.com/moleculerjs/moleculer/pull/1073)
+- fix pino child logger bindings. [#1075](https://github.com/moleculerjs/moleculer/pull/1075)
+ 
 
 --------------------------------------------------
 <a name="0.14.19"></a>
