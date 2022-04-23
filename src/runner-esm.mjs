@@ -178,7 +178,7 @@ export default class MoleculerRunner {
 				case ".js":
 				case ".mjs":
 				case ".ts": {
-					const mod = await import("/" + filePath);
+					const mod = await import(filePath.startsWith("/") ? filePath : "/" + filePath);
 					let content = mod.default;
 
 					if (utils.isFunction(content)) content = await content.call(this);
@@ -403,7 +403,7 @@ export default class MoleculerRunner {
 				});
 
 			await Promise.all(_.uniq(serviceFiles).map(async f => {
-				const mod = await import("/" + f);
+				const mod = await import(f.startsWith("/") ? f : "/" + f);
 				const content = mod.default;
 
 				const svc = this.broker.createService(content);
