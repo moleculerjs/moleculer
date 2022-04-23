@@ -3,6 +3,12 @@
   "version": "0.14.20",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.mjs"
+    }
+  },
   "scripts": {
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
@@ -26,6 +32,9 @@
     "test:e2e": "cd test/e2e && ./start.sh",
     "test:leak": "jest --testMatch \"**/leak-detection/**/*.spc.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
+    "test:esm": "node bin/moleculer-runner.mjs -c test/esm/moleculer.config.mjs test/esm/*.service.*js",
+    "esm-wrapper": "gen-esm-wrapper . ./index.mjs",
+    "prerelease": "npm run esm-wrapper",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"
   },
@@ -48,7 +57,8 @@
   },
   "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
   "bin": {
-    "moleculer-runner": "./bin/moleculer-runner.js"
+    "moleculer-runner": "./bin/moleculer-runner.js",
+    "moleculer-runner-esm": "./bin/moleculer-runner.mjs"
   },
   "author": "MoleculerJS",
   "license": "MIT",
@@ -78,6 +88,7 @@
     "event-loop-stats": "^1.4.1",
     "fakerator": "^0.3.5",
     "gc-stats": "^1.4.0",
+    "gen-esm-wrapper": "^1.1.3",
     "ioredis": "^4.28.5",
     "jaeger-client": "^3.19.0",
     "jest": "^27.5.1",
