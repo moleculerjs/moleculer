@@ -22,6 +22,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    concurrency: 
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true    
     strategy:
       matrix:
         node-version: [14.x]
