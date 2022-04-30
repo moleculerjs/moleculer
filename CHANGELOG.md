@@ -1,7 +1,32 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.20...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.21...master)
 
-# Changed
+--------------------------------------------------
+<a name="0.14.21"></a>
+# [0.14.21](https://github.com/moleculerjs/moleculer/compare/v0.14.20...v0.14.21) (2022-04-30)
+
+_20 commits from 2 contributors._
+
+## ESM support [#1063](https://github.com/moleculerjs/moleculer/issues/1063)
+
+This version contains an ESM-based Moleculer Runner. This Runner is able to load ESM configuration file and ESM services. _It can load the CJS services, as well_
+
+**Example usage**
+```
+moleculer-runner-esm --repl services/**/*.service.mjs
+```
+
+Moreover, the `index.js` file is wrapped into `index.mjs`, so you can import internal modules from the core in ESM modules. E.g.:
+
+```js
+import { ServiceBroker, Errors } from "moleculer";
+```
+
+Please note, the hot-reload function doesn't work with this ESM Runner. The cause: https://github.com/nodejs/modules/issues/307
+Node maintainers try to solve the missing features (module cache and module dependency tree) with [loaders](https://nodejs.org/api/esm.html#loaders) but this API is not stable yet.
+
+
+## Other Changes
 - `broker.stopping` property is created to indicate that broker is in stopping state.
 
 --------------------------------------------------
