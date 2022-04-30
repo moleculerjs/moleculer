@@ -22,7 +22,7 @@ Moreover, the `index.js` file is wrapped into `index.mjs`, so you can import int
 import { ServiceBroker, Errors } from "moleculer";
 ```
 
-Please note, the hot-reload function doesn't work with this ESM Runner. The cause: https://github.com/nodejs/modules/issues/307
+Please note, **the hot-reload function doesn't work with this ESM Runner**. The cause: https://github.com/nodejs/modules/issues/307
 Node maintainers try to solve the missing features (module cache and module dependency tree) with [loaders](https://nodejs.org/api/esm.html#loaders) but this API is not stable yet.
 
 
