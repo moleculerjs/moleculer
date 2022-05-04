@@ -190,7 +190,6 @@ class EventCatalog {
 						newCtx.nodeID = sender;
 						return this.callEventHandler(newCtx);
 					}
-					return Promise.resolve();
 				});
 			});
 		} else {
@@ -201,7 +200,6 @@ class EventCatalog {
 						newCtx.nodeID = sender;
 						return this.callEventHandler(newCtx);
 					}
-					return Promise.resolve();
 				})
 			);
 		}
