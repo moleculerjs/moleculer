@@ -190,20 +190,22 @@ class EventCatalog {
 						newCtx.nodeID = sender;
 						return this.callEventHandler(newCtx);
 					}
+					return Promise.resolve();
 				});
 			});
 		} else {
-			promises = filteredEvents.map(async list => {
-				const ep = await list.nextLocal();
-				if (ep && ep.event.handler) {
-					const newCtx = ctx.copy(ep);
-					newCtx.nodeID = sender;
-					return this.callEventHandler(newCtx);
-				}
-			});
+			promises = filteredEvents.map(list =>
+				list.nextLocal(ctx).then(ep => {
+					if (ep && ep.event.handler) {
+						const newCtx = ctx.copy(ep);
+						newCtx.nodeID = sender;
+						return this.callEventHandler(newCtx);
+					}
+					return Promise.resolve();
+				})
+			);
 		}
 
-		console.log(promises);
 		return this.broker.Promise.all(promises);
 	}
 
