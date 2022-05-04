@@ -211,10 +211,10 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 	catalog.add({ id: "node-4" }, { name: "posts" }, event3);
 	catalog.add({ id: "node-4" }, { name: "users" }, event1);
 
-	it("should return balanced endpoint list for 'user.created'", () => {
+	it("should return balanced endpoint list for 'user.created'", async () => {
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.created");
+		let res = await catalog.getBalancedEndpoints("user.created");
 
 		expect(res.length).toBe(3);
 		expect(res[0][0].id).toEqual("node-1");
@@ -229,20 +229,20 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 		expect(res[2][1]).toEqual("mail");
 	});
 
-	it("should return balanced endpoint list for 'user.updated'", () => {
+	it("should return balanced endpoint list for 'user.updated'", async () => {
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.updated");
+		let res = await catalog.getBalancedEndpoints("user.updated");
 
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-3");
 		expect(res[0][1]).toEqual("mail");
 	});
 
-	it("should return balanced endpoint list for 'user.created' on group 'payment'", () => {
+	it("should return balanced endpoint list for 'user.created' on group 'payment'", async () => {
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.created", "payment");
+		let res = await catalog.getBalancedEndpoints("user.created", "payment");
 
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-2");
@@ -308,16 +308,28 @@ describe("Test EventCatalog.emitLocalServices", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
-	catalog.callEventHandler = jest.fn();
+	catalog.callEventHandler = jest.fn(() => Promise.resolve());
 
-	let usersEvent = { name: "user.created", desc: "usersEvent", handler: jest.fn() };
-	let paymentEvent = { name: "user.created", desc: "paymentEvent", handler: jest.fn() };
-	let mailEvent = { name: "user.*", desc: "mailEvent", handler: jest.fn() };
+	let usersEvent = {
+		name: "user.created",
+		desc: "usersEvent",
+		handler: jest.fn(() => Promise.resolve())
+	};
+	let paymentEvent = {
+		name: "user.created",
+		desc: "paymentEvent",
+		handler: jest.fn(() => Promise.resolve())
+	};
+	let mailEvent = {
+		name: "user.*",
+		desc: "mailEvent",
+		handler: jest.fn(() => Promise.resolve())
+	};
 	let otherEvent = {
 		name: "user.created",
 		group: "payment",
 		desc: "otherEvent",
-		handler: jest.fn()
+		handler: jest.fn(() => Promise.resolve())
 	};
 
 	catalog.add({ id: "node-1" }, { name: "users" }, usersEvent);
@@ -325,7 +337,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 	catalog.add({ id: "node-1" }, { name: "other" }, otherEvent);
 	catalog.add({ id: "node-1" }, { name: "mail" }, mailEvent);
 
-	it("should broadcast local handlers without groups", () => {
+	it("should broadcast local handlers without groups", async () => {
 		expect(catalog.events.length).toBe(3);
 
 		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
@@ -334,7 +346,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		ctx.eventType = "broadcast";
 		jest.spyOn(ctx, "copy");
 
-		catalog.emitLocalServices(ctx);
+		await catalog.emitLocalServices(ctx);
 
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(4);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
@@ -379,7 +391,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(ctx.copy).toHaveBeenCalledTimes(4);
 	});
 
-	it("should broadcast local handlers with groups", () => {
+	it("should broadcast local handlers with groups", async () => {
 		catalog.callEventHandler.mockClear();
 
 		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
@@ -388,7 +400,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		ctx.eventType = "broadcast";
 		jest.spyOn(ctx, "copy");
 
-		catalog.emitLocalServices(ctx);
+		await catalog.emitLocalServices(ctx);
 
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
@@ -424,7 +436,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(ctx.copy).toHaveBeenCalledTimes(3);
 	});
 
-	it("should balance local handlers without groups", () => {
+	it("should balance local handlers without groups", async () => {
 		catalog.callEventHandler.mockClear();
 
 		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
@@ -433,7 +445,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		ctx.eventType = "emit";
 		jest.spyOn(ctx, "copy");
 
-		catalog.emitLocalServices(ctx);
+		await catalog.emitLocalServices(ctx);
 
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
@@ -468,7 +480,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(ctx.copy).toHaveBeenCalledTimes(3);
 	});
 
-	it("should balance local handlers with groups", () => {
+	it("should balance local handlers with groups", async () => {
 		catalog.callEventHandler.mockClear();
 
 		const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
@@ -477,7 +489,7 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		ctx.eventType = "emit";
 		jest.spyOn(ctx, "copy");
 
-		catalog.emitLocalServices(ctx);
+		await catalog.emitLocalServices(ctx);
 
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(2);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));

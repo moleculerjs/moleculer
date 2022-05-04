@@ -83,31 +83,33 @@ class EndpointList {
 	 *
 	 * @param {Array<Endpoint>} list
 	 * @param {Context} ctx
-	 * @returns {Endpoint}
+	 * @returns {Promise<Endpoint>}
 	 * @memberof EndpointList
 	 */
-	select(list, ctx) {
-		const ret = this.strategy.select(list, ctx);
-		if (!ret) {
-			/* istanbul ignore next */
-			throw new MoleculerServerError(
-				"Strategy returned an invalid endpoint.",
-				500,
-				"INVALID_ENDPOINT",
-				{ strategy: typeof this.strategy }
-			);
-		}
-		return ret;
+	async select(list, ctx) {
+		return Promise.resolve()
+			.then(() => this.strategy.select(list, ctx))
+			.then(rt => {
+				if (!rt) {
+					throw new MoleculerServerError(
+						"Strategy returned an invalid endpoint.",
+						500,
+						"INVALID_ENDPOINT",
+						{ strategy: typeof this.strategy }
+					);
+				}
+				return rt;
+			});
 	}
 
 	/**
 	 * Get next endpoint
 	 *
 	 * @param {Context} ctx
-	 * @returns
+	 * @returns {null|Endpoint|Promise<Endpoint>}
 	 * @memberof EndpointList
 	 */
-	next(ctx) {
+	async next(ctx) {
 		// No items
 		if (this.endpoints.length === 0) {
 			return null;
@@ -129,13 +131,12 @@ class EndpointList {
 
 		// Search local item
 		if (this.registry.opts.preferLocal === true && this.hasLocal()) {
-			const ep = this.nextLocal(ctx);
+			const ep = await this.nextLocal(ctx);
 			if (ep && ep.isAvailable) return ep;
 		}
 
 		const epList = this.endpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0) return null;
-
+		if (epList.length === 0) return null;
 		return this.select(epList, ctx);
 	}
 
@@ -143,10 +144,10 @@ class EndpointList {
 	 * Get next local endpoint
 	 *
 	 * @param {Context} ctx
-	 * @returns
+	 * @returns {null|Endpoint|Promise<Endpoint>}
 	 * @memberof EndpointList
 	 */
-	nextLocal(ctx) {
+	async nextLocal(ctx) {
 		// No items
 		if (this.localEndpoints.length === 0) {
 			return null;
@@ -162,7 +163,7 @@ class EndpointList {
 		}
 
 		const epList = this.localEndpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0) return null;
+		if (epList.length === 0) return null;
 
 		return this.select(epList, ctx);
 	}

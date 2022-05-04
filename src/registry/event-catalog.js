@@ -95,17 +95,17 @@ class EventCatalog {
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getBalancedEndpoints(eventName, groups) {
+	async getBalancedEndpoints(eventName, groups) {
 		const res = [];
 
-		this.events.forEach(list => {
-			if (!utils.match(eventName, list.name)) return;
-			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
+		for (const list1 of this.events) {
+			if (!utils.match(eventName, list1.name)) continue;
+			if (groups == null || groups.length === 0 || groups.indexOf(list1.group) !== -1) {
 				// Use built-in balancer, get the next endpoint
-				const ep = list.next();
-				if (ep && ep.isAvailable) res.push([ep, list.group]);
+				const ep = await list1.next();
+				if (ep && ep.isAvailable) res.push([ep, list1.group]);
 			}
-		});
+		}
 
 		return res;
 	}
@@ -164,35 +164,38 @@ class EventCatalog {
 	emitLocalServices(ctx) {
 		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
 		const sender = ctx.nodeID;
+		let promises;
 
-		const promises = [];
+		const filteredEvents = this.events.filter(
+			list =>
+				utils.match(ctx.eventName, list.name) &&
+				(ctx.eventGroups == null ||
+					ctx.eventGroups.length === 0 ||
+					ctx.eventGroups.indexOf(list.group) !== -1)
+		);
 
-		this.events.forEach(list => {
-			if (!utils.match(ctx.eventName, list.name)) return;
-			if (
-				ctx.eventGroups == null ||
-				ctx.eventGroups.length == 0 ||
-				ctx.eventGroups.indexOf(list.group) !== -1
-			) {
-				if (isBroadcast) {
-					list.endpoints.forEach(ep => {
-						if (ep.local && ep.event.handler) {
-							const newCtx = ctx.copy(ep);
-							newCtx.nodeID = sender;
-							promises.push(this.callEventHandler(newCtx));
-						}
-					});
-				} else {
-					const ep = list.nextLocal();
-					if (ep && ep.event.handler) {
+		if (isBroadcast) {
+			promises = _.flatMap(filteredEvents, list => {
+				return list.endpoints.map(ep => {
+					if (ep.local && ep.event.handler) {
 						const newCtx = ctx.copy(ep);
 						newCtx.nodeID = sender;
-						promises.push(this.callEventHandler(newCtx));
+						return this.callEventHandler(newCtx);
 					}
+				});
+			});
+		} else {
+			promises = filteredEvents.map(async list => {
+				const ep = await list.nextLocal();
+				if (ep && ep.event.handler) {
+					const newCtx = ctx.copy(ep);
+					newCtx.nodeID = sender;
+					return this.callEventHandler(newCtx);
 				}
-			}
-		});
+			});
+		}
 
+		console.log(promises);
 		return this.broker.Promise.all(promises);
 	}
 

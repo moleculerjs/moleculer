@@ -30,6 +30,7 @@ class BaseStrategy {
 	 *
 	 * @param {Array<Endpoint>} list
 	 * @param {Context?} ctx
+	 * @returns {Promise<Endpoint>|Endpoint} endpoint
 	 *
 	 * @memberof BaseStrategy
 	 */

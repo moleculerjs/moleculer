@@ -461,7 +461,7 @@ class Transit {
 	 * @returns {Promise<any>}
 	 * @memberof Transit
 	 */
-	requestHandler(payload) {
+	async requestHandler(payload) {
 		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		try {
@@ -482,7 +482,7 @@ class Transit {
 				if (pass === null) return this.Promise.resolve();
 			}
 
-			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
+			const endpoint = await this.broker._getLocalActionEndpoint(payload.action);
 
 			// Recreate caller context
 			const ctx = new this.broker.ContextFactory(this.broker);
@@ -515,7 +515,7 @@ class Transit {
 	 * Handle incoming request stream.
 	 *
 	 * @param {Object} payload
-	 * @returns {Stream}
+	 * @returns {Stream|Boolean}
 	 */
 	_handleIncomingRequestStream(payload) {
 		let pass = this.pendingReqStreams.get(payload.id);
@@ -605,7 +605,15 @@ class Transit {
 			const nextPacket = pass.$pool.get(nextSeq);
 			if (nextPacket) {
 				pass.$pool.delete(nextSeq);
-				setImmediate(() => this.requestHandler(nextPacket));
+				setImmediate(() =>
+					this.requestHandler(nextPacket).catch(error =>
+						this.broker.broadcastLocal("$transit.error", {
+							error,
+							module: "transit",
+							type: C.FAILED_PROCESSING_PACKET
+						})
+					)
+				);
 			}
 		}
 

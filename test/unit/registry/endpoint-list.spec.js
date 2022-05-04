@@ -174,8 +174,8 @@ describe("Test EndpointList.select", () => {
 	let arr = [{}, ep];
 	let ctx = {};
 
-	it("should call strategy select", () => {
-		let res = list.select(arr, ctx);
+	it("should call strategy select", async () => {
+		let res = await list.select(arr, ctx);
 		expect(res).toBe(ep);
 		expect(select).toHaveBeenCalledTimes(1);
 		expect(select).toHaveBeenCalledWith(arr, ctx);
@@ -183,9 +183,7 @@ describe("Test EndpointList.select", () => {
 
 	it("should throw exception if select return with null", () => {
 		list.strategy.select = jest.fn();
-		expect(() => {
-			list.select(arr);
-		}).toThrowError(MoleculerError);
+		expect(list.select(arr)).rejects.toThrowError(MoleculerError);
 	});
 });
 
@@ -209,12 +207,12 @@ describe("Test EndpointList.next", () => {
 		Strategy
 	);
 
-	list.select = jest.fn(() => ep1);
+	list.select = jest.fn(() => Promise.resolve(ep1));
 
-	it("should return null if no endpoints", () => {
+	it("should return null if no endpoints", async () => {
 		expect(list.endpoints.length).toBe(0);
 
-		let ep = list.next(ctx);
+		let ep = await list.next(ctx);
 
 		expect(ep).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
@@ -224,14 +222,14 @@ describe("Test EndpointList.next", () => {
 	it("should return only one ep", () => {
 		ep1 = list.add(node, service, action);
 
-		expect(list.next(ctx)).toBe(ep1);
+		expect(list.next(ctx)).resolves.toBe(ep1);
 		expect(list.count()).toBe(1);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
-		expect(list.next(ctx)).toBeNull();
+		expect(list.next(ctx)).resolves.toBeNull();
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -247,17 +245,17 @@ describe("Test EndpointList.next", () => {
 		expect(ep3.local).toBe(true);
 		expect(list.localEndpoints).toEqual([ep3]);
 
-		expect(list.next(ctx)).toBe(ep3);
-		expect(list.next(ctx)).toBe(ep3);
-		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
-	it("should call select if no local ep", () => {
+	it("should call select if no local ep", async () => {
 		ep3.state = false;
-
-		expect(list.next(ctx)).toBe(ep1);
+		const ep = await list.next(ctx);
+		expect(ep).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
 		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep4], ctx);
@@ -269,21 +267,21 @@ describe("Test EndpointList.next", () => {
 		list.select.mockClear();
 		registry.opts.preferLocal = false;
 
-		expect(list.next(ctx)).toBe(ep1);
+		expect(list.next(ctx)).resolves.toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
 		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep3, ep4], ctx);
 	});
 
 	it("should find the first available ep", () => {
-		list.select = jest.fn(() => ep4);
+		list.select = jest.fn(() => Promise.resolve(ep4));
 
 		ep1.state = false;
 		ep2.state = false;
 		ep3.state = false;
 		ep4.state = true;
 
-		expect(list.next(ctx)).toBe(ep4);
+		expect(list.next(ctx)).resolves.toBe(ep4);
 		expect(list.select).toHaveBeenCalledTimes(1);
 		expect(list.select).toHaveBeenCalledWith([ep4], ctx);
 	});
@@ -296,7 +294,7 @@ describe("Test EndpointList.next", () => {
 		ep3.state = false;
 		ep4.state = false;
 
-		expect(list.next(ctx)).toBeNull();
+		expect(list.next(ctx)).resolves.toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
@@ -304,7 +302,7 @@ describe("Test EndpointList.next", () => {
 		list.select.mockClear();
 		list.internal = true;
 
-		expect(list.next(ctx)).toBe(null);
+		expect(list.next(ctx)).resolves.toBe(null);
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
@@ -314,9 +312,9 @@ describe("Test EndpointList.next", () => {
 
 		ep3.state = true;
 
-		expect(list.next(ctx)).toBe(ep3);
-		expect(list.next(ctx)).toBe(ep3);
-		expect(list.next(ctx)).toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
+		expect(list.next(ctx)).resolves.toBe(ep3);
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -343,12 +341,12 @@ describe("Test EndpointList.nextLocal", () => {
 		ActionEndpoint,
 		Strategy
 	);
-	list.select = jest.fn(() => ep1);
+	list.select = jest.fn(() => Promise.resolve(ep1));
 
-	it("should return null if no endpoints", () => {
+	it("should return null if no endpoints", async () => {
 		expect(list.endpoints.length).toBe(0);
 
-		let ep = list.nextLocal(ctx);
+		let ep = await list.nextLocal(ctx);
 
 		expect(ep).toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
@@ -359,14 +357,14 @@ describe("Test EndpointList.nextLocal", () => {
 	it("should return only one ep", () => {
 		ep1 = list.add(node, service, action);
 
-		expect(list.nextLocal(ctx)).toBe(ep1);
+		expect(list.nextLocal(ctx)).resolves.toBe(ep1);
 		expect(list.count()).toBe(1);
 		expect(list.localEndpoints.length).toBe(1);
 	});
 
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
-		expect(list.nextLocal(ctx)).toBeNull();
+		expect(list.nextLocal(ctx)).resolves.toBeNull();
 
 		expect(list.select).toHaveBeenCalledTimes(0);
 
@@ -382,18 +380,18 @@ describe("Test EndpointList.nextLocal", () => {
 		expect(ep3.local).toBe(true);
 		expect(list.localEndpoints).toEqual([ep1, ep3]);
 
-		expect(list.nextLocal(ctx)).toBe(ep1);
+		expect(list.nextLocal(ctx)).resolves.toBe(ep1);
 		expect(list.select).toHaveBeenCalledTimes(1);
 		expect(list.select).toHaveBeenCalledWith([ep1, ep3], ctx);
 	});
 
 	it("should find the first available ep", () => {
-		list.select = jest.fn(() => ep3);
+		list.select = jest.fn(() => Promise.resolve(ep3));
 
 		ep1.state = false;
 		ep3.state = true;
 
-		expect(list.nextLocal(ctx)).toBe(ep3);
+		expect(list.nextLocal(ctx)).resolves.toBe(ep3);
 		expect(list.select).toHaveBeenCalledTimes(1);
 		expect(list.select).toHaveBeenCalledWith([ep3], ctx);
 	});
@@ -404,7 +402,7 @@ describe("Test EndpointList.nextLocal", () => {
 		ep1.state = false;
 		ep3.state = false;
 
-		expect(list.nextLocal(ctx)).toBeNull();
+		expect(list.nextLocal(ctx)).resolves.toBeNull();
 		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 });

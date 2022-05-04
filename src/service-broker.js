@@ -1074,7 +1074,7 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	findNextActionEndpoint(actionName, opts, ctx) {
+	async findNextActionEndpoint(actionName, opts, ctx) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
@@ -1096,7 +1096,7 @@ class ServiceBroker {
 				}
 
 				// Get the next available endpoint
-				const endpoint = epList.next(ctx);
+				const endpoint = await epList.next(ctx);
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
@@ -1118,59 +1118,45 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	call(actionName, params, opts = {}) {
-		if (params === undefined) params = {}; // Backward compatibility
+	async call(actionName, params, opts = {}) {
+		try {
+			if (params === undefined) params = {}; // Backward compatibility
 
-		// Create context
-		let ctx;
-		if (opts.ctx != null) {
-			const endpoint = this.findNextActionEndpoint(actionName, opts, opts.ctx);
-			if (endpoint instanceof Error) {
-				return this.Promise.reject(endpoint).catch(err =>
-					this.errorHandler(err, { actionName, params, opts })
-				);
+			// Create context
+			if (!opts.ctx) {
+				// New root context
+				opts.ctx = this.ContextFactory.create(this, null, params, opts);
 			}
-
+			const endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
 			// Reused context
-			ctx = opts.ctx;
-			ctx.endpoint = endpoint;
-			ctx.nodeID = endpoint.id;
-			ctx.action = endpoint.action;
-			ctx.service = endpoint.action.service;
-		} else {
-			// New root context
-			ctx = this.ContextFactory.create(this, null, params, opts);
+			opts.ctx.endpoint = endpoint;
+			opts.ctx.nodeID = endpoint.id;
+			opts.ctx.action = endpoint.action;
+			opts.ctx.service = endpoint.action.service;
 
-			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
-			if (endpoint instanceof Error) {
-				return this.Promise.reject(endpoint).catch(err =>
-					this.errorHandler(err, { actionName, params, opts })
-				);
-			}
+			if (opts.ctx.endpoint.local)
+				this.logger.debug("Call action locally.", {
+					action: opts.ctx.action.name,
+					requestID: opts.ctx.requestID
+				});
+			else
+				this.logger.debug("Call action on remote node.", {
+					action: opts.ctx.action.name,
+					nodeID: opts.ctx.nodeID,
+					requestID: opts.ctx.requestID
+				});
 
-			ctx.setEndpoint(endpoint);
+			//this.setCurrentContext(ctx);
+
+			let p = opts.ctx.endpoint.action.handler(opts.ctx);
+
+			// Pointer to Context
+			p.ctx = opts.ctx;
+			return p;
+		} catch (err) {
+			this.errorHandler(err, { actionName, params, opts });
+			throw err;
 		}
-
-		if (ctx.endpoint.local)
-			this.logger.debug("Call action locally.", {
-				action: ctx.action.name,
-				requestID: ctx.requestID
-			});
-		else
-			this.logger.debug("Call action on remote node.", {
-				action: ctx.action.name,
-				nodeID: ctx.nodeID,
-				requestID: ctx.requestID
-			});
-
-		//this.setCurrentContext(ctx);
-
-		let p = ctx.endpoint.action.handler(ctx);
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
 	}
 
 	/**
@@ -1256,7 +1242,7 @@ class ServiceBroker {
 		return p;
 	}
 
-	_getLocalActionEndpoint(actionName, ctx) {
+	async _getLocalActionEndpoint(actionName, ctx) {
 		// Find action by name
 		let epList = this.registry.getActionEndpoints(actionName);
 		if (epList == null || !epList.hasLocal()) {
@@ -1265,7 +1251,7 @@ class ServiceBroker {
 		}
 
 		// Get local endpoint
-		let endpoint = epList.nextLocal(ctx);
+		let endpoint = await epList.nextLocal(ctx);
 		if (!endpoint) {
 			this.logger.warn(`Service '${actionName}' is not available locally.`);
 			throw new E.ServiceNotAvailableError({ action: actionName, nodeID: this.nodeID });
@@ -1348,7 +1334,7 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	emit(eventName, payload, opts) {
+	async emit(eventName, payload, opts) {
 		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
 		else if (opts == null) opts = {};
 
@@ -1371,7 +1357,10 @@ class ServiceBroker {
 		if (/^\$/.test(eventName)) this.localBus.emit(eventName, payload);
 
 		if (!this.options.disableBalancer) {
-			const endpoints = this.registry.events.getBalancedEndpoints(eventName, opts.groups);
+			const endpoints = await this.registry.events.getBalancedEndpoints(
+				eventName,
+				opts.groups
+			);
 
 			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
