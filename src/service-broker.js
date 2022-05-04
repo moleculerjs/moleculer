@@ -1084,7 +1084,7 @@ class ServiceBroker {
 				const endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
-					return new E.ServiceNotFoundError({ action: actionName, nodeID });
+					throw new E.ServiceNotFoundError({ action: actionName, nodeID });
 				}
 				return endpoint;
 			} else {
@@ -1092,7 +1092,7 @@ class ServiceBroker {
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (!epList) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return new E.ServiceNotFoundError({ action: actionName });
+					throw new E.ServiceNotFoundError({ action: actionName });
 				}
 
 				// Get the next available endpoint
@@ -1100,7 +1100,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return new E.ServiceNotAvailableError({ action: actionName });
+					throw new E.ServiceNotAvailableError({ action: actionName });
 				}
 				return endpoint;
 			}
