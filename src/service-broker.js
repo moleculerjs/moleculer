@@ -1123,35 +1123,42 @@ class ServiceBroker {
 			if (params === undefined) params = {}; // Backward compatibility
 
 			// Create context
-			if (!opts.ctx) {
-				// New root context
-				opts.ctx = this.ContextFactory.create(this, null, params, opts);
-			}
-			const endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
-			// Reused context
-			opts.ctx.endpoint = endpoint;
-			opts.ctx.nodeID = endpoint.id;
-			opts.ctx.action = endpoint.action;
-			opts.ctx.service = endpoint.action.service;
+			let ctx, endpoint;
 
-			if (opts.ctx.endpoint.local)
+			// Create context
+			if (opts.ctx != null) {
+				endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
+				// Reused context
+				ctx = opts.ctx;
+				ctx.endpoint = endpoint;
+				ctx.nodeID = endpoint.id;
+				ctx.action = endpoint.action;
+				ctx.service = endpoint.action.service;
+			} else {
+				// New root context
+				ctx = this.ContextFactory.create(this, null, params, opts);
+				endpoint = await this.findNextActionEndpoint(actionName, opts, ctx);
+				ctx.setEndpoint(endpoint);
+			}
+
+			if (ctx.endpoint.local)
 				this.logger.debug("Call action locally.", {
-					action: opts.ctx.action.name,
-					requestID: opts.ctx.requestID
+					action: ctx.action.name,
+					requestID: ctx.requestID
 				});
 			else
 				this.logger.debug("Call action on remote node.", {
-					action: opts.ctx.action.name,
-					nodeID: opts.ctx.nodeID,
-					requestID: opts.ctx.requestID
+					action: ctx.action.name,
+					nodeID: ctx.nodeID,
+					requestID: ctx.requestID
 				});
 
 			//this.setCurrentContext(ctx);
 
-			let p = opts.ctx.endpoint.action.handler(opts.ctx);
+			let p = ctx.endpoint.action.handler(ctx);
 
 			// Pointer to Context
-			p.ctx = opts.ctx;
+			p.ctx = ctx;
 			return p;
 		} catch (err) {
 			this.errorHandler(err, { actionName, params, opts });
@@ -1334,13 +1341,11 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	async emit(eventName, payload, opts) {
+	emit(eventName, payload, opts) {
 		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
 		else if (opts == null) opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
-
-		const promises = [];
 
 		const ctx = this.ContextFactory.create(this, null, payload, opts);
 		ctx.eventName = eventName;
@@ -1357,41 +1362,37 @@ class ServiceBroker {
 		if (/^\$/.test(eventName)) this.localBus.emit(eventName, payload);
 
 		if (!this.options.disableBalancer) {
-			const endpoints = await this.registry.events.getBalancedEndpoints(
-				eventName,
-				opts.groups
-			);
-
-			// Grouping remote events (reduce the network traffic)
-			const groupedEP = {};
-
-			endpoints.forEach(([ep, group]) => {
-				if (ep.id === this.nodeID) {
-					// Local service, call handler
-					const newCtx = ctx.copy(ep);
-					promises.push(this.registry.events.callEventHandler(newCtx));
-				} else {
-					// Remote service
-					const e = groupedEP[ep.id];
-					if (e) e.groups.push(group);
-					else
-						groupedEP[ep.id] = {
-							ep,
-							groups: [group]
-						};
-				}
-			});
-
-			if (this.transit) {
-				// Remote service
-				_.forIn(groupedEP, item => {
-					const newCtx = ctx.copy(item.ep);
-					newCtx.eventGroups = item.groups;
-					promises.push(this.transit.sendEvent(newCtx));
+			this.registry.events.getBalancedEndpoints(eventName, opts.groups).then(endpoints => {
+				// Grouping remote events (reduce the network traffic)
+				const promises = [];
+				const groupedEP = {};
+				endpoints.forEach(([ep, group]) => {
+					if (ep.id === this.nodeID) {
+						// Local service, call handler
+						const newCtx = ctx.copy(ep);
+						promises.push(this.registry.events.callEventHandler(newCtx));
+					} else {
+						// Remote service
+						const e = groupedEP[ep.id];
+						if (e) e.groups.push(group);
+						else
+							groupedEP[ep.id] = {
+								ep,
+								groups: [group]
+							};
+					}
 				});
-			}
+				if (this.transit) {
+					// Remote service
+					_.forIn(groupedEP, item => {
+						const newCtx = ctx.copy(item.ep);
+						newCtx.eventGroups = item.groups;
+						promises.push(this.transit.sendEvent(newCtx));
+					});
+				}
 
-			return this.Promise.all(promises);
+				return this.Promise.all(promises);
+			});
 		} else if (this.transit) {
 			// Disabled balancer case
 			let groups = opts.groups;

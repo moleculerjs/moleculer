@@ -117,7 +117,7 @@ class EndpointList {
 
 		// If internal (service), return the local always
 		if (this.internal && this.hasLocal()) {
-			return this.nextLocal();
+			return this.nextLocal(ctx);
 		}
 
 		// Only 1 item
@@ -158,7 +158,6 @@ class EndpointList {
 			// No need to select a node, return the only one
 			const item = this.localEndpoints[0];
 			if (item.isAvailable) return item;
-
 			return null;
 		}
 

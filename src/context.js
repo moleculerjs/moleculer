@@ -42,7 +42,7 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Endpoint} endpoint
+	 * @param {{}} endpoint
 	 *
 	 * @memberof Context
 	 */

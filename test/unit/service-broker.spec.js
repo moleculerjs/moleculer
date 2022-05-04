@@ -2302,12 +2302,8 @@ describe("Test broker.call", () => {
 			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, {}, {});
 			expect(ctx.setEndpoint).toHaveBeenCalledWith(ep);
 
-			expect(broker.findNextActionEndpoint).resolves.toHaveBeenCalledTimes(1);
-			expect(broker.findNextActionEndpoint).resolves.toHaveBeenCalledWith(
-				"posts.find",
-				{},
-				ctx
-			);
+			expect(broker.findNextActionEndpoint).toHaveBeenCalledTimes(1);
+			expect(broker.findNextActionEndpoint).toHaveBeenCalledWith("posts.find", {}, ctx);
 
 			expect(action.handler).toHaveBeenCalledTimes(1);
 			expect(action.handler).toHaveBeenCalledWith(ctx);
@@ -2733,21 +2729,23 @@ describe("Test broker.mcall", () => {
 describe("Test broker.emit", () => {
 	let broker = new ServiceBroker({ logger: false, transporter: null });
 	let handler = jest.fn();
-	broker.registry.events.getBalancedEndpoints = jest.fn(() => [
-		[
-			{
-				id: broker.nodeID,
-				event: { handler }
-			},
-			"users"
-		],
-		[
-			{
-				id: "node-2"
-			},
-			"payment"
-		]
-	]);
+	broker.registry.events.getBalancedEndpoints = jest.fn(() =>
+		Promise.resolve([
+			[
+				{
+					id: broker.nodeID,
+					event: { handler }
+				},
+				"users"
+			],
+			[
+				{
+					id: "node-2"
+				},
+				"payment"
+			]
+		])
+	);
 	broker.localBus.emit = jest.fn();
 	broker.registry.events.callEventHandler = jest.fn();
 
@@ -2983,33 +2981,35 @@ describe("Test broker.emit with transporter", () => {
 	let broker = new ServiceBroker({ nodeID: "node-1", logger: false, transporter: "Fake" });
 	broker.transit.sendEvent = jest.fn();
 	let handler = jest.fn();
-	broker.registry.events.getBalancedEndpoints = jest.fn(() => [
-		[
-			{
-				id: "node-1",
-				event: { handler }
-			},
-			"users"
-		],
-		[
-			{
-				id: "node-2"
-			},
-			"payment"
-		],
-		[
-			{
-				id: "node-3"
-			},
-			"users"
-		],
-		[
-			{
-				id: "node-2"
-			},
-			"mail"
-		]
-	]);
+	broker.registry.events.getBalancedEndpoints = jest.fn(() =>
+		Promise.resolve([
+			[
+				{
+					id: "node-1",
+					event: { handler }
+				},
+				"users"
+			],
+			[
+				{
+					id: "node-2"
+				},
+				"payment"
+			],
+			[
+				{
+					id: "node-3"
+				},
+				"users"
+			],
+			[
+				{
+					id: "node-2"
+				},
+				"mail"
+			]
+		])
+	);
 	broker.localBus.emit = jest.fn();
 	broker.registry.events.callEventHandler = jest.fn();
 	broker.getEventGroups = jest.fn(() => ["mail", "payment"]);
