@@ -333,7 +333,7 @@ class Context {
 		) {
 			return this.broker.Promise.reject(
 				new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level })
-			);
+			);meta
 		}
 
 		let p = this.broker.mcall(def, opts);

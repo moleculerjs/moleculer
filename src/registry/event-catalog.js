@@ -96,18 +96,26 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	async getBalancedEndpoints(eventName, groups) {
-		const res = [];
+		const eventGroup = [];
 
-		for (const list1 of this.events) {
-			if (!utils.match(eventName, list1.name)) continue;
-			if (groups == null || groups.length === 0 || groups.indexOf(list1.group) !== -1) {
-				// Use built-in balancer, get the next endpoint
-				const ep = await list1.next();
-				if (ep && ep.isAvailable) res.push([ep, list1.group]);
-			}
-		}
-
-		return res;
+		return Promise.all(
+			this.events
+				.filter(
+					list =>
+						utils.match(eventName, list.name) &&
+						(groups == null || groups.length === 0 || groups.indexOf(list.group) !== -1)
+				)
+				.map(list => {
+					eventGroup.push(list.group);
+					// Use built-in balancer, get the next endpoint
+					return list.next();
+				})
+		).then(res =>
+			res
+				.map((ep, i) => [ep, eventGroup[i]])
+				.filter(([ep]) => ep && ep.isAvailable)
+				.map(([ep, group]) => [ep, group])
+		);
 	}
 
 	/**
@@ -185,17 +193,17 @@ class EventCatalog {
 				});
 			});
 		} else {
-			promises = filteredEvents.map(async list => {
-				const ep = await list.nextLocal();
-				if (ep && ep.event.handler) {
-					const newCtx = ctx.copy(ep);
-					newCtx.nodeID = sender;
-					return this.callEventHandler(newCtx);
-				}
-			});
+			promises = filteredEvents.map(list =>
+				list.nextLocal(ctx).then(ep => {
+					if (ep && ep.event.handler) {
+						const newCtx = ctx.copy(ep);
+						newCtx.nodeID = sender;
+						return this.callEventHandler(newCtx);
+					}
+				})
+			);
 		}
 
-		console.log(promises);
 		return this.broker.Promise.all(promises);
 	}
 
