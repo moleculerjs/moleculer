@@ -1129,7 +1129,7 @@ class ServiceBroker {
 				// Create context
 				if (opts.ctx != null) {
 					endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
-					// Reused context
+
 					ctx = opts.ctx;
 					ctx.endpoint = endpoint;
 					ctx.nodeID = endpoint.id;
