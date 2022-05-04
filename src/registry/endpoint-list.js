@@ -106,7 +106,7 @@ class EndpointList {
 	 * Get next endpoint
 	 *
 	 * @param {Context} ctx
-	 * @returns {null|Endpoint|Promise<Endpoint>}
+	 * @returns {Promise<null|Endpoint>}
 	 * @memberof EndpointList
 	 */
 	async next(ctx) {

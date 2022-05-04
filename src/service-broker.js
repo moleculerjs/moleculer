@@ -1118,52 +1118,56 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	async call(actionName, params, opts = {}) {
-		try {
-			if (params === undefined) params = {}; // Backward compatibility
+	call(actionName, params, opts = {}) {
+		const response = (async () => {
+			try {
+				if (params === undefined) params = {}; // Backward compatibility
 
-			// Create context
-			let ctx, endpoint;
+				// Create context
+				let ctx, endpoint;
 
-			// Create context
-			if (opts.ctx != null) {
-				endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
-				// Reused context
-				ctx = opts.ctx;
-				ctx.endpoint = endpoint;
-				ctx.nodeID = endpoint.id;
-				ctx.action = endpoint.action;
-				ctx.service = endpoint.action.service;
-			} else {
-				// New root context
-				ctx = this.ContextFactory.create(this, null, params, opts);
-				endpoint = await this.findNextActionEndpoint(actionName, opts, ctx);
-				ctx.setEndpoint(endpoint);
+				// Create context
+				if (opts.ctx != null) {
+					endpoint = await this.findNextActionEndpoint(actionName, opts, opts.ctx);
+					// Reused context
+					ctx = opts.ctx;
+					ctx.endpoint = endpoint;
+					ctx.nodeID = endpoint.id;
+					ctx.action = endpoint.action;
+					ctx.service = endpoint.action.service;
+				} else {
+					// New root context
+					ctx = this.ContextFactory.create(this, null, params, opts);
+					endpoint = await this.findNextActionEndpoint(actionName, opts, ctx);
+					ctx.setEndpoint(endpoint);
+				}
+
+				if (ctx.endpoint.local)
+					this.logger.debug("Call action locally.", {
+						action: ctx.action.name,
+						requestID: ctx.requestID
+					});
+				else
+					this.logger.debug("Call action on remote node.", {
+						action: ctx.action.name,
+						nodeID: ctx.nodeID,
+						requestID: ctx.requestID
+					});
+
+				//this.setCurrentContext(ctx);
+
+				const r = await ctx.endpoint.action.handler(ctx);
+				// Pointer to Context
+				response.ctx = ctx;
+
+				return r;
+			} catch (err) {
+				this.errorHandler(err, { actionName, params, opts });
+				throw err;
 			}
+		})();
 
-			if (ctx.endpoint.local)
-				this.logger.debug("Call action locally.", {
-					action: ctx.action.name,
-					requestID: ctx.requestID
-				});
-			else
-				this.logger.debug("Call action on remote node.", {
-					action: ctx.action.name,
-					nodeID: ctx.nodeID,
-					requestID: ctx.requestID
-				});
-
-			//this.setCurrentContext(ctx);
-
-			let p = ctx.endpoint.action.handler(ctx);
-
-			// Pointer to Context
-			p.ctx = ctx;
-			return p;
-		} catch (err) {
-			this.errorHandler(err, { actionName, params, opts });
-			throw err;
-		}
+		return response;
 	}
 
 	/**
