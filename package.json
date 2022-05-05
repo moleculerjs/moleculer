@@ -94,6 +94,7 @@
     "jest": "^27.5.1",
     "jest-cli": "^27.5.1",
     "jest-diff": "^27.5.1",
+    "jest-extended": "^2.0.0",
     "joi": "^17.6.0",
     "kafka-node": "^5.0.0",
     "lockfile-lint": "^4.7.4",
@@ -249,6 +250,7 @@
     "rootDir": "./src",
     "roots": [
       "../test"
-    ]
+    ],
+    "setupFilesAfterEnv": ["jest-extended/all"]
   }
 }

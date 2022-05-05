@@ -450,32 +450,37 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
-		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({
-			name: "user.created",
-			desc: "usersEvent",
-			handler: expect.any(Function)
-		});
-		expect(copied.eventGroups).toEqual(null);
-		expect(copied.nodeID).toEqual("node-99");
+		const ctxs = catalog.callEventHandler.mock.calls.map(i => i[0]);
 
-		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({
-			name: "user.created",
-			desc: "paymentEvent",
-			handler: expect.any(Function)
-		});
-		expect(copied.eventGroups).toEqual(null);
-		expect(copied.nodeID).toEqual("node-99");
-
-		copied = catalog.callEventHandler.mock.calls[2][0];
-		expect(copied.event).toEqual({
-			name: "user.*",
-			desc: "mailEvent",
-			handler: expect.any(Function)
-		});
-		expect(copied.eventGroups).toEqual(null);
-		expect(copied.nodeID).toEqual("node-99");
+		expect(ctxs).toIncludeAllPartialMembers([
+			{
+				eventGroups: null,
+				nodeID: "node-99",
+				event: {
+					name: "user.created",
+					desc: "usersEvent",
+					handler: expect.any(Function)
+				}
+			},
+			{
+				eventGroups: null,
+				nodeID: "node-99",
+				event: {
+					name: "user.created",
+					desc: "paymentEvent",
+					handler: expect.any(Function)
+				}
+			},
+			{
+				eventGroups: null,
+				nodeID: "node-99",
+				event: {
+					name: "user.*",
+					desc: "mailEvent",
+					handler: expect.any(Function)
+				}
+			}
+		]);
 
 		expect(ctx.copy).toHaveBeenCalledTimes(3);
 	});
@@ -494,24 +499,29 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(catalog.callEventHandler).toHaveBeenCalledTimes(2);
 		expect(catalog.callEventHandler).toHaveBeenCalledWith(expect.any(Context));
 
-		let copied = catalog.callEventHandler.mock.calls[0][0];
-		expect(copied.event).toEqual({
-			name: "user.created",
-			desc: "otherEvent",
-			group: "payment",
-			handler: expect.any(Function)
-		});
-		expect(copied.eventGroups).toEqual(["mail", "payment"]);
-		expect(copied.nodeID).toEqual("node-99");
+		const ctxs = catalog.callEventHandler.mock.calls.map(i => i[0]);
 
-		copied = catalog.callEventHandler.mock.calls[1][0];
-		expect(copied.event).toEqual({
-			name: "user.*",
-			desc: "mailEvent",
-			handler: expect.any(Function)
-		});
-		expect(copied.eventGroups).toEqual(["mail", "payment"]);
-		expect(copied.nodeID).toEqual("node-99");
+		expect(ctxs).toIncludeAllPartialMembers([
+			{
+				eventGroups: ["mail", "payment"],
+				nodeID: "node-99",
+				event: {
+					name: "user.created",
+					desc: "otherEvent",
+					group: "payment",
+					handler: expect.any(Function)
+				}
+			},
+			{
+				eventGroups: ["mail", "payment"],
+				nodeID: "node-99",
+				event: {
+					name: "user.*",
+					desc: "mailEvent",
+					handler: expect.any(Function)
+				}
+			}
+		]);
 
 		expect(ctx.copy).toHaveBeenCalledTimes(2);
 	});
