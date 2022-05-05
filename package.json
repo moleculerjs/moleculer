@@ -251,6 +251,8 @@
     "roots": [
       "../test"
     ],
-    "setupFilesAfterEnv": ["jest-extended/all"]
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
+    ]
   }
 }

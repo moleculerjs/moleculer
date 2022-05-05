@@ -6,7 +6,7 @@ const H = require("./helpers");
 const POSTS = [
 	{ id: 1, title: "Post 1", author: 3 },
 	{ id: 2, title: "Post 2", author: 1 },
-	{ id: 3, title: "Post 3", author: 2 },
+	{ id: 3, title: "Post 3", author: 2 }
 	//{ id: 4, title: "Post 4", author: 3 },
 	//{ id: 5, title: "Post 5", author: 4 },
 ];
