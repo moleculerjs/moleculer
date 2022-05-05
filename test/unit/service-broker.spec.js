@@ -2165,15 +2165,12 @@ describe("Test broker.findNextActionEndpoint", () => {
 		);
 	});
 
-	it("should reject if no action on node", async () => {
-		try {
-			await broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123" });
-		} catch (err) {
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
-			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
-		}
+	it("should reject if no action on node", () => {
+		const res = broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123" });
+		expect(res).rejects.toBeInstanceOf(ServiceNotFoundError);
+		expect(res).rejects.toThrowError(
+			new ServiceNotFoundError({ action: "posts.noHandler", nodeID: "node-123" })
+		);
 	});
 
 	it("should find the endpoint with nodeID", async () => {
