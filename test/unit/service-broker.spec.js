@@ -2141,15 +2141,15 @@ describe("Test broker.findNextActionEndpoint", () => {
 		expect(broker.findNextActionEndpoint(ep, {})).resolves.toBe(ep);
 	});
 
-	it("should reject if no action", async () => {
-		try {
-			await broker.findNextActionEndpoint("posts.noaction");
-		} catch (err) {
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found.");
-			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
-		}
+	it("should reject if no action", () => {
+		const res = broker.findNextActionEndpoint("posts.noaction");
+		expect(res).rejects.toBeInstanceOf(ServiceNotFoundError);
+		expect(res).rejects.toThrowError(
+			new ServiceNotFoundError({
+				action: "posts.noaction",
+				nodeID: undefined
+			})
+		);
 	});
 
 	it("should reject if no handler", () => {
@@ -2157,10 +2157,12 @@ describe("Test broker.findNextActionEndpoint", () => {
 
 		const res = broker.findNextActionEndpoint("posts.noHandler");
 		expect(res).rejects.toBeInstanceOf(ServiceNotAvailableError);
-		expect(res).rejects.toContain({
-			message: "User with 3 not found.",
-			data: { action: "posts.noHandler", nodeID: undefined }
-		});
+		expect(res).rejects.toThrowError(
+			new ServiceNotAvailableError({
+				action: "posts.noHandler",
+				nodeID: undefined
+			})
+		);
 	});
 
 	it("should reject if no action on node", async () => {
