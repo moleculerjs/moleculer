@@ -657,9 +657,9 @@ describe("Test middleware v2 system", () => {
 			});
 	});
 
-	it("should call 'emit' & 'localEvent' ", () => {
-		broker.emit("john.welcomed", { name: "John" });
-		expect(FLOW).toEqual([
+	it("should call 'emit' & 'localEvent' ", async () => {
+		await broker.emit("john.welcomed", { name: "John" });
+		expect(FLOW).toIncludeAllMembers([
 			"mw2-emit-john.welcomed-John",
 			"mw1-emit-john.welcomed-John",
 

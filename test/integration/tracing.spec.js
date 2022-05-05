@@ -6,7 +6,7 @@ const H = require("./helpers");
 const POSTS = [
 	{ id: 1, title: "Post 1", author: 3 },
 	{ id: 2, title: "Post 2", author: 1 },
-	{ id: 3, title: "Post 3", author: 2 }
+	{ id: 3, title: "Post 3", author: 2 },
 	//{ id: 4, title: "Post 4", author: 3 },
 	//{ id: 5, title: "Post 5", author: 4 },
 ];
@@ -81,13 +81,13 @@ describe("Test Tracing feature with actions", () => {
 				}
 			},
 			events: {
-				"comments.removed"(ctx) {
+				async "comments.removed"(ctx) {
 					const span1 = ctx.startSpan("update posts");
-					ctx.broadcast("post.updated");
+					await ctx.broadcast("post.updated");
 					ctx.finishSpan(span1);
 
 					const span2 = ctx.startSpan("update others");
-					ctx.broadcast("user.updated");
+					await ctx.broadcast("user.updated");
 					ctx.finishSpan(span2);
 				},
 
@@ -119,7 +119,7 @@ describe("Test Tracing feature with actions", () => {
 								}
 							});
 							user = _.cloneDeep(user);
-							Promise.delay(5);
+							await Promise.delay(5);
 							ctx.finishSpan(span);
 
 							user.friends = await ctx.call("friends.count", { id: user.id });

@@ -255,7 +255,11 @@ describe("Test event balancing", () => {
 
 	it("broadcast a '$internal.user.event' event on master", async () => {
 		await master.broadcast("$internal.user.event");
-		expect(flow).toIncludeAllMembers(["user-1-users-$iue", "user-2-users-$iue", "user-3-users-$iue"]);
+		expect(flow).toIncludeAllMembers([
+			"user-1-users-$iue",
+			"user-2-users-$iue",
+			"user-3-users-$iue"
+		]);
 	});
 
 	it("broadcast a '$internal.user.event' event on node1", async () => {
@@ -340,7 +344,7 @@ describe("Test multiple handler in the same group balancing", () => {
 		expect(flow).toIncludeAllMembers(["master-users-uc", "pay-1-payment-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing to filtered group #1",async () => {
+	it("send a 'user.created' event with balancing to filtered group #1", async () => {
 		await master.emit("user.created", null, "payment");
 		expect(flow).toIncludeAllMembers(["pay-1-stripe-uc"]);
 	});

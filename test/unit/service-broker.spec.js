@@ -2152,13 +2152,15 @@ describe("Test broker.findNextActionEndpoint", () => {
 		}
 	});
 
-	it("should reject if no handler", async () => {
+	it("should reject if no handler", () => {
 		broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
-		const err = await broker.findNextActionEndpoint("posts.noHandler");
-		expect(err).toBeDefined();
-		expect(err).toBeInstanceOf(ServiceNotAvailableError);
-		expect(err.message).toBe("Service 'posts.noHandler' is not available.");
-		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
+
+		const res = broker.findNextActionEndpoint("posts.noHandler");
+		expect(res).rejects.toBeInstanceOf(ServiceNotAvailableError);
+		expect(res).rejects.toContain({
+			message: "User with 3 not found.",
+			data: { action: "posts.noHandler", nodeID: undefined }
+		});
 	});
 
 	it("should reject if no action on node", async () => {
@@ -2749,10 +2751,10 @@ describe("Test broker.emit", () => {
 	broker.localBus.emit = jest.fn();
 	broker.registry.events.callEventHandler = jest.fn();
 
-	it("should call the local handler", () => {
+	it("should call the local handler", async () => {
 		expect(broker.transit).toBeUndefined();
 
-		broker.emit("test.event");
+		await broker.emit("test.event");
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
 
@@ -2786,12 +2788,12 @@ describe("Test broker.emit", () => {
 		});
 	});
 
-	it("should call the localBus.emit if it starts with '$'", () => {
+	it("should call the localBus.emit if it starts with '$'", async () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.localBus.emit.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("$test.event", { a: 5 });
+		await broker.emit("$test.event", { a: 5 });
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
@@ -2826,11 +2828,11 @@ describe("Test broker.emit", () => {
 		);
 	});
 
-	it("should call getBalancedEndpoints with object payload", () => {
+	it("should call getBalancedEndpoints with object payload", async () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 });
+		await broker.emit("test.event", { a: 5 });
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
@@ -2862,11 +2864,11 @@ describe("Test broker.emit", () => {
 		);
 	});
 
-	it("should call getBalancedEndpoints with a group", () => {
+	it("should call getBalancedEndpoints with a group", async () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 }, "users");
+		await broker.emit("test.event", { a: 5 }, "users");
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
@@ -2899,11 +2901,11 @@ describe("Test broker.emit", () => {
 		});
 	});
 
-	it("should call getBalancedEndpoints with multiple groups", () => {
+	it("should call getBalancedEndpoints with multiple groups", async () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 }, ["users", "payments"]);
+		await broker.emit("test.event", { a: 5 }, ["users", "payments"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
@@ -2937,11 +2939,11 @@ describe("Test broker.emit", () => {
 		});
 	});
 
-	it("should call getBalancedEndpoints with opts", () => {
+	it("should call getBalancedEndpoints with opts", async () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 }, { groups: ["users", "payments"], b: 6 });
+		await broker.emit("test.event", { a: 5 }, { groups: ["users", "payments"], b: 6 });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
@@ -3014,9 +3016,9 @@ describe("Test broker.emit with transporter", () => {
 	broker.registry.events.callEventHandler = jest.fn();
 	broker.getEventGroups = jest.fn(() => ["mail", "payment"]);
 
-	it("should call sendEvent with ctx", () => {
+	it("should call sendEvent with ctx", async () => {
 		broker.transit.sendEvent.mockClear();
-		broker.emit("user.event", { name: "John" });
+		await broker.emit("user.event", { name: "John" });
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		let ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
