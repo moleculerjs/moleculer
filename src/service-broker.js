@@ -1345,7 +1345,7 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	emit(eventName, payload, opts) {
+	async emit(eventName, payload, opts) {
 		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
 		else if (opts == null) opts = {};
 
@@ -1366,37 +1366,38 @@ class ServiceBroker {
 		if (/^\$/.test(eventName)) this.localBus.emit(eventName, payload);
 
 		if (!this.options.disableBalancer) {
-			this.registry.events.getBalancedEndpoints(eventName, opts.groups).then(endpoints => {
-				// Grouping remote events (reduce the network traffic)
-				const promises = [];
-				const groupedEP = {};
-				endpoints.forEach(([ep, group]) => {
-					if (ep.id === this.nodeID) {
-						// Local service, call handler
-						const newCtx = ctx.copy(ep);
-						promises.push(this.registry.events.callEventHandler(newCtx));
-					} else {
-						// Remote service
-						const e = groupedEP[ep.id];
-						if (e) e.groups.push(group);
-						else
-							groupedEP[ep.id] = {
-								ep,
-								groups: [group]
-							};
-					}
-				});
-				if (this.transit) {
-					// Remote service
-					_.forIn(groupedEP, item => {
-						const newCtx = ctx.copy(item.ep);
-						newCtx.eventGroups = item.groups;
-						promises.push(this.transit.sendEvent(newCtx));
+			return this.registry.events
+				.getBalancedEndpoints(eventName, opts.groups)
+				.then(endpoints => {
+					// Grouping remote events (reduce the network traffic)
+					const promises = [];
+					const groupedEP = {};
+					endpoints.forEach(([ep, group]) => {
+						if (ep.id === this.nodeID) {
+							// Local service, call handler
+							const newCtx = ctx.copy(ep);
+							promises.push(this.registry.events.callEventHandler(newCtx));
+						} else {
+							// Remote service
+							const e = groupedEP[ep.id];
+							if (e) e.groups.push(group);
+							else
+								groupedEP[ep.id] = {
+									ep,
+									groups: [group]
+								};
+						}
 					});
-				}
-
-				return this.Promise.all(promises);
-			});
+					if (this.transit) {
+						// Remote service
+						_.forIn(groupedEP, item => {
+							const newCtx = ctx.copy(item.ep);
+							newCtx.eventGroups = item.groups;
+							promises.push(this.transit.sendEvent(newCtx));
+						});
+					}
+					return this.Promise.all(promises);
+				});
 		} else if (this.transit) {
 			// Disabled balancer case
 			let groups = opts.groups;

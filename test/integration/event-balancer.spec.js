@@ -143,49 +143,49 @@ describe("Test event balancing", () => {
 
 	beforeEach(() => (flow = []));
 
-	it("send a 'user.created' event with balancing #1", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["user-1-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
+	it("send a 'user.created' event with balancing #1", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["user-1-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
 	});
 
-	it("send a 'user.created' event with balancing #2", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["user-2-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
+	it("send a 'user.created' event with balancing #2", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["user-2-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
 	});
 
-	it("send a 'user.created' event with balancing #3", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["user-3-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
+	it("send a 'user.created' event with balancing #3", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["user-3-users-uc", "pay-1-payment-uc", "mail-1-mail-u*"]);
 	});
 
-	it("send a 'user.created' event with balancing #4", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["user-1-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
+	it("send a 'user.created' event with balancing #4", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["user-1-users-uc", "pay-2-payment-uc", "mail-2-mail-u*"]);
 	});
 
-	it("send a 'user.updated' event with balancing #1", () => {
-		master.emit("user.updated");
-		expect(flow).toEqual(["mail-1-mail-u*"]);
+	it("send a 'user.updated' event with balancing #1", async () => {
+		await master.emit("user.updated");
+		expect(flow).toIncludeAllMembers(["mail-1-mail-u*"]);
 	});
 
-	it("send a 'user.updated' event with balancing #2", () => {
-		master.emit("user.updated");
-		expect(flow).toEqual(["mail-2-mail-u*"]);
+	it("send a 'user.updated' event with balancing #2", async () => {
+		await master.emit("user.updated");
+		expect(flow).toIncludeAllMembers(["mail-2-mail-u*"]);
 	});
 
-	it("send a 'user.created' event to filtered groups #1", () => {
-		master.emit("user.created", null, "payment");
-		expect(flow).toEqual(["pay-1-payment-uc"]);
+	it("send a 'user.created' event to filtered groups #1", async () => {
+		await master.emit("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers(["pay-1-payment-uc"]);
 	});
 
-	it("send a 'user.created' event to filtered groups #2", () => {
-		master.emit("user.created", null, ["payment", "mail"]);
-		expect(flow).toEqual(["pay-2-payment-uc", "mail-1-mail-u*"]);
+	it("send a 'user.created' event to filtered groups #2", async () => {
+		await master.emit("user.created", null, ["payment", "mail"]);
+		expect(flow).toIncludeAllMembers(["pay-2-payment-uc", "mail-1-mail-u*"]);
 	});
 
-	it("broadcast a 'user.created' event to all nodes & services", () => {
-		master.broadcast("user.created");
-		expect(flow).toEqual([
+	it("broadcast a 'user.created' event to all nodes & services", async () => {
+		await master.broadcast("user.created");
+		expect(flow).toIncludeAllMembers([
 			"user-1-users-uc",
 			"user-2-users-uc",
 			"user-3-users-uc",
@@ -196,14 +196,14 @@ describe("Test event balancing", () => {
 		]);
 	});
 
-	it("broadcast a 'user.created' event to filtered group", () => {
-		master.broadcast("user.created", null, "payment");
-		expect(flow).toEqual(["pay-1-payment-uc", "pay-2-payment-uc"]);
+	it("broadcast a 'user.created' event to filtered group", async () => {
+		await master.broadcast("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers(["pay-1-payment-uc", "pay-2-payment-uc"]);
 	});
 
-	it("broadcast a 'user.created' event to filtered groups", () => {
-		master.broadcast("user.created", null, ["payment", "mail"]);
-		expect(flow).toEqual([
+	it("broadcast a 'user.created' event to filtered groups", async () => {
+		await master.broadcast("user.created", null, ["payment", "mail"]);
+		expect(flow).toIncludeAllMembers([
 			"pay-1-payment-uc",
 			"pay-2-payment-uc",
 			"mail-1-mail-u*",
@@ -211,19 +211,19 @@ describe("Test event balancing", () => {
 		]);
 	});
 
-	it("broadcastLocal a 'user.created' event to local services", () => {
-		master.broadcastLocal("user.created");
-		expect(flow).toEqual([]);
+	it("broadcastLocal a 'user.created' event to local services", async () => {
+		await master.broadcastLocal("user.created");
+		expect(flow).toIncludeAllMembers([]);
 	});
 
-	it("broadcastLocal an 'other.thing' event to local services", () => {
-		master.broadcastLocal("other.thing");
-		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
+	it("broadcastLocal an 'other.thing' event to local services", async () => {
+		await master.broadcastLocal("other.thing");
+		expect(flow).toIncludeAllMembers(["master-other-ot", "master-other2-ot"]);
 	});
 
-	it("broadcast an 'other.thing' event to all services", () => {
-		master.broadcast("other.thing");
-		expect(flow).toEqual([
+	it("broadcast an 'other.thing' event to all services", async () => {
+		await master.broadcast("other.thing");
+		expect(flow).toIncludeAllMembers([
 			"user-2-other-ot",
 			"pay-2-other2-ot",
 			"master-other-ot",
@@ -231,36 +231,36 @@ describe("Test event balancing", () => {
 		]);
 	});
 
-	it("emit an 'other.thing' event with preferLocal", () => {
-		master.emit("other.thing");
-		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
+	it("emit an 'other.thing' event with preferLocal", async () => {
+		await master.emit("other.thing");
+		expect(flow).toIncludeAllMembers(["master-other-ot", "master-other2-ot"]);
 	});
 
-	it("emit an 'other.thing' event with preferLocal 2nd", () => {
-		master.emit("other.thing");
-		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
+	it("emit an 'other.thing' event with preferLocal 2nd", async () => {
+		await master.emit("other.thing");
+		expect(flow).toIncludeAllMembers(["master-other-ot", "master-other2-ot"]);
 	});
 
-	it("emit an 'other.thing' without preferLocal", () => {
+	it("emit an 'other.thing' without preferLocal", async () => {
 		master.registry.opts.preferLocal = false;
-		master.emit("other.thing");
-		expect(flow).toEqual(["master-other-ot", "master-other2-ot"]);
+		await master.emit("other.thing");
+		expect(flow).toIncludeAllMembers(["master-other-ot", "master-other2-ot"]);
 		flow = [];
 
-		master.emit("other.thing");
-		expect(flow).toEqual(["user-2-other-ot", "pay-2-other2-ot"]);
+		await master.emit("other.thing");
+		expect(flow).toIncludeAllMembers(["user-2-other-ot", "pay-2-other2-ot"]);
 	});
 
 	// --- LOCAL EVENTS ---
 
-	it("broadcast a '$internal.user.event' event on master", () => {
-		master.broadcast("$internal.user.event");
-		expect(flow).toEqual(["user-1-users-$iue", "user-2-users-$iue", "user-3-users-$iue"]);
+	it("broadcast a '$internal.user.event' event on master", async () => {
+		await master.broadcast("$internal.user.event");
+		expect(flow).toIncludeAllMembers(["user-1-users-$iue", "user-2-users-$iue", "user-3-users-$iue"]);
 	});
 
-	it("broadcast a '$internal.user.event' event on node1", () => {
-		nodeUser1.broadcast("$internal.user.event");
-		expect(flow).toEqual([
+	it("broadcast a '$internal.user.event' event on node1", async () => {
+		await nodeUser1.broadcast("$internal.user.event");
+		expect(flow).toIncludeAllMembers([
 			"user-2-users-$iue",
 			"user-3-users-$iue",
 			"nodeUser1-on-$iue",
@@ -268,14 +268,14 @@ describe("Test event balancing", () => {
 		]);
 	});
 
-	it("broadcastLocal a '$internal.user.event' event on node1", () => {
-		nodeUser1.broadcastLocal("$internal.user.event");
-		expect(flow).toEqual(["nodeUser1-on-$iue", "user-1-users-$iue"]);
+	it("broadcastLocal a '$internal.user.event' event on node1", async () => {
+		await nodeUser1.broadcastLocal("$internal.user.event");
+		expect(flow).toIncludeAllMembers(["nodeUser1-on-$iue", "user-1-users-$iue"]);
 	});
 
-	it("emit a '$internal.user.event' event on node1", () => {
-		nodeUser1.emit("$internal.user.event");
-		expect(flow).toEqual(["nodeUser1-on-$iue", "user-1-users-$iue"]);
+	it("emit a '$internal.user.event' event on node1", async () => {
+		await nodeUser1.emit("$internal.user.event");
+		expect(flow).toIncludeAllMembers(["nodeUser1-on-$iue", "user-1-users-$iue"]);
 	});
 });
 
@@ -311,50 +311,50 @@ describe("Test multiple handler in the same group balancing", () => {
 
 	// --- EMIT WITH LOCALPREFER ---
 
-	it("send a 'user.created' event with balancing #1", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["master-payment-uc", "master-users-uc"]);
+	it("send a 'user.created' event with balancing #1", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["master-payment-uc", "master-users-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing #2", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["master-stripe-uc", "master-users-uc"]);
+	it("send a 'user.created' event with balancing #2", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["master-stripe-uc", "master-users-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing to filtered group", () => {
-		master.emit("user.created", null, "payment");
-		expect(flow).toEqual(["master-payment-uc"]);
+	it("send a 'user.created' event with balancing to filtered group", async () => {
+		await master.emit("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers(["master-payment-uc"]);
 	});
 
 	// --- EMIT WITHOUT LOCALPREFER ---
 
-	it("send a 'user.created' event with balancing #1", () => {
+	it("send a 'user.created' event with balancing #1", async () => {
 		master.registry.opts.preferLocal = false;
 		nodePay1.registry.opts.preferLocal = false;
-		master.emit("user.created");
-		expect(flow).toEqual(["master-stripe-uc", "master-users-uc"]);
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["master-stripe-uc", "master-users-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing #2", () => {
-		master.emit("user.created");
-		expect(flow).toEqual(["master-users-uc", "pay-1-payment-uc"]);
+	it("send a 'user.created' event with balancing #2", async () => {
+		await master.emit("user.created");
+		expect(flow).toIncludeAllMembers(["master-users-uc", "pay-1-payment-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing to filtered group #1", () => {
-		master.emit("user.created", null, "payment");
-		expect(flow).toEqual(["pay-1-stripe-uc"]);
+	it("send a 'user.created' event with balancing to filtered group #1",async () => {
+		await master.emit("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers(["pay-1-stripe-uc"]);
 	});
 
-	it("send a 'user.created' event with balancing to filtered group #2", () => {
-		master.emit("user.created", null, "payment");
-		expect(flow).toEqual(["master-payment-uc"]);
+	it("send a 'user.created' event with balancing to filtered group #2", async () => {
+		await master.emit("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers(["master-payment-uc"]);
 	});
 
 	// --- BROADCAST ---
 
-	it("broadcast a 'user.created' event to all nodes & services", () => {
-		master.broadcast("user.created");
-		expect(flow).toEqual([
+	it("broadcast a 'user.created' event to all nodes & services", async () => {
+		await master.broadcast("user.created");
+		expect(flow).toIncludeAllMembers([
 			"pay-1-payment-uc",
 			"pay-1-stripe-uc",
 			"master-payment-uc",
@@ -363,9 +363,9 @@ describe("Test multiple handler in the same group balancing", () => {
 		]);
 	});
 
-	it("broadcast a 'user.created' event to filtered group", () => {
-		master.broadcast("user.created", null, "payment");
-		expect(flow).toEqual([
+	it("broadcast a 'user.created' event to filtered group", async () => {
+		await master.broadcast("user.created", null, "payment");
+		expect(flow).toIncludeAllMembers([
 			"pay-1-payment-uc",
 			"pay-1-stripe-uc",
 			"master-payment-uc",
@@ -373,9 +373,9 @@ describe("Test multiple handler in the same group balancing", () => {
 		]);
 	});
 
-	it("broadcast a 'user.created' event to filtered groups", () => {
-		master.broadcast("user.created", null, ["payment"]);
-		expect(flow).toEqual([
+	it("broadcast a 'user.created' event to filtered groups", async () => {
+		await master.broadcast("user.created", null, ["payment"]);
+		expect(flow).toIncludeAllMembers([
 			"pay-1-payment-uc",
 			"pay-1-stripe-uc",
 			"master-payment-uc",
