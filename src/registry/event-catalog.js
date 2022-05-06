@@ -92,10 +92,11 @@ class EventCatalog {
 	 *
 	 * @param {String} eventName
 	 * @param {String|Array?} groups
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	async getBalancedEndpoints(eventName, groups) {
+	async getBalancedEndpoints(eventName, groups, ctx) {
 		const eventGroup = [];
 
 		return Promise.all(
@@ -108,7 +109,7 @@ class EventCatalog {
 				.map(list => {
 					eventGroup.push(list.group);
 					// Use built-in balancer, get the next endpoint
-					return list.next();
+					return list.next(ctx);
 				})
 		).then(res =>
 			res

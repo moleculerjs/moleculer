@@ -1367,7 +1367,7 @@ class ServiceBroker {
 
 		if (!this.options.disableBalancer) {
 			return this.registry.events
-				.getBalancedEndpoints(eventName, opts.groups)
+				.getBalancedEndpoints(eventName, opts.groups, ctx)
 				.then(endpoints => {
 					// Grouping remote events (reduce the network traffic)
 					const promises = [];
