@@ -183,7 +183,7 @@ class EventCatalog {
 		);
 
 		if (isBroadcast) {
-			promises = filteredEvents.flatMap(list => {
+			promises = _.flatMap(filteredEvents,list => {
 				return list.endpoints.map(ep => {
 					if (ep.local && ep.event.handler) {
 						const newCtx = ctx.copy(ep);
