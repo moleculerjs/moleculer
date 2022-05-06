@@ -84,7 +84,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	get(eventName, groupName) {
-		return this.events.find(list => list.name == eventName && list.group == groupName);
+		return this.events.find(list => list.name === eventName && list.group === groupName);
 	}
 
 	/**
@@ -92,17 +92,18 @@ class EventCatalog {
 	 *
 	 * @param {String} eventName
 	 * @param {String|Array?} groups
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getBalancedEndpoints(eventName, groups) {
+	getBalancedEndpoints(eventName, groups, ctx) {
 		const res = [];
 
 		this.events.forEach(list => {
 			if (!utils.match(eventName, list.name)) return;
-			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
+			if (groups == null || groups.length === 0 || groups.indexOf(list.group) !== -1) {
 				// Use built-in balancer, get the next endpoint
-				const ep = list.next();
+				const ep = list.next(ctx);
 				if (ep && ep.isAvailable) res.push([ep, list.group]);
 			}
 		});
@@ -137,7 +138,7 @@ class EventCatalog {
 			if (!utils.match(eventName, list.name)) return;
 			if (
 				groupNames == null ||
-				groupNames.length == 0 ||
+				groupNames.length === 0 ||
 				groupNames.indexOf(list.group) !== -1
 			) {
 				list.endpoints.forEach(ep => {
