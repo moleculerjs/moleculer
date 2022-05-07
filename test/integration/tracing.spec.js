@@ -68,13 +68,11 @@ describe("Test Tracing feature with actions", () => {
 					async handler(ctx) {
 						const posts = _.cloneDeep(POSTS);
 
-						await Promise.all(
-							posts.map(async post => {
-								const author = await ctx.call("users.get", { id: post.author });
+						await Promise.mapSeries(posts, async post => {
+							const author = await ctx.call("users.get", { id: post.author });
 								post.author = author; //eslint-disable-line
-								return post;
-							})
-						);
+							return post;
+						});
 
 						return posts;
 					}
@@ -163,13 +161,9 @@ describe("Test Tracing feature with actions", () => {
 	]);
 
 	beforeAll(() =>
-		Promise.all([
-			broker0.start(),
-			broker1.start(),
-			broker2.start(),
-			broker3.start(),
-			Promise.resolve().delay(2000)
-		])
+		Promise.all([broker0.start(), broker1.start(), broker2.start(), broker3.start()]).delay(
+			2000
+		)
 	);
 
 	afterAll(() => Promise.all([broker0.stop(), broker1.stop(), broker2.stop(), broker3.stop()]));
@@ -188,7 +182,8 @@ describe("Test Tracing feature with actions", () => {
 
 		expect(res).toMatchSnapshot();
 
-		//Promise.delay(200);
+		await Promise.delay(500);
+
 		STORE.sort((a, b) => a.startTicks - b.startTicks);
 
 		const spans = getSpanFields(STORE);

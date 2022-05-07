@@ -120,7 +120,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-9",
+    "id": "broker-2-6",
     "logs": Array [],
     "name": "action 'friends.count'",
     "parentID": "broker-1-2",
@@ -159,7 +159,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-11",
+    "id": "broker-1-19",
     "logs": Array [],
     "name": "Get user by ID: 1",
     "parentID": "broker-1-1",
@@ -196,10 +196,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-13",
+    "id": "broker-2-21",
     "logs": Array [],
     "name": "cloning",
-    "parentID": "broker-1-11",
+    "parentID": "broker-1-19",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -214,10 +214,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-18",
+    "id": "broker-2-23",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-1-11",
+    "parentID": "broker-1-19",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -253,7 +253,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-20",
+    "id": "broker-1-36",
     "logs": Array [],
     "name": "Get user by ID: 2",
     "parentID": "broker-1-1",
@@ -290,10 +290,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-22",
+    "id": "broker-2-38",
     "logs": Array [],
     "name": "cloning",
-    "parentID": "broker-1-20",
+    "parentID": "broker-1-36",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -308,10 +308,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-27",
+    "id": "broker-2-40",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-1-20",
+    "parentID": "broker-1-36",
     "priority": 5,
     "sampled": true,
     "service": Object {
