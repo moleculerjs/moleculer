@@ -47,15 +47,26 @@ describe("Test Tracing feature with actions", () => {
 		uidGenerator: broker => `${broker.nodeID}-${idCounter++}`
 	};
 
+	//const stacks = [];
+
 	const STORE = [];
 
 	const broker0 = H.createNode(_.defaultsDeep({ nodeID: "broker-0" }, COMMON_SETTINGS), [
 		{
 			name: "tracing-collector",
 			events: {
-				"$tracing.spans"(ctx) {
-					STORE.push(...ctx.params);
+				"$tracing.spans": {
+					tracing: false,
+					handler(ctx) {
+						STORE.push(...ctx.params);
+					}
 				}
+				/*"**": {
+					tracing: false,
+					handler(ctx) {
+						stacks.push(`${ctx.broker.nodeID}:${ctx.eventName}`);
+					}
+				}*/
 			}
 		}
 	]);
@@ -83,6 +94,8 @@ describe("Test Tracing feature with actions", () => {
 					const span1 = ctx.startSpan("update posts");
 					await ctx.broadcast("post.updated");
 					ctx.finishSpan(span1);
+
+					await broker1.Promise.delay(500);
 
 					const span2 = ctx.startSpan("update others");
 					await ctx.broadcast("user.updated");
@@ -194,6 +207,7 @@ describe("Test Tracing feature with actions", () => {
 	it("should generate event spans", async () => {
 		idCounter = 1;
 		STORE.length = 0;
+		//stacks.length = 0;
 
 		await broker1.emit("comments.removed", null, {
 			meta: {
@@ -209,6 +223,8 @@ describe("Test Tracing feature with actions", () => {
 		STORE.sort((a, b) => a.startTicks - b.startTicks);
 
 		const spans = getSpanFields(STORE);
+
+		//console.log(stacks);
 
 		expect(spans).toMatchSnapshot();
 	});
