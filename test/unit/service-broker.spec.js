@@ -2760,7 +2760,8 @@ describe("Test broker.emit", () => {
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
 			"test.event",
-			undefined
+			undefined,
+			expect.any(Context)
 		);
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
@@ -2823,7 +2824,8 @@ describe("Test broker.emit", () => {
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
 			"$test.event",
-			undefined
+			undefined,
+			expect.any(Context)
 		);
 	});
 
@@ -2859,7 +2861,8 @@ describe("Test broker.emit", () => {
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
 			"test.event",
-			undefined
+			undefined,
+			expect.any(Context)
 		);
 	});
 
@@ -2870,9 +2873,11 @@ describe("Test broker.emit", () => {
 		await broker.emit("test.event", { a: 5 }, "users");
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
-			"users"
-		]);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
+			"test.event",
+			["users"],
+			expect.any(Context)
+		);
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
@@ -2907,10 +2912,11 @@ describe("Test broker.emit", () => {
 		await broker.emit("test.event", { a: 5 }, ["users", "payments"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
-			"users",
-			"payments"
-		]);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
+			"test.event",
+			["users", "payments"],
+			expect.any(Context)
+		);
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
@@ -2945,10 +2951,11 @@ describe("Test broker.emit", () => {
 		await broker.emit("test.event", { a: 5 }, { groups: ["users", "payments"], b: 6 });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", [
-			"users",
-			"payments"
-		]);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
+			"test.event",
+			["users", "payments"],
+			expect.any(Context)
+		);
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(1);
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
@@ -3090,7 +3097,8 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
 			"user.event",
-			undefined
+			undefined,
+			expect.any(Context)
 		);
 	});
 
