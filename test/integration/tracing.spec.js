@@ -92,7 +92,7 @@ describe("Test Tracing feature with actions", () => {
 				}
 			},
 			events: {
-				"comments.removed"(ctx) {
+				async "comments.removed"(ctx) {
 					const span1 = ctx.startSpan("update posts");
 					ctx.broadcast("post.updated");
 					ctx.finishSpan(span1);
