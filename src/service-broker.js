@@ -1371,7 +1371,11 @@ class ServiceBroker {
 		if (/^\$/.test(eventName)) this.localBus.emit(eventName, payload);
 
 		if (!this.options.disableBalancer) {
-			const endpoints = this.registry.events.getBalancedEndpoints(eventName, opts.groups);
+			const endpoints = this.registry.events.getBalancedEndpoints(
+				eventName,
+				opts.groups,
+				ctx
+			);
 
 			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
