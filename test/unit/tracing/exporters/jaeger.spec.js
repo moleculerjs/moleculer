@@ -49,6 +49,7 @@ describe("Test Jaeger tracing exporter class", () => {
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				endpoint: null,
+				excludes: null,
 				host: "127.0.0.1",
 				port: 6832,
 				sampler: {
@@ -77,12 +78,14 @@ describe("Test Jaeger tracing exporter class", () => {
 
 				defaultTags: {
 					c: 15
-				}
+				},
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				endpoint: "http://jaeger:9411",
+				excludes: ["math.**"],
 				host: "127.0.0.1",
 				port: 6832,
 				sampler: {

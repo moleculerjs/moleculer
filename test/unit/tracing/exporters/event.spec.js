@@ -31,7 +31,8 @@ describe("Test Event tracing exporter class", () => {
 				groups: null,
 				interval: 5,
 				spanConverter: null,
-				defaultTags: null
+				defaultTags: null,
+				excludes: null
 			});
 
 			expect(exporter.queue).toBeInstanceOf(Array);
@@ -47,12 +48,14 @@ describe("Test Event tracing exporter class", () => {
 
 				defaultTags: {
 					a: 5
-				}
+				},
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				eventName: "my-tracing.spans",
+				excludes: ["math.**"],
 				sendStartSpan: true,
 				sendFinishSpan: true,
 				broadcast: true,

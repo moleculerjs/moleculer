@@ -22,6 +22,7 @@ describe("Test Zipkin tracing exporter class", () => {
 				baseURL: "http://localhost:9411",
 				defaultTags: null,
 				interval: 5,
+				excludes: null,
 				payloadOptions: {
 					debug: false,
 					shared: false
@@ -49,13 +50,15 @@ describe("Test Zipkin tracing exporter class", () => {
 
 				headers: {
 					"X-B3-Sampled": 0
-				}
+				},
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				baseURL: "http://zipkin-server:9411",
 				interval: 10,
+				excludes: ["math.**"],
 				payloadOptions: {
 					debug: true,
 					shared: false

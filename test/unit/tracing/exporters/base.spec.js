@@ -8,19 +8,21 @@ describe("Test Base Reporter class", () => {
 		it("should create with default options", () => {
 			const exporter = new BaseExporter();
 
-			expect(exporter.opts).toEqual({ safetyTags: false });
+			expect(exporter.opts).toEqual({ safetyTags: false, excludes: null });
 		});
 
 		it("should create with custom options", () => {
 			const exporter = new BaseExporter({
 				some: "thing",
-				a: 5
+				a: 5,
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				some: "thing",
-				a: 5
+				a: 5,
+				excludes: ["math.**"]
 			});
 		});
 	});

@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isObject, safetyObject } = require("../../utils");
+const { isObject, safetyObject, isString } = require("../../utils");
 
 /**
  * Abstract Trace Exporter
@@ -16,9 +16,12 @@ class BaseTraceExporter {
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
-			safetyTags: false
+			safetyTags: false,
+			excludes: null
 		});
 		this.Promise = Promise; // default promise before logger is initialized
+
+		if (isString(this.opts.excludes)) this.opts.excludes = [this.opts.excludes];
 	}
 
 	/**

@@ -14,6 +14,7 @@ describe("Test Console tracing exporter class", () => {
 				safetyTags: false,
 				logger: null,
 				colors: true,
+				excludes: null,
 				width: 100,
 				gaugeWidth: 40
 			});
@@ -25,13 +26,15 @@ describe("Test Console tracing exporter class", () => {
 			const exporter = new ConsoleTraceExporter({
 				logger: console,
 				width: 120,
-				gaugeWidth: 50
+				gaugeWidth: 50,
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				logger: console,
 				colors: true,
+				excludes: ["math.**"],
 				width: 120,
 				gaugeWidth: 50
 			});

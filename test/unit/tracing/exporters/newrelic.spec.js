@@ -21,6 +21,7 @@ describe("Test NewRelic tracing exporter class", () => {
 				safetyTags: false,
 				baseURL: "https://trace-api.newrelic.com",
 				defaultTags: null,
+				excludes: null,
 				insertKey: "",
 				interval: 5,
 				payloadOptions: {
@@ -43,13 +44,15 @@ describe("Test NewRelic tracing exporter class", () => {
 
 				defaultTags: {
 					a: 5
-				}
+				},
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
 				safetyTags: false,
 				baseURL: "https://trace-api.newrelic.com",
 				interval: 10,
+				excludes: ["math.**"],
 				insertKey: "mock-newrelic-insert-key",
 				payloadOptions: {
 					debug: true,

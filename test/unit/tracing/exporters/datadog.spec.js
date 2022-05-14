@@ -52,6 +52,7 @@ describe("Test Datadog tracing exporter class", () => {
 				safetyTags: false,
 				agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
 				env: process.env.DD_ENVIRONMENT || null,
+				excludes: null,
 				samplingPriority: "AUTO_KEEP",
 				defaultTags: null,
 				tracerOptions: null
@@ -74,7 +75,8 @@ describe("Test Datadog tracing exporter class", () => {
 
 				defaultTags: {
 					c: 15
-				}
+				},
+				excludes: ["math.**"]
 			});
 
 			expect(exporter.opts).toEqual({
@@ -82,6 +84,7 @@ describe("Test Datadog tracing exporter class", () => {
 				tracer: fakeDdTracer,
 				agentUrl: "http://datadog-agent:8126",
 				env: "testing",
+				excludes: ["math.**"],
 				samplingPriority: "USER_KEEP",
 				tracerOptions: {
 					b: 10
