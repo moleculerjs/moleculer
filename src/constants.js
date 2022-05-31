@@ -34,6 +34,10 @@ module.exports = {
 	FAILED_SEND_PONG_PACKET: "failedSendPongPacket",
 	/** @type {String} Emitted when transit fails to send a HEARTBEAT packet*/
 	FAILED_SEND_HEARTBEAT_PACKET: "failedSendHeartbeatPacket",
+	/** @type {String} Emitted when broker fails to handler balanced event*/
+	FAILED_HANDLER_BALANCED_EVENT: "failedHandlerBalancedEvent",
+	/** @type {String} Emitted when broker fails to handler broadcast event*/
+	FAILED_HANDLER_BROADCAST_EVENT: "failedHandlerBroadcastEvent",
 	/** @type {String} Emitted when broker fails to stop all services*/
 	FAILED_STOPPING_SERVICES: "failedServicesStop",
 	/** @type {String} Emitted when broker fails to stop all services*/

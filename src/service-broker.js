@@ -1355,6 +1355,7 @@ class ServiceBroker {
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
 		const promises = [];
+		const localHandlers = [];
 
 		const ctx = this.ContextFactory.create(this, null, payload, opts);
 		ctx.eventName = eventName;
@@ -1384,7 +1385,7 @@ class ServiceBroker {
 				if (ep.id === this.nodeID) {
 					// Local service, call handler
 					const newCtx = ctx.copy(ep);
-					promises.push(this.registry.events.callEventHandler(newCtx));
+					localHandlers.push(this.registry.events.callEventHandler(newCtx));
 				} else {
 					// Remote service
 					const e = groupedEP[ep.id];
@@ -1406,6 +1407,20 @@ class ServiceBroker {
 				});
 			}
 
+			// invoke local handlers
+			setImmediate(() =>
+				Promise.allSettled(localHandlers).then(results => {
+					results
+						.filter(r => r.status === "rejected")
+						.forEach(({ reason: error }) =>
+							this.broadcastLocal("$broker.error", {
+								error,
+								module: "broker",
+								type: C.FAILED_HANDLER_BALANCED_EVENT
+							})
+						);
+				})
+			);
 			return this.Promise.all(promises);
 		} else if (this.transit) {
 			// Disabled balancer case
@@ -1488,7 +1503,19 @@ class ServiceBroker {
 		}
 
 		// Send to local services
-		promises.push(this.broadcastLocal(eventName, payload, opts));
+		setImmediate(() =>
+			this.Promise.resolve()
+				.then(() => this.broadcastLocal(eventName, payload, opts))
+				.catch(error =>
+					this.broadcastLocal("$broker.error", {
+						error,
+						module: "broker",
+						type: C.FAILED_HANDLER_BROADCAST_EVENT
+					})
+				)
+				// catch unresolved error
+				.catch(err => this.logger.error(err))
+		);
 
 		return this.Promise.all(promises);
 	}
