@@ -11,6 +11,8 @@ const utils = require("../utils");
 const Strategies = require("../strategies");
 const EndpointList = require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
+const EventEmitter = require("events");
+const { FAILED_HANDLER_BROADCAST_EVENT } = require("../constants");
 
 /**
  * Catalog for events
@@ -35,6 +37,21 @@ class EventCatalog {
 		this.events = [];
 
 		this.EndpointFactory = EventEndpoint;
+
+		this._localBus = new EventEmitter();
+		this._localBus.on("broker.event", ctx => {
+			ctx.endpoint.event
+				.handler(ctx)
+				.catch(error =>
+					this.broker.broadcastLocal("$broker.error", {
+						error,
+						module: "broker",
+						type: FAILED_HANDLER_BROADCAST_EVENT
+					})
+				)
+				// catch unresolved error
+				.catch(err => this.logger.error(err));
+		});
 	}
 
 	/**
@@ -205,7 +222,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		return ctx.endpoint.event.handler(ctx);
+		return this._localBus.emit("broker.event", ctx);
 	}
 
 	/**
