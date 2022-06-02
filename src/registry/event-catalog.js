@@ -19,7 +19,7 @@ const { FAILED_HANDLER_BROADCAST_EVENT } = require("../constants");
  *
  * @class EventCatalog
  */
-class EventCatalog {
+class EventCatalog extends EventEmitter {
 	/**
 	 * Creates an instance of EventCatalog.
 	 *
@@ -29,6 +29,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
+		super();
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
@@ -38,8 +39,7 @@ class EventCatalog {
 
 		this.EndpointFactory = EventEndpoint;
 
-		this._localBus = new EventEmitter();
-		this._localBus.on("broker.event", ctx => {
+		this.on("broker.event", ctx => {
 			ctx.endpoint.event
 				.handler(ctx)
 				.catch(error =>
@@ -170,11 +170,7 @@ class EventCatalog {
 	/**
 	 * Call local service handlers
 	 *
-	 * @param {String} eventName
-	 * @param {any} payload
-	 * @param {Array<String>?} groupNames
-	 * @param {String} nodeID
-	 * @param {boolean} broadcast
+	 * @param {Context} ctx
 	 * @returns {Promise<any>}
 	 *
 	 * @memberof EventCatalog
@@ -188,8 +184,9 @@ class EventCatalog {
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
 			if (
+				// null or undefined
 				ctx.eventGroups == null ||
-				ctx.eventGroups.length == 0 ||
+				ctx.eventGroups.length === 0 ||
 				ctx.eventGroups.indexOf(list.group) !== -1
 			) {
 				if (isBroadcast) {
@@ -222,7 +219,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		return this._localBus.emit("broker.event", ctx);
+		return this.emit("broker.event", ctx);
 	}
 
 	/**
@@ -246,7 +243,7 @@ class EventCatalog {
 	 */
 	remove(eventName, nodeID) {
 		this.events.forEach(list => {
-			if (list.name == eventName) list.removeByNodeID(nodeID);
+			if (list.name === eventName) list.removeByNodeID(nodeID);
 		});
 	}
 
