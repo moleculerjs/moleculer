@@ -824,10 +824,7 @@ class ServiceBroker {
 		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			service = new schema(this, schemaMods);
 		} else {
-			let s = schema;
-			if (schemaMods) s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
-
-			service = new this.ServiceFactory(this, s);
+			service = new this.ServiceFactory(this, schema, schemaMods);
 		}
 
 		// If broker has started yet, call the started lifecycle event of service

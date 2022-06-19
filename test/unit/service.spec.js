@@ -3,7 +3,6 @@
 const Service = require("../../src/service");
 const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
-const { protectReject } = require("./utils");
 
 describe("Test Service class", () => {
 	describe("Test constructor", () => {
@@ -44,7 +43,7 @@ describe("Test Service class", () => {
 
 		jest.spyOn(broker, "callMiddlewareHookSync");
 		jest.spyOn(broker, "getLogger");
-		jest.spyOn(Service, "applyMixins");
+		jest.spyOn(Service.prototype, "applyMixins");
 
 		const svc = new Service(broker);
 
@@ -57,7 +56,7 @@ describe("Test Service class", () => {
 		});
 
 		it("should throw error if name is empty", () => {
-			Service.applyMixins.mockClear();
+			Service.prototype.applyMixins.mockClear();
 			expect(() => {
 				/* eslint-disable-next-line no-console */
 				console.error = jest.fn();
@@ -65,11 +64,11 @@ describe("Test Service class", () => {
 			}).toThrowError(
 				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?"
 			);
-			expect(Service.applyMixins).toBeCalledTimes(0);
+			expect(Service.prototype.applyMixins).toBeCalledTimes(0);
 		});
 
 		it("should set common local variables", () => {
-			Service.applyMixins.mockClear();
+			Service.prototype.applyMixins.mockClear();
 
 			const schema = { name: "posts" };
 			svc.parseServiceSchema(schema);
@@ -77,7 +76,7 @@ describe("Test Service class", () => {
 			expect(svc.originalSchema).toEqual({ name: "posts" });
 			expect(svc.originalSchema).not.toBe(schema);
 
-			expect(Service.applyMixins).toBeCalledTimes(0);
+			expect(Service.prototype.applyMixins).toBeCalledTimes(0);
 
 			expect(svc.name).toBe("posts");
 			expect(svc.version).toBeUndefined();
@@ -97,7 +96,7 @@ describe("Test Service class", () => {
 		});
 
 		it("should set common local variables with version", () => {
-			Service.applyMixins.mockClear();
+			Service.prototype.applyMixins.mockClear();
 			broker.getLogger.mockClear();
 			svc._init.mockClear();
 
@@ -107,8 +106,8 @@ describe("Test Service class", () => {
 			expect(svc.originalSchema).toEqual({ name: "posts", version: 3, mixins: [] });
 			expect(svc.originalSchema).not.toBe(schema);
 
-			expect(Service.applyMixins).toBeCalledTimes(1);
-			expect(Service.applyMixins).toBeCalledWith(schema);
+			expect(Service.prototype.applyMixins).toBeCalledTimes(1);
+			expect(Service.prototype.applyMixins).toBeCalledWith(schema);
 
 			expect(svc.name).toBe("posts");
 			expect(svc.version).toBe(3);
@@ -128,7 +127,7 @@ describe("Test Service class", () => {
 		});
 
 		it("should set common local variables with version & noVersionPrefix", () => {
-			Service.applyMixins.mockClear();
+			Service.prototype.applyMixins.mockClear();
 			broker.getLogger.mockClear();
 			svc._init.mockClear();
 
@@ -197,7 +196,7 @@ describe("Test Service class", () => {
 				handler: action.handler || action
 			}));
 			jest.spyOn(broker.middlewares, "wrapHandler").mockImplementation(
-				(type, handler, action) => handler
+				(type, handler) => handler
 			);
 			jest.spyOn(broker.registry, "createPrivateActionEndpoint").mockImplementation(() => ({
 				id: "nodeID"
@@ -1255,22 +1254,22 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static applyMixins", () => {
-		beforeAll(() => jest.spyOn(Service, "mergeSchemas").mockImplementation(s => s));
-		afterAll(() => Service.mergeSchemas.mockRestore());
+	describe("Test applyMixins", () => {
+		beforeAll(() => jest.spyOn(Service.prototype, "mergeSchemas").mockImplementation(s => s));
+		afterAll(() => Service.prototype.mergeSchemas.mockRestore());
 
 		it("should return the schema if no mixins defined", () => {
-			Service.mergeSchemas.mockClear();
+			Service.prototype.mergeSchemas.mockClear();
 			const schema = { name: "posts" };
 
-			const res = Service.applyMixins(schema);
+			const res = Service.prototype.applyMixins(schema);
 
 			expect(res).toBe(schema);
-			expect(Service.mergeSchemas).toBeCalledTimes(0);
+			expect(Service.prototype.mergeSchemas).toBeCalledTimes(0);
 		});
 
 		it("should call mergeSchema once", () => {
-			Service.mergeSchemas.mockClear();
+			Service.prototype.mergeSchemas.mockClear();
 			const mixin1 = {
 				name: "users"
 			};
@@ -1280,17 +1279,17 @@ describe("Test Service class", () => {
 				mixins: mixin1
 			};
 
-			const res = Service.applyMixins(schema);
+			const res = Service.prototype.applyMixins(schema);
 
 			expect(res).toEqual({
 				name: "users"
 			});
-			expect(Service.mergeSchemas).toBeCalledTimes(1);
-			expect(Service.mergeSchemas).toBeCalledWith(mixin1, schema);
+			expect(Service.prototype.mergeSchemas).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemas).toBeCalledWith(mixin1, schema);
 		});
 
 		it("should call mergeSchema twice", () => {
-			Service.mergeSchemas.mockClear();
+			Service.prototype.mergeSchemas.mockClear();
 			const mixin1 = {
 				name: "users"
 			};
@@ -1304,19 +1303,19 @@ describe("Test Service class", () => {
 				mixins: [mixin1, mixin2]
 			};
 
-			const res = Service.applyMixins(schema);
+			const res = Service.prototype.applyMixins(schema);
 
 			expect(res).toEqual({
 				version: 2
 			});
 
-			expect(Service.mergeSchemas).toBeCalledTimes(2);
-			expect(Service.mergeSchemas).toHaveBeenNthCalledWith(1, mixin2, mixin1);
-			expect(Service.mergeSchemas).toHaveBeenNthCalledWith(2, mixin2, schema);
+			expect(Service.prototype.mergeSchemas).toBeCalledTimes(2);
+			expect(Service.prototype.mergeSchemas).toHaveBeenNthCalledWith(1, mixin2, mixin1);
+			expect(Service.prototype.mergeSchemas).toHaveBeenNthCalledWith(2, mixin2, schema);
 		});
 
 		it("should call mergeSchema for multi-level mixins", () => {
-			Service.mergeSchemas.mockClear();
+			Service.prototype.mergeSchemas.mockClear();
 			const mixin2 = {
 				version: 2
 			};
@@ -1331,40 +1330,42 @@ describe("Test Service class", () => {
 				mixins: [mixin1]
 			};
 
-			const res = Service.applyMixins(schema);
+			const res = Service.prototype.applyMixins(schema);
 
 			expect(res).toEqual({
 				version: 2
 			});
 
-			expect(Service.mergeSchemas).toBeCalledTimes(2);
-			expect(Service.mergeSchemas).toHaveBeenNthCalledWith(1, mixin2, mixin1);
-			expect(Service.mergeSchemas).toHaveBeenNthCalledWith(2, mixin2, schema);
+			expect(Service.prototype.mergeSchemas).toBeCalledTimes(2);
+			expect(Service.prototype.mergeSchemas).toHaveBeenNthCalledWith(1, mixin2, mixin1);
+			expect(Service.prototype.mergeSchemas).toHaveBeenNthCalledWith(2, mixin2, schema);
 		});
 	});
 
-	describe("Test static mergeSchemas", () => {
+	describe("Test mergeSchemas", () => {
 		beforeAll(() => {
-			jest.spyOn(Service, "mergeSchemaSettings").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaMetadata").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaHooks").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaActions").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaMethods").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaEvents").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaLifecycleHandlers").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaUniqArray").mockImplementation(s => s);
-			jest.spyOn(Service, "mergeSchemaUnknown").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaSettings").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaMetadata").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaHooks").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaActions").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaMethods").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaEvents").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaLifecycleHandlers").mockImplementation(
+				s => s
+			);
+			jest.spyOn(Service.prototype, "mergeSchemaUniqArray").mockImplementation(s => s);
+			jest.spyOn(Service.prototype, "mergeSchemaUnknown").mockImplementation(s => s);
 		});
 		afterAll(() => {
-			Service.mergeSchemaSettings.mockRestore();
-			Service.mergeSchemaMetadata.mockRestore();
-			Service.mergeSchemaHooks.mockRestore();
-			Service.mergeSchemaActions.mockRestore();
-			Service.mergeSchemaMethods.mockRestore();
-			Service.mergeSchemaEvents.mockRestore();
-			Service.mergeSchemaLifecycleHandlers.mockRestore();
-			Service.mergeSchemaUniqArray.mockRestore();
-			Service.mergeSchemaUnknown.mockRestore();
+			Service.prototype.mergeSchemaSettings.mockRestore();
+			Service.prototype.mergeSchemaMetadata.mockRestore();
+			Service.prototype.mergeSchemaHooks.mockRestore();
+			Service.prototype.mergeSchemaActions.mockRestore();
+			Service.prototype.mergeSchemaMethods.mockRestore();
+			Service.prototype.mergeSchemaEvents.mockRestore();
+			Service.prototype.mergeSchemaLifecycleHandlers.mockRestore();
+			Service.prototype.mergeSchemaUniqArray.mockRestore();
+			Service.prototype.mergeSchemaUnknown.mockRestore();
 		});
 
 		it("should call merge methods", () => {
@@ -1430,66 +1431,79 @@ describe("Test Service class", () => {
 				custom: "123"
 			};
 
-			Service.mergeSchemas({}, mixin);
+			Service.prototype.mergeSchemas({}, mixin);
 
-			expect(Service.mergeSchemaSettings).toBeCalledTimes(1);
-			expect(Service.mergeSchemaSettings).toBeCalledWith(mixin.settings, undefined);
+			expect(Service.prototype.mergeSchemaSettings).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaSettings).toBeCalledWith(mixin.settings, undefined);
 
-			expect(Service.mergeSchemaMetadata).toBeCalledTimes(1);
-			expect(Service.mergeSchemaMetadata).toBeCalledWith(mixin.metadata, undefined);
+			expect(Service.prototype.mergeSchemaMetadata).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaMetadata).toBeCalledWith(mixin.metadata, undefined);
 
-			expect(Service.mergeSchemaHooks).toBeCalledTimes(1);
-			expect(Service.mergeSchemaHooks).toBeCalledWith(mixin.hooks, {});
+			expect(Service.prototype.mergeSchemaHooks).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaHooks).toBeCalledWith(mixin.hooks, {});
 
-			expect(Service.mergeSchemaActions).toBeCalledTimes(1);
-			expect(Service.mergeSchemaActions).toBeCalledWith(mixin.actions, {});
+			expect(Service.prototype.mergeSchemaActions).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaActions).toBeCalledWith(mixin.actions, {});
 
-			expect(Service.mergeSchemaMethods).toBeCalledTimes(1);
-			expect(Service.mergeSchemaMethods).toBeCalledWith(mixin.methods, undefined);
+			expect(Service.prototype.mergeSchemaMethods).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaMethods).toBeCalledWith(mixin.methods, undefined);
 
-			expect(Service.mergeSchemaEvents).toBeCalledTimes(1);
-			expect(Service.mergeSchemaEvents).toBeCalledWith(mixin.events, {});
+			expect(Service.prototype.mergeSchemaEvents).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaEvents).toBeCalledWith(mixin.events, {});
 
-			expect(Service.mergeSchemaLifecycleHandlers).toBeCalledTimes(3);
-			expect(Service.mergeSchemaLifecycleHandlers).toBeCalledWith(mixin.created, undefined);
-			expect(Service.mergeSchemaLifecycleHandlers).toBeCalledWith(mixin.started, undefined);
-			expect(Service.mergeSchemaLifecycleHandlers).toBeCalledWith(mixin.stopped, undefined);
+			expect(Service.prototype.mergeSchemaLifecycleHandlers).toBeCalledTimes(3);
+			expect(Service.prototype.mergeSchemaLifecycleHandlers).toBeCalledWith(
+				mixin.created,
+				undefined
+			);
+			expect(Service.prototype.mergeSchemaLifecycleHandlers).toBeCalledWith(
+				mixin.started,
+				undefined
+			);
+			expect(Service.prototype.mergeSchemaLifecycleHandlers).toBeCalledWith(
+				mixin.stopped,
+				undefined
+			);
 
-			expect(Service.mergeSchemaUniqArray).toBeCalledTimes(2);
-			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
+			expect(Service.prototype.mergeSchemaUniqArray).toBeCalledTimes(2);
+			expect(Service.prototype.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
 				1,
 				mixin.mixins,
 				undefined
 			);
-			expect(Service.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
+			expect(Service.prototype.mergeSchemaUniqArray).toHaveBeenNthCalledWith(
 				2,
 				mixin.dependencies,
 				undefined
 			);
 
-			expect(Service.mergeSchemaUnknown).toBeCalledTimes(1);
-			expect(Service.mergeSchemaUnknown).toHaveBeenNthCalledWith(1, mixin.custom, undefined);
+			expect(Service.prototype.mergeSchemaUnknown).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaUnknown).toHaveBeenNthCalledWith(
+				1,
+				mixin.custom,
+				undefined
+			);
 		});
 
 		it("should call custom merge method", () => {
-			Service.mergeSchemaUnknown.mockClear();
-			Service.mergeSchemaMyProp = jest.fn();
+			Service.prototype.mergeSchemaUnknown.mockClear();
+			Service.prototype.mergeSchemaMyProp = jest.fn();
 
 			const mixin = {
 				myProp: "123"
 			};
 
-			Service.mergeSchemas({}, mixin);
+			Service.prototype.mergeSchemas({}, mixin);
 
-			expect(Service.mergeSchemaMyProp).toBeCalledTimes(1);
-			expect(Service.mergeSchemaMyProp).toBeCalledWith("123", undefined);
-			expect(Service.mergeSchemaUnknown).toBeCalledTimes(0);
+			expect(Service.prototype.mergeSchemaMyProp).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaMyProp).toBeCalledWith("123", undefined);
+			expect(Service.prototype.mergeSchemaUnknown).toBeCalledTimes(0);
 		});
 
 		it("should not overwrite the name & version", () => {
-			Service.mergeSchemaUnknown.mockClear();
+			Service.prototype.mergeSchemaUnknown.mockClear();
 
-			const mixed = Service.mergeSchemas(
+			const mixed = Service.prototype.mergeSchemas(
 				{
 					name: "first",
 					version: 1
@@ -1504,9 +1518,9 @@ describe("Test Service class", () => {
 		});
 
 		it("should overwrite the name & version", () => {
-			Service.mergeSchemaUnknown.mockClear();
+			Service.prototype.mergeSchemaUnknown.mockClear();
 
-			const mixed = Service.mergeSchemas(
+			const mixed = Service.prototype.mergeSchemas(
 				{
 					name: "first",
 					version: 1
@@ -1524,7 +1538,7 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaSettings", () => {
+	describe("Test mergeSchemaSettings", () => {
 		it("should merge values", () => {
 			const src = {
 				a: 5,
@@ -1543,7 +1557,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaSettings(src, prev);
+			const res = Service.prototype.mergeSchemaSettings(src, prev);
 			expect(res).toEqual({
 				a: 5,
 				b: "John",
@@ -1575,7 +1589,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaSettings(src, prev);
+			const res = Service.prototype.mergeSchemaSettings(src, prev);
 			expect(res).toEqual({
 				$secureSettings: ["a", "b", "c"],
 				a: 5,
@@ -1599,7 +1613,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaSettings(src, null);
+			const res = Service.prototype.mergeSchemaSettings(src, null);
 			expect(res).toEqual({
 				$secureSettings: ["a", "b"],
 				a: 5,
@@ -1622,7 +1636,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaSettings(null, src);
+			const res = Service.prototype.mergeSchemaSettings(null, src);
 			expect(res).toEqual({
 				$secureSettings: ["a", "b"],
 				a: 5,
@@ -1635,7 +1649,7 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaMetadata", () => {
+	describe("Test mergeSchemaMetadata", () => {
 		it("should merge values", () => {
 			const src = {
 				a: 5,
@@ -1654,7 +1668,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaMetadata(src, prev);
+			const res = Service.prototype.mergeSchemaMetadata(src, prev);
 			expect(res).toEqual({
 				a: 5,
 				b: "John",
@@ -1667,12 +1681,12 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaUniqArray", () => {
+	describe("Test mergeSchemaUniqArray", () => {
 		it("should merge values", () => {
 			const src = [1, 2, 3, 4, 5];
 			const prev = [2, 4, 6, 8, 10];
 
-			const res = Service.mergeSchemaUniqArray(src, prev);
+			const res = Service.prototype.mergeSchemaUniqArray(src, prev);
 			expect(res).toEqual([1, 2, 3, 4, 5, 6, 8, 10]);
 		});
 
@@ -1680,7 +1694,7 @@ describe("Test Service class", () => {
 			const src = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }];
 			const prev = [{ id: 2 }, { id: 4 }, { id: 6 }, { id: 8 }, { id: 10 }];
 
-			const res = Service.mergeSchemaUniqArray(src, prev);
+			const res = Service.prototype.mergeSchemaUniqArray(src, prev);
 			expect(res).toEqual([
 				{ id: 1 },
 				{ id: 2 },
@@ -1694,22 +1708,22 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaDependencies", () => {
+	describe("Test mergeSchemaDependencies", () => {
 		it("should merge values", () => {
-			jest.spyOn(Service, "mergeSchemaUniqArray");
+			jest.spyOn(Service.prototype, "mergeSchemaUniqArray");
 
 			const src = [1, 2, 3, 4, 5];
 			const prev = [2, 4, 6, 8, 10];
 
-			const res = Service.mergeSchemaDependencies(src, prev);
+			const res = Service.prototype.mergeSchemaDependencies(src, prev);
 			expect(res).toEqual([1, 2, 3, 4, 5, 6, 8, 10]);
 
-			expect(Service.mergeSchemaUniqArray).toBeCalledTimes(1);
-			expect(Service.mergeSchemaUniqArray).toBeCalledWith(src, prev);
+			expect(Service.prototype.mergeSchemaUniqArray).toBeCalledTimes(1);
+			expect(Service.prototype.mergeSchemaUniqArray).toBeCalledWith(src, prev);
 		});
 	});
 
-	describe("Test static mergeSchemaHooks", () => {
+	describe("Test mergeSchemaHooks", () => {
 		it("should merge values", () => {
 			const src = {
 				before: {
@@ -1737,7 +1751,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaHooks(src, prev);
+			const res = Service.prototype.mergeSchemaHooks(src, prev);
 			expect(res).toEqual({
 				before: {
 					all: ["prev-before-all", "src-before-all"],
@@ -1754,7 +1768,7 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaActions", () => {
+	describe("Test mergeSchemaActions", () => {
 		it("should merge actions", () => {
 			const src = {
 				create() {},
@@ -1786,7 +1800,7 @@ describe("Test Service class", () => {
 				remove() {}
 			};
 
-			const res = Service.mergeSchemaActions(src, prev);
+			const res = Service.prototype.mergeSchemaActions(src, prev);
 			expect(res).toEqual({
 				create: {
 					handler: expect.any(Function)
@@ -1852,7 +1866,7 @@ describe("Test Service class", () => {
 				}
 			};
 
-			const res = Service.mergeSchemaActions(src, prev);
+			const res = Service.prototype.mergeSchemaActions(src, prev);
 			expect(res).toEqual({
 				create: {
 					hooks: {
@@ -1887,7 +1901,7 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaMethods", () => {
+	describe("Test mergeSchemaMethods", () => {
 		it("should merge values", () => {
 			const src = {
 				find: "src-find",
@@ -1902,7 +1916,7 @@ describe("Test Service class", () => {
 				remove: "prev-remove"
 			};
 
-			const res = Service.mergeSchemaMethods(src, prev);
+			const res = Service.prototype.mergeSchemaMethods(src, prev);
 			expect(res).toEqual({
 				create: "prev-create",
 				find: "src-find",
@@ -1913,7 +1927,7 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaEvents", () => {
+	describe("Test mergeSchemaEvents", () => {
 		it("should merge actions", () => {
 			const src = {
 				create() {},
@@ -1947,7 +1961,7 @@ describe("Test Service class", () => {
 				remove() {}
 			};
 
-			const res = Service.mergeSchemaEvents(src, prev);
+			const res = Service.prototype.mergeSchemaEvents(src, prev);
 			expect(res).toEqual({
 				create: {
 					handler: expect.any(Function)
@@ -1973,35 +1987,26 @@ describe("Test Service class", () => {
 		});
 	});
 
-	describe("Test static mergeSchemaLifecycleHandlers", () => {
+	describe("Test mergeSchemaLifecycleHandlers", () => {
 		it("should merge values", () => {
-			const src = {
-				created: "src-created",
-				started: "src-started",
-				stopped: "src-stopped"
-			};
-
-			const prev = {
-				created: "prev-created",
-				started: "prev-started",
-				stopped: "prev-stopped"
-			};
-
-			const res = Service.mergeSchemaLifecycleHandlers("src-created", "prev-created");
+			const res = Service.prototype.mergeSchemaLifecycleHandlers(
+				"src-created",
+				"prev-created"
+			);
 			expect(res).toEqual(["prev-created", "src-created"]);
 		});
 	});
 
-	describe("Test static mergeSchemaUnknown", () => {
+	describe("Test mergeSchemaUnknown", () => {
 		it("should merge values", () => {
-			expect(Service.mergeSchemaUnknown("John", "Bob")).toBe("John");
-			expect(Service.mergeSchemaUnknown("John", null)).toBe("John");
-			expect(Service.mergeSchemaUnknown(null, "Bob")).toBeNull();
-			expect(Service.mergeSchemaUnknown(null, null)).toBeNull();
+			expect(Service.prototype.mergeSchemaUnknown("John", "Bob")).toBe("John");
+			expect(Service.prototype.mergeSchemaUnknown("John", null)).toBe("John");
+			expect(Service.prototype.mergeSchemaUnknown(null, "Bob")).toBeNull();
+			expect(Service.prototype.mergeSchemaUnknown(null, null)).toBeNull();
 
-			expect(Service.mergeSchemaUnknown("John", undefined)).toBe("John");
-			expect(Service.mergeSchemaUnknown(undefined, "Bob")).toBe("Bob");
-			expect(Service.mergeSchemaUnknown(undefined, undefined)).toBeUndefined();
+			expect(Service.prototype.mergeSchemaUnknown("John", undefined)).toBe("John");
+			expect(Service.prototype.mergeSchemaUnknown(undefined, "Bob")).toBe("Bob");
+			expect(Service.prototype.mergeSchemaUnknown(undefined, undefined)).toBeUndefined();
 		});
 	});
 
