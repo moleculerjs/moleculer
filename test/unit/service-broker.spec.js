@@ -233,7 +233,8 @@ describe("Test ServiceBroker constructor", () => {
 			disableBalancer: true,
 			registry: {
 				strategy: Strategies.Random,
-				preferLocal: false
+				preferLocal: false,
+				stopDelay: 100
 			},
 
 			circuitBreaker: {
@@ -761,7 +762,7 @@ describe("Test broker.stop", () => {
 
 			return broker.stop().then(() => {
 				expect(broker.registry.regenerateLocalRawInfo).toBeCalledTimes(1);
-				expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true);
+				expect(broker.registry.regenerateLocalRawInfo).toBeCalledWith(true, true);
 				expect(broker.registry.discoverer.sendLocalNodeInfo).toBeCalledTimes(1);
 
 				expect(optStopped).toHaveBeenCalledTimes(1);
