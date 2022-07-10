@@ -521,7 +521,7 @@ class Transit {
 		let pass = this.pendingReqStreams.get(payload.id);
 		let isNew = false;
 
-		if (!payload.stream && !pass) {
+		if (payload.stream == null && !pass) {
 			// It is not a stream data
 			return false;
 		}
@@ -549,7 +549,7 @@ class Transit {
 
 		if (payload.seq > pass.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
-			this.logger.info(
+			this.logger.debug(
 				`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${payload.seq}`
 			);
 
@@ -600,7 +600,7 @@ class Transit {
 
 		// Check newer chunks in the pool
 		if (pass.$pool.size > 0) {
-			this.logger.warn(`Has stored packets. Size: ${pass.$pool.size}`);
+			this.logger.debug(`Has stored packets. Size: ${pass.$pool.size}`);
 			const nextSeq = pass.$prevSeq + 1;
 			const nextPacket = pass.$pool.get(nextSeq);
 			if (nextPacket) {
@@ -675,7 +675,7 @@ class Transit {
 	 */
 	_handleIncomingResponseStream(packet, req) {
 		let pass = this.pendingResStreams.get(packet.id);
-		if (!pass && !packet.stream) return false;
+		if (!pass && packet.stream == null) return false;
 
 		if (!pass) {
 			this.logger.debug(
@@ -700,7 +700,7 @@ class Transit {
 
 		if (packet.seq > pass.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
-			this.logger.info(
+			this.logger.debug(
 				`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${packet.seq}`
 			);
 
