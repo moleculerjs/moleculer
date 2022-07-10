@@ -1028,6 +1028,71 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 	});
 
+	describe("Test with reverse order inside chunks", () => {
+		let STORE = [];
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123R" };
+
+		it("should create new stream", () => {
+			const pass = transit._handleIncomingRequestStream(
+				Object.assign({}, payload, { stream: true, seq: 0 })
+			);
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", () => STORE.push("-- ERROR --"));
+			pass.on("end", () => STORE.push("-- END --"));
+		});
+
+		it("should reorder chunks", () => {
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: false, seq: 7 })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 6, params: "CHUNK-6" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 5, params: "CHUNK-5" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 3, params: "CHUNK-3" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				)
+			).toBeNull();
+
+			return broker.Promise.delay(100).then(() => {
+				expect(STORE).toEqual([
+					"CHUNK-1",
+					"CHUNK-2",
+					"CHUNK-3",
+					"CHUNK-4",
+					"CHUNK-5",
+					"CHUNK-6",
+					"-- END --"
+				]);
+			});
+		});
+	});
+
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
 		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
@@ -1518,6 +1583,91 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 			expect(
 				transit._handleIncomingResponseStream(
 					Object.assign({}, payload, { stream: false, seq: 7 }),
+					req
+				)
+			).toBe(true);
+
+			return broker.Promise.delay(100).then(() => {
+				expect(STORE).toEqual([
+					"CHUNK-1",
+					"CHUNK-2",
+					"CHUNK-3",
+					"CHUNK-4",
+					"CHUNK-5",
+					"CHUNK-6",
+					"-- END --"
+				]);
+			});
+		});
+	});
+
+	describe("Test with reverse order inside chunks", () => {
+		let STORE = [];
+		const payload = { ver: "4", sender: "remote", id: "126R", success: true };
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(() => Promise.resolve()),
+			reject: jest.fn(() => Promise.resolve())
+		};
+		transit.pendingRequests.set("126R", req);
+		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
+
+		it("should create new stream", () => {
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 0 }),
+					req
+				)
+			).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", errorHandler);
+			pass.on("end", () => STORE.push("-- END --"));
+		});
+
+		it("should reorder chunks", () => {
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: false, seq: 7 }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 6, data: "CHUNK-6" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 5, data: "CHUNK-5" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 3, data: "CHUNK-3" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }),
 					req
 				)
 			).toBe(true);
