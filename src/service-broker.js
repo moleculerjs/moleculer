@@ -1044,7 +1044,7 @@ class ServiceBroker {
 						};
 					}
 				});
-				const flattenedStatuses = serviceStatuses.flatMap(s => s);
+				const flattenedStatuses = _.flatMap(serviceStatuses, s => s);
 				const names = flattenedStatuses.map(s => s.name);
 				const availableServices = flattenedStatuses.filter(s => s.available);
 
