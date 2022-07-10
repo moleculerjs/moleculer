@@ -58,11 +58,10 @@ describe("Test circuit breaker", () => {
 			.then(() => (clock = lolex.install({ shouldClearNativeTimers: true })));
 	});
 
-	afterAll(() => {
-		return master1
-			.stop()
-			.then(() => slave1.stop())
-			.then(() => clock.uninstall());
+	afterAll(async () => {
+		await clock.uninstall();
+
+		await master1.stop().then(() => slave1.stop());
 	});
 
 	it("should call 'happy' x5 without problem", () => {

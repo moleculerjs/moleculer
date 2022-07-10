@@ -70,7 +70,8 @@ const defaultOptions = {
 
 	registry: {
 		strategy: "RoundRobin",
-		preferLocal: true
+		preferLocal: true,
+		stopDelay: 100
 	},
 
 	circuitBreaker: {
@@ -499,16 +500,20 @@ class ServiceBroker {
 	 */
 	stop() {
 		this.started = false;
-		this.stopping = true;
 		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {
-					this.registry.regenerateLocalRawInfo(true);
+					this.registry.regenerateLocalRawInfo(true, true);
 					// Send empty node info in order to block incoming requests
 					return this.registry.discoverer.sendLocalNodeInfo();
 				}
 			})
 			.then(() => {
+				return this.Promise.delay(this.options.registry.stopDelay);
+			})
+			.then(() => {
+				this.stopping = true;
+
 				return this.callMiddlewareHook("stopping", [this], { reverse: true });
 			})
 			.then(() => {
