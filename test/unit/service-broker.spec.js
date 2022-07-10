@@ -1801,7 +1801,10 @@ describe("Test broker.getLocalService", () => {
 describe("Test broker.waitForServices", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let res = false;
-	broker.registry.hasService = jest.fn(() => res);
+
+	beforeEach(() => {
+		broker.registry.hasService = jest.fn(() => res);
+	});
 
 	let clock;
 	beforeAll(() => (clock = lolex.install()));
@@ -1979,6 +1982,28 @@ describe("Test broker.waitForServices", () => {
 		clock.tick(450);
 		res = true;
 		clock.tick(150);
+
+		return p;
+	});
+
+	it("should wait for a single service when passed multi-version service", () => {
+		broker.registry.hasService = jest.fn();
+		broker.registry.hasService.mockImplementation(name => name === "v1.posts");
+		let p = broker
+			.waitForServices([{ name: "posts", version: [1, 2] }], 10 * 1000, 50)
+			.catch(protectReject)
+			.then(result => {
+				expect(result).toEqual({
+					services: ["v1.posts", "v2.posts"],
+					statuses: [
+						{ name: "v1.posts", available: true },
+						{ name: "v2.posts", available: false }
+					]
+				});
+				expect(broker.registry.hasService).toHaveBeenCalledTimes(2);
+			});
+
+		clock.tick(500);
 
 		return p;
 	});
