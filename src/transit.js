@@ -521,7 +521,7 @@ class Transit {
 		let pass = this.pendingReqStreams.get(payload.id);
 		let isNew = false;
 
-		if (payload.stream == null && !pass) {
+		if (!payload.stream && !pass && !payload.seq) {
 			// It is not a stream data
 			return false;
 		}
@@ -675,7 +675,7 @@ class Transit {
 	 */
 	_handleIncomingResponseStream(packet, req) {
 		let pass = this.pendingResStreams.get(packet.id);
-		if (!pass && packet.stream == null) return false;
+		if (!pass && !packet.stream && !packet.seq) return false;
 
 		if (!pass) {
 			this.logger.debug(
