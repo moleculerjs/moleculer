@@ -462,12 +462,18 @@ class Transit {
 	 * @memberof Transit
 	 */
 	requestHandler(payload) {
-		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
+		this.logger.debug(
+			`<= Request '${payload.action}' ${
+				payload.requestID ? "with requestID '" + payload.requestID + "' " : ""
+			}received from '${payload.sender}' node.`
+		);
 
 		try {
 			if (this.broker.stopping) {
 				this.logger.warn(
-					`Incoming '${payload.action}' request from '${payload.sender}' node is dropped because broker is stopped.`
+					`Incoming '${payload.action}' ${
+						payload.requestID ? "with requestID '" + payload.requestID + "' " : ""
+					}request from '${payload.sender}' node is dropped because broker is stopped.`
 				);
 				throw new E.ServiceNotAvailableError({
 					action: payload.action,
@@ -836,11 +842,17 @@ class Transit {
 		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
 		const nodeName = ctx.nodeID ? `'${ctx.nodeID}'` : "someone";
-		this.logger.debug(`=> Send '${ctx.action.name}' request to ${nodeName} node.`);
+		this.logger.debug(
+			`=> Send '${ctx.action.name}' request ${
+				ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+			}to ${nodeName} node.`
+		);
 
 		const publishCatch = /* istanbul ignore next */ err => {
 			this.logger.error(
-				`Unable to send '${ctx.action.name}' request to ${nodeName} node.`,
+				`Unable to send '${ctx.action.name}' request ${
+					ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+				}to ${nodeName} node.`,
 				err
 			);
 
@@ -892,7 +904,9 @@ class Transit {
 							copy.params = ch;
 
 							this.logger.debug(
-								`=> Send stream chunk to ${nodeName} node. Seq: ${copy.seq}`
+								`=> Send stream chunk ${
+									ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+								}to ${nodeName} node. Seq: ${copy.seq}`
 							);
 
 							this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy)).catch(
@@ -910,7 +924,9 @@ class Transit {
 						copy.stream = false;
 
 						this.logger.debug(
-							`=> Send stream closing to ${nodeName} node. Seq: ${copy.seq}`
+							`=> Send stream closing ${
+								ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+							}to ${nodeName} node. Seq: ${copy.seq}`
 						);
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy)).catch(
@@ -926,7 +942,9 @@ class Transit {
 						copy.params = null;
 
 						this.logger.debug(
-							`=> Send stream error to ${nodeName} node.`,
+							`=> Send stream error ${
+								ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+							}to ${nodeName} node.`,
 							copy.meta["$streamError"]
 						);
 
@@ -954,13 +972,17 @@ class Transit {
 		const groups = ctx.eventGroups;
 		if (ctx.endpoint)
 			this.logger.debug(
-				`=> Send '${ctx.eventName}' event to '${ctx.nodeID}' node` +
+				`=> Send '${ctx.eventName}' event ${
+					ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+				} to '${ctx.nodeID}' node` +
 					(groups ? ` in '${groups.join(", ")}' group(s)` : "") +
 					"."
 			);
 		else
 			this.logger.debug(
-				`=> Send '${ctx.eventName}' event to '${groups.join(", ")}' group(s).`
+				`=> Send '${ctx.eventName}' event ${
+					ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+				}to '${groups.join(", ")}' group(s).`
 			);
 
 		return this.publish(
@@ -980,7 +1002,12 @@ class Transit {
 			})
 		).catch(
 			/* istanbul ignore next */ err => {
-				this.logger.error(`Unable to send '${ctx.eventName}' event to groups.`, err);
+				this.logger.error(
+					`Unable to send '${ctx.eventName}' event ${
+						ctx.requestID ? "with requestID '" + ctx.requestID + "' " : ""
+					}to groups.`,
+					err
+				);
 
 				this.broker.broadcastLocal("$transit.error", {
 					error: err,
