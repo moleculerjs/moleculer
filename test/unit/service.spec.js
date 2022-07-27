@@ -148,6 +148,33 @@ describe("Test Service class", () => {
 					}
 				});
 			}).toThrowError("Invalid method name 'actions' in 'posts' service!");
+
+			expect(() => {
+				svc.parseServiceSchema({
+					name: "posts",
+					methods: {
+						applyMixins() {}
+					}
+				});
+			}).toThrowError("Invalid method name 'applyMixins' in 'posts' service!");
+
+			expect(() => {
+				svc.parseServiceSchema({
+					name: "posts",
+					methods: {
+						mergeSchemaSettings() {}
+					}
+				});
+			}).toThrowError("Invalid method name 'mergeSchemaSettings' in 'posts' service!");
+
+			expect(() => {
+				svc.parseServiceSchema({
+					name: "posts",
+					methods: {
+						mergeSchemaUnknown() {}
+					}
+				});
+			}).toThrowError("Invalid method name 'mergeSchemaUnknown' in 'posts' service!");
 		});
 
 		it("should set methods and bind the service instance", () => {

@@ -145,8 +145,10 @@ class Service {
 						"stopped",
 						"_start",
 						"_stop",
-						"_init"
-					].indexOf(name) !== -1
+						"_init",
+						"applyMixins"
+					].indexOf(name) !== -1 ||
+					name.startsWith("mergeSchema")
 				) {
 					throw new ServiceSchemaError(
 						`Invalid method name '${name}' in '${this.name}' service!`
