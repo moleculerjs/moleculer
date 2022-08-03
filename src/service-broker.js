@@ -106,7 +106,7 @@ const defaultOptions = {
 	validator: true,
 
 	metrics: false,
-	tracing: false,
+	tracing: {enabled: false},
 
 	internalServices: true,
 	internalMiddlewares: true,
