@@ -180,6 +180,7 @@ describe("Test ConsoleReporter class", () => {
 			logger: false,
 			nodeID: "node-123",
 			metrics: {
+				enabled: true,
 				reporter: {
 					type: "Console",
 					options: {
