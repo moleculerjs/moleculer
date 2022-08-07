@@ -726,8 +726,8 @@ declare namespace Moleculer {
 
 		events?: ServiceEvents;
 		created?: (() => void) | Array<() => void>;
-		started?: (() => Promise<void>) | Array<() => Promise<void>>;
-		stopped?: (() => Promise<void>) | Array<() => Promise<void>>;
+		started?: (() => Promise<void> | void) | Array<() => Promise<void> | void>;
+		stopped?: (() => Promise<void> | void) | Array<() => Promise<void> | void>;
 
 		[name: string]: any;
 	}
