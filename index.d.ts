@@ -913,6 +913,7 @@ declare namespace Moleculer {
 		internalMiddlewares?: boolean;
 
 		dependencyInterval?: number;
+		dependencyTimeout?: number;
 
 		hotReload?: boolean | HotReloadOptions;
 

@@ -285,7 +285,7 @@ class Service {
 				if (this.schema.dependencies)
 					return this.waitForServices(
 						this.schema.dependencies,
-						this.settings.$dependencyTimeout || 0,
+						this.settings.$dependencyTimeout || this.broker.options.dependencyTimeout,
 						this.settings.$dependencyInterval || this.broker.options.dependencyInterval
 					);
 			})

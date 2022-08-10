@@ -110,7 +110,9 @@ const defaultOptions = {
 
 	internalServices: true,
 	internalMiddlewares: true,
+
 	dependencyInterval: 1000,
+	dependencyTimeout: 0,
 
 	hotReload: false,
 
@@ -1001,7 +1003,12 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
+	waitForServices(
+		serviceNames,
+		timeout = this.options.dependencyInterval,
+		interval = this.options.dependencyInterval,
+		logger = this.logger
+	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
 		serviceNames = _.uniq(
@@ -1084,7 +1091,7 @@ class ServiceBroker {
 						)
 					);
 
-				setTimeout(check, interval || this.options.dependencyInterval || 1000);
+				setTimeout(check, interval);
 			};
 
 			check();
