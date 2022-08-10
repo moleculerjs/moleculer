@@ -277,6 +277,7 @@ describe("Test ServiceBroker constructor", () => {
 			internalServices: false,
 			internalMiddlewares: true,
 			dependencyInterval: 1000,
+			dependencyTimeout: 0,
 			hotReload: true,
 			middlewares: null,
 			replCommands: null,
@@ -2104,7 +2105,7 @@ describe("Test broker.waitForServices", () => {
 	});
 });
 
-describe("Test waitForServices using dependencyInterval from options", () => {
+describe("Test waitForServices using dependencyInterval & dependencyTimeout from options", () => {
 	it("should call waitForServices with dependencyInterval from settings", async () => {
 		let broker = new ServiceBroker({ logger: false, dependencyInterval: 100 });
 		jest.spyOn(broker, "createService");
@@ -2126,6 +2127,32 @@ describe("Test waitForServices using dependencyInterval from options", () => {
 			100,
 			broker.logger
 		);
+	});
+
+	it("should throw after dependencyTimeout is exceeded if dependencies still unavailable", async () => {
+		let broker = new ServiceBroker({
+			logger: false,
+			dependencyInterval: 100,
+			dependencyTimeout: 500
+		});
+
+		let started = false;
+		let timeoutErr = null;
+
+		const service = {
+			name: "posts",
+			async started() {
+				await this.waitForServices(["users"]).catch(err => (timeoutErr = err));
+
+				started = true;
+			}
+		};
+		broker.createService(service);
+
+		await broker.start();
+
+		expect(started).toEqual(true);
+		expect(timeoutErr).toBeInstanceOf(MoleculerServerError);
 	});
 
 	it("should start fast despite multiple levels of dependencies", async () => {
