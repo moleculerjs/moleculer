@@ -1,5 +1,23 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.21...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.22...master)
+
+--------------------------------------------------
+<a name="0.14.22"></a>
+# [0.14.22](https://github.com/moleculerjs/moleculer/compare/v0.14.21...v0.14.22) (2022-08-13)
+
+_35 commits from 11 contributors._
+
+## Changes
+- fixed 'Ctx is undefined when using shard strategy and preferLocal is false, throws error on emit' [#1072](https://github.com/moleculerjs/moleculer/issues/1072)
+- fixed info packet send at broker stop [#1101](https://github.com/moleculerjs/moleculer/pull/1101)
+- added support for either-or versions to waitForServices [#1030](https://github.com/moleculerjs/moleculer/pull/1030)
+- fixed streaming issue with compression [#1100](https://github.com/moleculerjs/moleculer/issues/1100)
+- add requestID to debug logs in transit [#1104](https://github.com/moleculerjs/moleculer/issues/1104)
+- removed static on methods for the use of ServiceFactory [#1098](https://github.com/moleculerjs/moleculer/issues/1098)
+- fixed the issue with setting tracing and metrics options with env variables [#1112](https://github.com/moleculerjs/moleculer/issues/1112)
+- added dependencyTimeout broker option [#1118](https://github.com/moleculerjs/moleculer/issues/1118)
+- improved d.ts [#1099](https://github.com/moleculerjs/moleculer/pull/1099) [#1111](https://github.com/moleculerjs/moleculer/pull/1111) [#1115](https://github.com/moleculerjs/moleculer/pull/1115)
+- updated dependencies
 
 --------------------------------------------------
 <a name="0.14.21"></a>
