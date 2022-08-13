@@ -106,7 +106,7 @@
     "nodemon": "^2.0.19",
     "notepack.io": "^3.0.1",
     "npm-check": "^6.0.1",
-    "pino": "^8.4.1",
+    "pino": "^6.14.0",
     "prettier": "^2.7.1",
     "protobufjs": "^7.0.0",
     "redlock": "^4.2.0",
