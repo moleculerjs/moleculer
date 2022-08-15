@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Start basic scenario...";
+echo "Start compression scenario...";
 echo "Transporter: $TRANSPORTER";
 echo "Serializer: $SERIALIZER";
 echo "Discoverer: $DISCOVERER";
