@@ -1005,7 +1005,7 @@ class ServiceBroker {
 	 */
 	waitForServices(
 		serviceNames,
-		timeout = this.options.dependencyInterval,
+		timeout = this.options.dependencyTimeout,
 		interval = this.options.dependencyInterval,
 		logger = this.logger
 	) {
