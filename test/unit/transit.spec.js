@@ -1098,21 +1098,22 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
 
 		it("should create new stream", () => {
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				)
+			).toBeNull();
+		});
+
+		it("should reorder chunks", () => {
 			const pass = transit._handleIncomingRequestStream(
-				Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				Object.assign({}, payload, { stream: true, seq: 0 })
 			);
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
 			pass.on("error", () => STORE.push("-- ERROR --"));
 			pass.on("end", () => STORE.push("-- END --"));
-		});
 
-		it("should reorder chunks", () => {
-			expect(
-				transit._handleIncomingRequestStream(
-					Object.assign({}, payload, { stream: true, seq: 0 })
-				)
-			).toBeNull();
 			expect(
 				transit._handleIncomingRequestStream(
 					Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" })
@@ -1144,7 +1145,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 				)
 			).toBeNull();
 
-			return broker.Promise.delay(100).then(() => {
+			return broker.Promise.delay(500).then(() => {
 				expect(STORE).toEqual([
 					"CHUNK-1",
 					"CHUNK-2",
@@ -1705,12 +1706,6 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 					req
 				)
 			).toBe(true);
-			expect(req.resolve).toHaveBeenCalledTimes(1);
-			const pass = req.resolve.mock.calls[0][0];
-			expect(pass).toBeInstanceOf(Transform);
-			pass.on("data", data => STORE.push(data.toString()));
-			pass.on("error", errorHandler);
-			pass.on("end", () => STORE.push("-- END --"));
 		});
 
 		it("should reorder chunks", () => {
@@ -1720,6 +1715,13 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 					req
 				)
 			).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", errorHandler);
+			pass.on("end", () => STORE.push("-- END --"));
+
 			expect(
 				transit._handleIncomingResponseStream(
 					Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }),
@@ -1757,7 +1759,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 				)
 			).toBe(true);
 
-			return broker.Promise.delay(100).then(() => {
+			return broker.Promise.delay(500).then(() => {
 				expect(STORE).toEqual([
 					"CHUNK-1",
 					"CHUNK-2",

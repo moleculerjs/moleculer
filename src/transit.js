@@ -537,6 +537,8 @@ class Transit {
 
 			// Create a new pass stream
 			pass = new Transform({
+				// TODO: It's incorrect because the chunks may receive in random order, so it processes an empty meta.
+				// Meta is filled correctly only in the 0. chunk.
 				objectMode: payload.meta && payload.meta["$streamObjectMode"],
 				transform: function (chunk, encoding, done) {
 					this.push(chunk);
@@ -562,7 +564,7 @@ class Transit {
 			// TODO: check length of pool.
 			// TODO: reset seq
 
-			return isNew ? pass : null;
+			return null;
 		}
 
 		// the next stream chunk received
@@ -612,7 +614,7 @@ class Transit {
 			}
 		}
 
-		return isNew ? pass : null;
+		return pass && payload.seq == 0 ? pass : null;
 	}
 
 	/**
@@ -686,6 +688,8 @@ class Transit {
 			);
 
 			pass = new Transform({
+				// TODO: It's incorrect because the chunks may receive in random order, so it processes an empty meta.
+				// Meta is filled correctly only in the 0. chunk.
 				objectMode: packet.meta && packet.meta["$streamObjectMode"],
 				transform: function (chunk, encoding, done) {
 					this.push(chunk);
@@ -697,8 +701,6 @@ class Transit {
 			pass.$pool = new Map();
 
 			this.pendingResStreams.set(packet.id, pass);
-
-			req.resolve(pass);
 		}
 
 		if (packet.seq > pass.$prevSeq + 1) {
@@ -718,6 +720,10 @@ class Transit {
 
 		// the next stream chunk received
 		pass.$prevSeq = packet.seq;
+
+		if (pass && packet.seq == 0) {
+			req.resolve(pass);
+		}
 
 		if (pass.$prevSeq > 0) {
 			if (!packet.stream) {
@@ -749,7 +755,7 @@ class Transit {
 
 		// Check newer chunks in the pool
 		if (pass.$pool.size > 0) {
-			this.logger.warn(`Has stored packets. Size: ${pass.$pool.size}`);
+			this.logger.debug(`Has stored packets. Size: ${pass.$pool.size}`);
 			const nextSeq = pass.$prevSeq + 1;
 			const nextPacket = pass.$pool.get(nextSeq);
 			if (nextPacket) {

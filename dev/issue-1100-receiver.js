@@ -34,7 +34,12 @@ broker.createService({
 					const participants = [];
 					ctx.params.on("data", d => participants.push(d));
 					ctx.params.on("end", () =>
-						this.logger.info("received stream data", participants.length, ctx.meta)
+						this.logger.info(
+							"received stream data",
+							participants.length,
+							ctx.meta,
+							participants
+						)
 					);
 					return "OK";
 				} else {
