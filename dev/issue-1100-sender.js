@@ -37,7 +37,9 @@ broker.createService({
 				this.logger.info("sending stream...");
 				const res = await ctx.call("receiver.receive", stream, {
 					meta: {
-						participants: participants.slice(0, 100) //! this causes the exception
+						//! meta data is missing on receiver side
+						testMeta: "testMeta",
+						participants: participants.slice(0, 100)
 					}
 				});
 				this.logger.info("finished sending stream", res);

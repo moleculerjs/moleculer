@@ -29,12 +29,12 @@ broker.createService({
 		receive: {
 			async handler(ctx) {
 				// ! called two times if meta is "large"
-				this.logger.info("call receive handler", ctx.params);
+				this.logger.info("call receive handler", ctx.params, ctx.meta);
 				if (ctx.params) {
 					const participants = [];
 					ctx.params.on("data", d => participants.push(d));
 					ctx.params.on("end", () =>
-						this.logger.info("received stream data", participants.length)
+						this.logger.info("received stream data", participants.length, ctx.meta)
 					);
 					return "OK";
 				} else {
