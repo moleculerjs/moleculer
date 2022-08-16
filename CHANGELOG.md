@@ -1,5 +1,13 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.22...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.23...master)
+
+--------------------------------------------------
+<a name="0.14.23"></a>
+# [0.14.23](https://github.com/moleculerjs/moleculer/compare/v0.14.22...v0.14.23) (2022-08-16)
+
+## Changes
+- fixed timeout issue in `waitForServices` method [#1123](https://github.com/moleculerjs/moleculer/issues/1123)
+- fixed metadata issue when compression enabled [#1122](https://github.com/moleculerjs/moleculer/issues/1122)
 
 --------------------------------------------------
 <a name="0.14.22"></a>
