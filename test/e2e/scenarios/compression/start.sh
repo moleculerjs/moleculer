@@ -5,6 +5,6 @@ echo "Transporter: $TRANSPORTER";
 echo "Serializer: $SERIALIZER";
 echo "Discoverer: $DISCOVERER";
 
-export NAMESPACE=basic;
+export NAMESPACE=compression;
 node node1.js & \
 node scenario.js
