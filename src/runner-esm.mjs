@@ -201,7 +201,7 @@ export default class MoleculerRunner {
 		for (let idx = 0; idx < paths.length; idx++) {
 			const path = paths[idx];
 			try {
-				return require.resolve(path);
+				return require.resolve(path, { paths: [process.cwd()] });
 			} catch (_) {
 				// ignore
 			}
