@@ -153,7 +153,7 @@ class MoleculerRunner {
 		// Env vars have priority over the flags
 		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
 
-		console.log(`configured to uss ${configPath}`);
+		console.log(`configured to use ${configPath}`);
 		if (configPath != null) {
 			filePath = this.tryConfigPath(configPath);
 
@@ -201,7 +201,7 @@ class MoleculerRunner {
 	 */
 	tryConfigPath(configPath) {
 		let resolveOptions;
-		if (path.isAbsolute(configPath)) {
+		if (!path.isAbsolute(configPath)) {
 			resolveOptions = { paths: process.cwd() };
 		}
 
