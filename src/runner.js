@@ -202,7 +202,7 @@ class MoleculerRunner {
 	tryConfigPath(configPath) {
 		let resolveOptions;
 		if (!path.isAbsolute(configPath)) {
-			resolveOptions = { paths: process.cwd() };
+			resolveOptions = { paths: [process.cwd()] };
 		}
 
 		console.log(`Attempting to resolve from from: ${configPath}`);
