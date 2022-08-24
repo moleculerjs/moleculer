@@ -151,26 +151,25 @@ class MoleculerRunner {
 	loadConfigFile() {
 		let filePath;
 		// Env vars have priority over the flags
-		if (process.env["MOLECULER_CONFIG"]) {
-			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"])
-				? process.env["MOLECULER_CONFIG"]
-				: path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
-		} else if (this.flags.config) {
-			filePath = path.isAbsolute(this.flags.config)
-				? this.flags.config
-				: path.resolve(process.cwd(), this.flags.config);
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.js");
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.json"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.json");
+		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
+		if (configPath != null) {
+			const paths = path.isAbsolute(configPath)
+				? [configPath]
+				: [path.resolve(process.cwd(), configPath), configPath];
+
+			filePath = this.tryConfigPaths(paths);
+
+			if (filePath == null) {
+				return Promise.reject(new Error(`Config file not found: ${configPath}`));
+			}
+		} else {
+			filePath = this.tryConfigPaths([
+				path.resolve(process.cwd(), "moleculer.config.js"),
+				path.resolve(process.cwd(), "moleculer.config.json")
+			]);
 		}
 
-		if (filePath) {
-			if (!fs.existsSync(filePath))
-				return Promise.reject(new Error(`Config file not found: ${filePath}`));
-
+		if (filePath != null) {
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -192,6 +191,24 @@ class MoleculerRunner {
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
 		}
+	}
+
+	/**
+	 * Try to resolve a configuration file at a series of paths
+	 * @param {string[]} paths - Paths to attempt resolution from
+	 * @returns {string | null}
+	 */
+	tryConfigPaths(paths) {
+		for (let idx = 0; idx < paths.length; idx++) {
+			const path = paths[idx];
+			try {
+				return require.resolve(path);
+			} catch (_) {
+				// ignore
+			}
+		}
+
+		return null;
 	}
 
 	normalizeEnvValue(value) {

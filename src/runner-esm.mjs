@@ -7,12 +7,17 @@ import ServiceBroker from "./service-broker.js";
 import utils from "./utils.js";
 import fs from "fs";
 import path from "path";
+import { createRequire } from "module";
 import glob from "glob";
 import _ from "lodash";
 import Args from "args";
 import os from "os";
 import cluster from "cluster";
 import kleur from "kleur";
+
+// import.meta.resolve requires --experimental-import-meta-resolve flag: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaresolvespecifier-parent
+// createRequire is a workaround to allow require.resolve in esm modules: https://stackoverflow.com/a/62499498
+const require = createRequire(import.meta.url);
 
 const stopSignals = [
 	"SIGHUP",
@@ -149,29 +154,25 @@ export default class MoleculerRunner {
 	async loadConfigFile() {
 		let filePath;
 		// Env vars have priority over the flags
-		if (process.env["MOLECULER_CONFIG"]) {
-			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"])
-				? process.env["MOLECULER_CONFIG"]
-				: path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
-		} else if (this.flags.config) {
-			filePath = path.isAbsolute(this.flags.config)
-				? this.flags.config
-				: path.resolve(process.cwd(), this.flags.config);
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.mjs"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.mjs");
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.js");
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.json"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.json");
+		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
+		if (configPath != null) {
+			const paths = path.isAbsolute(configPath)
+				? [configPath]
+				: [path.resolve(process.cwd(), configPath), configPath];
+
+			filePath = this.tryConfigPaths(paths);
+
+			if (filePath == null) {
+				return Promise.reject(new Error(`Config file not found: ${configPath}`));
+			}
+		} else {
+			filePath = this.tryConfigPaths([
+				path.resolve(process.cwd(), "moleculer.config.js"),
+				path.resolve(process.cwd(), "moleculer.config.json")
+			]);
 		}
 
 		if (filePath) {
-			if (!fs.existsSync(filePath))
-				return Promise.reject(new Error(`Config file not found: ${filePath}`));
-
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -189,6 +190,24 @@ export default class MoleculerRunner {
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
 		}
+	}
+
+	/**
+	 * Try to resolve a configuration file at a series of paths
+	 * @param {string[]} paths - Paths to attempt resolution from
+	 * @returns {string | null}
+	 */
+	tryConfigPaths(paths) {
+		for (let idx = 0; idx < paths.length; idx++) {
+			const path = paths[idx];
+			try {
+				return require.resolve(path);
+			} catch (_) {
+				// ignore
+			}
+		}
+
+		return null;
 	}
 
 	normalizeEnvValue(value) {
@@ -376,9 +395,7 @@ export default class MoleculerRunner {
 							return this.broker.logger.warn(
 								kleur
 									.yellow()
-									.bold(
-										`There is no service files in directory: '${svcPath}'`
-									)
+									.bold(`There is no service files in directory: '${svcPath}'`)
 							);
 					} else if (this.isServiceFile(svcPath)) {
 						files = [svcPath.replace(/\\/g, "/")];
@@ -389,9 +406,7 @@ export default class MoleculerRunner {
 						files = glob.sync(p, { cwd: svcDir, absolute: true });
 						if (files.length == 0)
 							this.broker.logger.warn(
-								kleur
-									.yellow()
-									.bold(`There is no matched file for pattern: '${p}'`)
+								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
 							);
 					}
 
@@ -402,13 +417,15 @@ export default class MoleculerRunner {
 					}
 				});
 
-			await Promise.all(_.uniq(serviceFiles).map(async f => {
-				const mod = await import(f.startsWith("/") ? f : "/" + f);
-				const content = mod.default;
+			await Promise.all(
+				_.uniq(serviceFiles).map(async f => {
+					const mod = await import(f.startsWith("/") ? f : "/" + f);
+					const content = mod.default;
 
-				const svc = this.broker.createService(content);
-				svc.__filename = f;
-			}));
+					const svc = this.broker.createService(content);
+					svc.__filename = f;
+				})
+			);
 		}
 	}
 
