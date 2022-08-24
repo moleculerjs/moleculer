@@ -152,24 +152,25 @@ class MoleculerRunner {
 		let filePath;
 		// Env vars have priority over the flags
 		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
-		if (configPath != null) {
-			const paths = path.isAbsolute(configPath)
-				? [configPath]
-				: [path.resolve(process.cwd(), configPath), configPath];
 
-			filePath = this.tryConfigPaths(paths);
+		console.log(`configured to uss ${configPath}`);
+		if (configPath != null) {
+			filePath = this.tryConfigPath(configPath);
 
 			if (filePath == null) {
 				return Promise.reject(new Error(`Config file not found: ${configPath}`));
 			}
-		} else {
-			filePath = this.tryConfigPaths([
-				path.resolve(process.cwd(), "moleculer.config.js"),
-				path.resolve(process.cwd(), "moleculer.config.json")
-			]);
+		}
+
+		if (filePath == null) {
+			filePath = this.tryConfigPath("moleculer.config.js");
+		}
+		if (filePath == null) {
+			filePath = this.tryConfigPath("moleculer.config.json");
 		}
 
 		if (filePath != null) {
+			console.log(`using configuration file from ${filePath}`);
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -194,21 +195,22 @@ class MoleculerRunner {
 	}
 
 	/**
-	 * Try to resolve a configuration file at a series of paths
-	 * @param {string[]} paths - Paths to attempt resolution from
+	 * Try to resolve a configuration file at a path
+	 * @param {string} configPath - Path to attempt resolution from
 	 * @returns {string | null}
 	 */
-	tryConfigPaths(paths) {
-		for (let idx = 0; idx < paths.length; idx++) {
-			const path = paths[idx];
-			try {
-				return require.resolve(path, { paths: [process.cwd()] });
-			} catch (_) {
-				// ignore
-			}
+	tryConfigPath(configPath) {
+		let resolveOptions;
+		if (path.isAbsolute(configPath)) {
+			resolveOptions = { paths: process.cwd() };
 		}
 
-		return null;
+		console.log(`Attempting to resolve from from: ${configPath}`);
+		try {
+			return require.resolve(configPath, resolveOptions);
+		} catch (_) {
+			return null;
+		}
 	}
 
 	normalizeEnvValue(value) {
