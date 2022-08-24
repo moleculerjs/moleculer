@@ -26,11 +26,13 @@ module.exports = {
 		"node/no-unpublished-require": 0
 	},
 	ignorePatterns: ["benchmark/test.js", "test/typescript/hello-world/out/*.js"],
-	overrides: {
-		files: ["runner-esm.mjs"],
-		parserOptions: {
-			sourceType: "module",
-			ecmaVersion: "2020" // needed to allow import.meta
+	overrides: [
+		{
+			files: ["runner-esm.mjs"],
+			parserOptions: {
+				sourceType: "module",
+				ecmaVersion: "2020" // needed to allow import.meta
+			}
 		}
-	}
+	]
 };
