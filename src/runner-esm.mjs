@@ -155,24 +155,31 @@ export default class MoleculerRunner {
 		let filePath;
 		// Env vars have priority over the flags
 		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
-		if (configPath != null) {
-			const paths = path.isAbsolute(configPath)
-				? [configPath]
-				: [path.resolve(process.cwd(), configPath), configPath];
 
-			filePath = this.tryConfigPaths(paths);
+		if (configPath != null) {
+			if (path.isAbsolute(configPath)) {
+				filePath = this.tryConfigPath(configPath);
+			} else {
+				filePath = this.tryConfigPath(path.resolve(process.cwd(), configPath));
+
+				if (filePath == null) {
+					filePath = this.tryConfigPath(configPath, true);
+				}
+			}
 
 			if (filePath == null) {
 				return Promise.reject(new Error(`Config file not found: ${configPath}`));
 			}
-		} else {
-			filePath = this.tryConfigPaths([
-				path.resolve(process.cwd(), "moleculer.config.js"),
-				path.resolve(process.cwd(), "moleculer.config.json")
-			]);
 		}
 
-		if (filePath) {
+		if (filePath == null) {
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.js"));
+		}
+		if (filePath == null) {
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.json"));
+		}
+
+		if (filePath != null) {
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -193,21 +200,22 @@ export default class MoleculerRunner {
 	}
 
 	/**
-	 * Try to resolve a configuration file at a series of paths
-	 * @param {string[]} paths - Paths to attempt resolution from
+	 * Try to resolve a configuration file at a path
+	 * @param {string} configPath - Path to attempt resolution from
+	 * @param {boolean} [startFromCwd=false] - Start resolution from current working directory
 	 * @returns {string | null}
 	 */
-	tryConfigPaths(paths) {
-		for (let idx = 0; idx < paths.length; idx++) {
-			const path = paths[idx];
-			try {
-				return require.resolve(path, { paths: [process.cwd()] });
-			} catch (_) {
-				// ignore
-			}
+	tryConfigPath(configPath, startFromCwd = false) {
+		let resolveOptions;
+		if (startFromCwd) {
+			resolveOptions = { paths: [process.cwd()] };
 		}
 
-		return null;
+		try {
+			return require.resolve(configPath, resolveOptions);
+		} catch (_) {
+			return null;
+		}
 	}
 
 	normalizeEnvValue(value) {
