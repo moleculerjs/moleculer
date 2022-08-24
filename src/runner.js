@@ -155,7 +155,15 @@ class MoleculerRunner {
 
 		console.log(`configured to use ${configPath}`);
 		if (configPath != null) {
-			filePath = this.tryConfigPath(configPath);
+			if (path.isAbsolute(configPath)) {
+				filePath = this.tryConfigPath(configPath);
+			} else {
+				filePath = this.tryConfigPath(path.resolve(process.cwd(), configPath));
+
+				if (filePath == null) {
+					filePath = this.tryConfigPath(configPath, true);
+				}
+			}
 
 			if (filePath == null) {
 				return Promise.reject(new Error(`Config file not found: ${configPath}`));
@@ -163,10 +171,10 @@ class MoleculerRunner {
 		}
 
 		if (filePath == null) {
-			filePath = this.tryConfigPath("moleculer.config.js");
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.js"));
 		}
 		if (filePath == null) {
-			filePath = this.tryConfigPath("moleculer.config.json");
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.json"));
 		}
 
 		if (filePath != null) {
@@ -191,21 +199,24 @@ class MoleculerRunner {
 				default:
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
+		} else {
+			console.log("not using config file");
 		}
 	}
 
 	/**
 	 * Try to resolve a configuration file at a path
 	 * @param {string} configPath - Path to attempt resolution from
+	 * @param {boolean} [startFromCwd=false] - Start resolution from current working directory
 	 * @returns {string | null}
 	 */
-	tryConfigPath(configPath) {
+	tryConfigPath(configPath, startFromCwd = false) {
 		let resolveOptions;
-		if (!path.isAbsolute(configPath)) {
+		if (startFromCwd) {
 			resolveOptions = { paths: [process.cwd()] };
 		}
 
-		console.log(`Attempting to resolve from from: ${configPath}`);
+		console.log(`Attempting to resolve config from: ${configPath}`);
 		try {
 			return require.resolve(configPath, resolveOptions);
 		} catch (_) {
