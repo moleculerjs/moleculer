@@ -153,7 +153,6 @@ class MoleculerRunner {
 		// Env vars have priority over the flags
 		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
 
-		console.log(`configured to use ${configPath}`);
 		if (configPath != null) {
 			if (path.isAbsolute(configPath)) {
 				filePath = this.tryConfigPath(configPath);
@@ -178,7 +177,6 @@ class MoleculerRunner {
 		}
 
 		if (filePath != null) {
-			console.log(`using configuration file from ${filePath}`);
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -199,8 +197,6 @@ class MoleculerRunner {
 				default:
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
-		} else {
-			console.log("not using config file");
 		}
 	}
 
@@ -216,7 +212,6 @@ class MoleculerRunner {
 			resolveOptions = { paths: [process.cwd()] };
 		}
 
-		console.log(`Attempting to resolve config from: ${configPath}`);
 		try {
 			return require.resolve(configPath, resolveOptions);
 		} catch (_) {
