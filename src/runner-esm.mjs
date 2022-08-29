@@ -173,6 +173,9 @@ export default class MoleculerRunner {
 		}
 
 		if (filePath == null) {
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.mjs"));
+		}
+		if (filePath == null) {
 			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.js"));
 		}
 		if (filePath == null) {
