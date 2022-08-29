@@ -115,7 +115,7 @@
     "thrift": "^0.16.0",
     "ts-node": "^10.9.1",
     "tsd": "^0.22.0",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.2",
     "v8-natives": "^1.2.5",
     "winston": "^3.8.1",
     "winston-context": "^0.0.7"
