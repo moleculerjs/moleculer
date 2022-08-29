@@ -166,18 +166,18 @@ declare namespace Moleculer {
 	type TracingActionTags =
 		| TracingActionTagsFuncType
 		| {
-				params?: boolean | string[];
-				meta?: boolean | string[];
-				response?: boolean | string[];
-		  };
+			params?: boolean | string[];
+			meta?: boolean | string[];
+			response?: boolean | string[];
+		};
 
 	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
 	type TracingEventTags =
 		| TracingEventTagsFuncType
 		| {
-				params?: boolean | string[];
-				meta?: boolean | string[];
-		  };
+			params?: boolean | string[];
+			meta?: boolean | string[];
+		};
 
 	interface TracingOptions {
 		enabled?: boolean;
@@ -208,13 +208,13 @@ declare namespace Moleculer {
 	}
 
 	namespace TracerExporters {
-		class Base extends BaseTraceExporter {}
-		class Console extends BaseTraceExporter {}
-		class Datadog extends BaseTraceExporter {}
-		class Event extends BaseTraceExporter {}
-		class EventLegacy extends BaseTraceExporter {}
-		class Jaeger extends BaseTraceExporter {}
-		class Zipkin extends BaseTraceExporter {}
+		class Base extends BaseTraceExporter { }
+		class Console extends BaseTraceExporter { }
+		class Datadog extends BaseTraceExporter { }
+		class Event extends BaseTraceExporter { }
+		class EventLegacy extends BaseTraceExporter { }
+		class Jaeger extends BaseTraceExporter { }
+		class Zipkin extends BaseTraceExporter { }
 	}
 
 	interface MetricsReporterOptions {
@@ -338,11 +338,11 @@ declare namespace Moleculer {
 	}
 
 	namespace MetricTypes {
-		class Base extends BaseMetric {}
-		class Counter extends CounterMetric {}
-		class Gauge extends GaugeMetric {}
-		class Histogram extends HistogramMetric {}
-		class Info extends InfoMetric {}
+		class Base extends BaseMetric { }
+		class Counter extends CounterMetric { }
+		class Gauge extends GaugeMetric { }
+		class Histogram extends HistogramMetric { }
+		class Info extends InfoMetric { }
 	}
 
 	interface BaseMetricOptions {
@@ -428,13 +428,13 @@ declare namespace Moleculer {
 	}
 
 	namespace MetricReporters {
-		class Base extends MetricBaseReporter {}
-		class Console extends MetricBaseReporter {}
-		class CSV extends MetricBaseReporter {}
-		class Event extends MetricBaseReporter {}
-		class Datadog extends MetricBaseReporter {}
-		class Prometheus extends MetricBaseReporter {}
-		class StatsD extends MetricBaseReporter {}
+		class Base extends MetricBaseReporter { }
+		class Console extends MetricBaseReporter { }
+		class CSV extends MetricBaseReporter { }
+		class Event extends MetricBaseReporter { }
+		class Datadog extends MetricBaseReporter { }
+		class Prometheus extends MetricBaseReporter { }
+		class StatsD extends MetricBaseReporter { }
 	}
 
 	interface BulkheadOptions {
@@ -475,7 +475,7 @@ declare namespace Moleculer {
 		basePath?: string;
 	}
 
-	type ActionSchema<S = ServiceSettingSchema> = {
+	type ActionSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		name?: string;
 		rest?: RestSchema | string | string[];
 		visibility?: ActionVisibility;
@@ -493,7 +493,7 @@ declare namespace Moleculer {
 		[key: string]: any;
 	} & ThisType<Service<S>>;
 
-	type EventSchema<S = ServiceSettingSchema> = {
+	type EventSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -506,7 +506,7 @@ declare namespace Moleculer {
 		[key: string]: any;
 	} & ThisType<Service<S>>;
 
-	type ServiceActionsSchema<S = ServiceSettingSchema> = {
+	type ServiceActionsSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;
 	} & ThisType<Service<S>>;
 
@@ -634,7 +634,7 @@ declare namespace Moleculer {
 
 	type ServiceEventHandler = (ctx: Context) => void | Promise<void>;
 
-	type ServiceEvent<S = ServiceSettingSchema> = {
+	type ServiceEvent<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -657,12 +657,12 @@ declare namespace Moleculer {
 	) => Promise<any>;
 	type Middleware = {
 		[name: string]:
-			| ((handler: ActionHandler, action: ActionSchema) => any)
-			| ((handler: ActionHandler, event: ServiceEvent) => any)
-			| ((handler: ActionHandler) => any)
-			| ((service: Service) => any)
-			| ((broker: ServiceBroker) => any)
-			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
+		| ((handler: ActionHandler, action: ActionSchema) => any)
+		| ((handler: ActionHandler, event: ServiceEvent) => any)
+		| ((handler: ActionHandler) => any)
+		| ((service: Service) => any)
+		| ((broker: ServiceBroker) => any)
+		| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
 	};
 
 	type MiddlewareInit = (broker: ServiceBroker) => Middleware;
@@ -713,7 +713,7 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	interface ServiceSchema<S = ServiceSettingSchema> {
+	interface ServiceSchema<S extends ServiceSettingSchema = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
 		settings?: S;
@@ -746,7 +746,7 @@ declare namespace Moleculer {
 		statuses: Array<{ name: string; available: boolean }>;
 	}
 
-	class Service<S = ServiceSettingSchema> implements ServiceSchema {
+	class Service<S extends ServiceSettingSchema = ServiceSettingSchema> implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
 		protected parseServiceSchema(schema: ServiceSchema<S>): void;
@@ -906,10 +906,10 @@ declare namespace Moleculer {
 		tracing?: boolean | TracerOptions;
 
 		internalServices?:
-			| boolean
-			| {
-					[key: string]: Partial<ServiceSchema>;
-			  };
+		| boolean
+		| {
+			[key: string]: Partial<ServiceSchema>;
+		};
 		internalMiddlewares?: boolean;
 
 		dependencyInterval?: number;
@@ -1232,19 +1232,19 @@ declare namespace Moleculer {
 
 		interface Packet {
 			type:
-				| PACKET_UNKNOWN
-				| PACKET_EVENT
-				| PACKET_DISCONNECT
-				| PACKET_DISCOVER
-				| PACKET_INFO
-				| PACKET_HEARTBEAT
-				| PACKET_REQUEST
-				| PACKET_PING
-				| PACKET_PONG
-				| PACKET_RESPONSE
-				| PACKET_GOSSIP_REQ
-				| PACKET_GOSSIP_RES
-				| PACKET_GOSSIP_HELLO;
+			| PACKET_UNKNOWN
+			| PACKET_EVENT
+			| PACKET_DISCONNECT
+			| PACKET_DISCOVER
+			| PACKET_INFO
+			| PACKET_HEARTBEAT
+			| PACKET_REQUEST
+			| PACKET_PING
+			| PACKET_PONG
+			| PACKET_RESPONSE
+			| PACKET_GOSSIP_REQ
+			| PACKET_GOSSIP_RES
+			| PACKET_GOSSIP_HELLO;
 			target?: string;
 			payload: PacketPayload;
 		}
@@ -1389,7 +1389,7 @@ declare namespace Moleculer {
 		convertSchemaToMoleculer(schema: any): GenericObject;
 	}
 
-	class Validator extends BaseValidator {} // deprecated
+	class Validator extends BaseValidator { } // deprecated
 
 	abstract class BaseStrategy {
 		constructor(registry: ServiceRegistry, broker: ServiceBroker, opts?: object);
@@ -1398,19 +1398,19 @@ declare namespace Moleculer {
 
 	type ValidatorNames = "Fastest";
 
-	class RoundRobinStrategy extends BaseStrategy {}
-	class RandomStrategy extends BaseStrategy {}
-	class CpuUsageStrategy extends BaseStrategy {}
-	class LatencyStrategy extends BaseStrategy {}
-	class ShardStrategy extends BaseStrategy {}
+	class RoundRobinStrategy extends BaseStrategy { }
+	class RandomStrategy extends BaseStrategy { }
+	class CpuUsageStrategy extends BaseStrategy { }
+	class LatencyStrategy extends BaseStrategy { }
+	class ShardStrategy extends BaseStrategy { }
 
 	namespace Strategies {
-		class Base extends BaseStrategy {}
-		class RoundRobin extends RoundRobinStrategy {}
-		class Random extends RandomStrategy {}
-		class CpuUsage extends CpuUsageStrategy {}
-		class Latency extends LatencyStrategy {}
-		class Shard extends ShardStrategy {}
+		class Base extends BaseStrategy { }
+		class RoundRobin extends RoundRobinStrategy { }
+		class Random extends RandomStrategy { }
+		class CpuUsage extends CpuUsageStrategy { }
+		class Latency extends LatencyStrategy { }
+		class Shard extends ShardStrategy { }
 	}
 
 	abstract class BaseDiscoverer {
@@ -1444,10 +1444,10 @@ declare namespace Moleculer {
 	}
 
 	namespace Discoverers {
-		class Base extends BaseDiscoverer {}
-		class Local extends BaseDiscoverer {}
-		class Redis extends BaseDiscoverer {}
-		class Etcd3 extends BaseDiscoverer {}
+		class Base extends BaseDiscoverer { }
+		class Local extends BaseDiscoverer { }
+		class Redis extends BaseDiscoverer { }
+		class Etcd3 extends BaseDiscoverer { }
 	}
 
 	interface ValidatorOptions {
@@ -1456,20 +1456,20 @@ declare namespace Moleculer {
 	}
 
 	namespace Validators {
-		class Base extends BaseValidator {}
-		class Fastest extends BaseValidator {}
+		class Base extends BaseValidator { }
+		class Fastest extends BaseValidator { }
 	}
 
 	namespace Transporters {
-		class Base extends Transporter {}
-		class Fake extends Base {}
-		class NATS extends Base {}
-		class MQTT extends Base {}
-		class Redis extends Base {}
-		class AMQP extends Base {}
-		class Kafka extends Base {}
-		class STAN extends Base {}
-		class TCP extends Base {}
+		class Base extends Transporter { }
+		class Fake extends Base { }
+		class NATS extends Base { }
+		class MQTT extends Base { }
+		class Redis extends Base { }
+		class AMQP extends Base { }
+		class Kafka extends Base { }
+		class STAN extends Base { }
+		class TCP extends Base { }
 	}
 
 	namespace Errors {
@@ -1484,9 +1484,9 @@ declare namespace Moleculer {
 			constructor(message: string, code: number);
 			constructor(message: string);
 		}
-		class MoleculerRetryableError extends MoleculerError {}
-		class MoleculerServerError extends MoleculerRetryableError {}
-		class MoleculerClientError extends MoleculerError {}
+		class MoleculerRetryableError extends MoleculerError { }
+		class MoleculerServerError extends MoleculerRetryableError { }
+		class MoleculerClientError extends MoleculerError { }
 
 		class ServiceNotFoundError extends MoleculerRetryableError {
 			constructor(data: any);
