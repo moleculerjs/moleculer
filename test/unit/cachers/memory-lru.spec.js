@@ -89,6 +89,7 @@ describe("Test MemoryLRUCacher set & get", () => {
 });
 
 describe("Test MemoryLRUCacher set & get with default cloning enabled", () => {
+	let clock = lolex.install({ shouldClearNativeTimers: true });
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({ clone: true });
 	cacher.init(broker);
@@ -104,6 +105,8 @@ describe("Test MemoryLRUCacher set & get with default cloning enabled", () => {
 	};
 
 	afterAll(async () => {
+		await clock.uninstall();
+
 		await cacher.close();
 		await broker.stop();
 	});
@@ -176,6 +179,7 @@ describe("Test MemoryLRUCacher set & get with default cloning disabled", () => {
 });
 
 describe("Test MemoryLRUCacher set & get with custom cloning", () => {
+	let clock;
 	const clone = jest.fn(data => JSON.parse(JSON.stringify(data)));
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({ clone });
@@ -191,7 +195,13 @@ describe("Test MemoryLRUCacher set & get with custom cloning", () => {
 		}
 	};
 
+	beforeAll(async () => {
+		clock = lolex.install({ shouldClearNativeTimers: true });
+	});
+
 	afterAll(async () => {
+		await clock.uninstall();
+
 		await cacher.close();
 		await broker.stop();
 	});
@@ -329,7 +339,7 @@ describe("Test MemoryLRUCacher clean", () => {
 });
 
 describe("Test MemoryLRUCacher expired method", () => {
-	let clock = lolex.install({ shouldClearNativeTimers: true });
+	let clock;
 
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new MemoryLRUCacher({
@@ -349,6 +359,9 @@ describe("Test MemoryLRUCacher expired method", () => {
 	};
 	let data2 = "Data2";
 
+	beforeAll(async () => {
+		clock = lolex.install({ shouldClearNativeTimers: true });
+	});
 	afterAll(() => clock.uninstall());
 
 	it("should save the data with key", () => {

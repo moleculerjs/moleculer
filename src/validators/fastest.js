@@ -29,7 +29,7 @@ class FastestValidator extends BaseValidator {
 	}
 
 	/**
-	 * Validate params againt the schema
+	 * Validate params against the schema
 	 * @param {any} params
 	 * @param {any} schema
 	 * @returns {boolean}

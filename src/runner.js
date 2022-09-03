@@ -151,26 +151,32 @@ class MoleculerRunner {
 	loadConfigFile() {
 		let filePath;
 		// Env vars have priority over the flags
-		if (process.env["MOLECULER_CONFIG"]) {
-			filePath = path.isAbsolute(process.env["MOLECULER_CONFIG"])
-				? process.env["MOLECULER_CONFIG"]
-				: path.resolve(process.cwd(), process.env["MOLECULER_CONFIG"]);
-		} else if (this.flags.config) {
-			filePath = path.isAbsolute(this.flags.config)
-				? this.flags.config
-				: path.resolve(process.cwd(), this.flags.config);
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.js"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.js");
-		}
-		if (!filePath && fs.existsSync(path.resolve(process.cwd(), "moleculer.config.json"))) {
-			filePath = path.resolve(process.cwd(), "moleculer.config.json");
+		const configPath = process.env["MOLECULER_CONFIG"] || this.flags.config;
+
+		if (configPath != null) {
+			if (path.isAbsolute(configPath)) {
+				filePath = this.tryConfigPath(configPath);
+			} else {
+				filePath = this.tryConfigPath(path.resolve(process.cwd(), configPath));
+
+				if (filePath == null) {
+					filePath = this.tryConfigPath(configPath, true);
+				}
+			}
+
+			if (filePath == null) {
+				return Promise.reject(new Error(`Config file not found: ${configPath}`));
+			}
 		}
 
-		if (filePath) {
-			if (!fs.existsSync(filePath))
-				return Promise.reject(new Error(`Config file not found: ${filePath}`));
+		if (filePath == null) {
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.js"));
+		}
+		if (filePath == null) {
+			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.json"));
+		}
 
+		if (filePath != null) {
 			const ext = path.extname(filePath);
 			switch (ext) {
 				case ".json":
@@ -191,6 +197,25 @@ class MoleculerRunner {
 				default:
 					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
+		}
+	}
+
+	/**
+	 * Try to resolve a configuration file at a path
+	 * @param {string} configPath - Path to attempt resolution from
+	 * @param {boolean} [startFromCwd=false] - Start resolution from current working directory
+	 * @returns {string | null}
+	 */
+	tryConfigPath(configPath, startFromCwd = false) {
+		let resolveOptions;
+		if (startFromCwd) {
+			resolveOptions = { paths: [process.cwd()] };
+		}
+
+		try {
+			return require.resolve(configPath, resolveOptions);
+		} catch (_) {
+			return null;
 		}
 	}
 

@@ -443,7 +443,7 @@ class Registry {
 	 *
 	 * @memberof Registry
 	 */
-	regenerateLocalRawInfo(incSeq) {
+	regenerateLocalRawInfo(incSeq, isStopping) {
 		let node = this.nodes.localNode;
 		if (incSeq) node.seq++;
 
@@ -457,8 +457,12 @@ class Registry {
 			"seq",
 			"metadata"
 		]);
-		if (this.broker.started || incSeq) rawInfo.services = this.services.getLocalNodeServices();
-		else rawInfo.services = [];
+
+		if (!isStopping && (this.broker.started || incSeq)) {
+			rawInfo.services = this.services.getLocalNodeServices();
+		} else {
+			rawInfo.services = [];
+		}
 
 		// Make to be safety
 		node.rawInfo = utils.safetyObject(rawInfo, this.broker.options);

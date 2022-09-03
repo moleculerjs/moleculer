@@ -70,7 +70,8 @@ const defaultOptions = {
 
 	registry: {
 		strategy: "RoundRobin",
-		preferLocal: true
+		preferLocal: true,
+		stopDelay: 100
 	},
 
 	circuitBreaker: {
@@ -104,12 +105,14 @@ const defaultOptions = {
 
 	validator: true,
 
-	metrics: false,
-	tracing: false,
+	metrics: { enabled: false },
+	tracing: { enabled: false },
 
 	internalServices: true,
 	internalMiddlewares: true,
+
 	dependencyInterval: 1000,
+	dependencyTimeout: 0,
 
 	hotReload: false,
 
@@ -499,16 +502,20 @@ class ServiceBroker {
 	 */
 	stop() {
 		this.started = false;
-		this.stopping = true;
 		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {
-					this.registry.regenerateLocalRawInfo(true);
+					this.registry.regenerateLocalRawInfo(true, true);
 					// Send empty node info in order to block incoming requests
 					return this.registry.discoverer.sendLocalNodeInfo();
 				}
 			})
 			.then(() => {
+				return this.Promise.delay(this.options.registry.stopDelay);
+			})
+			.then(() => {
+				this.stopping = true;
+
 				return this.callMiddlewareHook("stopping", [this], { reverse: true });
 			})
 			.then(() => {
@@ -824,10 +831,7 @@ class ServiceBroker {
 		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			service = new schema(this, schemaMods);
 		} else {
-			let s = schema;
-			if (schemaMods) s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
-
-			service = new this.ServiceFactory(this, s);
+			service = new this.ServiceFactory(this, schema, schemaMods);
 		}
 
 		// If broker has started yet, call the started lifecycle event of service
@@ -999,48 +1003,79 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
+	waitForServices(
+		serviceNames,
+		timeout = this.options.dependencyTimeout,
+		interval = this.options.dependencyInterval,
+		logger = this.logger
+	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
 		serviceNames = _.uniq(
 			_.compact(
 				serviceNames.map(x => {
-					if (utils.isPlainObject(x) && x.name)
-						return this.ServiceFactory.getVersionedFullName(x.name, x.version);
-
-					if (utils.isString(x)) return x;
+					if (utils.isPlainObject(x) && x.name) {
+						if (Array.isArray(x.version)) {
+							return x.version.map(v =>
+								this.ServiceFactory.getVersionedFullName(x.name, v)
+							);
+						} else {
+							return this.ServiceFactory.getVersionedFullName(x.name, x.version);
+						}
+					} else if (utils.isString(x)) {
+						return x;
+					}
 				})
 			)
 		);
 
 		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
 
-		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
+		logger.info(
+			`Waiting for service(s) '${serviceNames
+				.map(n => (Array.isArray(n) ? n.join(" OR ") : n))
+				.join(", ")}'...`
+		);
 
 		const startTime = Date.now();
 		return new this.Promise((resolve, reject) => {
 			const check = () => {
-				const serviceStatuses = serviceNames.map(serviceName => {
-					return {
-						name: serviceName,
-						available: this.registry.hasService(serviceName)
-					};
+				const serviceStatuses = serviceNames.map(name => {
+					if (Array.isArray(name)) {
+						return name.map(n => ({
+							name: n,
+							available: this.registry.hasService(n)
+						}));
+					} else {
+						return {
+							name,
+							available: this.registry.hasService(name)
+						};
+					}
 				});
+				const flattenedStatuses = _.flatMap(serviceStatuses, s => s);
+				const names = flattenedStatuses.map(s => s.name);
+				const availableServices = flattenedStatuses.filter(s => s.available);
 
-				const availableServices = serviceStatuses.filter(s => s.available);
-
-				if (availableServices.length == serviceNames.length) {
-					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
-					return resolve({ services: serviceNames, statuses: serviceStatuses });
+				const isReady = serviceStatuses.every(status =>
+					Array.isArray(status) ? status.some(n => n.available) : status.available
+				);
+				if (isReady) {
+					logger.info(
+						`Service(s) '${availableServices
+							.map(s => s.name)
+							.join(", ")}' are available.`
+					);
+					return resolve({ services: names, statuses: flattenedStatuses });
 				}
 
-				const unavailableServices = serviceStatuses.filter(s => !s.available);
+				const unavailableServices = flattenedStatuses.filter(s => !s.available);
 				logger.debug(
 					format(
 						"%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...",
 						availableServices.length,
 						availableServices.map(s => s.name).join(", "),
-						serviceNames.length,
+						serviceStatuses.length,
 						unavailableServices.length,
 						unavailableServices.map(s => s.name).join(", ")
 					)
@@ -1052,11 +1087,11 @@ class ServiceBroker {
 							"Services waiting is timed out.",
 							500,
 							"WAITFOR_SERVICES",
-							{ services: serviceNames, statuses: serviceStatuses }
+							{ services: names, statuses: flattenedStatuses }
 						)
 					);
 
-				setTimeout(check, interval || this.options.dependencyInterval || 1000);
+				setTimeout(check, interval);
 			};
 
 			check();
