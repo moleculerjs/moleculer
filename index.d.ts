@@ -746,7 +746,7 @@ declare namespace Moleculer {
 		statuses: Array<{ name: string; available: boolean }>;
 	}
 
-	class Service<S extends ServiceSettingSchema = ServiceSettingSchema> implements ServiceSchema {
+	class Service<S extends ServiceSettingSchema = ServiceSettingSchema> implements ServiceSchema<S> {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
 		protected parseServiceSchema(schema: ServiceSchema<S>): void;
