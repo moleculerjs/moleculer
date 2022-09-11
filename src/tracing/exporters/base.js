@@ -15,6 +15,8 @@ class BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	constructor(opts) {
+		if (opts && isString(opts.excludes)) opts.excludes = [opts.excludes];
+
 		this.opts = _.defaultsDeep(opts, {
 			safetyTags: false,
 			excludes: null

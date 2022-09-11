@@ -3,7 +3,7 @@
 const _ = require("lodash");
 const r = _.repeat;
 const kleur = require("kleur");
-const { humanize, isFunction } = require("../../utils");
+const { humanize, isFunction, match } = require("../../utils");
 
 const BaseTraceExporter = require("./base");
 
@@ -169,10 +169,19 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	getTraceInfo(main) {
 		let depth = 0;
 		let total = 0;
+		let excluded = 0;
+
 		let check = (item, level, parents) => {
 			item.level = level;
 			item.parents = parents || [];
 			total++;
+
+			if (this.opts.excludes && this.opts.excludes.length > 0) {
+				if (this.opts.excludes.find(entry => match(item.span.tags.action.name, entry))) {
+					excluded++;
+				}
+			}
+
 			if (level > depth) depth = level;
 
 			if (item.children.length > 0) {
@@ -187,7 +196,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		check(main, 1);
 
-		return { depth, total };
+		return { depth, total, excluded };
 	}
 
 	getSpanIndent(spanItem) {
@@ -216,37 +225,45 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 */
 	printSpanTime(spanItem, mainItem, level) {
 		const span = spanItem.span;
-		const mainSpan = mainItem.span;
-		const margin = 2 * 2;
-		const w = (this.opts.width || 80) - margin;
-		const gw = this.opts.gaugeWidth || 40;
+		if (
+			this.opts.excludes === null ||
+			(Array.isArray(this.opts.excludes) &&
+				this.opts.excludes.length > 0 &&
+				!this.opts.excludes.find(entry => match(spanItem.span.tags.action.name, entry)))
+		) {
+			const mainSpan = mainItem.span;
+			const margin = 2 * 2;
+			const w = (this.opts.width || 80) - margin;
+			const gw = this.opts.gaugeWidth || 40;
 
-		const time = span.duration == null ? "?" : humanize(span.duration);
-		const indent = this.getSpanIndent(spanItem);
-		const caption = this.getCaption(span);
-		const info =
-			kleur.grey(indent) +
-			this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) +
-			" " +
-			time;
+			const time = span.duration == null ? "?" : humanize(span.duration);
+			const indent = this.getSpanIndent(spanItem);
+			const caption = this.getCaption(span);
+			const info =
+				kleur.grey(indent) +
+				this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) +
+				" " +
+				time;
 
-		const startTime = span.startTime || mainSpan.startTime;
-		const finishTime = span.finishTime || mainSpan.finishTime;
+			const startTime = span.startTime || mainSpan.startTime;
+			const finishTime = span.finishTime || mainSpan.finishTime;
 
-		let gstart =
-			((startTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) * 100;
-		let gstop =
-			((finishTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) * 100;
+			let gstart =
+				((startTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) *
+				100;
+			let gstop =
+				((finishTime - mainSpan.startTime) / (mainSpan.finishTime - mainSpan.startTime)) *
+				100;
 
-		if (Number.isNaN(gstart) && Number.isNaN(gstop)) {
-			gstart = 0;
-			gstop = 100;
+			if (Number.isNaN(gstart) && Number.isNaN(gstop)) {
+				gstart = 0;
+				gstop = 100;
+			}
+			if (gstop > 100) gstop = 100;
+
+			const c = this.getColor(span);
+			this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
 		}
-		if (gstop > 100) gstop = 100;
-
-		const c = this.getColor(span);
-		this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
-
 		if (spanItem.children.length > 0)
 			spanItem.children.forEach((spanID, idx) =>
 				this.printSpanTime(this.spans[spanID], mainItem, level + 1, spanItem, {
@@ -270,7 +287,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		this.drawTableTop();
 
-		const { total, depth } = this.getTraceInfo(main);
+		const { total, depth, excluded } = this.getTraceInfo(main);
 
 		const truncatedID = this.getAlignedTexts(
 			id,
@@ -278,9 +295,11 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 				"ID: ".length -
 				"Depth: ".length -
 				("" + depth).length -
+				"Depth: ".length -
+				("" + excluded).length -
 				"Total: ".length -
 				("" + total).length -
-				2
+				6
 		);
 		const line =
 			kleur.grey("ID: ") +
@@ -288,6 +307,9 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			" " +
 			kleur.grey("Depth: ") +
 			kleur.bold(depth) +
+			" " +
+			kleur.grey("Excluded: ") +
+			kleur.bold(excluded) +
 			" " +
 			kleur.grey("Total: ") +
 			kleur.bold(total);

@@ -57,7 +57,7 @@ Object {
 exports[`Test Console tracing exporter class Test spans printing should print full trace 1`] = `
 Array [
   "┌──────────────────────────────────────────────────────────────────────────────┐",
-  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "│ ID: span-1                                     Depth: 3 Excluded: 0 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",
   "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
   "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
@@ -70,7 +70,7 @@ Array [
 exports[`Test Console tracing exporter class Test spans printing should print full trace with error 1`] = `
 Array [
   "┌──────────────────────────────────────────────────────────────────────────────┐",
-  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "│ ID: span-1                                     Depth: 3 Excluded: 0 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",
   "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
   "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
@@ -83,7 +83,7 @@ Array [
 exports[`Test Console tracing exporter class Test spans printing should print to the default logger 1`] = `
 Array [
   "┌──────────────────────────────────────────────────────────────────────────────┐",
-  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "│ ID: span-1                                     Depth: 3 Excluded: 0 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",
   "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
   "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
