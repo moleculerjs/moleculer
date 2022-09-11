@@ -177,7 +177,14 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			total++;
 
 			if (this.opts.excludes && this.opts.excludes.length > 0) {
-				if (this.opts.excludes.find(entry => match(item.span.tags.action.name, entry))) {
+				if (
+					this.opts.excludes.find(entry =>
+						match(
+							item.span.tags && item.span.tags.action && item.span.tags.action.name,
+							entry
+						)
+					)
+				) {
 					excluded++;
 				}
 			}
@@ -211,10 +218,44 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 			s += spanItem.last ? "└─" : "├─";
 
-			return s + (spanItem.children.length > 0 ? "┬─" : "──") + " ";
+			// No excludes. Return as is
+			if (!this.opts.excludes) return s + (spanItem.children.length > 0 ? "┬─" : "──") + " ";
+
+			// Check if all children are excluded
+			if (this.opts.excludes && this.opts.excludes[0] === "**.span-22") {
+				let a = 1;
+			}
+			const childrenIds = this.collectSpanItemChildren(spanItem, []);
+
+			const someChildToPrint = childrenIds.find(spanID => {
+				const spanItem = this.spans[spanID];
+
+				return this.opts.excludes.find(entry =>
+					match(
+						spanItem.span.tags &&
+							spanItem.span.tags.action &&
+							spanItem.span.tags.action.name,
+						entry
+					)
+				)
+					? false
+					: true;
+			});
+
+			return s + (someChildToPrint ? "┬─" : "──") + " ";
 		}
 
 		return "";
+	}
+
+	collectSpanItemChildren(spanItem, childrenIds = []) {
+		if (spanItem.children.length > 0) {
+			spanItem.children.forEach(spanID => {
+				childrenIds.push(spanID);
+				this.collectSpanItemChildren(this.spans[spanID], childrenIds);
+			});
+		}
+		return childrenIds;
 	}
 
 	/**
@@ -229,7 +270,14 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			this.opts.excludes === null ||
 			(Array.isArray(this.opts.excludes) &&
 				this.opts.excludes.length > 0 &&
-				!this.opts.excludes.find(entry => match(spanItem.span.tags.action.name, entry)))
+				!this.opts.excludes.find(entry =>
+					match(
+						spanItem.span.tags &&
+							spanItem.span.tags.action &&
+							spanItem.span.tags.action.name,
+						entry
+					)
+				))
 		) {
 			const mainSpan = mainItem.span;
 			const margin = 2 * 2;

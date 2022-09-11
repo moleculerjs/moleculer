@@ -39,6 +39,24 @@ describe("Test Console tracing exporter class", () => {
 				gaugeWidth: 50
 			});
 		});
+
+		it("should create with custom options - excludes as string", () => {
+			const exporter = new ConsoleTraceExporter({
+				logger: console,
+				width: 120,
+				gaugeWidth: 50,
+				excludes: "math.**" // As string
+			});
+
+			expect(exporter.opts).toEqual({
+				safetyTags: false,
+				logger: console,
+				colors: true,
+				excludes: ["math.**"],
+				width: 120,
+				gaugeWidth: 50
+			});
+		});
 	});
 
 	describe("Test init method", () => {
@@ -181,7 +199,7 @@ describe("Test Console tracing exporter class", () => {
 		});
 	});
 
-	describe("Test spans printing", () => {
+	describe("Test spans printing WITHOUT excludes", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 
 		let LOG_STORE = [];
@@ -306,4 +324,145 @@ describe("Test Console tracing exporter class", () => {
 			expect(LOG_STORE).toMatchSnapshot();
 		});
 	});
+
+	for (const exclude of [["**.span-1"], ["**.span-2"], ["**.span-22"], ["**.span-3"]]) {
+		describe(`Test spans printing WITH excludes for ${exclude}`, () => {
+			const fakeTracer = { broker, logger: broker.logger };
+
+			let LOG_STORE = [];
+			const logger = jest.fn((...args) => LOG_STORE.push(args.join(" ")));
+
+			const exporter = new ConsoleTraceExporter({
+				colors: false,
+				width: 80,
+				logger,
+				excludes: exclude
+			});
+			exporter.init(fakeTracer);
+
+			const span1 = {
+				id: "span-1",
+				name: "Span #1",
+				startTime: 1000,
+				finishTime: 1100,
+				duration: 100,
+				tags: {
+					fromCache: false,
+					remoteCall: false,
+					action: {
+						name: "post.span-1"
+					}
+				},
+				error: null
+			};
+
+			const span2 = {
+				id: "span-2",
+				parentID: "span-1",
+				name: "Span #2",
+				startTime: 1020,
+				finishTime: 1070,
+				duration: 50,
+				tags: {
+					fromCache: true,
+					remoteCall: false,
+					action: {
+						name: "post.span-2"
+					}
+				},
+				error: null
+			};
+
+			const span22 = {
+				id: "span-2-2",
+				parentID: "span-2",
+				name: "Span #22 (with long name)",
+				startTime: 1025,
+				finishTime: 1050,
+				duration: 25,
+				tags: {
+					fromCache: false,
+					remoteCall: true,
+					action: {
+						name: "post.span-22"
+					}
+				},
+				error: null
+			};
+
+			const span3 = {
+				id: "span-3",
+				parentID: "span-1",
+				name: "Span #3",
+				startTime: 1015,
+				finishTime: 1090,
+				duration: 75,
+				tags: {
+					fromCache: false,
+					remoteCall: false,
+					action: {
+						name: "post.span-3"
+					}
+				},
+				error: null
+			};
+
+			it("should print full trace", () => {
+				exporter.spanStarted(span1);
+				exporter.spanStarted(span2);
+				exporter.spanStarted(span22);
+				exporter.spanStarted(span3);
+
+				exporter.spanFinished(span3);
+				exporter.spanFinished(span22);
+				exporter.spanFinished(span2);
+				exporter.spanFinished(span1);
+
+				expect(LOG_STORE).toMatchSnapshot();
+			});
+
+			it("should print full trace with error", () => {
+				LOG_STORE.length = 0;
+
+				span22.name = "Span #22";
+				span22.error = {
+					name: "MoleculerError",
+					message: "Something happened"
+				};
+
+				exporter.spanStarted(span1);
+				exporter.spanStarted(span2);
+				exporter.spanStarted(span22);
+				exporter.spanStarted(span3);
+
+				exporter.spanFinished(span3);
+				exporter.spanFinished(span22);
+				exporter.spanFinished(span2);
+				exporter.spanFinished(span1);
+
+				expect(LOG_STORE).toMatchSnapshot();
+			});
+
+			it("should print to the default logger", () => {
+				LOG_STORE.length = 0;
+				exporter.opts.logger = null;
+				exporter.logger.info = logger;
+
+				span22.name = "Span #22";
+				span22.error = null;
+
+				exporter.spanStarted(span1);
+				exporter.spanStarted(span2);
+				exporter.spanStarted(span22);
+				exporter.spanStarted(span3);
+
+				exporter.spanFinished(span3);
+				exporter.spanFinished(span22);
+				exporter.spanFinished(span2);
+				exporter.spanFinished(span1);
+
+				expect(LOG_STORE).toMatchSnapshot();
+			});
+		});
+	}
 });

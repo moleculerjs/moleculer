@@ -72,9 +72,9 @@ broker.start().then(async () => {
 
 	await broker.call("greeter.hello");
 
-	await broker.call("math.random");
+	// await broker.call("math.random");
 
-	await broker.call("tester.test");
+	// await broker.call("tester.test");
 });
 
 /* Console Tracer exporter object
