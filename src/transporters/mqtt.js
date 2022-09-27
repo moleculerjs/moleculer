@@ -8,6 +8,7 @@
 
 const Transporter = require("./base");
 const { isObject } = require("lodash");
+const C = require("../constants");
 
 /**
  * Transporter for MQTT
@@ -76,6 +77,12 @@ class MqttTransporter extends Transporter {
 			client.on("error", e => {
 				this.logger.error("MQTT error.", e.message);
 				this.logger.debug(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.CLIENT_ERROR
+				});
 
 				if (!client.connected) reject(e);
 			});

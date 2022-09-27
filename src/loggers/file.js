@@ -111,7 +111,7 @@ class FileLogger extends FormattedLogger {
 				return this.render(format, {
 					...row,
 					timestamp,
-					time: timestamp.substr(11),
+					time: timestamp.substring(11),
 
 					level: this.padLevels[row.level],
 					mod: row && row.mod ? row.mod.toUpperCase() : ""
@@ -126,7 +126,7 @@ class FileLogger extends FormattedLogger {
 	getFilename() {
 		const now = new Date();
 		//const date = `${now.getFullYear()}-${_.padStart(now.getMonth() + 1, 2, "0")}-${_.padStart(now.getDate(), 2, "0")}`;
-		const date = now.toISOString().substr(0, 10);
+		const date = now.toISOString().substring(0, 10);
 
 		return path.join(
 			this.logFolder,

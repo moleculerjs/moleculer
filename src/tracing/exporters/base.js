@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { isObject } = require("../../utils");
+const { isObject, safetyObject } = require("../../utils");
 
 /**
  * Abstract Trace Exporter
@@ -15,7 +15,9 @@ class BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = _.defaultsDeep(opts, {
+			safetyTags: false
+		});
 		this.Promise = Promise; // default promise before logger is initialized
 	}
 
@@ -86,6 +88,10 @@ class BaseTraceExporter {
 	 */
 	flattenTags(obj, convertToString = false, path = "") {
 		if (!obj) return null;
+
+		if (this.opts.safetyTags) {
+			obj = safetyObject(obj);
+		}
 
 		return Object.keys(obj).reduce((res, k) => {
 			const o = obj[k];

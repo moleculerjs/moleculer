@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # node-version: [10.x, 12.x, 14.x, 15.x]
         node-version: [10.x, 12.x, 14.x, 16.x]
       fail-fast: false
 
@@ -57,6 +56,10 @@ jobs:
 
     - name: Execute Typescript tests
       run: npm run test:ts
+
+    - name: Execute ESM tests
+      run: npm run test:esm
+      if: ${{ matrix.node-version != '10.x' }}
 
     - name: Upload code coverage
       run: npm run coverall

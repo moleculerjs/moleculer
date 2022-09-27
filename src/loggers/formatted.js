@@ -182,7 +182,7 @@ class FormattedLogger extends BaseLogger {
 			const prefixLen = 23 + bindings.mod.length;
 			this.maxPrefixLength = Math.max(prefixLen, this.maxPrefixLength);
 			return (type, args) => [
-				kleur.grey(`[${new Date().toISOString().substr(11)}]`),
+				kleur.grey(`[${new Date().toISOString().substring(11)}]`),
 				this.levelColorStr[type],
 				modColorName + this.padLeft(prefixLen) + kleur.grey(":"),
 				...printArgs(args)
@@ -205,7 +205,7 @@ class FormattedLogger extends BaseLogger {
 				return [
 					this.render(formatter, {
 						timestamp: kleur.grey(timestamp),
-						time: kleur.grey(timestamp.substr(11)),
+						time: kleur.grey(timestamp.substring(11)),
 
 						level: this.levelColorStr[type],
 						nodeID: kleur.grey(bindings.nodeID),

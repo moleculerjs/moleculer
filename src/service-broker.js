@@ -30,6 +30,7 @@ const cpuUsage = require("./cpu-usage");
 
 const { MetricRegistry, METRIC } = require("./metrics");
 const { Tracer } = require("./tracing");
+const C = require("./constants");
 
 /**
  * Default broker options
@@ -69,7 +70,8 @@ const defaultOptions = {
 
 	registry: {
 		strategy: "RoundRobin",
-		preferLocal: true
+		preferLocal: true,
+		stopDelay: 100
 	},
 
 	circuitBreaker: {
@@ -103,12 +105,14 @@ const defaultOptions = {
 
 	validator: true,
 
-	metrics: false,
-	tracing: false,
+	metrics: { enabled: false },
+	tracing: { enabled: false },
 
 	internalServices: true,
 	internalMiddlewares: true,
+
 	dependencyInterval: 1000,
+	dependencyTimeout: 0,
 
 	hotReload: false,
 
@@ -134,6 +138,23 @@ const defaultOptions = {
 	// ContextFactory: null
 	// Promise: null
 };
+
+const INTERNAL_MIDDLEWARES = [
+	"ActionHook",
+	"Validator",
+	"Bulkhead",
+	"Cacher",
+	"ContextTracker",
+	"CircuitBreaker",
+	"Timeout",
+	"Retry",
+	"Fallback",
+	"ErrorHandler",
+	"Tracing",
+	"Metrics",
+	"Debounce",
+	"Throttle"
+];
 
 /**
  * Service broker class
@@ -164,6 +185,9 @@ class ServiceBroker {
 
 			// Broker started flag
 			this.started = false;
+
+			/** @type {Boolean} Broker stopping flag*/
+			this.stopping = false;
 
 			// Class factories
 			this.ServiceFactory = this.options.ServiceFactory || require("./service");
@@ -277,6 +301,10 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
+			// Create debounced localServiceChanged
+			const origLocalServiceChanged = this.localServiceChanged;
+			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
+
 			this.registry.init(this);
 
 			// Register internal actions
@@ -327,48 +355,7 @@ class ServiceBroker {
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
-
-			// 0. ActionHook
-			this.middlewares.add("ActionHook");
-
-			// 1. Validator
-			this.middlewares.add("Validator");
-
-			// 2. Bulkhead
-			this.middlewares.add("Bulkhead");
-
-			// 3. Cacher
-			this.middlewares.add("Cacher");
-
-			// 4. Context tracker
-			this.middlewares.add("ContextTracker");
-
-			// 5. CircuitBreaker
-			this.middlewares.add("CircuitBreaker");
-
-			// 6. Timeout
-			this.middlewares.add("Timeout");
-
-			// 7. Retry
-			this.middlewares.add("Retry");
-
-			// 8. Fallback
-			this.middlewares.add("Fallback");
-
-			// 9. Error handler
-			this.middlewares.add("ErrorHandler");
-
-			// 10. Tracing
-			this.middlewares.add("Tracing");
-
-			// 11. Metrics
-			this.middlewares.add("Metrics");
-
-			// 12. Debounce
-			this.middlewares.add("Debounce");
-
-			// 13. Throttle
-			this.middlewares.add("Throttle");
+			INTERNAL_MIDDLEWARES.forEach(mw => this.middlewares.add(mw));
 
 			if (this.options.hotReload) {
 				// 14. Hot Reload
@@ -488,7 +475,6 @@ class ServiceBroker {
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
-				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => {
 				if (this.transit) return this.transit.ready();
@@ -504,7 +490,7 @@ class ServiceBroker {
 				this.logger.info(
 					`✔ ServiceBroker with ${
 						this.services.length
-					} service(s) is started successfully in ${utils.humanize(duration)}.`
+					} service(s) started successfully in ${utils.humanize(duration)}.`
 				);
 			});
 	}
@@ -519,12 +505,17 @@ class ServiceBroker {
 		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {
-					this.registry.regenerateLocalRawInfo(true);
+					this.registry.regenerateLocalRawInfo(true, true);
 					// Send empty node info in order to block incoming requests
 					return this.registry.discoverer.sendLocalNodeInfo();
 				}
 			})
 			.then(() => {
+				return this.Promise.delay(this.options.registry.stopDelay);
+			})
+			.then(() => {
+				this.stopping = true;
+
 				return this.callMiddlewareHook("stopping", [this], { reverse: true });
 			})
 			.then(() => {
@@ -533,6 +524,12 @@ class ServiceBroker {
 					err => {
 						/* istanbul ignore next */
 						this.logger.error("Unable to stop all services.", err);
+
+						this.broadcastLocal("$broker.error", {
+							error: err,
+							module: "broker",
+							type: C.FAILED_STOPPING_SERVICES
+						});
 					}
 				);
 			})
@@ -809,6 +806,11 @@ class ServiceBroker {
 			return svc;
 		} catch (e) {
 			this.logger.error(`Failed to load service '${filePath}'`, e);
+			this.broadcastLocal("$broker.error", {
+				error: e,
+				module: "broker",
+				type: C.FAILED_LOAD_SERVICE
+			});
 			throw e;
 		}
 	}
@@ -829,10 +831,7 @@ class ServiceBroker {
 		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			service = new schema(this, schemaMods);
 		} else {
-			let s = schema;
-			if (schemaMods) s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
-
-			service = new this.ServiceFactory(this, s);
+			service = new this.ServiceFactory(this, schema, schemaMods);
 		}
 
 		// If broker has started yet, call the started lifecycle event of service
@@ -850,9 +849,15 @@ class ServiceBroker {
 	 * @private
 	 */
 	_restartService(service) {
-		return service._start
-			.call(service)
-			.catch(err => this.logger.error("Unable to start service.", err));
+		return service._start.call(service).catch(err => {
+			this.logger.error("Unable to start service.", err);
+
+			this.broadcastLocal("$broker.error", {
+				error: err,
+				module: "broker",
+				type: C.FAILED_RESTART_SERVICE
+			});
+		});
 	}
 
 	/**
@@ -874,6 +879,8 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+
+		return null;
 	}
 
 	/**
@@ -906,6 +913,12 @@ class ServiceBroker {
 			.catch(err => {
 				/* istanbul ignore next */
 				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
+
+				this.broadcastLocal("$broker.error", {
+					error: err,
+					module: "broker",
+					type: C.FAILED_DESTRUCTION_SERVICE
+				});
 			})
 			.then(() => {
 				utils.removeFromArray(this.services, service);
@@ -931,9 +944,16 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (this.started && localService && this.transit) {
-			this.registry.discoverer.sendLocalNodeInfo();
+		if (localService && this.transit) {
+			this.localServiceChanged();
 		}
+	}
+
+	/**
+	 * It's a debounced method to send INFO packets to remote nodes.
+	 */
+	localServiceChanged() {
+		this.registry.discoverer.sendLocalNodeInfo();
 	}
 
 	/**
@@ -983,48 +1003,79 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
+	waitForServices(
+		serviceNames,
+		timeout = this.options.dependencyTimeout,
+		interval = this.options.dependencyInterval,
+		logger = this.logger
+	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
 		serviceNames = _.uniq(
 			_.compact(
 				serviceNames.map(x => {
-					if (utils.isPlainObject(x) && x.name)
-						return this.ServiceFactory.getVersionedFullName(x.name, x.version);
-
-					if (utils.isString(x)) return x;
+					if (utils.isPlainObject(x) && x.name) {
+						if (Array.isArray(x.version)) {
+							return x.version.map(v =>
+								this.ServiceFactory.getVersionedFullName(x.name, v)
+							);
+						} else {
+							return this.ServiceFactory.getVersionedFullName(x.name, x.version);
+						}
+					} else if (utils.isString(x)) {
+						return x;
+					}
 				})
 			)
 		);
 
 		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
 
-		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
+		logger.info(
+			`Waiting for service(s) '${serviceNames
+				.map(n => (Array.isArray(n) ? n.join(" OR ") : n))
+				.join(", ")}'...`
+		);
 
 		const startTime = Date.now();
 		return new this.Promise((resolve, reject) => {
 			const check = () => {
-				const serviceStatuses = serviceNames.map(serviceName => {
-					return {
-						name: serviceName,
-						available: this.registry.hasService(serviceName)
-					};
+				const serviceStatuses = serviceNames.map(name => {
+					if (Array.isArray(name)) {
+						return name.map(n => ({
+							name: n,
+							available: this.registry.hasService(n)
+						}));
+					} else {
+						return {
+							name,
+							available: this.registry.hasService(name)
+						};
+					}
 				});
+				const flattenedStatuses = _.flatMap(serviceStatuses, s => s);
+				const names = flattenedStatuses.map(s => s.name);
+				const availableServices = flattenedStatuses.filter(s => s.available);
 
-				const availableServices = serviceStatuses.filter(s => s.available);
-
-				if (availableServices.length == serviceNames.length) {
-					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
-					return resolve({ services: serviceNames, statuses: serviceStatuses });
+				const isReady = serviceStatuses.every(status =>
+					Array.isArray(status) ? status.some(n => n.available) : status.available
+				);
+				if (isReady) {
+					logger.info(
+						`Service(s) '${availableServices
+							.map(s => s.name)
+							.join(", ")}' are available.`
+					);
+					return resolve({ services: names, statuses: flattenedStatuses });
 				}
 
-				const unavailableServices = serviceStatuses.filter(s => !s.available);
+				const unavailableServices = flattenedStatuses.filter(s => !s.available);
 				logger.debug(
 					format(
 						"%d (%s) of %d services are available. %d (%s) are still unavailable. Waiting further...",
 						availableServices.length,
 						availableServices.map(s => s.name).join(", "),
-						serviceNames.length,
+						serviceStatuses.length,
 						unavailableServices.length,
 						unavailableServices.map(s => s.name).join(", ")
 					)
@@ -1036,11 +1087,11 @@ class ServiceBroker {
 							"Services waiting is timed out.",
 							500,
 							"WAITFOR_SERVICES",
-							{ services: serviceNames, statuses: serviceStatuses }
+							{ services: names, statuses: flattenedStatuses }
 						)
 					);
 
-				setTimeout(check, interval || this.options.dependencyInterval || 1000);
+				setTimeout(check, interval);
 			};
 
 			check();
@@ -1355,7 +1406,11 @@ class ServiceBroker {
 		if (/^\$/.test(eventName)) this.localBus.emit(eventName, payload);
 
 		if (!this.options.disableBalancer) {
-			const endpoints = this.registry.events.getBalancedEndpoints(eventName, opts.groups);
+			const endpoints = this.registry.events.getBalancedEndpoints(
+				eventName,
+				opts.groups,
+				ctx
+			);
 
 			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
@@ -1747,6 +1802,11 @@ ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
  */
 ServiceBroker.PROTOCOL_VERSION = "4";
 ServiceBroker.prototype.PROTOCOL_VERSION = ServiceBroker.PROTOCOL_VERSION;
+
+/**
+ * Internal middlewares (order)
+ */
+ServiceBroker.INTERNAL_MIDDLEWARES = INTERNAL_MIDDLEWARES;
 
 /**
  * Default configuration

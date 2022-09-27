@@ -11,6 +11,7 @@ describe("Test Console tracing exporter class", () => {
 			const exporter = new ConsoleTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				logger: null,
 				colors: true,
 				width: 100,
@@ -28,6 +29,7 @@ describe("Test Console tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				logger: console,
 				colors: true,
 				width: 120,

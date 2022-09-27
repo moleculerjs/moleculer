@@ -23,6 +23,7 @@ describe("Test Event tracing exporter class", () => {
 			exporter = new EventTraceExporter();
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				eventName: "$tracing.spans",
 				sendStartSpan: false,
 				sendFinishSpan: true,
@@ -50,6 +51,7 @@ describe("Test Event tracing exporter class", () => {
 			});
 
 			expect(exporter.opts).toEqual({
+				safetyTags: false,
 				eventName: "my-tracing.spans",
 				sendStartSpan: true,
 				sendFinishSpan: true,

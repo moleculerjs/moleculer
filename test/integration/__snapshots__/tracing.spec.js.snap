@@ -431,7 +431,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-11",
+    "id": "broker-1-15",
     "logs": Array [],
     "name": "update others",
     "parentID": "broker-1-2",
@@ -447,10 +447,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-15",
+    "id": "broker-2-19",
     "logs": Array [],
     "name": "User updated event",
-    "parentID": "broker-1-11",
+    "parentID": "broker-1-15",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -475,10 +475,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-16",
+    "id": "broker-2-20",
     "logs": Array [],
     "name": "updating user",
-    "parentID": "broker-2-15",
+    "parentID": "broker-2-19",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -491,10 +491,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-17",
+    "id": "broker-2-21",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-2-16",
+    "parentID": "broker-2-20",
     "priority": 5,
     "sampled": true,
     "service": Object {

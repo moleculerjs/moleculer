@@ -265,15 +265,6 @@ class BaseDiscoverer {
 	}
 
 	/**
-	 * Called when the local node is ready (transporter connected)
-	 */
-	localNodeReady() {
-		// Local node has started all local services. We send a new INFO packet
-		// which contains the local services because we are ready to accept incoming requests.
-		return this.sendLocalNodeInfo();
-	}
-
-	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
 	 * @param {String} nodeID

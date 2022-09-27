@@ -8,6 +8,7 @@ const Etcd3Discoverer = require("../../../../src/registry/discoverers").Etcd3;
 const ServiceBroker = require("../../../../src/service-broker");
 const Serializers = require("../../../../src/serializers");
 const P = require("../../../../src/packets");
+const C = require("../../../../src/constants");
 
 describe("Test Etcd3Discoverer constructor", () => {
 	const broker = new ServiceBroker({ logger: false });
@@ -363,6 +364,23 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 		expect(discoverer.collectOnlineNodes).toBeCalledTimes(1);
 
 		expect(discoverer.logger.error).toBeCalledTimes(0);
+	});
+
+	it("should broadcast an error", async () => {
+		discoverer.collectOnlineNodes = jest.fn(() => Promise.reject(new Error("Ups!")));
+
+		broker.broadcastLocal = jest.fn();
+
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendHeartbeat();
+
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
+			error: expect.any(Error),
+			module: "discoverer",
+			type: C.FAILED_COLLECT_KEYS
+		});
 	});
 });
 
@@ -789,6 +807,24 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 
 		expect(discoverer.logger.error).toBeCalledTimes(1);
 		expect(discoverer.logger.error).toBeCalledWith("Unable to send INFO to etcd server", err);
+	});
+
+	it("should broadcast an error", async () => {
+		const err = new Error("Something happened");
+		discoverer.client.setex = jest.fn(() => Promise.reject(err));
+
+		broker.broadcastLocal = jest.fn();
+
+		// ---- ^ SETUP ^ ---
+		await discoverer.sendLocalNodeInfo();
+
+		// ---- ˇ ASSERTS ˇ ---
+		expect(discoverer.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$discoverer.error", {
+			error: err,
+			module: "discoverer",
+			type: C.FAILED_SEND_INFO
+		});
 	});
 });
 

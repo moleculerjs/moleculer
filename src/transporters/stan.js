@@ -8,6 +8,7 @@
 
 const Transporter = require("./base");
 const { PACKET_REQUEST, PACKET_EVENT } = require("../packets");
+const C = require("../constants");
 
 /**
  * Transporter for NATS Streaming server
@@ -95,6 +96,12 @@ class StanTransporter extends Transporter {
 			client.on("error", e => {
 				this.logger.error("NATS error.", e.message);
 				this.logger.debug(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.CLIENT_ERROR
+				});
 
 				if (!client.connected) reject(e);
 			});

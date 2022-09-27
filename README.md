@@ -4,13 +4,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/moleculerjs/moleculer/badge.svg?branch=master)](https://coveralls.io/github/moleculerjs/moleculer?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/05ef990fe1ccb3e56067/maintainability)](https://codeclimate.com/github/moleculerjs/moleculer/maintainability)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3dbf0facae04c128054ac2047d1e117)](https://www.codacy.com/gh/moleculerjs/moleculer/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=moleculerjs/moleculer&amp;utm_campaign=Badge_Grade)
-[![David](https://img.shields.io/david/moleculerjs/moleculer.svg)](https://david-dm.org/moleculerjs/moleculer)
 [![Known Vulnerabilities](https://snyk.io/test/github/moleculerjs/moleculer/badge.svg)](https://snyk.io/test/github/moleculerjs/moleculer)
 [![Discord chat](https://img.shields.io/discord/585148559155003392)](https://discord.gg/TSEcDRP)
 
 [![Downloads](https://img.shields.io/npm/dm/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer?ref=badge_shield)
-[![Patreon](docs/assets/patreon.svg)][patreon] [![PayPal](docs/assets/paypal_donate.svg)][paypal]
+[![Patreon](docs/assets/patreon.svg)][patreon]
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/moleculerjs/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
 
@@ -103,17 +102,17 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     $ npx moleculer-cli -c moleculer init project moleculer-demo
     ```
     
-2. Open project folder
+2. Open the project folder
     ```bash
     $ cd moleculer-demo
     ```
     
-3. Start project
+3. Start the project
     ```bash
     $ npm run dev
     ```
 
-4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page which contains many information about your project & you can test the generated services.
+4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a welcome page that contains more information about your project & you can test the generated services.
 
 :tada: **Congratulations! Your first Moleculer-based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
@@ -144,8 +143,12 @@ To report a security vulnerability, please use the [Tidelift security contact](h
 Tidelift will coordinate the fix and disclosure.
 
 # Contributions
-We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
+We welcome you to join in the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 <a href="https://github.com/moleculerjs/moleculer/graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=882&button=false" /></a>
+
+## Project activity
+
+![Alt](https://repobeats.axiom.co/api/embed/f4cb6da776e9edc2d8118aff4e0c1ae9afe37896.svg "Repobeats analytics image")
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
@@ -153,9 +156,8 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
-Copyright (c) 2016-2021 MoleculerJS
+Copyright (c) 2016-2022 MoleculerJS
 
 [![@moleculerjs](https://img.shields.io/badge/github-moleculerjs-green.svg)](https://github.com/moleculerjs) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
 
-[paypal]: https://paypal.me/meregnorbert/50usd
 [patreon]: https://www.patreon.com/bePatron?u=6245171

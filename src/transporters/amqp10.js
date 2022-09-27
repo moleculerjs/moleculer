@@ -9,6 +9,7 @@
 const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
+const C = require("../constants");
 
 const {
 	PACKET_REQUEST,
@@ -167,6 +168,12 @@ class Amqp10Transporter extends Transporter {
 							if (this.connection) {
 								delivery.reject();
 							}
+
+							this.broker.broadcastLocal("$transporter.error", {
+								error: err,
+								module: "transporter",
+								type: C.FAILED_REQUEST_ACK
+							});
 						});
 				} else {
 					if (this.connection) {
@@ -227,6 +234,12 @@ class Amqp10Transporter extends Transporter {
 					(this.connection && this.connection.error) || ""
 				);
 				errorCallback && errorCallback(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.FAILED_DISCONNECTION
+				});
 			}
 		});
 
@@ -252,6 +265,12 @@ class Amqp10Transporter extends Transporter {
 				this.logger.info("AMQP10 is disconnected.");
 				this.connected = false;
 				errorCallback && errorCallback(e);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error: e,
+					module: "transporter",
+					type: C.FAILED_DISCONNECTION
+				});
 			});
 	}
 
@@ -270,7 +289,15 @@ class Amqp10Transporter extends Transporter {
 					this.session = null;
 					this.receivers = [];
 				})
-				.catch(error => this.logger.error(error));
+				.catch(error => {
+					this.logger.error(error);
+
+					this.broker.broadcastLocal("$transporter.error", {
+						error,
+						module: "transporter",
+						type: C.FAILED_DISCONNECTION
+					});
+				});
 		}
 	}
 
@@ -457,7 +484,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: C.FAILED_PUBLISHER_ERROR
+				});
+			});
 	}
 
 	/**
@@ -496,7 +531,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: C.FAILED_PUBLISH_BALANCED_EVENT
+				});
+			});
 	}
 
 	/**
@@ -535,7 +578,15 @@ class Amqp10Transporter extends Transporter {
 			.then(sender => {
 				return sender.close({ closeSession: false });
 			})
-			.catch(error => this.logger.error(error));
+			.catch(error => {
+				this.logger.error(error);
+
+				this.broker.broadcastLocal("$transporter.error", {
+					error,
+					module: "transporter",
+					type: C.FAILED_PUBLISH_BALANCED_REQUEST
+				});
+			});
 	}
 }
 

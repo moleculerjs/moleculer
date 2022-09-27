@@ -9,6 +9,7 @@
 const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
+const C = require("../constants");
 
 const {
 	PACKET_REQUEST,
@@ -146,6 +147,12 @@ class AmqpTransporter extends Transporter {
 							// No need to reject here since close event will be fired after
 							// if not connected at all connection promise will be rejected
 							this.logger.error("AMQP connection error.", err);
+
+							this.broker.broadcastLocal("$transporter.error", {
+								error: err,
+								module: "transporter",
+								type: C.FAILED_CONNECTION_ERROR
+							});
 						})
 						.on("close", err => {
 							this.connected = false;
@@ -183,6 +190,12 @@ class AmqpTransporter extends Transporter {
 								.on("error", err => {
 									// No need to reject here since close event will be fired after
 									this.logger.error("AMQP channel error.", err);
+
+									this.broker.broadcastLocal("$transporter.error", {
+										error: err,
+										module: "transporter",
+										type: C.FAILED_CHANNEL_ERROR
+									});
 								})
 								.on("drain", () => {
 									this.logger.info("AMQP channel is drained.");

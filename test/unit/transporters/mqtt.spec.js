@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const MqttTransporter = require("../../../src/transporters/mqtt");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 const { protectReject } = require("../utils");
 
 jest.mock("mqtt");
@@ -65,6 +66,27 @@ describe("Test MqttTransporter connect & disconnect", () => {
 		});
 
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});
+
+	it("check connect - should broadcast error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().catch(() => {
+			expect(transporter._client).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: C.CLIENT_ERROR
+			});
+		});
+
+		// Trigger an error
+		const error = new Error("Ups");
+		transporter._client.onCallbacks.error(error);
 
 		return p;
 	});

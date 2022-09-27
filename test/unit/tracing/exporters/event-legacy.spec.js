@@ -11,7 +11,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 		it("should create with default options", () => {
 			const exporter = new EventLegacyTraceExporter();
 
-			expect(exporter.opts).toEqual({});
+			expect(exporter.opts).toEqual({ safetyTags: false });
 		});
 	});
 

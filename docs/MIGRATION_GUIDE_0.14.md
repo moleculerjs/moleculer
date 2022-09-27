@@ -107,7 +107,7 @@ const MyMiddleware = function(broker) {
 ```
 
 ## 4. Use the new context-based event handler signature
-Moleculer detects the signature if your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
+Moleculer detects the signature of your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
 
 **Legacy event handler signature**
 ```js
@@ -311,7 +311,7 @@ module.exports = {
 };
 ```
 
->[Read more about new logging feature and all supported loggers.](https://moleculer.services/docs/0.14/logging.html)
+>[Read more about the new logging feature and all supported loggers.](https://moleculer.services/docs/0.14/logging.html)
 
 ## 7. Bluebird is dropped
 The Bluebird Promise library has been dropped from the project because as of Node 10, the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.
@@ -338,7 +338,7 @@ declare module "moleculer" {
 
 Additionally, if you were using `PromiseLike<T>` as a type for anything being returned by moleculer, this will need to be converted to `Promise<T>`, regardless of whether you are using native promises or third-party promises.
 
-## 8. Typescript definitions more strict
+## 8. Typescript definitions are more strict
 The 0.13 release was very loose on the typings for `params` and `meta` for the `Context` class and the `call`, `emit`, and `broadcast` methods from the `Context` and `ServiceBroker` classes.  If Generics were not provided to these types, the default behavior would return `any`:
 ```ts
 type GenericObject = { [name: string]: any };
@@ -382,17 +382,17 @@ class Context<P = unknown, M extends object = {}> {
   broadcast(eventName: string): PromiseLike<void>;
 ```
 
-Effectively, if generics are not provided then `params` will be typed as `unknown` and `meta` will be typed as an empty object.  The `return` value of `call` will be `unknown`.  You could pass any payload to `emit` and `broadcast` without any validation.  Since moleculer is calling services and passing parameters over the wire, it cannot discern what the type of params and called action return values is without guidance.  The generics provide that guidance and allow for type safety in your application.
+Effectively, if generics are not provided then `params` will be typed as `unknown` and `meta` will be typed as an empty object.  The `return` value of `call` will be `unknown`.  You could pass any payload to `emit` and `broadcast` without any validation.  Since moleculer is calling services and passing parameters over the wire, it cannot discern what the type of params and called action return values are without guidance.  The generics provide that guidance and allow for type safety in your application.
 
 If you've already been providing generics to these types then congratulations(!), there is nothing you need to do.  If you have not been providing generics to these types then you are likely to find that you will be getting type errors because values that were previously typed as `any` will now be `unknown`.  You will need to update your types to provide types for these generics to avoid the type errors.
 
-There are a couple approaches to remedying these type issues:
+There are a couple of approaches to remedying these type issues:
 1. (**recommended**) Provided proper types for these generics in `Context`, `call`, `emit`, and `broadcast`.  You will now have type safety for your `ctx.params`, `ctx.meta`, return values from `call`, `params` passed to `call`, and payloads passed to `emit` and `broadcast`.
-2. (not recommended) Augment the moleculer module with your own local TS definitions that revert these types to their previous behavior.  This will make your code work exactly as it was previously, with no type safety afforded.
+2. (not recommended) Augment the moleculer module with your own local TS definitions that revert these types to their previous behavior.  This will make your code work exactly as it was previously, with no type of safety afforded.
 3. (not recommended) Replace all uses of the `Context` type in your application with `Context<GenericObject, GenericObject>`, `call` with `call<any, GenericObject>`, `emit` with `emit<any>` and `broadcast` with `broadcast<any>`.  As with #2, you will still not have type safety, but it may represent a quick and dirty approach.
 
 **NOTE:** The examples above show the changes to the `Context` class but similar changes were made to the `ServiceBroker` class as well.  Any changes that you need to make for `Context` will be needed for `ServiceBroker` as well.
 
 **:tada: Well, you are done! :clap:**
 
-Happy coding in your up-to-date Moleculer project. If you need help, join to [Discord chat](https://discord.gg/j5cJYdu) and don't hesitate to ask Moleculer community.
+Happy coding in your up-to-date Moleculer project. If you need help, join [Discord chat](https://discord.gg/j5cJYdu) and don't hesitate to ask Moleculer community.

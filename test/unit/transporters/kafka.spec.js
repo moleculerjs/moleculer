@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
+const C = require("../../../src/constants");
 
 jest.mock("kafka-node");
 
@@ -126,6 +127,27 @@ describe("Test KafkaTransporter connect & disconnect", () => {
 		return p;
 	});
 
+	it("check connect - should broadcast error", () => {
+		broker.broadcastLocal = jest.fn();
+
+		let p = transporter.connect().catch(() => {
+			expect(transporter.producer).toBeDefined();
+
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenNthCalledWith(1, "$transporter.error", {
+				error: new Error("Ups"),
+				module: "transporter",
+				type: C.FAILED_PUBLISHER_ERROR
+			});
+		});
+
+		// Trigger an error
+		const error = new Error("Ups");
+		transporter.producer.callbacks.error(error);
+
+		return p;
+	});
+
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
 		let p = transporter.connect().then(() => {
@@ -214,6 +236,51 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		});
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", '{ ver: "3" }');
+	});
+
+	it("check makeSubscriptions - should broadcast a producer error", () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb(new Error("Ups!")));
+		const p = transporter
+			.makeSubscriptions([
+				{ cmd: "REQ", nodeID: "node" },
+				{ cmd: "RES", nodeID: "node" }
+			])
+			.then(() => transporter.consumer.callbacks.connect())
+			.catch(() => {
+				expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+				expect(transporter.broker.broadcastLocal).toHaveBeenNthCalledWith(
+					1,
+					"$transporter.error",
+					{
+						error: new Error("Ups!"),
+						module: "transporter",
+						type: C.FAILED_TOPIC_CREATION
+					}
+				);
+			});
+
+		return p;
+	});
+
+	it("check makeSubscriptions - should broadcast a consumer error", async () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		transporter.producer.createTopics = jest.fn((topics, a, cb) => cb());
+		transporter.makeSubscriptions([
+			{ cmd: "REQ", nodeID: "node" },
+			{ cmd: "RES", nodeID: "node" }
+		]);
+
+		transporter.consumer.callbacks.error(new Error("Ups!"));
+
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+			error: new Error("Ups!"),
+			module: "transporter",
+			type: C.FAILED_CONSUMER_ERROR
+		});
 	});
 });
 
