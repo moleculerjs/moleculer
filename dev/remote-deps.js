@@ -3,52 +3,46 @@
 const ServiceBroker = require("../src/service-broker");
 const Middlewares = require("../src/middlewares");
 
-const broker1 = new ServiceBroker({
-	nodeID: "node-1",
-
-	transporter: "TCP",
+const brokerOptions = {
+	transporter: "NATS",
 
 	registry: {
 		discoverer: "Local"
 		// discoverer: "Redis"
 		// discoverer: "Etcd3"
 	}
+};
 
-	// middlewares: [
-	// 	Middlewares.Debugging.TransitLogger({
-	// 		logPacketData: true,
-	// 		folder: null,
-	// 		colors: {
-	// 			send: "magenta",
-	// 			receive: "blue"
-	// 		},
-	// 		packetFilter: ["HEARTBEAT"]
-	// 	})
-	// ]
+const broker1 = new ServiceBroker({
+	nodeID: "node-1",
+	...brokerOptions,
+	middlewares: [
+		Middlewares.Debugging.TransitLogger({
+			logPacketData: true,
+			folder: null,
+			colors: {
+				send: "magenta",
+				receive: "blue"
+			},
+			packetFilter: ["HEARTBEAT"]
+		})
+	]
 });
 
 const broker2 = new ServiceBroker({
 	nodeID: "node-2",
-
-	transporter: "TCP",
-
-	registry: {
-		discoverer: "Local"
-		// discoverer: "Redis",
-		// discoverer: "Etcd3"
-	}
-
-	// middlewares: [
-	// 	Middlewares.Debugging.TransitLogger({
-	// 		logPacketData: true,
-	// 		folder: null,
-	// 		colors: {
-	// 			send: "magenta",
-	// 			receive: "blue"
-	// 		},
-	// 		packetFilter: ["HEARTBEAT"]
-	// 	})
-	// ]
+	...brokerOptions,
+	middlewares: [
+		Middlewares.Debugging.TransitLogger({
+			logPacketData: true,
+			folder: null,
+			colors: {
+				send: "magenta",
+				receive: "blue"
+			},
+			packetFilter: ["HEARTBEAT"]
+		})
+	]
 });
 
 const locationSchema = {
@@ -78,7 +72,7 @@ const tenantSchema = {
 	}
 };
 
-const assetSchema = {
+const deviceSchema = {
 	name: "device",
 
 	// Depends on tenant.service located at node-1
@@ -98,7 +92,7 @@ broker1.createService(locationSchema);
 broker1.createService(tenantSchema);
 
 // Place asset.service at node-2
-broker2.createService(assetSchema);
+broker2.createService(deviceSchema);
 /*broker2.createService({
 	name: "test1",
 	dependencies: ["location", "device"],

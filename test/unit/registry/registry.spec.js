@@ -173,8 +173,7 @@ describe("Test Registry.registerLocalService", () => {
 
 		expect(registry.nodes.localNode.seq).toBe(seq);
 
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+		expect(registry.localNodeInfoInvalidated).toBe("seq");
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(true);
@@ -218,8 +217,7 @@ describe("Test Registry.registerLocalService", () => {
 
 				expect(registry.registerEvents).toHaveBeenCalledTimes(0);
 
-				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-				expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+				expect(registry.localNodeInfoInvalidated).toBe("seq");
 
 				expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 				expect(broker.servicesChanged).toHaveBeenCalledWith(true);
@@ -428,8 +426,7 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
 		expect(registry.services.remove).toHaveBeenCalledWith("v2.posts", broker.nodeID);
 
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
+		expect(registry.localNodeInfoInvalidated).toBe("seq");
 	});
 
 	it("should call services removeAllByNodeID method", () => {
@@ -727,10 +724,12 @@ describe("Test Registry.getLocalNodeInfo", () => {
 	registry.regenerateLocalRawInfo = jest.fn(() => rawInfo);
 
 	it("should call registry.regenerateLocalRawInfo if no rawInfo", () => {
+		registry.localNodeInfoInvalidated = true;
+
 		expect(registry.getLocalNodeInfo()).toBe(rawInfo);
 
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(false);
 	});
 
 	it("should not call registry.regenerateLocalRawInfo if has rawInfo", () => {
@@ -747,7 +746,7 @@ describe("Test Registry.getLocalNodeInfo", () => {
 		expect(registry.getLocalNodeInfo(true)).toBe(rawInfo);
 
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
-		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(false);
 	});
 });
 

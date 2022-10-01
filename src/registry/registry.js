@@ -43,6 +43,8 @@ class Registry {
 		this.discoverer = Discoverers.resolve(this.opts.discoverer);
 		this.logger.info(`Discoverer: ${this.broker.getConstructorName(this.discoverer)}`);
 
+		this.localNodeInfoInvalidated = true;
+
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
@@ -174,7 +176,8 @@ class Registry {
 
 			this.nodes.localNode.services.push(service);
 
-			this.regenerateLocalRawInfo(true);
+			//this.regenerateLocalRawInfo(true);
+			this.localNodeInfoInvalidated = "seq";
 
 			this.logger.info(`'${svc.name}' service is registered.`);
 
@@ -387,7 +390,8 @@ class Registry {
 		}
 
 		if (nodeID == this.broker.nodeID) {
-			this.regenerateLocalRawInfo(true);
+			this.localNodeInfoInvalidated = "seq";
+			//this.regenerateLocalRawInfo(true);
 		}
 	}
 
@@ -484,7 +488,12 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo(force) {
-		if (force || !this.nodes.localNode.rawInfo) return this.regenerateLocalRawInfo();
+		if (force || !this.nodes.localNode.rawInfo || this.localNodeInfoInvalidated) {
+			const res = this.regenerateLocalRawInfo(this.localNodeInfoInvalidated == "seq");
+			this.logger.debug("Local Node info regenerated.");
+			this.localNodeInfoInvalidated = false;
+			return res;
+		}
 
 		return this.nodes.localNode.rawInfo;
 	}
