@@ -377,9 +377,16 @@ class Registry {
 	 * @memberof Registry
 	 */
 	unregisterService(fullName, nodeID) {
-		this.services.remove(fullName, nodeID || this.broker.nodeID);
+		nodeID = nodeID || this.broker.nodeID;
+		this.services.remove(fullName, nodeID);
 
-		if (!nodeID || nodeID == this.broker.nodeID) {
+		if (nodeID == this.broker.nodeID) {
+			// Clean the local node services
+			const idx = this.nodes.localNode.services.findIndex(svc => svc.fullName === fullName);
+			if (idx !== -1) this.nodes.localNode.services.splice(idx, 1);
+		}
+
+		if (nodeID == this.broker.nodeID) {
 			this.regenerateLocalRawInfo(true);
 		}
 	}

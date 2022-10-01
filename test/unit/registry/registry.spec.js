@@ -418,8 +418,12 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 	it("should call services remove method with local nodeID", () => {
 		registry.regenerateLocalRawInfo.mockClear();
 		registry.services.remove.mockClear();
+		registry.nodes.localNode.services.push({ name: "posts", version: 2, fullName: "v2.posts" });
+		expect(registry.nodes.localNode.services.length).toBe(2);
 
 		registry.unregisterService("v2.posts");
+
+		expect(registry.nodes.localNode.services.length).toBe(1);
 
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
 		expect(registry.services.remove).toHaveBeenCalledWith("v2.posts", broker.nodeID);
