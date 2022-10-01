@@ -6,7 +6,7 @@
 
 "use strict";
 
-const { isObject, isString } = require("../utils");
+const { isObject, isString, isInheritedClass } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Cachers = {
@@ -31,7 +31,7 @@ function getByName(name) {
  * @returns {Cacher}
  */
 function resolve(opt) {
-	if (opt instanceof Cachers.Base) {
+	if (isObject(opt) && isInheritedClass(opt, Cachers.Base)) {
 		return opt;
 	} else if (opt === true) {
 		return new Cachers.Memory();

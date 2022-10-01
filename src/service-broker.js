@@ -244,7 +244,7 @@ class ServiceBroker {
 			if (this.cacher) {
 				this.cacher.init(this);
 
-				const name = this.getConstructorName(this.cacher);
+				const name = utils.getConstructorName(this.cacher);
 				this.logger.info(`Cacher: ${name}`);
 			}
 
@@ -256,14 +256,14 @@ class ServiceBroker {
 			this.errorRegenerator = Errors.resolveRegenerator(this.options.errorRegenerator);
 			this.errorRegenerator.init(this);
 
-			const serializerName = this.getConstructorName(this.serializer);
+			const serializerName = utils.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);
 
 			// Validator
 			if (this.options.validator) {
 				this.validator = Validators.resolve(this.options.validator);
 				if (this.validator) {
-					const validatorName = this.getConstructorName(this.validator);
+					const validatorName = utils.getConstructorName(this.validator);
 					this.logger.info(`Validator: ${validatorName}`);
 					this.validator.init(this);
 				}
@@ -281,7 +281,7 @@ class ServiceBroker {
 				const tx = Transporters.resolve(this.options.transporter);
 				this.transit = new Transit(this, tx, this.options.transit);
 
-				const txName = this.getConstructorName(tx);
+				const txName = utils.getConstructorName(tx);
 				this.logger.info(`Transporter: ${txName}`);
 
 				if (this.options.disableBalancer) {
@@ -779,7 +779,7 @@ class ServiceBroker {
 
 			let svc;
 			schema = this.normalizeSchemaConstructor(schema);
-			if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
+			if (utils.isInheritedClass(schema, this.ServiceFactory)) {
 				// Service implementation
 				svc = new schema(this);
 
@@ -788,7 +788,7 @@ class ServiceBroker {
 			} else if (utils.isFunction(schema)) {
 				// Function
 				svc = schema(this);
-				if (!(svc instanceof this.ServiceFactory)) {
+				if (!utils.isInheritedClass(svc, this.ServiceFactory)) {
 					svc = this.createService(svc);
 				} else {
 					// If broker is started, call the started lifecycle event of service
@@ -1737,20 +1737,10 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Get the Constructor name of any object if it exists
-	 * @param {any} obj
-	 * @returns {string}
-	 *
+	 * Only for backward compatibility
 	 */
 	getConstructorName(obj) {
-		let target = obj.prototype;
-		if (target && target.constructor && target.constructor.name) {
-			return target.constructor.name;
-		}
-		if (obj.constructor && obj.constructor.name) {
-			return obj.constructor.name;
-		}
-		return undefined;
+		return utils.getConstructorName(obj);
 	}
 
 	/**
@@ -1767,21 +1757,21 @@ class ServiceBroker {
 		// Sometimes the schame was loaded from another node_module or is a object copy.
 		// Then we will check if the constructor name is the same, asume that is a derivate object
 		// and adjust the prototype of the schema.
-		let serviceName = this.getConstructorName(this.ServiceFactory);
-		let target = this.getConstructorName(schema);
+		let serviceName = utils.getConstructorName(this.ServiceFactory);
+		let target = utils.getConstructorName(schema);
 		if (serviceName === target) {
 			Object.setPrototypeOf(schema, this.ServiceFactory);
 			return schema;
 		}
 		// Depending how the schema was create the correct constructor name (from base class) will be locate on __proto__.
-		target = this.getConstructorName(schema.__proto__);
+		target = utils.getConstructorName(schema.__proto__);
 		if (serviceName === target) {
 			Object.setPrototypeOf(schema.__proto__, this.ServiceFactory);
 			return schema;
 		}
 		// This is just to handle some idiosyncrasies from Jest.
 		if (schema._isMockFunction) {
-			target = this.getConstructorName(schema.prototype.__proto__);
+			target = utils.getConstructorName(schema.prototype.__proto__);
 			if (serviceName === target) {
 				Object.setPrototypeOf(schema, this.ServiceFactory);
 				return schema;

@@ -53,6 +53,8 @@ polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
 const utils = require("../../src/utils");
 utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
 utils.promiseAllControl = jest.requireActual("../../src/utils").promiseAllControl;
+utils.getConstructorName = jest.requireActual("../../src/utils").getConstructorName;
+utils.isInheritedClass = jest.requireActual("../../src/utils").isInheritedClass;
 
 const { protectReject } = require("./utils");
 const path = require("path");
