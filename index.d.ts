@@ -919,6 +919,9 @@ declare namespace Moleculer {
 
 		middlewares?: Array<Middleware | string>;
 
+		replCommands?: Array<GenericObject> | null ;
+		replDelimiter?: string;
+
 		metadata?: GenericObject;
 
 		ServiceFactory?: typeof Service;
