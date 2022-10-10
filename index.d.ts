@@ -746,7 +746,7 @@ declare namespace Moleculer {
 		statuses: Array<{ name: string; available: boolean }>;
 	}
 
-	class Service<S = ServiceSettingSchema> implements ServiceSchema {
+	class Service<S = ServiceSettingSchema> implements ServiceSchema<S> {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
 		protected parseServiceSchema(schema: ServiceSchema<S>): void;
@@ -919,7 +919,7 @@ declare namespace Moleculer {
 
 		middlewares?: Array<Middleware | string>;
 
-		replCommands?: Array<GenericObject> | null ;
+		replCommands?: Array<GenericObject> | null;
 		replDelimiter?: string;
 
 		metadata?: GenericObject;
