@@ -458,9 +458,9 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
-	type ActionHookBefore = (ctx: Context<any, any>) => Promise<void> | void;
-	type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
-	type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
+	type ActionHookBefore = (this: Service<S>, ctx: Context<any, any>) => Promise<void> | void;
+	type ActionHookAfter = (this: Service<S>,ctx: Context<any, any>, res: any) => Promise<any> | any;
+	type ActionHookError = (this: Service<S>,ctx: Context<any, any>, err: Error) => Promise<void> | void;
 
 	interface ActionHooks {
 		before?: string | ActionHookBefore | Array<string | ActionHookBefore>;
