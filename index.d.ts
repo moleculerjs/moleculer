@@ -725,9 +725,9 @@ declare namespace Moleculer {
 		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
-		created?: (() => void) | Array<() => void>;
-		started?: (() => Promise<void> | void) | Array<() => Promise<void> | void>;
-		stopped?: (() => Promise<void> | void) | Array<() => Promise<void> | void>;
+		created?: ((this: Service<S>) => void) | Array<(this: Service<S>) => void>;
+		started?: ((this: Service<S>) => Promise<void> | void) | Array<(this: Service<S>) => Promise<void> | void>;
+		stopped?: ((this: Service<S>) => Promise<void> | void) | Array<(this: Service<S>) => Promise<void> | void>;
 
 		[name: string]: any;
 	}
