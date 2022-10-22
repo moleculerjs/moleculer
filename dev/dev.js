@@ -1,6 +1,10 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
+	metrics: {
+		enabled: true
+	},
+
 	tracing: {
 		enabled: true,
 		sampling: {
