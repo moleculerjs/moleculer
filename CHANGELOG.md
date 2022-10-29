@@ -1,5 +1,12 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.24...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.25...master)
+
+--------------------------------------------------
+<a name="0.14.25"></a>
+# [0.14.25](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.25) (2022-10-29)
+
+## Changes
+- fix Node 19 compatibility
 
 --------------------------------------------------
 <a name="0.14.24"></a>
