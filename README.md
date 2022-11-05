@@ -44,7 +44,7 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 - many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
 - plugin/middleware system
 - support versioned services
-- support [Stream](https://nodejs.org/dist/latest-v10.x/docs/api/stream.html)s
+- support [Streams](https://nodejs.org/dist/latest-v10.x/docs/api/stream.html)
 - service mixins
 - built-in caching solution (Memory, MemoryLRU, Redis)
 - pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
