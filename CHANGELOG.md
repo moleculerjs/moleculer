@@ -1,5 +1,23 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.23...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.25...master)
+
+--------------------------------------------------
+<a name="0.14.25"></a>
+# [0.14.25](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.25) (2022-10-29)
+
+## Changes
+- fix Node 19 compatibility
+
+--------------------------------------------------
+<a name="0.14.24"></a>
+# [0.14.24](https://github.com/moleculerjs/moleculer/compare/v0.14.23...v0.14.24) (2022-10-10)
+
+## Changes
+- allow moleculer-runner to resolve configuration files from node_modules [#1126](https://github.com/moleculerjs/moleculer/pull/1126)
+- fixed slower broker startup time issue [#1132](https://github.com/moleculerjs/moleculer/issues/1132)
+- fixed memory leak at dynamic service creation [#1121](https://github.com/moleculerjs/moleculer/issues/1121)
+- fixed invalid 'undefined' type in validator schema. [#1137](https://github.com/moleculerjs/moleculer/issues/1137)
+- update dependencies
 
 --------------------------------------------------
 <a name="0.14.23"></a>

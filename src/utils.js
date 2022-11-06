@@ -468,6 +468,41 @@ const utils = {
 	},
 
 	/**
+	 * Get the name of constructor of an object.
+	 *
+	 * @param {Object} obj
+	 * @returns {String}
+	 */
+	getConstructorName(obj) {
+		let target = obj.prototype;
+		if (target && target.constructor && target.constructor.name) {
+			return target.constructor.name;
+		}
+		if (obj.constructor && obj.constructor.name) {
+			return obj.constructor.name;
+		}
+		return undefined;
+	},
+
+	/**
+	 * Check whether the instance is an instance of the given class.
+	 *
+	 * @param {Object} instance
+	 * @param {Object} baseClass
+	 * @returns {Boolean}
+	 */
+	isInheritedClass(instance, baseClass) {
+		const baseClassName = module.exports.getConstructorName(baseClass);
+		let proto = instance;
+		while ((proto = Object.getPrototypeOf(proto))) {
+			const protoName = module.exports.getConstructorName(proto);
+			if (baseClassName == protoName) return true;
+		}
+
+		return false;
+	},
+
+	/**
 	 * Detects the argument names of a function.
 	 * Credits: https://github.com/sindresorhus/fn-args
 	 *
