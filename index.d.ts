@@ -764,6 +764,10 @@ declare namespace Moleculer {
 		actions: ServiceActions;
 		Promise: PromiseConstructorLike;
 
+		_init(): void;
+		_start(): Promise<void>;
+		_stop(): Promise<void>;
+
 		/**
 		 * Call a local event handler. Useful for unit tests.
 		 *
