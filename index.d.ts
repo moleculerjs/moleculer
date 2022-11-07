@@ -784,7 +784,6 @@ declare namespace Moleculer {
 		 * @param timeout The total time this call may take. If this time has passed and the service(s)
 		 * 						    are not available an error will be thrown. (In milliseconds)
 		 * @param interval The time we will wait before once again checking if the service(s) are available (In milliseconds)
-		 * @param logger the broker logger instance
 		 */
 		waitForServices(
 		  serviceNames: string | Array<string> | Array<ServiceDependency>,
