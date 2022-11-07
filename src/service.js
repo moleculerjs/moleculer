@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten, functionArguments } = require("./utils");
+const { isObject, isFunction, flatten, functionArguments, deprecate } = require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -54,7 +54,13 @@ class Service {
 		this.broker = broker;
 
 		if (broker) this.Promise = broker.Promise;
-		if (schemaMods) schema = this.mergeSchemas(schema, schemaMods);
+		if (schemaMods) {
+			deprecate(
+				"schemaMods",
+				"Using 'schemaMods' parameter in 'broker.createService' is deprecated. Use 'mixins' instead."
+			);
+			schema = this.mergeSchemas(schema, schemaMods);
+		}
 		if (schema) this.parseServiceSchema(schema);
 	}
 

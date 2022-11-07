@@ -64,7 +64,7 @@ function createNodes(ns) {
 		logger
 	});
 	master.createService(_.cloneDeep(otherService));
-	master.createService(_.cloneDeep(otherService), { name: "other2" });
+	master.createService({ ..._.cloneDeep(otherService), name: "other2" });
 
 	const nodeUser1 = new ServiceBroker({
 		namespace: ns,
@@ -105,7 +105,7 @@ function createNodes(ns) {
 		logger
 	});
 	nodePay2.createService(_.cloneDeep(paymentService));
-	nodePay2.createService(_.cloneDeep(otherService), { name: "other2" });
+	nodePay2.createService({ ..._.cloneDeep(otherService), name: "other2" });
 
 	const nodeMail1 = new ServiceBroker({
 		namespace: ns,

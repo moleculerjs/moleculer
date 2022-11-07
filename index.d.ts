@@ -763,11 +763,19 @@ declare namespace Moleculer {
 		logger: LoggerInstance;
 		actions: ServiceActions;
 		Promise: PromiseConstructorLike;
-		//currentContext: Context | null;
 
 		_init(): void;
 		_start(): Promise<void>;
 		_stop(): Promise<void>;
+
+		/**
+		 * Call a local event handler. Useful for unit tests.
+		 *
+		 * @param eventName The event name
+		 * @param params The event parameters
+		 * @param opts The event options
+		 */
+		emitLocalEventHandler(eventName: string, params?: any, opts?: any): any
 
 		/**
 		 * Wait for the specified services to become available/registered with this broker.
@@ -776,32 +784,120 @@ declare namespace Moleculer {
 		 * @param timeout The total time this call may take. If this time has passed and the service(s)
 		 * 						    are not available an error will be thrown. (In milliseconds)
 		 * @param interval The time we will wait before once again checking if the service(s) are available (In milliseconds)
-		 * @param logger the broker logger instance
 		 */
 		waitForServices(
-			serviceNames: string | Array<string> | Array<ServiceDependency>,
-			timeout?: number,
-			interval?: number,
-			logger?: LoggerInstance
+		  serviceNames: string | Array<string> | Array<ServiceDependency>,
+		  timeout?: number,
+		  interval?: number,
 		): Promise<WaitForServicesResult>;
 
 		[name: string]: any;
 
-		static applyMixins(schema: ServiceSchema): ServiceSchema;
-		static mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
-		static mergeSchemaSettings(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaMetadata(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaMixins(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaDependencies(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaHooks(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaActions(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaMethods(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaEvents(src: GenericObject, target: GenericObject): GenericObject;
-		static mergeSchemaLifecycleHandlers(
-			src: GenericObject,
-			target: GenericObject
+		/**
+		 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
+		 *
+		 * @param schema Schema containing the mixins to merge
+		 */
+		applyMixins(schema: ServiceSchema): ServiceSchema;
+
+		/**
+		 * Merge two Service schema
+		 *
+		 * @param mixinSchema Mixin schema
+		 * @param svcSchema Service schema
+		 */
+		mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
+
+		/**
+		 * Merge `settings` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaSettings(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `metadata` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaMetadata(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `mixins` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaUniqArray(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `dependencies` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaDependencies(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `hooks` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaHooks(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `actions` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaActions(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `methods` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaMethods(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `events` property in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaEvents(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge `started`, `stopped`, `created` event handler properties in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaLifecycleHandlers(
+		  src: GenericObject,
+		  target: GenericObject
 		): GenericObject;
-		static mergeSchemaUnknown(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Merge unknown properties in schema
+		 *
+		 * @param src Source schema property
+		 * @param target Target schema property
+		 */
+		mergeSchemaUnknown(src: GenericObject, target: GenericObject): GenericObject;
+
+		/**
+		 * Return a versioned full service name.
+		 *
+		 * @param name The name
+		 * @param version The version
+		 */
+		static getVersionedFullName(name: string, version?: string|number): string;
 	}
 
 	type CheckRetryable = (err: Errors.MoleculerError | Error) => boolean;
