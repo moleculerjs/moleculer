@@ -77,9 +77,7 @@ module.exports = function actionHookMiddleware(broker) {
 			};
 
 			const beforeHookMatches =
-				hooks && hooks.before
-					? Object.keys(hooks.before).filter(hookName => matchHook(hookName))
-					: null;
+				hooks && hooks.before ? Object.keys(hooks.before).filter(matchHook) : null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
 			const beforeHook =
@@ -91,9 +89,7 @@ module.exports = function actionHookMiddleware(broker) {
 
 			/** @type {Array<String>?} List of hooks names that match the action name */
 			const afterHookMatches =
-				hooks && hooks.after
-					? Object.keys(hooks.after).filter(hookName => matchHook(hookName))
-					: null;
+				hooks && hooks.after ? Object.keys(hooks.after).filter(matchHook) : null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
 			const afterHook =
@@ -105,9 +101,7 @@ module.exports = function actionHookMiddleware(broker) {
 
 			/** @type {Array<String>?} List of hooks names that match the action name */
 			const errorHookMatches =
-				hooks && hooks.error
-					? Object.keys(hooks.error).filter(hookName => matchHook(hookName))
-					: null;
+				hooks && hooks.error ? Object.keys(hooks.error).filter(matchHook) : null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
 			const errorHook =
