@@ -40,7 +40,6 @@ describe("Test CborSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
-
 	it("should serialize the event packet with locale date time string (with 000Z)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z").toLocaleString();
 		const obj = {
@@ -165,7 +164,6 @@ describe("Test CborSerializer", () => {
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
-
 
 	it("should deserialize maps to objects by default", () => {
 		const input = new Map([

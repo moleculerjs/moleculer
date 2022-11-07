@@ -4,7 +4,6 @@ const P = require("../../../src/packets");
 
 describe("Test MsgPackSerializer constructor", () => {
 	it("should create an empty options", () => {
-
 		let serializer = new MsgPackSerializer();
 		expect(serializer).toBeDefined();
 		expect(serializer.serialize).toBeDefined();
@@ -32,8 +31,7 @@ describe("Test MsgPackSerializer", () => {
 			meta: {},
 			level: 1,
 			needAck: false
-		}
-
+		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(154);
 
@@ -57,7 +55,7 @@ describe("Test MsgPackSerializer", () => {
 			meta: {},
 			level: 1,
 			needAck: false
-		}
+		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(154);
@@ -83,7 +81,7 @@ describe("Test MsgPackSerializer", () => {
 			meta: {},
 			level: 1,
 			needAck: false
-		}
+		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(154);
@@ -109,7 +107,7 @@ describe("Test MsgPackSerializer", () => {
 			meta: {},
 			level: 1,
 			needAck: false
-		}
+		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(140);
@@ -135,7 +133,7 @@ describe("Test MsgPackSerializer", () => {
 			meta: {},
 			level: 1,
 			needAck: false
-		}
+		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
 		expect(s.length).toBe(144);
@@ -144,5 +142,4 @@ describe("Test MsgPackSerializer", () => {
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
-
 });

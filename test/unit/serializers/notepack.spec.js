@@ -91,7 +91,7 @@ describe("Test NotePackSerializer", () => {
 	});
 
 	it("should serialize the event packet with flaky time", () => {
-		const now = new Date("2022-11-06T22:59:47.000Z")
+		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -115,9 +115,8 @@ describe("Test NotePackSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
-
 	it("should serialize the event packet", () => {
-		const now = new Date("2022-11-06T22:59:47.001Z")
+		const now = new Date("2022-11-06T22:59:47.001Z");
 		const obj = {
 			ver: "4",
 			sender: "node-100",
