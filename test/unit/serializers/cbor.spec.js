@@ -33,7 +33,7 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(160);
+		expect(s.length).toBe(162);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -58,7 +58,7 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(160);
+		expect(s.length).toBe(162);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -83,7 +83,7 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(160);
+		expect(s.length).toBe(162);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);

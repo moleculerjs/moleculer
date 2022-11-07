@@ -33,7 +33,7 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(154);
+		expect(s.length).toBe(156);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -58,7 +58,7 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(154);
+		expect(s.length).toBe(156);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -83,7 +83,7 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(154);
+		expect(s.length).toBe(156);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
