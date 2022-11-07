@@ -306,7 +306,7 @@ const utils = {
 	 */
 	match(text, pattern) {
 		// Simple patterns
-		if (pattern.indexOf("?") == -1 && pattern.indexOf("|") == -1) {
+		if (pattern.indexOf("?") == -1) {
 			// Exact match (eg. "prefix.event")
 			const firstStarPosition = pattern.indexOf("*");
 			if (firstStarPosition == -1) {

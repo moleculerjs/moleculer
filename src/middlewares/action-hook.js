@@ -74,8 +74,8 @@ module.exports = function actionHookMiddleware(broker) {
 					? Object.keys(hooks.before).filter(hookName => {
 							// Global hook. Skip it
 							if (hookName === "*") return false;
-
-							return match(name, hookName);
+							const patterns = hookName.split("|");
+							return patterns.some(pattern => match(name, pattern));
 					  })
 					: null;
 
@@ -94,7 +94,8 @@ module.exports = function actionHookMiddleware(broker) {
 							// Global hook. Skip it
 							if (hookName === "*") return false;
 
-							return match(name, hookName);
+							const patterns = hookName.split("|");
+							return patterns.some(pattern => match(name, pattern));
 					  })
 					: null;
 
@@ -113,7 +114,8 @@ module.exports = function actionHookMiddleware(broker) {
 							// Global hook. Skip it
 							if (hookName === "*") return false;
 
-							return match(name, hookName);
+							const patterns = hookName.split("|");
+							return patterns.some(pattern => match(name, pattern));
 					  })
 					: null;
 
