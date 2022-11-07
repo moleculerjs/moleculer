@@ -69,14 +69,16 @@ module.exports = function actionHookMiddleware(broker) {
 
 			// Hooks in service
 			/** @type {Array<String>?} List of hooks names that match the action name */
+
+			const matchHook = hookName => {
+				if (hookName === "*") return false;
+				const patterns = hookName.split("|");
+				return patterns.some(pattern => match(name, pattern));
+			};
+
 			const beforeHookMatches =
 				hooks && hooks.before
-					? Object.keys(hooks.before).filter(hookName => {
-							// Global hook. Skip it
-							if (hookName === "*") return false;
-							const patterns = hookName.split("|");
-							return patterns.some(pattern => match(name, pattern));
-					  })
+					? Object.keys(hooks.before).filter(hookName => matchHook(hookName))
 					: null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
@@ -90,13 +92,7 @@ module.exports = function actionHookMiddleware(broker) {
 			/** @type {Array<String>?} List of hooks names that match the action name */
 			const afterHookMatches =
 				hooks && hooks.after
-					? Object.keys(hooks.after).filter(hookName => {
-							// Global hook. Skip it
-							if (hookName === "*") return false;
-
-							const patterns = hookName.split("|");
-							return patterns.some(pattern => match(name, pattern));
-					  })
+					? Object.keys(hooks.after).filter(hookName => matchHook(hookName))
 					: null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
@@ -110,13 +106,7 @@ module.exports = function actionHookMiddleware(broker) {
 			/** @type {Array<String>?} List of hooks names that match the action name */
 			const errorHookMatches =
 				hooks && hooks.error
-					? Object.keys(hooks.error).filter(hookName => {
-							// Global hook. Skip it
-							if (hookName === "*") return false;
-
-							const patterns = hookName.split("|");
-							return patterns.some(pattern => match(name, pattern));
-					  })
+					? Object.keys(hooks.error).filter(hookName => matchHook(hookName))
 					: null;
 
 			/** @type {Array<Function>?} List of hooks that match the action name */
