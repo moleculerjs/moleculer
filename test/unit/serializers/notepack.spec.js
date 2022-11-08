@@ -15,8 +15,8 @@ describe("Test NotePackSerializer", () => {
 	let serializer = new NotePackSerializer();
 	serializer.init();
 
-	it("should serialize the event packet with locale string", () => {
-		const now = new Date().toLocaleString();
+	it("should serialize the event packet with UTC date string", () => {
+		const now = new Date().toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -33,15 +33,15 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(156);
+		expect(s.length).toBe(164);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with locale string with OOOZ", () => {
-		const now = new Date("2022-11-06T22:59:47.000Z").toLocaleString();
+	it("should serialize the event packet (date ends with 000z using UTC)", () => {
+		const now = new Date("2022-11-06T22:59:47.000Z").toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -58,15 +58,15 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(156);
+		expect(s.length).toBe(164);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with locale string with more than OOOZ", () => {
-		const now = new Date("2022-11-06T22:59:47.001Z").toLocaleString();
+	it("should serialize the event packet (date ends with 001z using UTC)", () => {
+		const now = new Date("2022-11-06T22:59:47.001Z").toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -83,14 +83,14 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(156);
+		expect(s.length).toBe(164);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with flaky time", () => {
+	it("should serialize the event packet (date ends with 000z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
 			ver: "4",
@@ -115,7 +115,7 @@ describe("Test NotePackSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet", () => {
+	it("should serialize the event packet (date ends with 001z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z");
 		const obj = {
 			ver: "4",

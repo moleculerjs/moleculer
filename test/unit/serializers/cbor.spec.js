@@ -15,8 +15,8 @@ describe("Test CborSerializer", () => {
 	let serializer = new CborSerializer();
 	serializer.init();
 
-	it("should serialize the event packet with locale date time string", () => {
-		const now = new Date().toLocaleString();
+	it("should serialize the event packet (with UTC)", () => {
+		const now = new Date().toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -33,15 +33,15 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(162);
+		expect(s.length).toBe(171);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with locale date time string (with 000Z)", () => {
-		const now = new Date("2022-11-06T22:59:47.000Z").toLocaleString();
+	it("should serialize the event packet (date time ends with 000Z with UTC)", () => {
+		const now = new Date("2022-11-06T22:59:47.000Z").toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -58,15 +58,15 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(162);
+		expect(s.length).toBe(171);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with locale date time string (with more than 000Z)", () => {
-		const now = new Date("2022-11-06T22:59:47.001Z").toLocaleString();
+	it("should serialize the event packet (date time ends with 001Z with UTC)", () => {
+		const now = new Date("2022-11-06T22:59:47.001Z").toUTCString();
 		const obj = {
 			ver: "4",
 			sender: "node-100",
@@ -83,14 +83,14 @@ describe("Test CborSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(162);
+		expect(s.length).toBe(171);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet with flaky date time string", () => {
+	it("should serialize the event packet (date time ends with 000Z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
 			ver: "4",
@@ -115,7 +115,7 @@ describe("Test CborSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
-	it("should serialize the event packet", () => {
+	it("should serialize the event packet (date time ends with 001Z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z");
 		const obj = {
 			ver: "4",
