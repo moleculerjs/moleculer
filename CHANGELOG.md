@@ -10,6 +10,9 @@
 - allow matching hooks to multiple actions with "|" [#1149](https://github.com/moleculerjs/moleculer/pull/1149)
 - remove flaky tests [#1151](https://github.com/moleculerjs/moleculer/pull/1151)
 
+## Changes
+- fix serializers datetime flaky test
+
 --------------------------------------------------
 <a name="0.14.25"></a>
 # [0.14.25](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.25) (2022-10-29)
