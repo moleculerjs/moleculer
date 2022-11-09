@@ -8,10 +8,7 @@
 ## Changes
 - fix typescript definitions for the Service class [#1139](https://github.com/moleculerjs/moleculer/pull/1139)
 - allow matching hooks to multiple actions with "|" [#1149](https://github.com/moleculerjs/moleculer/pull/1149)
-- remove flaky tests [#1151](https://github.com/moleculerjs/moleculer/pull/1151)
-
-## Changes
-- fix serializers datetime flaky test
+- fix serializers datetime flaky test [#1151](https://github.com/moleculerjs/moleculer/pull/1151)
 
 --------------------------------------------------
 <a name="0.14.25"></a>
