@@ -1,5 +1,14 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.25...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
+
+--------------------------------------------------
+<a name="0.14.26"></a>
+# [0.14.26](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.26) (2022-11-09)
+
+## Changes
+- fix typescript definitions for the Service class [#1139](https://github.com/moleculerjs/moleculer/pull/1139)
+- allow matching hooks to multiple actions with "|" [#1149](https://github.com/moleculerjs/moleculer/pull/1149)
+- remove flaky tests [#1151](https://github.com/moleculerjs/moleculer/pull/1151)
 
 --------------------------------------------------
 <a name="0.14.25"></a>
