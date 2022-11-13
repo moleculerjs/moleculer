@@ -1437,6 +1437,8 @@ declare namespace Moleculer {
 				meta: object | null,
 				keys: Array<string> | null
 			): string;
+			tryLock(key: string | Array<string>, ttl?: number): Promise<() => Promise<void>>
+			lock(key: string | Array<string>, ttl?: number): Promise<() => Promise<void>>
 		}
 
 		class Memory extends Base {
