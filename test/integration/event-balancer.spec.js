@@ -64,7 +64,7 @@ function createNodes(ns) {
 		logger
 	});
 	master.createService(_.cloneDeep(otherService));
-	master.createService(_.cloneDeep(otherService), { name: "other2" });
+	master.createService({ ..._.cloneDeep(otherService), name: "other2" });
 
 	const nodeUser1 = new ServiceBroker({
 		namespace: ns,
@@ -105,7 +105,7 @@ function createNodes(ns) {
 		logger
 	});
 	nodePay2.createService(_.cloneDeep(paymentService));
-	nodePay2.createService(_.cloneDeep(otherService), { name: "other2" });
+	nodePay2.createService({ ..._.cloneDeep(otherService), name: "other2" });
 
 	const nodeMail1 = new ServiceBroker({
 		namespace: ns,
@@ -131,7 +131,7 @@ describe("Test event balancing", () => {
 	const nodeUser1 = nodes[1];
 
 	beforeAll(() => {
-		return Promise.all(nodes.map(node => node.start()));
+		return Promise.all(nodes.map(node => node.start())).delay(2000);
 		/*.delay(500)
 		.then(() => master.call("$node.list"))
 		.then(list => console.log("All nodes is started!", list));*/
@@ -300,7 +300,7 @@ describe("Test multiple handler in the same group balancing", () => {
 	nodePay1.createService(_.cloneDeep(stripeService));
 
 	beforeAll(() => {
-		return Promise.all([master.start(), nodePay1.start()]);
+		return Promise.all([master.start(), nodePay1.start(), Promise.resolve().delay(2000)]);
 	});
 
 	afterAll(() => {

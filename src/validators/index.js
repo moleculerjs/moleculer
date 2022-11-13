@@ -7,7 +7,7 @@
 "use strict";
 
 const { BrokerOptionsError } = require("../errors");
-const { isObject, isString } = require("../utils");
+const { isObject, isString, isInheritedClass } = require("../utils");
 
 const Validators = {
 	Base: require("./base"),
@@ -30,7 +30,7 @@ function getByName(name) {
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (opt instanceof Validators.Base) {
+	if (isObject(opt) && isInheritedClass(opt, Validators.Base)) {
 		return opt;
 	} else if (isString(opt)) {
 		let ValidatorClass = getByName(opt);

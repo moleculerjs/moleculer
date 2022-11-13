@@ -187,6 +187,7 @@ describe("Test EventReporter class", () => {
 				logger: false,
 				nodeID: "node-123",
 				metrics: {
+					enabled: true,
 					reporter: {
 						type: "Event",
 						options: {

@@ -783,6 +783,7 @@ describe("Test TracingMiddleware localAction", () => {
 			it("should create a span with local custom tags function even if global custom tags are specified", async () => {
 				const brokerOptions = {
 					tracing: {
+						enabled: true,
 						tags: {
 							action: jest.fn((ctx, response) => {})
 						}
@@ -791,7 +792,6 @@ describe("Test TracingMiddleware localAction", () => {
 				const broker = new ServiceBroker({
 					nodeID: "server-1",
 					logger: false,
-					tracing: true,
 					...brokerOptions
 				});
 				const tracer = broker.tracer;
@@ -873,6 +873,7 @@ describe("Test TracingMiddleware localAction", () => {
 			it("should create a span with global custom tags function if no local action tags are specified", async () => {
 				const brokerOptions = {
 					tracing: {
+						enabled: true,
 						tags: {
 							action: jest.fn((ctx, response) => ({
 								custom: {
@@ -887,7 +888,6 @@ describe("Test TracingMiddleware localAction", () => {
 				const broker = new ServiceBroker({
 					nodeID: "server-1",
 					logger: false,
-					tracing: true,
 					...brokerOptions
 				});
 				const tracer = broker.tracer;
@@ -1022,6 +1022,7 @@ describe("Test TracingMiddleware localAction", () => {
 			it("should merge global action tags with the default params tag", async () => {
 				const brokerOptions = {
 					tracing: {
+						enabled: true,
 						tags: {
 							action: {
 								meta: true,
@@ -1033,7 +1034,6 @@ describe("Test TracingMiddleware localAction", () => {
 				const broker = new ServiceBroker({
 					nodeID: "server-1",
 					logger: false,
-					tracing: true,
 					...brokerOptions
 				});
 				const tracer = broker.tracer;
@@ -1107,6 +1107,7 @@ describe("Test TracingMiddleware localAction", () => {
 			it("should override global action tags with local tags", async () => {
 				const brokerOptions = {
 					tracing: {
+						enabled: true,
 						tags: {
 							action: {
 								params: false,
@@ -1119,7 +1120,6 @@ describe("Test TracingMiddleware localAction", () => {
 				const broker = new ServiceBroker({
 					nodeID: "server-1",
 					logger: false,
-					tracing: true,
 					...brokerOptions
 				});
 				const tracer = broker.tracer;

@@ -54,15 +54,14 @@ describe("Test circuit breaker", () => {
 		return master1
 			.start()
 			.then(() => slave1.start())
-			.delay(100)
-			.then(() => (clock = lolex.install()));
+			.delay(2000)
+			.then(() => (clock = lolex.install({ shouldClearNativeTimers: true })));
 	});
 
-	afterAll(() => {
-		return master1
-			.stop()
-			.then(() => slave1.stop())
-			.then(() => clock.uninstall());
+	afterAll(async () => {
+		await clock.uninstall();
+
+		await master1.stop().then(() => slave1.stop());
 	});
 
 	it("should call 'happy' x5 without problem", () => {

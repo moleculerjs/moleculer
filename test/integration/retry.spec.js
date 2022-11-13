@@ -90,7 +90,14 @@ describe("Test Retry middleware", () => {
 			TestService
 		]);
 
-		beforeAll(() => Promise.all([broker0.start(), broker1.start(), broker2.start()]));
+		beforeAll(() =>
+			Promise.all([
+				broker0.start(),
+				broker1.start(),
+				broker2.start(),
+				Promise.resolve().delay(2000)
+			])
+		);
 
 		afterAll(() => Promise.all([broker0.stop(), broker1.stop(), broker2.stop()]));
 
@@ -151,7 +158,14 @@ describe("Test Retry middleware", () => {
 			TestService
 		]);
 
-		beforeAll(() => Promise.all([broker0.start(), broker1.start(), broker2.start()]));
+		beforeAll(() =>
+			Promise.all([
+				broker0.start(),
+				broker1.start(),
+				broker2.start(),
+				Promise.resolve().delay(2000)
+			])
+		);
 
 		afterAll(() => Promise.all([broker0.stop(), broker1.stop(), broker2.stop()]));
 
