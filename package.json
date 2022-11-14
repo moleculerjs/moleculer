@@ -208,7 +208,7 @@
     }
   },
   "engines": {
-    "node": ">= 14.x.x"
+    "node": ">= 16.x.x"
   },
   "types": "./index.d.ts",
   "tsd": {
