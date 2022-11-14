@@ -32,19 +32,6 @@ describe("Test Transporter constructor", () => {
 		expect(transit.pendingReqStreams).toBeInstanceOf(Map);
 		expect(transit.pendingResStreams).toBeInstanceOf(Map);
 
-		expect(transit.stat).toEqual({
-			packets: {
-				sent: {
-					count: 0,
-					bytes: 0
-				},
-				received: {
-					count: 0,
-					bytes: 0
-				}
-			}
-		});
-
 		expect(transit.connected).toBe(false);
 		expect(transit.disconnecting).toBe(false);
 		expect(transit.isReady).toBe(false);
@@ -293,7 +280,6 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should broadcast Error if msg not valid", async () => {
-		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		const res = await transit.messageHandler("EVENT");
 		expect(res).toBe(false);
 
@@ -3292,24 +3278,6 @@ describe("Test Transit.sendHeartbeat", () => {
 	});
 });
 
-describe("Test Transit.subscribe", () => {
-	const broker = new ServiceBroker({
-		logger: false,
-		nodeID: "node1",
-		transporter: new FakeTransporter()
-	});
-	const transit = broker.transit;
-	const transporter = transit.tx;
-
-	transporter.subscribe = jest.fn();
-
-	it("should call transporter.subscribe", () => {
-		transit.subscribe("REQ", "node-2");
-		expect(transporter.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.subscribe).toHaveBeenCalledWith("REQ", "node-2");
-	});
-});
-
 describe("Test Transit.publish", () => {
 	const broker = new ServiceBroker({
 		logger: false,
@@ -3332,7 +3300,6 @@ describe("Test Transit.publish", () => {
 
 	it("should call transporter.prepublish after subscribing", () => {
 		transporter.prepublish.mockClear();
-		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => (resolve = r));
 

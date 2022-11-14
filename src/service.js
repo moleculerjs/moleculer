@@ -44,23 +44,15 @@ class Service {
 	 *
 	 * @param {ServiceBroker} 	broker	broker of service
 	 * @param {Object} 			schema	schema of service
-	 * @param {any=} 			schemaMods	Modified schema
 	 *
 	 * @memberof Service
 	 */
-	constructor(broker, schema, schemaMods) {
+	constructor(broker, schema) {
 		if (!isObject(broker)) throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
 		this.broker = broker;
 
 		if (broker) this.Promise = broker.Promise;
-		if (schemaMods) {
-			deprecate(
-				"schemaMods",
-				"Using 'schemaMods' parameter in 'broker.createService' is deprecated. Use 'mixins' instead."
-			);
-			schema = this.mergeSchemas(schema, schemaMods);
-		}
 		if (schema) this.parseServiceSchema(schema);
 	}
 

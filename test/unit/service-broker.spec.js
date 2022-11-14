@@ -1324,26 +1324,6 @@ describe("Test broker.createService", () => {
 		expect(broker.ServiceFactory.prototype.mergeSchemas).toHaveBeenCalledTimes(0);
 	});
 
-	it("should call mergeSchema if give schema mods param", () => {
-		const broker = new ServiceBroker({ logger: false });
-		broker.ServiceFactory.prototype.mergeSchemas = jest.fn(schema => schema);
-		const schema = {
-			name: "test",
-			actions: {
-				empty() {}
-			}
-		};
-
-		const mods = {
-			name: "other",
-			version: 2
-		};
-
-		broker.createService(schema, mods);
-		expect(broker.ServiceFactory.prototype.mergeSchemas).toHaveBeenCalledTimes(1);
-		expect(broker.ServiceFactory.prototype.mergeSchemas).toHaveBeenCalledWith(schema, mods);
-	});
-
 	it("should load es6 class service", () => {
 		const es6Service = require("../services/greeter.es6.service");
 		es6Service.prototype.parseServiceSchema = jest.fn();
@@ -1807,11 +1787,6 @@ describe("Test broker.getLocalService", () => {
 			expect(broker.getLocalService({ name: "posts" })).toBeUndefined();
 			expect(broker.getLocalService({ name: "posts", version: 1 })).toBe(service1);
 			expect(broker.getLocalService({ name: "posts", version: 2 })).toBe(service2);
-		});
-
-		it("should find the service by name & version (deprecated)", () => {
-			expect(broker.getLocalService("posts", 2)).toBe(service2);
-			expect(broker.getLocalService("posts", 1)).toBe(service1);
 		});
 	});
 });

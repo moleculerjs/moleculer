@@ -45,20 +45,6 @@ class Transit {
 		this.pendingReqStreams = new Map();
 		this.pendingResStreams = new Map();
 
-		/* deprecated */
-		this.stat = {
-			packets: {
-				sent: {
-					count: 0,
-					bytes: 0
-				},
-				received: {
-					count: 0,
-					bytes: 0
-				}
-			}
-		};
-
 		this.connected = false;
 		this.disconnecting = false;
 		this.isReady = false;
@@ -1355,19 +1341,6 @@ class Transit {
 				});
 			}
 		);
-	}
-
-	/**
-	 * Subscribe via transporter
-	 *
-	 * @param {String} topic
-	 * @param {String=} nodeID
-	 *
-	 * @deprecated
-	 * @memberof Transit
-	 */
-	subscribe(topic, nodeID) {
-		return this.tx.subscribe(topic, nodeID);
 	}
 
 	/**

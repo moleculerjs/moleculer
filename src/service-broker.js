@@ -899,7 +899,7 @@ class ServiceBroker {
 		} else if (utils.isPlainObject(service)) {
 			serviceName = service.name;
 			serviceVersion = service.version;
-			service = this.getLocalService(service.name, service.version);
+			service = this.getLocalService(service);
 		}
 
 		if (!service) {
@@ -980,17 +980,12 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	getLocalService(name, version) {
-		if (arguments.length == 1) {
-			if (utils.isString(name))
-				return this.services.find(service => service.fullName == name);
-			else if (utils.isPlainObject(name))
-				return this.services.find(
-					service => service.name == name.name && service.version == name.version
-				);
-		}
-		// Deprecated
-		return this.services.find(service => service.name == name && service.version == version);
+	getLocalService(name) {
+		if (utils.isString(name)) return this.services.find(service => service.fullName == name);
+		else if (utils.isPlainObject(name))
+			return this.services.find(
+				service => service.name == name.name && service.version == name.version
+			);
 	}
 
 	/**

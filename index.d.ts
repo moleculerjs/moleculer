@@ -1485,8 +1485,6 @@ declare namespace Moleculer {
 		convertSchemaToMoleculer(schema: any): GenericObject;
 	}
 
-	class Validator extends BaseValidator {} // deprecated
-
 	abstract class BaseStrategy {
 		constructor(registry: ServiceRegistry, broker: ServiceBroker, opts?: object);
 		select(list: any[], ctx?: Context): Endpoint;
