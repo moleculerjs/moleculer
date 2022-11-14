@@ -95,11 +95,12 @@ describe("Test Pino logger class", () => {
 			expect(logHandler).toBeInstanceOf(Function);
 			expect(logger.pino.child).toHaveBeenCalledTimes(1);
 			expect(logger.pino.child).toHaveBeenCalledWith(
-				{},
 				{
-					level: "info",
 					mod: "my-service",
 					nodeID: "node-1"
+				},
+				{
+					level: "info"
 				}
 			);
 

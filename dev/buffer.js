@@ -75,7 +75,7 @@ function inspect(x) {
 		rv = x.constructor.name;
 	}
 	if (typeof x === "object") {
-		rv += ". Keys: " + Object.keys(x).join(", ").substr(0, 80);
+		rv += ". Keys: " + Object.keys(x).join(", ").substring(0, 80);
 	}
 	return rv;
 }

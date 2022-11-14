@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten, functionArguments } = require("./utils");
+const { isObject, isFunction, flatten, functionArguments, deprecate } = require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -53,7 +53,6 @@ class Service {
 		this.broker = broker;
 
 		if (broker) this.Promise = broker.Promise;
-
 		if (schema) this.parseServiceSchema(schema);
 	}
 
@@ -71,7 +70,7 @@ class Service {
 		this.originalSchema = _.cloneDeep(schema);
 
 		if (schema.mixins) {
-			schema = Service.applyMixins(schema);
+			schema = this.applyMixins(schema);
 		}
 
 		if (isFunction(schema.merged)) {
@@ -144,8 +143,10 @@ class Service {
 						"stopped",
 						"_start",
 						"_stop",
-						"_init"
-					].indexOf(name) != -1
+						"_init",
+						"applyMixins"
+					].indexOf(name) !== -1 ||
+					name.startsWith("mergeSchema")
 				) {
 					throw new ServiceSchemaError(
 						`Invalid method name '${name}' in '${this.name}' service!`
@@ -282,7 +283,7 @@ class Service {
 				if (this.schema.dependencies)
 					return this.waitForServices(
 						this.schema.dependencies,
-						this.settings.$dependencyTimeout || 0,
+						this.settings.$dependencyTimeout || this.broker.options.dependencyTimeout,
 						this.settings.$dependencyInterval || this.broker.options.dependencyInterval
 					);
 			})
@@ -298,8 +299,7 @@ class Service {
 			})
 			.then(() => {
 				// Register service
-				this.broker.registerLocalService(this._serviceSpecification);
-				return null;
+				return this.broker.registerLocalService(this._serviceSpecification);
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);
@@ -555,25 +555,24 @@ class Service {
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
 	 *
-	 * @static
 	 * @param {Schema} schema
 	 * @returns {Schema}
 	 *
 	 * @memberof Service
 	 */
-	static applyMixins(schema) {
+	applyMixins(schema) {
 		if (schema.mixins) {
 			const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
 			if (mixins.length > 0) {
 				const mixedSchema = Array.from(mixins)
 					.reverse()
 					.reduce((s, mixin) => {
-						if (mixin.mixins) mixin = Service.applyMixins(mixin);
+						if (mixin.mixins) mixin = this.applyMixins(mixin);
 
-						return s ? Service.mergeSchemas(s, mixin) : mixin;
+						return s ? this.mergeSchemas(s, mixin) : mixin;
 					}, null);
 
-				return Service.mergeSchemas(mixedSchema, schema);
+				return this.mergeSchemas(mixedSchema, schema);
 			}
 		}
 
@@ -584,14 +583,13 @@ class Service {
 	/**
 	 * Merge two Service schema
 	 *
-	 * @static
 	 * @param {Object} mixinSchema		Mixin schema
 	 * @param {Object} svcSchema 		Service schema
 	 * @returns {Object} Mixed schema
 	 *
 	 * @memberof Service
 	 */
-	static mergeSchemas(mixinSchema, svcSchema) {
+	mergeSchemas(mixinSchema, svcSchema) {
 		const res = _.cloneDeep(mixinSchema);
 		const mods = _.cloneDeep(svcSchema);
 
@@ -599,39 +597,40 @@ class Service {
 			if (["name", "version"].indexOf(key) !== -1 && mods[key] !== undefined) {
 				// Simple overwrite
 				res[key] = mods[key];
-			} else if (key == "settings") {
+			} else if (key === "settings") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaSettings(mods[key], res[key]);
-			} else if (key == "metadata") {
+				res[key] = this.mergeSchemaSettings(mods[key], res[key]);
+			} else if (key === "metadata") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaMetadata(mods[key], res[key]);
-			} else if (key == "hooks") {
+				res[key] = this.mergeSchemaMetadata(mods[key], res[key]);
+			} else if (key === "hooks") {
 				// Merge & concat
-				res[key] = Service.mergeSchemaHooks(mods[key], res[key] || {});
-			} else if (key == "actions") {
+				res[key] = this.mergeSchemaHooks(mods[key], res[key] || {});
+			} else if (key === "actions") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaActions(mods[key], res[key] || {});
-			} else if (key == "methods") {
+				res[key] = this.mergeSchemaActions(mods[key], res[key] || {});
+			} else if (key === "methods") {
 				// Overwrite
-				res[key] = Service.mergeSchemaMethods(mods[key], res[key]);
-			} else if (key == "events") {
+				res[key] = this.mergeSchemaMethods(mods[key], res[key]);
+			} else if (key === "events") {
 				// Merge & concat by groups
-				res[key] = Service.mergeSchemaEvents(mods[key], res[key] || {});
+				res[key] = this.mergeSchemaEvents(mods[key], res[key] || {});
 			} else if (["merged", "created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
-				res[key] = Service.mergeSchemaLifecycleHandlers(mods[key], res[key]);
-			} else if (key == "mixins") {
+				res[key] = this.mergeSchemaLifecycleHandlers(mods[key], res[key]);
+			} else if (key === "mixins") {
 				// Concat mixins
-				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
-			} else if (key == "dependencies") {
+				res[key] = this.mergeSchemaUniqArray(mods[key], res[key]);
+			} else if (key === "dependencies") {
 				// Concat mixins
-				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
+				res[key] = this.mergeSchemaUniqArray(mods[key], res[key]);
 			} else {
 				const customFnName = "mergeSchema" + key.replace(/./, key[0].toUpperCase()); // capitalize first letter
-				if (isFunction(Service[customFnName])) {
-					res[key] = Service[customFnName](mods[key], res[key]);
+				// TODO: add middleware hook
+				if (isFunction(this[customFnName])) {
+					res[key] = this[customFnName](mods[key], res[key]);
 				} else {
-					res[key] = Service.mergeSchemaUnknown(mods[key], res[key]);
+					res[key] = this.mergeSchemaUnknown(mods[key], res[key]);
 				}
 			}
 		});
@@ -642,13 +641,12 @@ class Service {
 	/**
 	 * Merge `settings` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaSettings(src, target) {
+	mergeSchemaSettings(src, target) {
 		if ((target && target.$secureSettings) || (src && src.$secureSettings)) {
 			const srcSS = src && src.$secureSettings ? src.$secureSettings : [];
 			const targetSS = target && target.$secureSettings ? target.$secureSettings : [];
@@ -663,52 +661,48 @@ class Service {
 	/**
 	 * Merge `metadata` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaMetadata(src, target) {
+	mergeSchemaMetadata(src, target) {
 		return _.defaultsDeep(src, target);
 	}
 
 	/**
 	 * Merge `mixins` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaUniqArray(src, target) {
+	mergeSchemaUniqArray(src, target) {
 		return _.uniqWith(_.compact(flatten([src, target])), _.isEqual);
 	}
 
 	/**
 	 * Merge `dependencies` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaDependencies(src, target) {
-		return Service.mergeSchemaUniqArray(src, target);
+	mergeSchemaDependencies(src, target) {
+		return this.mergeSchemaUniqArray(src, target);
 	}
 
 	/**
 	 * Merge `hooks` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaHooks(src, target) {
+	mergeSchemaHooks(src, target) {
 		Object.keys(src).forEach(k => {
 			if (target[k] == null) target[k] = {};
 
@@ -717,7 +711,7 @@ class Service {
 				const resHook = wrapToArray(target[k][k2]);
 
 				target[k][k2] = _.compact(
-					flatten(k == "before" ? [resHook, modHook] : [modHook, resHook])
+					flatten(k === "before" ? [resHook, modHook] : [modHook, resHook])
 				);
 			});
 		});
@@ -728,13 +722,12 @@ class Service {
 	/**
 	 * Merge `actions` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property (real schema)
 	 * @param {Object} target Target schema property (mixin schema)
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaActions(src, target) {
+	mergeSchemaActions(src, target) {
 		Object.keys(src).forEach(k => {
 			if (src[k] === false && target[k]) {
 				delete target[k];
@@ -750,7 +743,7 @@ class Service {
 					const resHook = wrapToArray(targetAction.hooks[k]);
 
 					srcAction.hooks[k] = _.compact(
-						flatten(k == "before" ? [resHook, modHook] : [modHook, resHook])
+						flatten(k === "before" ? [resHook, modHook] : [modHook, resHook])
 					);
 				});
 			}
@@ -764,26 +757,24 @@ class Service {
 	/**
 	 * Merge `methods` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaMethods(src, target) {
+	mergeSchemaMethods(src, target) {
 		return Object.assign(target || {}, src || {});
 	}
 
 	/**
 	 * Merge `events` property in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaEvents(src, target) {
+	mergeSchemaEvents(src, target) {
 		Object.keys(src).forEach(k => {
 			const modEvent = wrapToHander(src[k]);
 			const resEvent = wrapToHander(target[k]);
@@ -791,7 +782,7 @@ class Service {
 			let handler = _.compact(
 				flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null])
 			);
-			if (handler.length == 1) handler = handler[0];
+			if (handler.length === 1) handler = handler[0];
 
 			target[k] = _.defaultsDeep(modEvent, resEvent);
 			target[k].handler = handler;
@@ -803,26 +794,24 @@ class Service {
 	/**
 	 * Merge `started`, `stopped`, `created` event handler properties in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaLifecycleHandlers(src, target) {
+	mergeSchemaLifecycleHandlers(src, target) {
 		return _.compact(flatten([target, src]));
 	}
 
 	/**
 	 * Merge unknown properties in schema
 	 *
-	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaUnknown(src, target) {
+	mergeSchemaUnknown(src, target) {
 		if (src !== undefined) return src;
 
 		return target;

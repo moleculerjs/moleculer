@@ -22,9 +22,22 @@ class TestService2 extends Service {
 
 		this.parseServiceSchema({
 			name: "test2",
+			created() {},
+			started() {},
+			stopped() {}
+		});
+	}
+}
+
+class TestService3 extends Service {
+	constructor(broker: ServiceBroker) {
+		super(broker);
+
+		this.parseServiceSchema({
+			name: "test3",
 			created: [() => {}, () => {}],
-			started: [async () => {}, async () => {}],
-			stopped: [async () => {}, async () => {}]
+			started: [async () => {}, () => {}],
+			stopped: [async () => {}, () => {}]
 		});
 	}
 }
@@ -35,3 +48,5 @@ expectType<ServiceSchema>(testService1.schema);
 const testService2 = new TestService2(broker);
 expectType<ServiceSchema>(testService2.schema);
 
+const testService3 = new TestService3(broker);
+expectType<ServiceSchema>(testService3.schema);

@@ -212,9 +212,11 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 	catalog.add({ id: "node-4" }, { name: "users" }, event1);
 
 	it("should return balanced endpoint list for 'user.created'", () => {
+		const ctx = Context.create(broker, null);
+
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.created");
+		let res = catalog.getBalancedEndpoints("user.created", null, ctx);
 
 		expect(res.length).toBe(3);
 		expect(res[0][0].id).toEqual("node-1");
@@ -230,9 +232,11 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 	});
 
 	it("should return balanced endpoint list for 'user.updated'", () => {
+		const ctx = Context.create(broker, null);
+
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.updated");
+		let res = catalog.getBalancedEndpoints("user.updated", null, ctx);
 
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-3");
@@ -240,9 +244,11 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 	});
 
 	it("should return balanced endpoint list for 'user.created' on group 'payment'", () => {
+		const ctx = Context.create(broker, null);
+
 		expect(catalog.events.length).toBe(4);
 
-		let res = catalog.getBalancedEndpoints("user.created", "payment");
+		let res = catalog.getBalancedEndpoints("user.created", "payment", ctx);
 
 		expect(res.length).toBe(1);
 		expect(res[0][0].id).toEqual("node-2");

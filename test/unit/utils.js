@@ -6,7 +6,10 @@ module.exports = {
 		if (err && err.stack) {
 			console.error(err);
 			console.error(err.stack);
+		} else {
+			console.error(new Error("Protect reject called with: " + err));
 		}
+
 		expect(err).toBe(true);
 	},
 

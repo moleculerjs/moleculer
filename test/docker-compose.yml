@@ -26,6 +26,9 @@ services:
     image: nats-streaming
     ports:
       - "4222:4222"
+    volumes:
+      - ./nats.config:/nats.config
+    command: "-c /nats.config"
 
   activemq:
     image: rmohr/activemq

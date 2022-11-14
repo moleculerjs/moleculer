@@ -22,9 +22,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    #concurrency:
+    #  group: ${{ github.workflow }}-${{ github.ref }}
+    #  cancel-in-progress: true
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [16.x]
         transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
         serializer: [JSON, JSONExt, MsgPack, Notepack, CBOR]
         discoverer: [Local, Etcd3, Redis]

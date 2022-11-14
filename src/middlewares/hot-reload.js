@@ -40,7 +40,7 @@ module.exports = function HotReloadMiddleware(broker) {
 	 *
 	 */
 	function watchProjectFiles() {
-		if (!broker.started || !process.mainModule) return;
+		if (!broker.started || (!process.mainModule && !require.main)) return;
 
 		cache.clear();
 		prevProjectFiles = projectFiles;

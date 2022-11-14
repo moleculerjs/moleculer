@@ -136,7 +136,7 @@ describe("Test Service requesting during stopping", () => {
 	};
 	broker2.createService(schema2);
 
-	beforeAll(() => Promise.all([broker1.start(), broker2.start()]));
+	beforeAll(() => Promise.all([broker1.start(), broker2.start(), Promise.resolve().delay(2000)]));
 
 	it("should call action", () => {
 		return broker1

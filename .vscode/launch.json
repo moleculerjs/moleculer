@@ -130,6 +130,25 @@
 				"-c",
 				"moleculer.config.async.js",
 				"svc/"
+			],
+			"outFiles": [
+				"${workspaceFolder}/**/*.js",
+				"!**/node_modules/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Moleculer-runner ESM",
+			"program": "${workspaceRoot}/bin/moleculer-runner.mjs",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"--hot",
+				"--repl",
+				"-c",
+				"examples/esm/moleculer.config.mjs",
+				"examples/esm/greeter.service.mjs",
+				"examples/esm/welcome.service.cjs"
 			]
 		},
 		{

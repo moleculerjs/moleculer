@@ -52,7 +52,7 @@ describe("Test RPC", () => {
 		}
 	});
 
-	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	beforeAll(() => Promise.all([b1.start(), b2.start(), Promise.resolve().delay(2000)]));
 	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should call echo.reply on b2", () => {

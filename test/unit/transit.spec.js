@@ -32,19 +32,6 @@ describe("Test Transporter constructor", () => {
 		expect(transit.pendingReqStreams).toBeInstanceOf(Map);
 		expect(transit.pendingResStreams).toBeInstanceOf(Map);
 
-		expect(transit.stat).toEqual({
-			packets: {
-				sent: {
-					count: 0,
-					bytes: 0
-				},
-				received: {
-					count: 0,
-					bytes: 0
-				}
-			}
-		});
-
 		expect(transit.connected).toBe(false);
 		expect(transit.disconnecting).toBe(false);
 		expect(transit.isReady).toBe(false);
@@ -211,34 +198,6 @@ describe("Test Transit.disconnect", () => {
 	});
 });
 
-describe("Test Transit.ready", () => {
-	const broker = new ServiceBroker({ logger: false });
-	const transporter = new FakeTransporter();
-	const transit = new Transit(broker, transporter, transitOptions);
-
-	transit.discoverer.localNodeReady = jest.fn(() => Promise.resolve());
-
-	it("should not call sendNodeInfo if not connected", () => {
-		expect(transit.isReady).toBe(false);
-		expect(transit.connected).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(0);
-		expect(transit.isReady).toBe(false);
-	});
-
-	it("should call sendNodeInfo if connected", () => {
-		transit.connected = true;
-		expect(transit.isReady).toBe(false);
-
-		transit.ready();
-
-		expect(transit.discoverer.localNodeReady).toHaveBeenCalledTimes(1);
-		expect(transit.isReady).toBe(true);
-	});
-});
-
 describe("Test Transit.sendDisconnectPacket", () => {
 	const broker = new ServiceBroker({
 		logger: false,
@@ -321,7 +280,6 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should broadcast Error if msg not valid", async () => {
-		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		const res = await transit.messageHandler("EVENT");
 		expect(res).toBe(false);
 
@@ -579,7 +537,7 @@ describe("Test Transit.eventHandler", () => {
 
 	it("should create packet", async () => {
 		broker.emitLocalServices.mockClear();
-		broker.started = true;
+		broker.stopping = false;
 		await transit.eventHandler({
 			id: "event-12345",
 			requestID: "event-req-12345",
@@ -621,6 +579,23 @@ describe("Test Transit.eventHandler", () => {
 			span: null,
 			tracing: false
 		});
+	});
+
+	it("should NOT create packet if broker is stopping", async () => {
+		broker.emitLocalServices.mockClear();
+		broker.stopping = true;
+		await transit.eventHandler({
+			id: "event-12345",
+			requestID: "event-req-12345",
+			parentID: "event-parent-67890",
+			event: "user.created",
+			data: { a: 5 },
+			groups: ["users"],
+			sender: "node-1",
+			broadcast: true
+		});
+
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(0);
 	});
 });
 
@@ -889,6 +864,33 @@ describe("Test Transit.requestHandler", () => {
 				);
 			});
 	});
+
+	it("should not send back response if broker is stopping", () => {
+		transit.sendResponse.mockClear();
+		transit._handleIncomingRequestStream.mockClear();
+
+		broker.stopping = true;
+		return transit
+			.requestHandler({
+				sender: "node2",
+				id,
+				meta: { a: 5 },
+				action: "posts.find"
+			})
+			.catch(protectReject)
+			.then(() => {
+				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+				expect(transit.sendResponse).toHaveBeenCalledWith(
+					"node2",
+					id,
+					{ a: 5 },
+					null,
+					expect.any(Error)
+				);
+				expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(0);
+				broker.started = true;
+			});
+	});
 });
 
 describe("Test Transit._handleIncomingRequestStream", () => {
@@ -1083,13 +1085,13 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 	});
 
-	describe("Test with wrong first & last chunks orders", () => {
+	describe("Test with reverse order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123R" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(
-				Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				Object.assign({}, payload, { stream: true, seq: 0 })
 			);
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
@@ -1100,9 +1102,75 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		it("should reorder chunks", () => {
 			expect(
 				transit._handleIncomingRequestStream(
-					Object.assign({}, payload, { stream: true, seq: 0 })
+					Object.assign({}, payload, { stream: false, seq: 7 })
 				)
 			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 6, params: "CHUNK-6" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 5, params: "CHUNK-5" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 3, params: "CHUNK-3" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" })
+				)
+			).toBeNull();
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				)
+			).toBeNull();
+
+			return broker.Promise.delay(100).then(() => {
+				expect(STORE).toEqual([
+					"CHUNK-1",
+					"CHUNK-2",
+					"CHUNK-3",
+					"CHUNK-4",
+					"CHUNK-5",
+					"CHUNK-6",
+					"-- END --"
+				]);
+			});
+		});
+	});
+
+	describe("Test with wrong first & last chunks orders", () => {
+		let STORE = [];
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
+
+		it("should create new stream", () => {
+			expect(
+				transit._handleIncomingRequestStream(
+					Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" })
+				)
+			).toBeNull();
+		});
+
+		it("should reorder chunks", () => {
+			const pass = transit._handleIncomingRequestStream(
+				Object.assign({}, payload, { stream: true, seq: 0 })
+			);
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", () => STORE.push("-- ERROR --"));
+			pass.on("end", () => STORE.push("-- END --"));
+
 			expect(
 				transit._handleIncomingRequestStream(
 					Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" })
@@ -1134,7 +1202,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 				)
 			).toBeNull();
 
-			return broker.Promise.delay(100).then(() => {
+			return broker.Promise.delay(500).then(() => {
 				expect(STORE).toEqual([
 					"CHUNK-1",
 					"CHUNK-2",
@@ -1600,6 +1668,91 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		});
 	});
 
+	describe("Test with reverse order inside chunks", () => {
+		let STORE = [];
+		const payload = { ver: "4", sender: "remote", id: "126R", success: true };
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(() => Promise.resolve()),
+			reject: jest.fn(() => Promise.resolve())
+		};
+		transit.pendingRequests.set("126R", req);
+		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
+
+		it("should create new stream", () => {
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 0 }),
+					req
+				)
+			).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", errorHandler);
+			pass.on("end", () => STORE.push("-- END --"));
+		});
+
+		it("should reorder chunks", () => {
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: false, seq: 7 }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 6, data: "CHUNK-6" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 5, data: "CHUNK-5" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 3, data: "CHUNK-3" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }),
+					req
+				)
+			).toBe(true);
+			expect(
+				transit._handleIncomingResponseStream(
+					Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }),
+					req
+				)
+			).toBe(true);
+
+			return broker.Promise.delay(100).then(() => {
+				expect(STORE).toEqual([
+					"CHUNK-1",
+					"CHUNK-2",
+					"CHUNK-3",
+					"CHUNK-4",
+					"CHUNK-5",
+					"CHUNK-6",
+					"-- END --"
+				]);
+			});
+		});
+	});
+
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
 		const payload = { ver: "4", sender: "remote", id: "127", success: true };
@@ -1619,12 +1772,6 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 					req
 				)
 			).toBe(true);
-			expect(req.resolve).toHaveBeenCalledTimes(1);
-			const pass = req.resolve.mock.calls[0][0];
-			expect(pass).toBeInstanceOf(Transform);
-			pass.on("data", data => STORE.push(data.toString()));
-			pass.on("error", errorHandler);
-			pass.on("end", () => STORE.push("-- END --"));
 		});
 
 		it("should reorder chunks", () => {
@@ -1634,6 +1781,13 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 					req
 				)
 			).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
+			expect(pass).toBeInstanceOf(Transform);
+			pass.on("data", data => STORE.push(data.toString()));
+			pass.on("error", errorHandler);
+			pass.on("end", () => STORE.push("-- END --"));
+
 			expect(
 				transit._handleIncomingResponseStream(
 					Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }),
@@ -1671,7 +1825,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 				)
 			).toBe(true);
 
-			return broker.Promise.delay(100).then(() => {
+			return broker.Promise.delay(500).then(() => {
 				expect(STORE).toEqual([
 					"CHUNK-1",
 					"CHUNK-2",
@@ -3253,24 +3407,6 @@ describe("Test Transit.sendHeartbeat", () => {
 	});
 });
 
-describe("Test Transit.subscribe", () => {
-	const broker = new ServiceBroker({
-		logger: false,
-		nodeID: "node1",
-		transporter: new FakeTransporter()
-	});
-	const transit = broker.transit;
-	const transporter = transit.tx;
-
-	transporter.subscribe = jest.fn();
-
-	it("should call transporter.subscribe", () => {
-		transit.subscribe("REQ", "node-2");
-		expect(transporter.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.subscribe).toHaveBeenCalledWith("REQ", "node-2");
-	});
-});
-
 describe("Test Transit.publish", () => {
 	const broker = new ServiceBroker({
 		logger: false,
@@ -3293,7 +3429,6 @@ describe("Test Transit.publish", () => {
 
 	it("should call transporter.prepublish after subscribing", () => {
 		transporter.prepublish.mockClear();
-		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => (resolve = r));
 

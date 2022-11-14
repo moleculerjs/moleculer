@@ -21,7 +21,7 @@ describe("Test load services", () => {
 			.start()
 			.catch(protectReject)
 			.then(() => {
-				expect(broker.getLocalService("mailer", 2)).toBeDefined();
+				expect(broker.getLocalService("v2.mailer")).toBeDefined();
 				expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
 			})
 			.then(() => {
@@ -76,7 +76,9 @@ describe("Test load services", () => {
 			.start()
 			.catch(protectReject)
 			.then(() => {
-				expect(broker.getLocalService("es6-without-schema-mods", 2)).toBeDefined();
+				expect(
+					broker.getLocalService({ name: "es6-without-schema-mods", version: 2 })
+				).toBeDefined();
 				expect(broker.registry.actions.isAvailable("v2.es6-without-schema-mods.send")).toBe(
 					true
 				);
@@ -117,7 +119,7 @@ describe("Test load services", () => {
 			.start()
 			.catch(protectReject)
 			.then(() => {
-				expect(broker.getLocalService("es6-with-schema-mods", 3)).toBeDefined();
+				expect(broker.getLocalService("v3.es6-with-schema-mods")).toBeDefined();
 				expect(broker.registry.actions.isAvailable("v3.es6-with-schema-mods.send")).toBe(
 					true
 				);

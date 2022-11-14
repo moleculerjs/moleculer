@@ -106,7 +106,10 @@ const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
-		nodeID: "node-1"
+		nodeID: "node-1",
+		transit: {
+			maxQueueSize: 1000 * 1000
+		}
 	});
 
 	const b2 = new ServiceBroker({
@@ -115,7 +118,10 @@ const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 		requestTimeout: 0,
 		serializer: new Serializer(),
 		nodeID: "node-2",
-		trackContext: true
+		trackContext: true,
+		transit: {
+			maxQueueSize: 1000 * 1000
+		}
 	});
 
 	b2.createService({

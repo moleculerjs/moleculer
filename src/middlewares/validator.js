@@ -6,21 +6,11 @@
 
 "use strict";
 
-const { isFunction, deprecate } = require("../utils");
+const { isFunction } = require("../utils");
 
 module.exports = function ValidatorMiddleware(broker) {
 	if (broker.validator && isFunction(broker.validator.middleware)) {
-		const mw = broker.validator.middleware(broker);
-		if (isFunction(mw)) {
-			deprecate(
-				"Validator middleware returning a Function is deprecated. Return a middleware object instead."
-			);
-			return {
-				name: "Validator",
-				localAction: mw
-			};
-		}
-		return mw;
+		return broker.validator.middleware(broker);
 	}
 
 	return null;

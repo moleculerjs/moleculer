@@ -43,6 +43,8 @@ class Registry {
 		this.discoverer = Discoverers.resolve(this.opts.discoverer);
 		this.logger.info(`Discoverer: ${this.broker.getConstructorName(this.discoverer)}`);
 
+		this.localNodeInfoInvalidated = true;
+
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
@@ -174,7 +176,8 @@ class Registry {
 
 			this.nodes.localNode.services.push(service);
 
-			this.regenerateLocalRawInfo(this.broker.started);
+			//this.regenerateLocalRawInfo(true);
+			this.localNodeInfoInvalidated = "seq";
 
 			this.logger.info(`'${svc.name}' service is registered.`);
 
@@ -377,10 +380,18 @@ class Registry {
 	 * @memberof Registry
 	 */
 	unregisterService(fullName, nodeID) {
-		this.services.remove(fullName, nodeID || this.broker.nodeID);
+		nodeID = nodeID || this.broker.nodeID;
+		this.services.remove(fullName, nodeID);
 
-		if (!nodeID || nodeID == this.broker.nodeID) {
-			this.regenerateLocalRawInfo(true);
+		if (nodeID == this.broker.nodeID) {
+			// Clean the local node services
+			const idx = this.nodes.localNode.services.findIndex(svc => svc.fullName === fullName);
+			if (idx !== -1) this.nodes.localNode.services.splice(idx, 1);
+		}
+
+		if (nodeID == this.broker.nodeID) {
+			this.localNodeInfoInvalidated = "seq";
+			//this.regenerateLocalRawInfo(true);
 		}
 	}
 
@@ -443,7 +454,7 @@ class Registry {
 	 *
 	 * @memberof Registry
 	 */
-	regenerateLocalRawInfo(incSeq) {
+	regenerateLocalRawInfo(incSeq, isStopping) {
 		let node = this.nodes.localNode;
 		if (incSeq) node.seq++;
 
@@ -457,8 +468,12 @@ class Registry {
 			"seq",
 			"metadata"
 		]);
-		if (this.broker.started) rawInfo.services = this.services.getLocalNodeServices();
-		else rawInfo.services = [];
+
+		if (!isStopping && (this.broker.started || incSeq)) {
+			rawInfo.services = this.services.getLocalNodeServices();
+		} else {
+			rawInfo.services = [];
+		}
 
 		// Make to be safety
 		node.rawInfo = utils.safetyObject(rawInfo, this.broker.options);
@@ -473,7 +488,12 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo(force) {
-		if (force || !this.nodes.localNode.rawInfo) return this.regenerateLocalRawInfo();
+		if (force || !this.nodes.localNode.rawInfo || this.localNodeInfoInvalidated) {
+			const res = this.regenerateLocalRawInfo(this.localNodeInfoInvalidated == "seq");
+			this.logger.debug("Local Node info regenerated.");
+			this.localNodeInfoInvalidated = false;
+			return res;
+		}
 
 		return this.nodes.localNode.rawInfo;
 	}
