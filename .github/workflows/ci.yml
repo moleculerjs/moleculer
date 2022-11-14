@@ -57,6 +57,10 @@ jobs:
     - name: Execute Typescript tests
       run: npm run test:ts
 
+    - name: Execute ESM tests
+      run: npm run test:esm
+      if: ${{ matrix.node-version != '10.x' }}
+
     - name: Upload code coverage
       run: npm run coverall
       if:  github.ref == 'refs/heads/master'

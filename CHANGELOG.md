@@ -1,5 +1,106 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.19...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
+
+--------------------------------------------------
+<a name="0.14.26"></a>
+# [0.14.26](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.26) (2022-11-09)
+
+## Changes
+- fix typescript definitions for the Service class [#1139](https://github.com/moleculerjs/moleculer/pull/1139)
+- allow matching hooks to multiple actions with "|" [#1149](https://github.com/moleculerjs/moleculer/pull/1149)
+- fix serializers datetime flaky test [#1151](https://github.com/moleculerjs/moleculer/pull/1151)
+
+--------------------------------------------------
+<a name="0.14.25"></a>
+# [0.14.25](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.25) (2022-10-29)
+
+## Changes
+- fix Node 19 compatibility
+
+--------------------------------------------------
+<a name="0.14.24"></a>
+# [0.14.24](https://github.com/moleculerjs/moleculer/compare/v0.14.23...v0.14.24) (2022-10-10)
+
+## Changes
+- allow moleculer-runner to resolve configuration files from node_modules [#1126](https://github.com/moleculerjs/moleculer/pull/1126)
+- fixed slower broker startup time issue [#1132](https://github.com/moleculerjs/moleculer/issues/1132)
+- fixed memory leak at dynamic service creation [#1121](https://github.com/moleculerjs/moleculer/issues/1121)
+- fixed invalid 'undefined' type in validator schema. [#1137](https://github.com/moleculerjs/moleculer/issues/1137)
+- update dependencies
+
+--------------------------------------------------
+<a name="0.14.23"></a>
+# [0.14.23](https://github.com/moleculerjs/moleculer/compare/v0.14.22...v0.14.23) (2022-08-16)
+
+## Changes
+- fixed timeout issue in `waitForServices` method [#1123](https://github.com/moleculerjs/moleculer/issues/1123)
+- fixed metadata issue when compression enabled [#1122](https://github.com/moleculerjs/moleculer/issues/1122)
+
+--------------------------------------------------
+<a name="0.14.22"></a>
+# [0.14.22](https://github.com/moleculerjs/moleculer/compare/v0.14.21...v0.14.22) (2022-08-13)
+
+_35 commits from 11 contributors._
+
+## Changes
+- fixed 'Ctx is undefined when using shard strategy and preferLocal is false, throws error on emit' [#1072](https://github.com/moleculerjs/moleculer/issues/1072)
+- fixed info packet send at broker stop [#1101](https://github.com/moleculerjs/moleculer/pull/1101)
+- added support for either-or versions to waitForServices [#1030](https://github.com/moleculerjs/moleculer/pull/1030)
+- fixed streaming issue with compression [#1100](https://github.com/moleculerjs/moleculer/issues/1100)
+- add requestID to debug logs in transit [#1104](https://github.com/moleculerjs/moleculer/issues/1104)
+- removed static on methods for the use of ServiceFactory [#1098](https://github.com/moleculerjs/moleculer/issues/1098)
+- fixed the issue with setting tracing and metrics options with env variables [#1112](https://github.com/moleculerjs/moleculer/issues/1112)
+- added dependencyTimeout broker option [#1118](https://github.com/moleculerjs/moleculer/issues/1118)
+- improved d.ts [#1099](https://github.com/moleculerjs/moleculer/pull/1099) [#1111](https://github.com/moleculerjs/moleculer/pull/1111) [#1115](https://github.com/moleculerjs/moleculer/pull/1115)
+- updated dependencies
+
+--------------------------------------------------
+<a name="0.14.21"></a>
+# [0.14.21](https://github.com/moleculerjs/moleculer/compare/v0.14.20...v0.14.21) (2022-04-30)
+
+_20 commits from 2 contributors._
+
+## ESM support [#1063](https://github.com/moleculerjs/moleculer/issues/1063)
+
+This version contains an ESM-based Moleculer Runner. This Runner is able to load ESM configuration file and ESM services. _It can load the CJS services, as well_
+
+**Example usage**
+```
+moleculer-runner-esm --repl services/**/*.service.mjs
+```
+
+Moreover, the `index.js` file is wrapped into `index.mjs`, so you can import internal modules from the core in ESM modules. E.g.:
+
+```js
+import { ServiceBroker, Errors } from "moleculer";
+```
+
+Please note, **the hot-reload function doesn't work with this ESM Runner**. The cause: https://github.com/nodejs/modules/issues/307
+Node maintainers try to solve the missing features (module cache and module dependency tree) with [loaders](https://nodejs.org/api/esm.html#loaders) but this API is not stable yet.
+
+
+## Other Changes
+- `broker.stopping` property is created to indicate that broker is in stopping state.
+
+--------------------------------------------------
+<a name="0.14.20"></a>
+# [0.14.20](https://github.com/moleculerjs/moleculer/compare/v0.14.19...v0.14.20) (2022-04-19)
+
+_52 commits from 8 contributors._
+
+## Dependency logic changed [#1077](https://github.com/moleculerjs/moleculer/issues/1077)
+
+In [mixed architecture](https://moleculer.services/docs/0.14/clustering.html#Mixed-architecture), it's not hard to create a circular service dependency that may cause a dead-lock during the start of Moleculer nodes. The problem is that Moleculer node only sends the local service registry to remote nodes after **all** local services started properly. 
+As of 0.14.20, this behavior has changed. The new logic uses a debounced registry sending method which is triggered every time a local service, that the node manages, has `started()`.  
+Note that the new method generates more [INFO packets](https://github.com/moleculer-framework/protocol/blob/master/4.0/PROTOCOL.md#info), than early versions, during the start of the node. The number of INFO packets depends on the number of the services that the node manages. The debounce timeout, between sending INFO packets, is 1 second.
+
+## Other Changes
+- fix ActionLogger and TransitLogger middlewares.
+- update Datadog Logger using v2 API. [#1056](https://github.com/moleculerjs/moleculer/pull/1056)
+- update dependencies.
+- update d.ts file. [#1064](https://github.com/moleculerjs/moleculer/pull/1064), [#1073](https://github.com/moleculerjs/moleculer/pull/1073)
+- fix pino child logger bindings. [#1075](https://github.com/moleculerjs/moleculer/pull/1075)
+ 
 
 --------------------------------------------------
 <a name="0.14.19"></a>

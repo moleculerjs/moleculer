@@ -1,6 +1,6 @@
 "use strict";
 
-const { now } = require("perf_hooks").performance;
+const perf = require("perf_hooks").performance;
 
 function defProp(instance, propName, value, readOnly = false) {
 	Object.defineProperty(instance, propName, {
@@ -81,7 +81,7 @@ class Span {
 		this.logger.debug(`[${this.id}] Span '${this.name}' is started.`);
 
 		this.startTime = time || Date.now();
-		this.startTicks = now();
+		this.startTicks = perf.now();
 		// console.log(`"${this.name}" start time: ${this.startTime}`);
 
 		this.tracer.spanStarted(this);
@@ -96,7 +96,7 @@ class Span {
 	 * @memberof Span
 	 */
 	getTime() {
-		return this.startTime + now() - this.startTicks;
+		return this.startTime + perf.now() - this.startTicks;
 	}
 
 	/**

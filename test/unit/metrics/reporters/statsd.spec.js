@@ -320,6 +320,7 @@ describe("Test StatsDReporter class", () => {
 		const broker = new ServiceBroker({
 			logger: false,
 			metrics: {
+				enabled: true,
 				reporter: "StatsD"
 			}
 		});

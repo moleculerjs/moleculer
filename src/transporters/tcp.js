@@ -130,7 +130,7 @@ class TcpTransporter extends Transporter {
 				this.nodes.localNode.port = this.opts.port;
 
 				// Regenerate local node INFO because port changed
-				this.registry.regenerateLocalRawInfo();
+				this.registry.regenerateLocalRawInfo(true);
 			})
 			.then(() => this.onConnected());
 	}

@@ -190,6 +190,16 @@ describe("Test ActionHookMiddleware", () => {
 						FLOW.push("before-hook-2");
 						ctx.params.third = 3;
 					}
+				],
+				"find|invalid": [
+					function (ctx) {
+						FLOW.push("before-hook-3");
+					}
+				],
+				"invalid1|invalid2": [
+					function (ctx) {
+						FLOW.push("before-hook-4"); //not added
+					}
 				]
 			},
 			after: {
@@ -203,6 +213,14 @@ describe("Test ActionHookMiddleware", () => {
 						return Object.assign(res, { c: 300 });
 					}
 				],
+
+				"invalid|find": [
+					function (ctx, res) {
+						FLOW.push("after-hook-3");
+						return res;
+					}
+				],
+
 				"*": [
 					function (ctx, res) {
 						FLOW.push("after-all-hook-1");
@@ -246,11 +264,13 @@ describe("Test ActionHookMiddleware", () => {
 					"before-all-hook-2",
 					"before-hook-1",
 					"before-hook-2",
+					"before-hook-3",
 					"before-action-hook",
 					"handler-1-2-3",
 					"after-action-hook",
 					"after-hook-1",
 					"after-hook-2",
+					"after-hook-3",
 					"after-all-hook-1",
 					"after-all-hook-2"
 				]);

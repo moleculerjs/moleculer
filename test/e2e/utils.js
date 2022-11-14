@@ -3,7 +3,7 @@ const _ = require("lodash");
 const kleur = require("kleur");
 const fs = require("fs");
 const path = require("path");
-const diff = require("jest-diff").default;
+const { diff } = require("jest-diff");
 const { ServiceBroker } = require("../../");
 const crypto = require("crypto");
 

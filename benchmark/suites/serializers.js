@@ -17,7 +17,7 @@ let dataFiles = ["10", "1k", "50k", "100k", "buf-10240", "buf-102400"];
 function runTest(dataName) {
 	let payload = !dataName.startsWith("buf-")
 		? JSON.parse(getDataFile(dataName + ".json"))
-		: crypto.randomBytes(parseInt(dataName.substr(4)));
+		: crypto.randomBytes(parseInt(dataName.substring(4)));
 
 	const broker = new ServiceBroker({ logger: false });
 

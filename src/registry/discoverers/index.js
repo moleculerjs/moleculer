@@ -7,7 +7,7 @@
 "use strict";
 
 const { BrokerOptionsError } = require("../../errors");
-const { isObject, isString } = require("../../utils");
+const { isObject, isString, isInheritedClass } = require("../../utils");
 
 const Discoverers = {
 	Base: require("./base"),
@@ -32,7 +32,7 @@ function getByName(name) {
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (opt instanceof Discoverers.Base) {
+	if (isObject(opt) && isInheritedClass(opt, Discoverers.Base)) {
 		return opt;
 	} else if (isString(opt)) {
 		let DiscovererClass = getByName(opt);

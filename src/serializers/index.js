@@ -6,7 +6,7 @@
 
 "use strict";
 
-const { isObject, isString } = require("../utils");
+const { isObject, isString, isInheritedClass } = require("../utils");
 const { BrokerOptionsError } = require("../errors");
 
 const Serializers = {
@@ -34,7 +34,7 @@ function getByName(name) {
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (opt instanceof Serializers.Base) {
+	if (isObject(opt) && isInheritedClass(opt, Serializers.Base)) {
 		return opt;
 	} else if (isString(opt)) {
 		let SerializerClass = getByName(opt);

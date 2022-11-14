@@ -60,6 +60,12 @@ Usage:
 0x -o index.js
 ```
 
+> for pwsh users, switch to CMD at first or run with `npx` 
+> 
+```
+npx 0x -o index.js
+```
+
 ## Others
 
 http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html
