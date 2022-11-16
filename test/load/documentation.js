@@ -24,3 +24,5 @@ export default function () {
     check(res, { 'status was 200': (r) => r.status == 200 })
     sleep(1)
 }
+
+// To run this test, run on the terminal this command: test/k6 run test/load/documentation.js
