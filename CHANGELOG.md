@@ -1,5 +1,41 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.27...master)
+
+--------------------------------------------------
+<a name="0.14.27"></a>
+# [0.14.26](https://github.com/moleculerjs/moleculer/compare/v0.14.26...v0.14.27) (2022-11-16)
+
+## Changes
+- upgraded package-lock to lockfileversion 2
+- added support for starting a remote REPL console over a TCP socket
+
+Start _broker_ in a remote machine with REPL:
+```js
+const broker = new ServiceBroker({
+    ...
+	// REPL TCP Socket port
+	replTcpPort: 1337,
+    ...
+});
+
+broker.start().then(() => {
+    // Start REPL
+    broker.repl();
+});
+```
+
+On your local machine:
+
+```bash
+$ telnet <remote-machine-ip> 1337
+Trying <remote-machine-ip>...
+Connected to <remote-machine-ip>.
+Escape character is '^]'.
+mol $ 
+```
+
+Run `help` to see available commands.
+
 
 --------------------------------------------------
 <a name="0.14.26"></a>
