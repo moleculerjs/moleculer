@@ -34,15 +34,15 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.transporter }} transporter and ${{ matrix.serializer }} and ${{ matrix.discoverer }} discoverer
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
 
     - name: Cache node modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       env:
         cache-name: cache-node-modules
       with:
