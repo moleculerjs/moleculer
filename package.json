@@ -101,7 +101,7 @@
     "node-nats-streaming": "^0.0.51",
     "nodemon": "^2.0.20",
     "notepack.io": "^2.3.0",
-    "npm-check": "^5.9.2",
+    "npm-check": "^6.0.1",
     "pino": "^6.13.3",
     "prettier": "^2.7.1",
     "redlock": "^4.2.0",
