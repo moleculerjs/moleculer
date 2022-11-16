@@ -285,6 +285,7 @@ describe("Test ServiceBroker constructor", () => {
 			middlewares: null,
 			replCommands: null,
 			replDelimiter: null,
+			replTcpPort: null,
 			metadata: {
 				region: "eu-west1"
 			},
@@ -937,6 +938,17 @@ describe("Test broker.repl", () => {
 
 		expect(repl).toHaveBeenCalledTimes(1);
 		expect(repl).toHaveBeenCalledWith(broker, { delimiter: broker.options.replDelimiter });
+	});
+	it("should switch to repl mode with remote access over a TCP socket", () => {
+		repl.mockClear();
+		let broker = new ServiceBroker({
+			logger: false,
+			replTcpPort: 1337
+		});
+		broker.repl();
+
+		expect(repl).toHaveBeenCalledTimes(1);
+		expect(repl).toHaveBeenCalledWith(broker, { tcpPort: broker.options.replTcpPort });
 	});
 });
 

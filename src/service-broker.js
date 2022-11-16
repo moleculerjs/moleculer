@@ -120,6 +120,7 @@ const defaultOptions = {
 
 	replCommands: null,
 	replDelimiter: null,
+	replTcpPort: null,
 
 	metadata: {},
 
@@ -614,8 +615,10 @@ class ServiceBroker {
 			let opts = null;
 			const delimiter = this.options.replDelimiter;
 			const customCommands = this.options.replCommands;
+			const tcpPort = this.options.replTcpPort;
 			delimiter && (opts = { delimiter });
 			customCommands && (opts = { ...opts, customCommands });
+			tcpPort && (opts = { ...opts, tcpPort });
 			return repl(this, opts);
 		}
 	}

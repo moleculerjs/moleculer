@@ -1017,6 +1017,7 @@ declare namespace Moleculer {
 
 		replCommands?: Array<GenericObject> | null;
 		replDelimiter?: string;
+		replTcpPort?: number | null;
 
 		metadata?: GenericObject;
 
