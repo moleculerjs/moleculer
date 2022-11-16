@@ -1,6 +1,6 @@
 {
   "name": "moleculer",
-  "version": "0.14.26",
+  "version": "0.14.27",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "exports": {
@@ -98,7 +98,7 @@
     "kafka-node": "^5.0.0",
     "lockfile-lint": "^4.9.6",
     "log4js": "^6.7.0",
-    "moleculer-repl": "^0.7.3",
+    "moleculer-repl": "^0.7.4",
     "mqtt": "^4.3.7",
     "msgpack5": "^6.0.2",
     "nats": "^2.7.1",
