@@ -25,4 +25,5 @@ export default function () {
     sleep(1)
 }
 
+// First, you need to download the binary https://github.com/grafana/k6/archive/refs/tags/v0.41.0.zip and move the binary to the folder test
 // To run this test, run on the terminal this command: test/k6 run test/load/documentation.js
