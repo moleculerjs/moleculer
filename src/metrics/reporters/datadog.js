@@ -108,6 +108,9 @@ class DatadogReporter extends BaseReporter {
 		)
 			.then(res => {
 				this.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
+				if(res.statusText === "Bad Request"){
+					this.logger.debug(`Request: ${JSON.stringify({ series })}`);
+				}
 			})
 			.catch(err => {
 				/* istanbul ignore next */
