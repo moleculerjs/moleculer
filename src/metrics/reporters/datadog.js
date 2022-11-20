@@ -168,7 +168,7 @@ class DatadogReporter extends BaseReporter {
 							type: "gauge",
 							points: [[now, item.value]],
 							tags: this.labelsToTags(item.labels),
-							host: this.opts.host
+							resources: [{"name": this.opts.host, "type": "host"}]
 						});
 					});
 
@@ -194,7 +194,7 @@ class DatadogReporter extends BaseReporter {
 									type: "rate",
 									points: [[now, item.buckets[le]]],
 									tags: this.labelsToTags(item.labels),
-									host: this.opts.host
+									resources: [{"name": this.opts.host, "type": "host"}]
 								});
 							});
 							// +Inf
@@ -203,7 +203,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.count]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 						}
 
@@ -214,7 +214,7 @@ class DatadogReporter extends BaseReporter {
 									type: "rate",
 									points: [[now, item.quantiles[key]]],
 									tags: this.labelsToTags(item.labels),
-									host: this.opts.host
+									resources: [{"name": this.opts.host, "type": "host"}]
 								});
 							});
 
@@ -224,7 +224,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.sum]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -232,7 +232,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.count]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -240,7 +240,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.min]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -248,7 +248,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.mean]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -256,7 +256,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.variance]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -264,7 +264,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.stdDev]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
@@ -272,7 +272,7 @@ class DatadogReporter extends BaseReporter {
 								type: "rate",
 								points: [[now, item.max]],
 								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
+								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 						}
 					});
