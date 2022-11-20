@@ -96,12 +96,13 @@ class DatadogReporter extends BaseReporter {
 		if (series.length == 0) return;
 
 		return fetch(
-			`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`,
+			`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}`,
 			{
 				method: "post",
 				body: JSON.stringify({ series }),
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
+					"DD-API-KEY": this.opts.apiKey
 				}
 			}
 		)

@@ -11,3 +11,4 @@ benchmark/results
 .prettierrc.js
 .prettierrc
 logs/
+.history/
