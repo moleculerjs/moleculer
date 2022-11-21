@@ -161,12 +161,23 @@ class DatadogReporter extends BaseReporter {
 
 			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
+					snapshot.forEach(item => {
+						series.push({
+							metric: this.formatMetricName(metric.name),
+							type: 1,
+							points: [{ "timestamp": now, "value": item.value}],
+							tags: this.labelsToTags(item.labels),
+							resources: [{"name": this.opts.host, "type": "host"}]
+						});
+					});
+
+					break;
 				case METRIC.TYPE_GAUGE: {
 					snapshot.forEach(item => {
 						series.push({
 							metric: this.formatMetricName(metric.name),
-							type: "gauge",
-							points: [[now, item.value]],
+							type: 3,
+							points: [{ "timestamp": now, "value": item.value}],
 							tags: this.labelsToTags(item.labels),
 							resources: [{"name": this.opts.host, "type": "host"}]
 						});
@@ -191,8 +202,8 @@ class DatadogReporter extends BaseReporter {
 							Object.keys(item.buckets).forEach(le => {
 								series.push({
 									metric: this.formatMetricName(metric.name + ".bucket_" + le),
-									type: "rate",
-									points: [[now, item.buckets[le]]],
+									type: 2,
+									points: [{ "timestamp": now, "value": item.buckets[le]}],
 									tags: this.labelsToTags(item.labels),
 									resources: [{"name": this.opts.host, "type": "host"}]
 								});
@@ -200,8 +211,8 @@ class DatadogReporter extends BaseReporter {
 							// +Inf
 							series.push({
 								metric: this.formatMetricName(metric.name + ".bucket_inf"),
-								type: "rate",
-								points: [[now, item.count]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.count}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
@@ -211,8 +222,8 @@ class DatadogReporter extends BaseReporter {
 							Object.keys(item.quantiles).forEach(key => {
 								series.push({
 									metric: this.formatMetricName(metric.name + ".q" + key),
-									type: "rate",
-									points: [[now, item.quantiles[key]]],
+									type: 2,
+									points: [{ "timestamp": now, "value": item.quantiles[key]}],
 									tags: this.labelsToTags(item.labels),
 									resources: [{"name": this.opts.host, "type": "host"}]
 								});
@@ -221,56 +232,56 @@ class DatadogReporter extends BaseReporter {
 							// Add other calculated values
 							series.push({
 								metric: this.formatMetricName(metric.name + ".sum"),
-								type: "rate",
-								points: [[now, item.sum]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.sum}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".count"),
-								type: "rate",
-								points: [[now, item.count]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.count}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".min"),
-								type: "rate",
-								points: [[now, item.min]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.min}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".mean"),
-								type: "rate",
-								points: [[now, item.mean]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.mean}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".variance"),
-								type: "rate",
-								points: [[now, item.variance]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.variance}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".stddev"),
-								type: "rate",
-								points: [[now, item.stdDev]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.stdDev}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
 
 							series.push({
 								metric: this.formatMetricName(metric.name + ".max"),
-								type: "rate",
-								points: [[now, item.max]],
+								type: 2,
+								points: [{ "timestamp": now, "value": item.max}],
 								tags: this.labelsToTags(item.labels),
 								resources: [{"name": this.opts.host, "type": "host"}]
 							});
