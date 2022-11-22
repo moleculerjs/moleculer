@@ -3,773 +3,1038 @@
 exports[`Test Datadog Reporter class Test generateDatadogSeries method should call generateDatadogSeries method but not fetch 1`] = `
 Array [
   Object {
-    "host": "test-host",
     "metric": "test.counter",
     "points": Array [
-      Array [
-        12345678,
-        5,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 5,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "gauge",
+    "type": 1,
   },
   Object {
-    "host": "test-host",
     "metric": "test.counter",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:posts",
     ],
-    "type": "gauge",
+    "type": 1,
   },
   Object {
-    "host": "test-host",
     "metric": "test.gauge",
     "points": Array [
-      Array [
-        12345678,
-        -8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": -8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:users",
     ],
-    "type": "gauge",
+    "type": 3,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_1",
     "points": Array [
-      Array [
-        12345678,
-        0,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 0,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_5",
     "points": Array [
-      Array [
-        12345678,
-        2,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 2,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_10",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_25",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_50",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_100",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_250",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_500",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_1000",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_2500",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_5000",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_10000",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_inf",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.5",
     "points": Array [
-      Array [
-        12345678,
-        2,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 2,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.9",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.95",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.99",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.999",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.sum",
     "points": Array [
-      Array [
-        12345678,
-        18,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 18,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.count",
     "points": Array [
-      Array [
-        12345678,
-        4,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.min",
     "points": Array [
-      Array [
-        12345678,
-        2,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 2,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.mean",
     "points": Array [
-      Array [
-        12345678,
-        4.5,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 4.5,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.variance",
     "points": Array [
-      Array [
-        12345678,
-        9,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 9,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.stddev",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.max",
     "points": Array [
-      Array [
-        12345678,
-        8,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 8,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_1",
     "points": Array [
-      Array [
-        12345678,
-        1,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 1,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_5",
     "points": Array [
-      Array [
-        12345678,
-        2,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 2,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_10",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_25",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_50",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_100",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_250",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_500",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_1000",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_2500",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_5000",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_10000",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.bucket_inf",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.5",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.9",
     "points": Array [
-      Array [
-        12345678,
-        7,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 7,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.95",
     "points": Array [
-      Array [
-        12345678,
-        7,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 7,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.99",
     "points": Array [
-      Array [
-        12345678,
-        7,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 7,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.q0.999",
     "points": Array [
-      Array [
-        12345678,
-        7,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 7,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.sum",
     "points": Array [
-      Array [
-        12345678,
-        11,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 11,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.count",
     "points": Array [
-      Array [
-        12345678,
-        3,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.min",
     "points": Array [
-      Array [
-        12345678,
-        1,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 1,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.mean",
     "points": Array [
-      Array [
-        12345678,
-        3.6666666666666665,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3.6666666666666665,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.variance",
     "points": Array [
-      Array [
-        12345678,
-        9.333333333333334,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 9.333333333333334,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.stddev",
     "points": Array [
-      Array [
-        12345678,
-        3.0550504633038935,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 3.0550504633038935,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
   Object {
-    "host": "test-host",
     "metric": "test.histogram.max",
     "points": Array [
-      Array [
-        12345678,
-        7,
-      ],
+      Object {
+        "timestamp": 12345678,
+        "value": 7,
+      },
+    ],
+    "resources": Array [
+      Object {
+        "name": "test-host",
+        "type": "host",
+      },
     ],
     "tags": Array [
       "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
       "action:auth",
     ],
-    "type": "rate",
+    "type": 2,
   },
 ]
 `;

@@ -24,9 +24,29 @@ const Types = {
  */
 function getByName(name) {
 	/* istanbul ignore next */
-	if (!name) return null;
+	if (name === undefined) return null;
 
-	let n = Object.keys(Types).find(n => n.toLowerCase() == name.toLowerCase());
+	let converted = "Base";
+	switch (name) {
+		case 0:
+			converted = "Info";
+			break;
+		case 1:
+			converted = "Counter";
+			break;
+		case 2:
+			converted = "Histogram";
+			break;
+		case 3:
+			converted = "Gauge";
+			break;
+		default:
+			// keep old
+			converted = name;
+			break;
+	}
+
+	let n = Object.keys(Types).find(n => n.toLowerCase() == converted.toLowerCase());
 	if (n) return Types[n];
 }
 

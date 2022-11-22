@@ -176,10 +176,11 @@ describe("Test Datadog Reporter class", () => {
 
 			expect(reporter.generateDatadogSeries).toBeCalledTimes(1);
 			expect(fetch).toBeCalledTimes(1);
-			expect(fetch).toBeCalledWith("https://api.datadoghq.com/api/v1/series?api_key=12345", {
+			expect(fetch).toBeCalledWith("https://api.datadoghq.com/api/v1/series", {
 				body: '{"series":[{"a":5},{"a":6}]}',
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
+					"DD-API-KEY": "12345"
 				},
 				method: "post"
 			});
@@ -212,14 +213,14 @@ describe("Test Datadog Reporter class", () => {
 			});
 			reporter.init(registry);
 
-			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info" }).set("Test Value");
+			registry.register({ name: "os.datetime.utc", type: 3 }).set(123456);
+			registry.register({ name: "test.info", type: 0 }).set("Test Value");
 
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"] });
+			registry.register({ name: "test.counter", type: 1, labelNames: ["action"] });
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts" }, 8);
 
-			registry.register({ name: "test.gauge", type: "gauge", labelNames: ["action"] });
+			registry.register({ name: "test.gauge", type: 3, labelNames: ["action"] });
 			registry.decrement("test.gauge", { action: "users" }, 8);
 
 			registry.register({

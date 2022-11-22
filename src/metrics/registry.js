@@ -127,7 +127,7 @@ class MetricRegistry {
 	register(opts) {
 		if (!isPlainObject(opts)) throw new Error("Wrong argument. Must be an Object.");
 
-		if (!opts.type) throw new Error("The metric 'type' property is mandatory.");
+		if (opts.type === undefined) throw new Error("The metric 'type' property is mandatory.");
 
 		if (!opts.name) throw new Error("The metric 'name' property is mandatory.");
 
