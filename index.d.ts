@@ -179,9 +179,13 @@ declare namespace Moleculer {
 				meta?: boolean | string[];
 		  };
 
+	type TracingSpanNameOption = string | ((ctx: Context) => string)
+
 	interface TracingOptions {
 		enabled?: boolean;
 		tags?: TracingActionTags | TracingEventTags;
+		spanName?: TracingSpanNameOption
+		safetyTags?: boolean;
 	}
 
 	interface TracingActionOptions extends TracingOptions {
