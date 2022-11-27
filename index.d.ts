@@ -179,9 +179,13 @@ declare namespace Moleculer {
 				meta?: boolean | string[];
 		  };
 
+	type TracingSpanNameOption = string | ((ctx: Context) => string)
+
 	interface TracingOptions {
 		enabled?: boolean;
 		tags?: TracingActionTags | TracingEventTags;
+		spanName?: TracingSpanNameOption
+		safetyTags?: boolean;
 	}
 
 	interface TracingActionOptions extends TracingOptions {
@@ -1084,12 +1088,19 @@ declare namespace Moleculer {
 	type FallbackResponse = string | number | GenericObject;
 	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
 
+	type ContextParentSpan = {
+		id: string
+		traceID: string
+		sampled: boolean
+	}
+
 	interface CallingOptions {
 		timeout?: number;
 		retries?: number;
 		fallbackResponse?: FallbackResponse | Array<FallbackResponse> | FallbackResponseHandler;
 		nodeID?: string;
 		meta?: GenericObject;
+		parentSpan?: ContextParentSpan;
 		parentCtx?: Context;
 		requestID?: string;
 		tracking?: boolean;
