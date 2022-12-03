@@ -1694,7 +1694,7 @@ declare namespace Moleculer {
 				},
 				whitelist?: Array<string>
 			}
-			const ActionLogger = (options?: actionLoggerOptions) => Middleware
+			function ActionLogger(options?: actionLoggerOptions): Middleware;
 			type transitLoggerOptions = {
 				logger?: LoggerInstance,
 				logLevel?: LogLevels,
@@ -1710,15 +1710,15 @@ declare namespace Moleculer {
 
 				packetFilter?: Array<Packets.packetType>
 			}
-			const TransitLogger = (options?: transitLoggerOptions) => Middleware
+			function TransitLogger(options?: transitLoggerOptions): Middleware
 		}
 		namespace Transmit {
 			type compressionOptions = {
 				method?: "deflate" | "deflateRaw" | "gzip",
 				threshold?: number | string
 			}
-			const Compression = (options?: compressionOptions) => Middleware
-			const Encryption = (password: string, algorithm: string, iv: string | Buffer) => Middleware
+			function Compression(options?: compressionOptions): Middleware
+			function Encryption(password: string, algorithm: string, iv: string | Buffer): Middleware
 		}
 	}
 
