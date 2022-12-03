@@ -1,4 +1,5 @@
 import { EventEmitter2 } from "eventemitter2";
+import type { Kleur } from "kleur";
 
 declare namespace Moleculer {
 	/**
@@ -1340,21 +1341,23 @@ declare namespace Moleculer {
 			sender: string | null;
 		}
 
+		type packetType = | PACKET_UNKNOWN
+			| PACKET_EVENT
+			| PACKET_DISCONNECT
+			| PACKET_DISCOVER
+			| PACKET_INFO
+			| PACKET_HEARTBEAT
+			| PACKET_REQUEST
+			| PACKET_PING
+			| PACKET_PONG
+			| PACKET_RESPONSE
+			| PACKET_GOSSIP_REQ
+			| PACKET_GOSSIP_RES
+			| PACKET_GOSSIP_HELLO;
+
 		interface Packet {
-			type:
-				| PACKET_UNKNOWN
-				| PACKET_EVENT
-				| PACKET_DISCONNECT
-				| PACKET_DISCOVER
-				| PACKET_INFO
-				| PACKET_HEARTBEAT
-				| PACKET_REQUEST
-				| PACKET_PING
-				| PACKET_PONG
-				| PACKET_RESPONSE
-				| PACKET_GOSSIP_REQ
-				| PACKET_GOSSIP_RES
-				| PACKET_GOSSIP_HELLO;
+			type: packetType
+
 			target?: string;
 			payload: PacketPayload;
 		}
@@ -1663,6 +1666,59 @@ declare namespace Moleculer {
 				plainError: PlainMoleculerError,
 				payload: GenericObject
 			): Error | undefined;
+		}
+	}
+
+	/**
+	 * you can use multiple modifier with a dot
+	 * e.g. `black.bgRed.bold`
+	 */
+	type KleurColor = keyof Kleur | string
+
+	namespace Middlewares {
+		namespace Debugging {
+			type actionLoggerOptions = {
+				logger?: LoggerInstance,
+				logLevel?: LogLevels,
+				logParams?: boolean,
+				logResponse?: boolean,
+				logMeta?: boolean,
+
+				folder?: string | null,
+				extension?: string,
+
+				colors?: {
+					request?: KleurColor,
+					response?: KleurColor,
+					error?: KleurColor
+				},
+				whitelist?: Array<string>
+			}
+			const ActionLogger = (options?: actionLoggerOptions) => Middleware
+			type transitLoggerOptions = {
+				logger?: LoggerInstance,
+				logLevel?: LogLevels,
+				logPacketData?: boolean,
+
+				folder?: string | null,
+				extension?: string,
+
+				colors?: {
+					receive?: KleurColor,
+					send?: KleurColor
+				},
+
+				packetFilter?: Array<Packets.packetType>
+			}
+			const TransitLogger = (options?: transitLoggerOptions) => Middleware
+		}
+		namespace Transmit {
+			type compressionOptions = {
+				method?: "deflate" | "deflateRaw" | "gzip",
+				threshold?: number | string
+			}
+			const Compression = (options?: compressionOptions) => Middleware
+			const Encryption = (password: string, algorithm: string, iv: string | Buffer) => Middleware
 		}
 	}
 
