@@ -971,8 +971,8 @@ class ServiceBroker {
 			definitiveSchema = opts["$node"];
 			if (!definitiveSchema.mixins) definitiveSchema.mixins = [];
 			definitiveSchema.mixins.push(interalsSchema);
-		// Otherwise, just use the default one
 		} else {
+			// Otherwise, just use the default one
 			definitiveSchema = interalsSchema;
 		}
 		this.createService(definitiveSchema);
