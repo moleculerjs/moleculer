@@ -491,7 +491,7 @@ declare namespace Moleculer {
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 		fallback?: string | FallbackHandler;
 	}
-	type ActionSchema<S = ServiceSettingSchema> = {
+	type ActionSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		name?: string;
 		rest?: RestSchema | string | string[];
 		visibility?: ActionVisibility;
@@ -509,7 +509,7 @@ declare namespace Moleculer {
 	interface EventSchemaExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {
 		bulkhead?: BulkheadOptions;
 	}
-	type EventSchema<S = ServiceSettingSchema> = {
+	type EventSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -523,7 +523,7 @@ declare namespace Moleculer {
 
 	// allow to extend ServiceActionsSchema
 	interface ServiceActionsSchemaExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {}
-	type ServiceActionsSchema<S = ServiceSettingSchema> = {
+	type ServiceActionsSchema<S extends ServiceSettingSchema = ServiceSettingSchema> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;
 	} & ServiceActionsSchemaExtension<S> & ThisType<Service<S>>;
 
@@ -668,8 +668,8 @@ declare namespace Moleculer {
 	};
 
 	// allow to extend ServiceMethods
-	interface ServiceMethodsExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {}
-	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ServiceMethods<S> & ThisType<Service>;
+	interface ServiceMethodsExtension {}
+	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ServiceMethodsExtension & ThisType<Service>;
 
 	type CallMiddlewareHandler = (
 		actionName: string,
