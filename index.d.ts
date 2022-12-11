@@ -162,6 +162,8 @@ declare namespace Moleculer {
 		startSpan(name: string, opts?: GenericObject): Span;
 	}
 
+	// allow to extend TracingActionTags
+	interface TracingActionTagsExtension {}
 	type TracingActionTagsFuncType = (ctx: Context, response?: any) => GenericObject;
 	type TracingActionTags =
 		| TracingActionTagsFuncType
@@ -169,15 +171,17 @@ declare namespace Moleculer {
 				params?: boolean | string[];
 				meta?: boolean | string[];
 				response?: boolean | string[];
-		  };
+		  } & TracingActionTagsExtension;
 
+	// allow to extend TracingEventTags
+	interface TracingEventTagsExtension {}
 	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
 	type TracingEventTags =
 		| TracingEventTagsFuncType
 		| {
 				params?: boolean | string[];
 				meta?: boolean | string[];
-		  };
+		  } & TracingEventTagsExtension;
 
 	type TracingSpanNameOption = string | ((ctx: Context) => string)
 
@@ -479,40 +483,49 @@ declare namespace Moleculer {
 		basePath?: string;
 	}
 
+
+	// allow to extend ActionSchema
+	interface ActionSchemaExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {
+		cache?: boolean | ActionCacheOptions;
+		bulkhead?: BulkheadOptions;
+		circuitBreaker?: BrokerCircuitBreakerOptions;
+		fallback?: string | FallbackHandler;
+	}
 	type ActionSchema<S = ServiceSettingSchema> = {
 		name?: string;
 		rest?: RestSchema | string | string[];
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
-		cache?: boolean | ActionCacheOptions;
 		handler?: ActionHandler;
 		tracing?: boolean | TracingActionOptions;
-		bulkhead?: BulkheadOptions;
-		circuitBreaker?: BrokerCircuitBreakerOptions;
 		retryPolicy?: RetryPolicyOptions;
-		fallback?: string | FallbackHandler;
 		hooks?: ActionHooks;
 
 		[key: string]: any;
-	} & ThisType<Service<S>>;
+	} & ActionSchemaExtension<S> & ThisType<Service<S>>;
 
+	// allow to extend EventSchema
+	interface EventSchemaExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {
+		bulkhead?: BulkheadOptions;
+	}
 	type EventSchema<S = ServiceSettingSchema> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
 		service?: Service;
 		tracing?: boolean | TracingEventOptions;
-		bulkhead?: BulkheadOptions;
 		handler?: ActionHandler;
 		context?: boolean;
 
 		[key: string]: any;
-	} & ThisType<Service<S>>;
+	} & EventSchemaExtension<S> & ThisType<Service<S>>;
 
+	// allow to extend ServiceActionsSchema
+	interface ServiceActionsSchemaExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {}
 	type ServiceActionsSchema<S = ServiceSettingSchema> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;
-	} & ThisType<Service<S>>;
+	} & ServiceActionsSchemaExtension<S> & ThisType<Service<S>>;
 
 	class BrokerNode {
 		id: string;
@@ -638,21 +651,25 @@ declare namespace Moleculer {
 
 	type ServiceEventHandler = (ctx: Context) => void | Promise<void>;
 
+	interface ServiceEventsExtension {
+		debounce?: number;
+		throttle?: number;
+	}
 	type ServiceEvent<S = ServiceSettingSchema> = {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
 		context?: boolean;
-		debounce?: number;
-		throttle?: number;
 		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
-	} & ThisType<Service<S>>;
+	} & ServiceEventsExtension & ThisType<Service<S>>;
 
 	type ServiceEvents = {
 		[key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent;
 	};
 
-	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
+	// allow to extend ServiceMethods
+	interface ServiceMethodsExtension<S extends ServiceSettingSchema = ServiceSettingSchema> {}
+	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ServiceMethods<S> & ThisType<Service>;
 
 	type CallMiddlewareHandler = (
 		actionName: string,
