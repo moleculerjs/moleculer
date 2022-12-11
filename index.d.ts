@@ -1704,15 +1704,15 @@ declare namespace Moleculer {
 		method?: "deflate" | "deflateRaw" | "gzip";
 		threshold?: number | string;
 	};
-	export const Middlewares = {
+	export const Middlewares: {
 		Debugging: {
-			ActionLogger(options?: ActionLoggerOptions): Middleware {},
-			TransitLogger(options?: TransitLoggerOptions): Middleware {}
-		},
+			ActionLogger(options?: ActionLoggerOptions): Middleware;
+			TransitLogger(options?: TransitLoggerOptions): Middleware;
+		};
 		Transmit: {
-			Compression(options?: CompressionOptions): Middleware {},
-			Encryption(password: string, algorithm: string, iv: string | Buffer): Middleware {}
-		}
+			Compression(options?: CompressionOptions): Middleware;
+			Encryption(password: string, algorithm: string, iv: string | Buffer): Middleware;
+		};
 	};
 
 	interface TransitRequest {
