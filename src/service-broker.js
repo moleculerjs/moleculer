@@ -964,7 +964,18 @@ class ServiceBroker {
 	 */
 	registerInternalServices(opts) {
 		opts = utils.isObject(opts) ? opts : {};
-		this.createService(require("./internals")(this), opts["$node"]);
+		const internalsSchema = require("./internals")(this);
+		let definitiveSchema = {};
+		// If it's present any custom definition, define it as the root schema and the default one as a mixin
+		if (opts["$node"]) {
+			definitiveSchema = opts["$node"];
+			if (!definitiveSchema.mixins) definitiveSchema.mixins = [];
+			definitiveSchema.mixins.push(internalsSchema);
+		} else {
+			// Otherwise, just use the default one
+			definitiveSchema = internalsSchema;
+		}
+		this.createService(definitiveSchema);
 	}
 
 	/**
