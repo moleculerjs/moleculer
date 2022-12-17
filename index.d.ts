@@ -481,7 +481,7 @@ declare namespace Moleculer {
 
 	interface ActionSchema {
 		name?: string;
-		rest?: RestSchema | string | string[];
+		rest?: RestSchema | RestSchema[] | string | string[];
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
