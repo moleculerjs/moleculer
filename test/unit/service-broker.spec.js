@@ -1695,21 +1695,18 @@ describe("Test broker.registerInternalServices", () => {
 		broker.registerInternalServices();
 
 		expect(broker.createService).toHaveBeenCalledTimes(1);
-		expect(broker.createService).toHaveBeenCalledWith(
-			{
-				name: "$node",
-				actions: {
-					list: expect.any(Object),
-					services: expect.any(Object),
-					actions: expect.any(Object),
-					events: expect.any(Object),
-					health: expect.any(Object),
-					options: expect.any(Object),
-					metrics: expect.any(Object)
-				}
-			},
-			undefined
-		);
+		expect(broker.createService).toHaveBeenCalledWith({
+			name: "$node",
+			actions: {
+				list: expect.any(Object),
+				services: expect.any(Object),
+				actions: expect.any(Object),
+				events: expect.any(Object),
+				health: expect.any(Object),
+				options: expect.any(Object),
+				metrics: expect.any(Object)
+			}
+		});
 	});
 
 	it("should register internal action with mixins", () => {
@@ -1728,25 +1725,25 @@ describe("Test broker.registerInternalServices", () => {
 		});
 
 		expect(broker.createService).toHaveBeenCalledTimes(1);
-		expect(broker.createService).toHaveBeenCalledWith(
-			{
-				name: "$node",
-				actions: {
-					list: expect.any(Object),
-					services: expect.any(Object),
-					actions: expect.any(Object),
-					events: expect.any(Object),
-					health: expect.any(Object),
-					options: expect.any(Object),
-					metrics: expect.any(Object)
-				}
+		expect(broker.createService).toHaveBeenCalledWith({
+			metadata: {
+				a: 5
 			},
-			{
-				metadata: {
-					a: 5
+			mixins: [
+				{
+					name: "$node",
+					actions: {
+						list: expect.any(Object),
+						services: expect.any(Object),
+						actions: expect.any(Object),
+						events: expect.any(Object),
+						health: expect.any(Object),
+						options: expect.any(Object),
+						metrics: expect.any(Object)
+					}
 				}
-			}
-		);
+			]
+		});
 	});
 });
 
