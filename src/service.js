@@ -16,7 +16,7 @@ const { isObject, isFunction, flatten, functionArguments, deprecate } = require(
  * @param {Function|Object} o
  * @returns {Object}
  */
-function wrapToHander(o) {
+function wrapToHandler(o) {
 	return isFunction(o) ? { handler: o } : o;
 }
 
@@ -742,8 +742,8 @@ class Service {
 				return;
 			}
 
-			const srcAction = wrapToHander(src[k]);
-			const targetAction = wrapToHander(target[k]);
+			const srcAction = wrapToHandler(src[k]);
+			const targetAction = wrapToHandler(target[k]);
 
 			if (srcAction && srcAction.hooks && targetAction && targetAction.hooks) {
 				Object.keys(srcAction.hooks).forEach(k => {
@@ -784,8 +784,8 @@ class Service {
 	 */
 	mergeSchemaEvents(src, target) {
 		Object.keys(src).forEach(k => {
-			const modEvent = wrapToHander(src[k]);
-			const resEvent = wrapToHander(target[k]);
+			const modEvent = wrapToHandler(src[k]);
+			const resEvent = wrapToHandler(target[k]);
 
 			let handler = _.compact(
 				flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null])
