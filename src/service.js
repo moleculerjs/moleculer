@@ -599,10 +599,12 @@ class Service {
 	 */
 	mergeSchemas(mixinSchema, svcSchema) {
 		const res = _.cloneDeep(mixinSchema);
+		if (!svcSchema) return res;
 		const mods = _.cloneDeep(svcSchema);
+		if (!mixinSchema) return mods;
 
 		Object.keys(mods).forEach(key => {
-			if (["name", "version"].indexOf(key) !== -1 && mods[key] !== undefined) {
+			if ((key === "name" || key === "version") && mods[key] !== undefined) {
 				// Simple overwrite
 				res[key] = mods[key];
 			} else if (key === "settings") {
