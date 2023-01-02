@@ -16,7 +16,7 @@ const { isObject, isFunction, flatten, functionArguments, deprecate } = require(
  * @param {Function|Object} o
  * @returns {Object}
  */
-function wrapToHander(o) {
+function wrapToHandler(o) {
 	return isFunction(o) ? { handler: o } : o;
 }
 
@@ -599,10 +599,12 @@ class Service {
 	 */
 	mergeSchemas(mixinSchema, svcSchema) {
 		const res = _.cloneDeep(mixinSchema);
+		if (!svcSchema) return res;
 		const mods = _.cloneDeep(svcSchema);
+		if (!mixinSchema) return mods;
 
 		Object.keys(mods).forEach(key => {
-			if (["name", "version"].indexOf(key) !== -1 && mods[key] !== undefined) {
+			if ((key === "name" || key === "version") && mods[key] !== undefined) {
 				// Simple overwrite
 				res[key] = mods[key];
 			} else if (key === "settings") {
@@ -742,8 +744,8 @@ class Service {
 				return;
 			}
 
-			const srcAction = wrapToHander(src[k]);
-			const targetAction = wrapToHander(target[k]);
+			const srcAction = wrapToHandler(src[k]);
+			const targetAction = wrapToHandler(target[k]);
 
 			if (srcAction && srcAction.hooks && targetAction && targetAction.hooks) {
 				Object.keys(srcAction.hooks).forEach(k => {
@@ -784,8 +786,8 @@ class Service {
 	 */
 	mergeSchemaEvents(src, target) {
 		Object.keys(src).forEach(k => {
-			const modEvent = wrapToHander(src[k]);
-			const resEvent = wrapToHander(target[k]);
+			const modEvent = wrapToHandler(src[k]);
+			const resEvent = wrapToHandler(target[k]);
 
 			let handler = _.compact(
 				flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null])
