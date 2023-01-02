@@ -61,14 +61,14 @@ class Node {
 		this.port = payload.port;
 		this.client = payload.client || {};
 		this.config = payload.config || {};
-		this.instanceID = payload.instanceID;
 
 		// Process services & events (should make a clone because it will manipulate the objects (add handlers))
 		this.services = _.cloneDeep(payload.services);
 		this.rawInfo = payload;
 
 		const newSeq = payload.seq || 1;
-		if (newSeq > this.seq || isReconnected) {
+		if (newSeq > this.seq || isReconnected || payload.instanceID !== this.instanceID) {
+			this.instanceID = payload.instanceID;
 			this.seq = newSeq;
 			return true;
 		}

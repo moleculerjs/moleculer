@@ -964,7 +964,18 @@ class ServiceBroker {
 	 */
 	registerInternalServices(opts) {
 		opts = utils.isObject(opts) ? opts : {};
-		this.createService(require("./internals")(this), opts["$node"]);
+		const internalsSchema = require("./internals")(this);
+		let definitiveSchema = {};
+		// If it's present any custom definition, define it as the root schema and the default one as a mixin
+		if (opts["$node"]) {
+			definitiveSchema = opts["$node"];
+			if (!definitiveSchema.mixins) definitiveSchema.mixins = [];
+			definitiveSchema.mixins.push(internalsSchema);
+		} else {
+			// Otherwise, just use the default one
+			definitiveSchema = internalsSchema;
+		}
+		this.createService(definitiveSchema);
 	}
 
 	/**
@@ -1764,14 +1775,14 @@ class ServiceBroker {
 			return schema;
 		}
 		// Depending how the schema was create the correct constructor name (from base class) will be locate on __proto__.
-		target = utils.getConstructorName(schema.__proto__);
+		target = utils.getConstructorName(Object.getPrototypeOf(schema));
 		if (serviceName === target) {
-			Object.setPrototypeOf(schema.__proto__, this.ServiceFactory);
+			Object.setPrototypeOf(Object.getPrototypeOf(schema), this.ServiceFactory);
 			return schema;
 		}
 		// This is just to handle some idiosyncrasies from Jest.
 		if (schema._isMockFunction) {
-			target = utils.getConstructorName(schema.prototype.__proto__);
+			target = utils.getConstructorName(Object.getPrototypeOf(schema.prototype));
 			if (serviceName === target) {
 				Object.setPrototypeOf(schema, this.ServiceFactory);
 				return schema;

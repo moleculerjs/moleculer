@@ -2,8 +2,16 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
 
 --------------------------------------------------
+<a name="0.14.27"></a>
+# [0.14.27](https://github.com/moleculerjs/moleculer/compare/v0.14.26...v0.14.27) (2022-12-17)
+
+## Changes
+- fix typescript definitions in may commits.
+- prevent registerInternalServices deprecation warning [#1163](https://github.com/moleculerjs/moleculer/pull/1163)
+
+--------------------------------------------------
 <a name="0.14.26"></a>
-# [0.14.26](https://github.com/moleculerjs/moleculer/compare/v0.14.24...v0.14.26) (2022-11-09)
+# [0.14.26](https://github.com/moleculerjs/moleculer/compare/v0.14.25...v0.14.26) (2022-11-09)
 
 ## Changes
 - fix typescript definitions for the Service class [#1139](https://github.com/moleculerjs/moleculer/pull/1139)

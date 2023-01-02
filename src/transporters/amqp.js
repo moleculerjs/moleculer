@@ -429,6 +429,8 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	subscribeBalancedRequest(action) {
+		if (!this.channel) return;
+
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		return this.channel
 			.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST, true))
@@ -449,6 +451,8 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	subscribeBalancedEvent(event, group) {
+		if (!this.channel) return;
+
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 		return this.channel
 			.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB", true))
