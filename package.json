@@ -26,7 +26,7 @@
     "memleak": "node benchmark/memleak-test.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
     "thrift": "thrift -gen js:node -o src\\serializers\\thrift src\\serializers\\thrift\\packets.thrift",
-    "test": "NODE_OPTIONS=--disable-proto=delete jest --coverage --forceExit",
+    "test": "jest --coverage --forceExit",
     "test:unit": "jest --testMatch \"**/unit/**/*.spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
     "test:e2e": "cd test/e2e && ./start.sh",
