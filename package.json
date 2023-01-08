@@ -35,8 +35,8 @@
     "test:esm": "node bin/moleculer-runner.mjs -c test/esm/moleculer.config.mjs test/esm/*.service.*js",
     "esm-wrapper": "gen-esm-wrapper . ./index.mjs",
     "prerelease": "npm run esm-wrapper",
-    "release": "npm publish --access public && git push --tags",
-    "release:beta": "npm publish --tag next --access public && git push --tags"
+    "release": "npm publish --access public && git push --follow-tags",
+    "release:beta": "npm publish --tag next --access public && git push --follow-tags"
   },
   "keywords": [
     "microservice",
