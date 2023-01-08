@@ -1752,6 +1752,17 @@ declare namespace Moleculer {
 	const CIRCUIT_HALF_OPEN: string;
 	const CIRCUIT_OPEN: string;
 
+	const MOLECULER_VERSION: string;
+	const PROTOCOL_VERSION: string;
+	const INTERNAL_MIDDLEWARES: string[];
+
+	const METRIC: {
+		TYPE_COUNTER: "counter";
+		TYPE_GAUGE: "gauge";
+		TYPE_HISTOGRAM: "histogram";
+		TYPE_INFO: "info";
+	};
+
 	namespace Utils {
 		function isFunction(func: unknown): func is Function;
 		function isString(str: unknown): str is string;
