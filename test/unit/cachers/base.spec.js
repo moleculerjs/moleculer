@@ -319,6 +319,47 @@ describe("Test BaseCacher", () => {
 		expect(actionKeygen).toHaveBeenCalledTimes(1);
 		expect(actionKeygen).toHaveBeenCalledWith(actionName, params, meta, keys);
 	});
+
+	describe("check getCacheTTL", () => {
+		it("check getCacheTTL with default `ttl`", () => {
+			let broker = new ServiceBroker({ logger: false });
+
+			const ctx = { name: "ctx" };
+			const opts = {
+				ttl: 5
+			};
+
+			let cacher = new Cacher(opts);
+
+			cacher.init(broker);
+
+			const cacheKey = "cKey";
+			const result = 100;
+
+			expect(cacher.getCacheTTL(opts)).toBe(5);
+			expect(cacher.getCacheTTL(opts, result, cacheKey, ctx)).toBe(5);
+		});
+		it("check getCacheTTL with custom ttl function", () => {
+			let broker = new ServiceBroker({ logger: false });
+
+			let ttlFunc = jest.fn((result, cacheKey, opts, ctx) => result * 2);
+			const ctx = { name: "ctx" };
+			const opts = {
+				ttl: ttlFunc
+			};
+
+			let cacher = new Cacher(opts);
+
+			cacher.init(broker);
+
+			const cacheKey = "cKey";
+			const result = 100;
+
+			expect(cacher.getCacheTTL(opts, result, cacheKey, ctx)).toBe(200);
+			expect(ttlFunc).toHaveBeenCalledTimes(1);
+			expect(ttlFunc).toHaveBeenCalledWith(result, cacheKey, ctx, opts);
+		});
+	});
 });
 
 describe("Test middleware", () => {
@@ -402,6 +443,31 @@ describe("Test middleware", () => {
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 8);
+		});
+	});
+
+	it("should call the 'cache.set' action with custom TTL as Function", () => {
+		let resData = [1, 1, 2, 3, 5];
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		broker.cacher.set.mockClear();
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		mockAction.handler = jest.fn(() => Promise.resolve(resData));
+		mockAction.cache = { ttl: result => result.reduce((s, v) => s + v, 0) };
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
+
+		return cachedHandler(ctx).then(response => {
+			expect(response).toBe(resData);
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 12);
 		});
 	});
 
