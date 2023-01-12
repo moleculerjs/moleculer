@@ -448,10 +448,15 @@ declare namespace Moleculer {
 	}
 
 	type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
+	type ActionCacheTTLCustomFunction<
+		TResult = any,
+		TContext extends Context = Context<any, any, any>,
+		TCacheOptions = ActionCacheOptions
+	> = (result: TResult, cacheKey: string, ctx: TContext, opts: TCacheOptions) => number | null | undefined
 
 	interface ActionCacheOptions<P = Record<string, unknown>, M = unknown> {
 		enabled?: boolean | ActionCacheEnabledFuncType;
-		ttl?: number;
+		ttl?: number | ActionCacheTTLCustomFunction;
 		keys?: string[];
 		keygen?: CacherKeygenFunc<P, M>;
 		lock?: {
@@ -1444,6 +1449,14 @@ declare namespace Moleculer {
 				meta: object,
 				keys: string[] | null
 			): string;
+
+			getCacheTTL<TResult = any, TContext extends Context = Context>(
+				opts: ActionCacheOptions,
+				result: TResult,
+				cacheKey: string,
+				ctx: TContext
+			): number | null | undefined;
+
 			defaultKeygen(
 				actionName: string,
 				params: object | null,
