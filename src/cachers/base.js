@@ -309,6 +309,18 @@ class Cacher {
 	}
 
 	/**
+	 * Get a cache TTL
+	 * @param {Object} opts cache options
+	 * @param {String} cacheKey
+	 * @param {any} result
+	 * @param {Context} ctx
+	 * @returns {number|null}
+	 */
+	getCacheTTL(opts, result, cacheKey, ctx) {
+		return isFunction(opts.ttl) ? opts.ttl.call(this, result, cacheKey, ctx, opts) : opts.ttl;
+	}
+
+	/**
 	 * Register cacher as a middleware
 	 *
 	 * @memberof Cacher
@@ -376,7 +388,12 @@ class Cacher {
 															return this.set(
 																cacheKey,
 																result,
-																opts.ttl
+																this.getCacheTTL(
+																	opts,
+																	result,
+																	cacheKey,
+																	ctx
+																)
 															).then(() => unlock());
 														})
 														.catch((/*err*/) => {
@@ -415,9 +432,11 @@ class Cacher {
 										return handler(ctx)
 											.then(result => {
 												// Save the result to the cache and realse the lock.
-												this.set(cacheKey, result, opts.ttl).then(() =>
-													unlock()
-												);
+												this.set(
+													cacheKey,
+													result,
+													this.getCacheTTL(opts, result, cacheKey, ctx)
+												).then(() => unlock());
 												return result;
 											})
 											.catch(e => {
@@ -440,7 +459,11 @@ class Cacher {
 							// Call the handler
 							return handler(ctx).then(result => {
 								// Save the result to the cache
-								this.set(cacheKey, result, opts.ttl);
+								this.set(
+									cacheKey,
+									result,
+									this.getCacheTTL(opts, result, cacheKey, ctx)
+								);
 
 								return result;
 							});
