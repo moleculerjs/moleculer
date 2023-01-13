@@ -82,7 +82,6 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-security": "^1.5.0",
     "etcd3": "^1.1.0",
-    "event-loop-stats": "^1.4.1",
     "fakerator": "^0.3.6",
     "gen-esm-wrapper": "^1.1.3",
     "ioredis": "^4.28.5",
