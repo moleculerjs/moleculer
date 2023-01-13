@@ -1395,6 +1395,18 @@ describe("Test Service class", () => {
 			Service.prototype.mergeSchemaUnknown.mockRestore();
 		});
 
+		it("should not throw if input null/undefined", () => {
+			const schema = {
+				name: "schema"
+			};
+			const mods = {
+				name: "mods"
+			};
+			expect(Service.prototype.mergeSchemas(schema, null)).toEqual(schema);
+			expect(Service.prototype.mergeSchemas(null, mods)).toEqual(mods);
+			expect(Service.prototype.mergeSchemas(schema, mods)).toEqual(mods);
+		});
+
 		it("should call merge methods", () => {
 			const mixin2 = {};
 

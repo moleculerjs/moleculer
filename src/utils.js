@@ -474,6 +474,8 @@ const utils = {
 	 * @returns {String}
 	 */
 	getConstructorName(obj) {
+		if (obj == null) return undefined;
+
 		let target = obj.prototype;
 		if (target && target.constructor && target.constructor.name) {
 			return target.constructor.name;

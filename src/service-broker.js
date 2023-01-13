@@ -1770,14 +1770,14 @@ class ServiceBroker {
 			return schema;
 		}
 		// Depending how the schema was create the correct constructor name (from base class) will be locate on __proto__.
-		target = utils.getConstructorName(schema.__proto__);
+		target = utils.getConstructorName(Object.getPrototypeOf(schema));
 		if (serviceName === target) {
-			Object.setPrototypeOf(schema.__proto__, this.ServiceFactory);
+			Object.setPrototypeOf(Object.getPrototypeOf(schema), this.ServiceFactory);
 			return schema;
 		}
 		// This is just to handle some idiosyncrasies from Jest.
 		if (schema._isMockFunction) {
-			target = utils.getConstructorName(schema.prototype.__proto__);
+			target = utils.getConstructorName(Object.getPrototypeOf(schema.prototype));
 			if (serviceName === target) {
 				Object.setPrototypeOf(schema, this.ServiceFactory);
 				return schema;

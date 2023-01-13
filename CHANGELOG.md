@@ -2,6 +2,18 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
 
 --------------------------------------------------
+<a name="0.14.28"></a>
+# [0.14.28](https://github.com/moleculerjs/moleculer/compare/v0.14.27...v0.14.28) (2023-01-08)
+
+## Changes
+- fix no clean exit on shutdown, with disableBalancer: true [#1168](https://github.com/moleculerjs/moleculer/pull/1168)
+- change `__proto__` to `Object.getProtoTypeOf` [#1170](https://github.com/moleculerjs/moleculer/pull/1170)
+- fix merge schemas (handling nulls) [#1172](https://github.com/moleculerjs/moleculer/pull/1172)
+- fix hot reload error handling [#1174](https://github.com/moleculerjs/moleculer/issues/1174)
+- update d.ts file
+- update dependencies
+  
+--------------------------------------------------
 <a name="0.14.27"></a>
 # [0.14.27](https://github.com/moleculerjs/moleculer/compare/v0.14.26...v0.14.27) (2022-12-17)
 

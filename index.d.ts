@@ -721,7 +721,7 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type StartedStoppedHandler = () => Promise<void> | void;
+	type StartedStoppedHandler = () => Promise<void[]> | Promise<void> | void;
 	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
@@ -1746,6 +1746,17 @@ declare namespace Moleculer {
 	const CIRCUIT_CLOSE: string;
 	const CIRCUIT_HALF_OPEN: string;
 	const CIRCUIT_OPEN: string;
+
+	const MOLECULER_VERSION: string;
+	const PROTOCOL_VERSION: string;
+	const INTERNAL_MIDDLEWARES: string[];
+
+	const METRIC: {
+		TYPE_COUNTER: "counter";
+		TYPE_GAUGE: "gauge";
+		TYPE_HISTOGRAM: "histogram";
+		TYPE_INFO: "info";
+	};
 
 	namespace Utils {
 		function isFunction(func: unknown): func is Function;

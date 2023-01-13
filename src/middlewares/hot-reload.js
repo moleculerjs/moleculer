@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -30,7 +30,12 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		return broker.destroyService(service).then(() => {
 			if (fs.existsSync(service.__filename)) {
-				return broker.loadService(service.__filename);
+				try {
+					return broker.loadService(service.__filename);
+				} catch (err) {
+					broker.logger.error(`Failed to load service '${service.__filename}'`, err);
+					clearRequireCache(service.__filename);
+				}
 			}
 		});
 	}
