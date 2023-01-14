@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -64,6 +64,7 @@ class MemoryLRUCacher extends BaseCacher {
 			// Clear all entries after transporter connected. Maybe we missed some "cache.clear" events.
 			return this.clean();
 		});
+
 		if (this.opts.lock && this.opts.lock.enabled !== false && this.opts.lock.staleTime) {
 			/* istanbul ignore next */
 			this.logger.warn("setting lock.staleTime with MemoryLRUCacher is not supported.");
@@ -105,7 +106,7 @@ class MemoryLRUCacher extends BaseCacher {
 		} else {
 			timeEnd();
 		}
-		return this.broker.Promise.resolve(null);
+		return this.broker.Promise.resolve(this.opts.missingResponse);
 	}
 
 	/**

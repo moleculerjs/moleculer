@@ -62,7 +62,7 @@ class JSONExtSerializer extends BaseSerializer {
 	 * @param {any} value
 	 */
 	reviver(key, value) {
-		if (typeof value === "string" && value.charAt(0) === "[") {
+		if (typeof value === "string" && value.charAt(0) === "[" && value.charAt(1) === "[") {
 			switch (value.slice(0, 6)) {
 				case PREFIX_BIGINT:
 					return BigInt(value.slice(6));

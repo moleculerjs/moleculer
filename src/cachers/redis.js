@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -37,13 +37,13 @@ class RedisCacher extends BaseCacher {
 			pingInterval: null
 		});
 
-		this.pingIntervalHandle = null;
+		this.pingTimer = null;
 	}
 
 	/**
 	 * Initialize cacher. Connect to Redis server
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof RedisCacher
 	 */
@@ -59,13 +59,14 @@ class RedisCacher extends BaseCacher {
 				true
 			);
 		}
+
 		/**
 		 * ioredis client instance
 		 * @memberof RedisCacher
 		 */
 		if (this.opts.cluster) {
 			if (!this.opts.cluster.nodes || this.opts.cluster.nodes.length === 0) {
-				throw new BrokerOptionsError("No nodes defined for cluster");
+				throw new BrokerOptionsError("There is no 'nodes' configuration for cluster.");
 			}
 
 			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
@@ -94,28 +95,32 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
-		try {
-			Redlock = require("redlock");
-		} catch (err) {
-			/* istanbul ignore next */
-			this.logger.warn(
-				"The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command."
-			);
+
+		if (this.opts.lock) {
+			try {
+				Redlock = require("redlock");
+			} catch (err) {
+				/* istanbul ignore next */
+				this.logger.warn(
+					"The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command."
+				);
+			}
+
+			if (Redlock) {
+				let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [
+					this.client
+				];
+
+				// redlock client instance
+				this.redlock = new Redlock(redlockClients, _.omit(this.opts.redlock, ["clients"]));
+
+				// Non-blocking redlock client, used for tryLock()
+				this.redlockNonBlocking = new Redlock(redlockClients, {
+					retryCount: 0
+				});
+			}
 		}
-		if (Redlock) {
-			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [
-				this.client
-			];
-			/**
-			 * redlock client instance
-			 * @memberof RedisCacher
-			 */
-			this.redlock = new Redlock(redlockClients, _.omit(this.opts.redlock, ["clients"]));
-			// Non-blocking redlock client, used for tryLock()
-			this.redlockNonBlocking = new Redlock(redlockClients, {
-				retryCount: 0
-			});
-		}
+
 		if (this.opts.monitor) {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
@@ -132,7 +137,7 @@ class RedisCacher extends BaseCacher {
 
 		// add interval for ping if set
 		if (this.opts.pingInterval > 0) {
-			this.pingIntervalHandle = setInterval(() => {
+			this.pingTimer = setInterval(() => {
 				this.client
 					.ping()
 					.then(() => {
@@ -163,9 +168,9 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	close() {
-		if (this.pingIntervalHandle != null) {
-			clearInterval(this.pingIntervalHandle);
-			this.pingIntervalHandle = null;
+		if (this.pingTimer != null) {
+			clearInterval(this.pingTimer);
+			this.pingTimer = null;
 		}
 		return this.client != null ? this.client.quit() : Promise.resolve();
 	}
@@ -198,7 +203,7 @@ class RedisCacher extends BaseCacher {
 				}
 			}
 			timeEnd();
-			return null;
+			return this.opts.missingResponse;
 		});
 	}
 
@@ -253,6 +258,7 @@ class RedisCacher extends BaseCacher {
 
 		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
+
 		this.logger.debug(`DELETE ${keysToDelete}`);
 		return this.client
 			.del(keysToDelete)
@@ -312,22 +318,24 @@ class RedisCacher extends BaseCacher {
 			.getBuffer(this.prefix + key)
 			.ttl(this.prefix + key)
 			.exec()
-			.then(res => {
-				let [err0, data] = res[0];
-				let [err1, ttl] = res[1];
+			.then(([resBuffer, resTTL]) => {
+				let [err0, data] = resBuffer;
+				const [err1, ttl] = resTTL;
+
 				if (err0) {
 					return this.broker.Promise.reject(err0);
 				}
 				if (err1) {
 					return this.broker.Promise.reject(err1);
 				}
+
 				if (data) {
 					this.logger.debug(`FOUND ${key}`);
 					try {
 						data = this.serializer.deserialize(data);
 					} catch (err) {
 						this.logger.error("Redis result parse error.", err, data);
-						data = null;
+						data = this.opts.missingResponse;
 					}
 				}
 				return { data, ttl };
