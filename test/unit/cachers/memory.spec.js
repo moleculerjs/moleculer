@@ -99,9 +99,51 @@ describe("Test MemoryCacher set & get", () => {
 		});
 	});
 
-	it("should give null if key not exist", () => {
+	it("should give undefined if key not exist", () => {
 		return cacher.get("123123").then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
+		});
+	});
+});
+
+describe("Test MemoryCacher set & get with missingResponse", () => {
+	let broker = new ServiceBroker({ logger: false });
+	const MISSING = Symbol("MISSING");
+	let cacher = new MemoryCacher({ missingResponse: MISSING });
+	cacher.init(broker);
+
+	let key = "tst123";
+	let data1 = {
+		a: 1,
+		b: false,
+		c: "Test",
+		d: {
+			e: 55
+		}
+	};
+
+	afterAll(async () => {
+		await cacher.close();
+		await broker.stop();
+	});
+
+	it("should save the data with key", () => {
+		cacher.set(key, data1);
+		expect(cacher.cache.get(key)).toBeDefined();
+		expect(cacher.cache.get(key).data).toBe(data1);
+		expect(cacher.cache.get(key).expire).toBeNull();
+	});
+
+	it("should give back the data by key", () => {
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeDefined();
+			expect(obj).toEqual(data1);
+		});
+	});
+
+	it("should give 'missingResponse' value if key not exist", () => {
+		return cacher.get("123123").then(obj => {
+			expect(obj).toBe(MISSING);
 		});
 	});
 });
@@ -164,7 +206,7 @@ describe("Test MemoryCacher get() with expire", () => {
 		dateNowSpy.mockImplementationOnce(() => currentTime + 16 * 1000);
 
 		return cacher.get(key).then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
 		});
 	});
 });
@@ -321,9 +363,9 @@ describe("Test MemoryCacher delete", () => {
 		expect(cacher.cache.get(key)).toBeUndefined();
 	});
 
-	it("should give null", () => {
+	it("should give undefined", () => {
 		return cacher.get(key).then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
 		});
 	});
 
@@ -376,9 +418,9 @@ describe("Test MemoryCacher clean", () => {
 		cacher.clean("tst*");
 	});
 
-	it("should give null for key1", () => {
+	it("should give undefined for key1", () => {
 		return cacher.get(key1).then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
 		});
 	});
 
@@ -393,9 +435,9 @@ describe("Test MemoryCacher clean", () => {
 		expect(Object.keys(cacher.cache).length).toBe(0);
 	});
 
-	it("should give null for key2 too", () => {
+	it("should give undefined for key2 too", () => {
 		return cacher.get(key1).then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
 		});
 	});
 
@@ -456,9 +498,9 @@ describe("Test MemoryCacher expired method", () => {
 		cacher.checkTTL();
 	});
 
-	it("should give null for key1", () => {
+	it("should give undefined for key1", () => {
 		return cacher.get(key1).then(obj => {
-			expect(obj).toBeNull();
+			expect(obj).toBeUndefined();
 		});
 	});
 

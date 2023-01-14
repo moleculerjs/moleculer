@@ -454,7 +454,7 @@ describe("Test middleware", () => {
 	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
 		let resData = [1, 3, 5];
 		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
-		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.get = jest.fn(() => Promise.resolve(undefined));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
 		let ctx = new Context();
@@ -478,7 +478,7 @@ describe("Test middleware", () => {
 		let resData = [1];
 		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		broker.cacher.set.mockClear();
-		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.get = jest.fn(() => Promise.resolve(undefined));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 		mockAction.cache = { ttl: 8 };
 
@@ -690,8 +690,8 @@ describe("Test middleware with lock enabled", () => {
 	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
 		let resData = [1, 3, 5];
 		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
-		broker.cacher.get = jest.fn(() => Promise.resolve(null));
-		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		broker.cacher.get = jest.fn(() => Promise.resolve(undefined));
+		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: undefined, ttl: null }));
 		const unlockFn = jest.fn(() => Promise.resolve());
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));

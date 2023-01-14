@@ -332,14 +332,14 @@ describe("Test RedisCacher set & get without prefix", () => {
 		});
 	});
 
-	it("should give null if response cannot be deserialized", () => {
+	it("should give undefined if response cannot be deserialized", () => {
 		cacher.client.getBuffer = jest.fn(() => Promise.resolve("{ 'asd' 5}")); // Invalid JSON
 
 		let p = cacher.get(key);
 		expect(cacher.client.getBuffer).toHaveBeenCalledTimes(1);
 		expect(cacher.client.getBuffer).toHaveBeenCalledWith(prefix + key);
 		return p.catch(protectReject).then(d => {
-			expect(d).toBeNull();
+			expect(d).toBeUndefined();
 		});
 	});
 
@@ -633,7 +633,7 @@ describe("Test RedisCacher getWithTTL method", () => {
 		});
 	});
 
-	it("should return null if data cannot be deserialized", () => {
+	it("should return undefined if data cannot be deserialized", () => {
 		mockPipeline.exec = jest.fn(() =>
 			Promise.resolve([
 				[null, "{'some invalid JSON here."],
@@ -641,7 +641,7 @@ describe("Test RedisCacher getWithTTL method", () => {
 			])
 		);
 		return cacher.getWithTTL(key).then(res => {
-			expect(res.data).toBeNull();
+			expect(res.data).toBeUndefined();
 		});
 	});
 });
