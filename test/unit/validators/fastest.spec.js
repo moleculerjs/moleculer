@@ -12,18 +12,18 @@ describe("Test FastestValidator constructor", () => {
 		const validator = new FastestValidator();
 
 		expect(validator).toBeDefined();
-		expect(validator.opts).toEqual({ paramName: "params" });
+		expect(validator.opts).toEqual({ paramName: "params", useNewCustomCheckerFunction: true });
 	});
 
 	it("test constructor with opts", () => {
 		const validator = new FastestValidator({
-			useNewCustomCheckerFunction: true
+			useNewCustomCheckerFunction: false
 		});
 
 		expect(validator).toBeDefined();
 		expect(validator.opts).toEqual({
 			paramName: "params",
-			useNewCustomCheckerFunction: true
+			useNewCustomCheckerFunction: false
 		});
 	});
 });
@@ -92,15 +92,13 @@ describe("Test Validator with context", () => {
 						messages: {
 							isTest: "The 'meta.isTest' field is required."
 						},
-						custom: (value, schema, path, parent, context) => {
+						custom: (value, errors, schema, name, parent, context) => {
 							const { meta: ctx } = context;
 							if (!(ctx && "meta" in ctx && "isTest" in ctx.meta)) {
-								return [
-									{
-										type: "isTest",
-										actual: undefined
-									}
-								];
+								errors.push({
+									type: "isTest",
+									actual: undefined
+								});
 							}
 							return value;
 						}
