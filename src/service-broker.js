@@ -1451,8 +1451,6 @@ class ServiceBroker {
 					promises.push(this.transit.sendEvent(newCtx));
 				});
 			}
-
-			return this.Promise.all(promises);
 		} else if (this.transit) {
 			// Disabled balancer case
 			let groups = opts.groups;
@@ -1462,11 +1460,24 @@ class ServiceBroker {
 				groups = this.getEventGroups(eventName);
 			}
 
-			if (groups.length === 0) return this.Promise.resolve();
+			if (groups.length === 0) return this.Promise.resolve(true);
 
 			ctx.eventGroups = groups;
-			return this.transit.sendEvent(ctx);
+			promises.push(this.transit.sendEvent(ctx));
 		}
+
+		const p = this.Promise.allSettled(promises).then(results => {
+			const err = results.find(r => r.status == "rejected");
+			if (err) return this.Promise.reject(err.reason);
+			return true;
+		});
+
+		if (opts.throwError) {
+			return p;
+		}
+		return p.catch(() => {
+			// swallow the error. It's already logged.
+		});
 	}
 
 	/**
@@ -1523,20 +1534,31 @@ class ServiceBroker {
 				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
 
 				// Return here because balancer disabled, so we can't call the local services.
-				return this.Promise.all(
-					endpoints.map(ep => {
-						const newCtx = ctx.copy(ep);
-						newCtx.eventGroups = groups;
-						return this.transit.sendEvent(newCtx);
-					})
-				);
+				endpoints.forEach(ep => {
+					const newCtx = ctx.copy(ep);
+					newCtx.eventGroups = groups;
+					promises.push(this.transit.sendEvent(newCtx));
+				});
 			}
 		}
 
-		// Send to local services
-		promises.push(this.broadcastLocal(eventName, payload, opts));
+		if (!this.options.disableBalancer) {
+			// Send to local services
+			promises.push(this.broadcastLocal(eventName, payload, opts));
+		}
 
-		return this.Promise.all(promises);
+		const p = this.Promise.allSettled(promises).then(results => {
+			const err = results.find(r => r.status == "rejected");
+			if (err) return this.Promise.reject(err.reason);
+			return true;
+		});
+
+		if (opts.throwError) {
+			return p;
+		}
+		return p.catch(() => {
+			// swallow the error. It's already logged.
+		});
 	}
 
 	/**
@@ -1569,7 +1591,13 @@ class ServiceBroker {
 		ctx.eventType = "broadcastLocal";
 		ctx.eventGroups = opts.groups;
 
-		return this.emitLocalServices(ctx).catch(err => {
+		const p = this.emitLocalServices(ctx);
+
+		if (opts.throwError) {
+			return p;
+		}
+
+		return p.catch(err => {
 			// Catch and log the error because it's a local event handler, not throwing further.
 			this.logger.error(err);
 		});
@@ -1706,10 +1734,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	emitLocalServices(ctx) {
-		return this.registry.events.emitLocalServices(ctx).catch(err => {
-			// Catch and log the error because it's a local event handler, not throwing further.
-			this.logger.error(err);
-		});
+		return this.registry.events.emitLocalServices(ctx);
 	}
 
 	/**

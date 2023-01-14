@@ -194,7 +194,11 @@ class EventCatalog {
 			}
 		});
 
-		return this.broker.Promise.all(promises);
+		return this.broker.Promise.allSettled(promises).then(results => {
+			const err = results.find(r => r.status == "rejected");
+			if (err) return this.broker.Promise.reject(err.reason);
+			return true;
+		});
 	}
 
 	/**

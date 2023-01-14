@@ -438,7 +438,14 @@ class Transit {
 		ctx.nodeID = payload.sender;
 
 		// ensure the eventHandler resolves true when the event was handled successfully
-		return this.broker.emitLocalServices(ctx).then(() => true);
+		return this.broker
+			.emitLocalServices(ctx)
+			.then(() => true)
+			.catch(err => {
+				this.logger.error(err);
+
+				return false;
+			});
 	}
 
 	/**
@@ -1012,6 +1019,8 @@ class Transit {
 					module: "transit",
 					type: C.FAILED_SEND_EVENT_PACKET
 				});
+
+				return Promise.reject(err);
 			}
 		);
 	}

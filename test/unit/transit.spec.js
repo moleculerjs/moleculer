@@ -2576,7 +2576,14 @@ describe("Test Transit.sendEvent", () => {
 		);
 
 		ctx.eventGroups = ["users", "mail"];
-		await transit.sendEvent(ctx);
+
+		expect.assertions(4);
+		try {
+			await transit.sendEvent(ctx);
+		} catch (err) {
+			expect(err).toBeInstanceOf(Error);
+			expect(err.message).toEqual("Error during failedSendEventPacket!");
+		}
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$transit.error", {
