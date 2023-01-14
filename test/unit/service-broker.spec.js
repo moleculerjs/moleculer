@@ -2780,7 +2780,7 @@ describe("Test broker.emit", () => {
 		]
 	]);
 	broker.localBus.emit = jest.fn();
-	broker.registry.events.callEventHandler = jest.fn();
+	broker.registry.events.callEventHandler = jest.fn(() => Promise.resolve());
 
 	it("should call the local handler", () => {
 		expect(broker.transit).toBeUndefined();
@@ -3066,7 +3066,7 @@ describe("Test broker.emit with transporter", () => {
 		]
 	]);
 	broker.localBus.emit = jest.fn();
-	broker.registry.events.callEventHandler = jest.fn();
+	broker.registry.events.callEventHandler = jest.fn(() => Promise.resolve());
 	broker.getEventGroups = jest.fn(() => ["mail", "payment"]);
 
 	it("should call sendEvent with ctx", () => {
@@ -3634,7 +3634,7 @@ describe("Test broker broadcast", () => {
 
 describe("Test broker broadcastLocal", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "server-1" });
-	broker.emitLocalServices = jest.fn();
+	broker.emitLocalServices = jest.fn(() => Promise.resolve());
 	broker.localBus.emit = jest.fn();
 
 	it("should call emitLocalServices without payload", () => {
@@ -3897,7 +3897,7 @@ describe("Test registry links", () => {
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();
 	broker.registry.events.getAllEndpoints = jest.fn(() => [{}]);
-	broker.registry.events.emitLocalServices = jest.fn();
+	broker.registry.events.emitLocalServices = jest.fn(() => Promise.resolve());
 
 	it("should call registry.getLocalNodeInfo", () => {
 		broker.getLocalNodeInfo();

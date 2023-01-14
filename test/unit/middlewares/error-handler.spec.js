@@ -143,7 +143,9 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const ctx = Context.create(broker, eventEndpoint);
 
 			return newHandler(ctx)
-				.catch(protectReject)
+				.catch(err => {
+					expect(err).toBe(error);
+				})
 				.then(() => {
 					expect(error.ctx).toBe(ctx);
 					expect(broker.errorHandler).toBeCalledTimes(1);
@@ -163,7 +165,9 @@ describe("Test ErrorHandlerMiddleware", () => {
 			const ctx = Context.create(broker, eventEndpoint);
 
 			return newHandler(ctx)
-				.catch(protectReject)
+				.catch(err => {
+					expect(err).toBeInstanceOf(MoleculerError);
+				})
 				.then(() => {
 					const err = broker.errorHandler.mock.calls[0][0];
 
@@ -179,31 +183,6 @@ describe("Test ErrorHandlerMiddleware", () => {
 						service: action.service,
 						event
 					});
-				});
-		});
-
-		it("should logging if throw further", () => {
-			broker.errorHandler = jest.fn(err => Promise.reject(err));
-			let error = new MoleculerError("Some error");
-			let handler = jest.fn(() => Promise.reject(error));
-
-			const newHandler = mw.localEvent.call(broker, handler, action);
-			const ctx = Context.create(broker, eventEndpoint);
-			ctx.id = "123456";
-			ctx.nodeID = "server-2";
-
-			jest.spyOn(broker.logger, "error");
-
-			return newHandler(ctx)
-				.catch(protectReject)
-				.then(() => {
-					const err = broker.errorHandler.mock.calls[0][0];
-
-					expect(err).toBe(error);
-					expect(err.ctx).toBe(ctx);
-
-					expect(broker.logger.error).toHaveBeenCalledTimes(1);
-					expect(broker.logger.error).toHaveBeenCalledWith(err);
 				});
 		});
 	});

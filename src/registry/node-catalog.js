@@ -206,7 +206,7 @@ class NodeCatalog {
 	 * @returns
 	 * @memberof NodeCatalog
 	 */
-	list({ onlyAvailable = false, withServices = false }) {
+	list({ onlyAvailable = false, withServices = false } = {}) {
 		let res = [];
 		this.nodes.forEach(node => {
 			if (onlyAvailable && !node.available) return;

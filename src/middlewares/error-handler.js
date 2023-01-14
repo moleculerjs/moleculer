@@ -44,33 +44,28 @@ function wrapActionErrorHandler(handler) {
 function wrapEventErrorHandler(handler) {
 	return function errorHandlerMiddleware(ctx) {
 		// Call the handler
-		return handler(ctx)
-			.catch(err => {
-				if (!(err instanceof Error)) err = new MoleculerError(err, 500);
+		return handler(ctx).catch(err => {
+			if (!(err instanceof Error)) err = new MoleculerError(err, 500);
 
-				this.logger.debug(
-					`Error occured in the '${ctx.event.name}' event handler in the '${ctx.service.fullName}' service.`,
-					{ requestID: ctx.requestID },
-					err
-				);
+			this.logger.debug(
+				`Error occured in the '${ctx.event.name}' event handler in the '${ctx.service.fullName}' service.`,
+				{ requestID: ctx.requestID },
+				err
+			);
 
-				Object.defineProperty(err, "ctx", {
-					value: ctx,
-					writable: true,
-					enumerable: false
-				});
-
-				// Call global errorHandler
-				return ctx.broker.errorHandler(err, {
-					ctx,
-					service: ctx.service,
-					event: ctx.event
-				});
-			})
-			.catch(err => {
-				// No global error Handler, or thrown further, so we handle it because it's an event handler.
-				ctx.broker.logger.error(err);
+			Object.defineProperty(err, "ctx", {
+				value: ctx,
+				writable: true,
+				enumerable: false
 			});
+
+			// Call global errorHandler
+			return ctx.broker.errorHandler(err, {
+				ctx,
+				service: ctx.service,
+				event: ctx.event
+			});
+		});
 	}.bind(this);
 }
 

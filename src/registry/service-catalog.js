@@ -87,7 +87,7 @@ class ServiceCatalog {
 		withActions = false,
 		withEvents = false,
 		grouping = false
-	}) {
+	} = {}) {
 		let res = [];
 		this.services.forEach(service => {
 			if (skipInternal && /^\$/.test(service.name)) return;

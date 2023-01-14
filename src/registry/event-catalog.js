@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -246,7 +246,7 @@ class EventCatalog {
 		onlyAvailable = false,
 		skipInternal = false,
 		withEndpoints = false
-	}) {
+	} = {}) {
 		let res = [];
 
 		this.events.forEach(list => {

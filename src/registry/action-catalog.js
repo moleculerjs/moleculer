@@ -133,7 +133,7 @@ class ActionCatalog {
 		onlyAvailable = false,
 		skipInternal = false,
 		withEndpoints = false
-	}) {
+	} = {}) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {

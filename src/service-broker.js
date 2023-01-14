@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -1425,7 +1425,12 @@ class ServiceBroker {
 				if (ep.id === this.nodeID) {
 					// Local service, call handler
 					const newCtx = ctx.copy(ep);
-					promises.push(this.registry.events.callEventHandler(newCtx));
+					promises.push(
+						this.registry.events.callEventHandler(newCtx).catch(err => {
+							// Catch and log the error because it's a local event handler, not throwing further.
+							this.logger.error(err);
+						})
+					);
 				} else {
 					// Remote service
 					const e = groupedEP[ep.id];
@@ -1564,7 +1569,10 @@ class ServiceBroker {
 		ctx.eventType = "broadcastLocal";
 		ctx.eventGroups = opts.groups;
 
-		return this.emitLocalServices(ctx);
+		return this.emitLocalServices(ctx).catch(err => {
+			// Catch and log the error because it's a local event handler, not throwing further.
+			this.logger.error(err);
+		});
 	}
 
 	/**
@@ -1698,7 +1706,10 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	emitLocalServices(ctx) {
-		return this.registry.events.emitLocalServices(ctx);
+		return this.registry.events.emitLocalServices(ctx).catch(err => {
+			// Catch and log the error because it's a local event handler, not throwing further.
+			this.logger.error(err);
+		});
 	}
 
 	/**
