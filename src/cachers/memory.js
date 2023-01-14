@@ -12,6 +12,7 @@ const BaseCacher = require("./base");
 const { METRIC } = require("../metrics");
 
 const Lock = require("../lock");
+
 /**
  * Cacher factory for memory cache
  *
@@ -159,6 +160,7 @@ class MemoryCacher extends BaseCacher {
 
 	/**
 	 * Clean cache. Remove every key by match
+	 *
 	 * @param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *

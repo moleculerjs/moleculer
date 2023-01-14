@@ -182,7 +182,7 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher.opts).toEqual(opts);
 		expect(() => {
 			cacher.init(broker);
-		}).toThrowError("No nodes defined for cluster");
+		}).toThrowError("There is no 'nodes' configuration for cluster.");
 	});
 
 	it("should construct serializer based on options", () => {
@@ -714,7 +714,8 @@ describe("Test RedisCacher with opts.lock", () => {
 	it("should create redlock clients", () => {
 		let broker = new ServiceBroker({ logger: false });
 		let cacher = new RedisCacher({
-			ttl: 30
+			ttl: 30,
+			lock: true
 		});
 		cacher.init(broker);
 		expect(cacher.redlock).toBeDefined();

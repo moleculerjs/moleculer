@@ -84,123 +84,213 @@ describe("Test BaseCacher", () => {
 
 		cacher.init(broker);
 		// Check result
-		let res = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
-		expect(res).toBe("posts.find.model:id|1|name|Bob");
+		let res = cacher.getCacheKey(
+			{ name: "posts.find.model" },
+			{},
+			{ params: { id: 1, name: "Bob" } }
+		);
+		expect(res).toBe('posts.find.model:id|1|name|"Bob"');
 
 		// Same result, with same params
-		let res2 = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
+		let res2 = cacher.getCacheKey(
+			{ name: "posts.find.model" },
+			{},
+			{ params: { id: 1, name: "Bob" } }
+		);
 		expect(res2).toEqual(res);
 
 		// Different result, with different params
-		let res3 = cacher.getCacheKey("posts.find.model", { id: 2, name: "Bob" });
+		let res3 = cacher.getCacheKey(
+			{ name: "posts.find.model" },
+			{},
+			{ params: { id: 2, name: "Bob" } }
+		);
 		expect(res3).not.toEqual(res);
-		expect(res3).toBe("posts.find.model:id|2|name|Bob");
+		expect(res3).toBe('posts.find.model:id|2|name|"Bob"');
 
 		res = cacher.getCacheKey();
 		expect(res).toBe(undefined);
 
-		res = cacher.getCacheKey("posts.find");
+		res = cacher.getCacheKey({ name: "posts.find" });
 		expect(res).toBe("posts.find");
 
-		res = cacher.getCacheKey("user", {});
+		res = cacher.getCacheKey({ name: "posts.find" }, {});
+		expect(res).toBe("posts.find");
+
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: {} });
 		expect(res).toBe("user:");
 
-		res = cacher.getCacheKey("user", { a: 5 });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: 5 } });
 		expect(res).toBe("user:a|5");
 
-		res = cacher.getCacheKey("user", { a: [] });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: [] } });
 		expect(res).toBe("user:a|[]");
 
-		res = cacher.getCacheKey("user", { a: null });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: null } });
 		expect(res).toBe("user:a|null");
 
-		res = cacher.getCacheKey("user", { a: 5 }, null, ["a"]);
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: undefined } });
+		expect(res).toBe("user:a|undefined");
+
+		res = cacher.getCacheKey({ name: "user" }, { keys: ["a"] }, { params: { a: 5 } });
 		expect(res).toBe("user:5");
 
-		res = cacher.getCacheKey("user", { a: { id: 5 } }, null, ["a"]);
+		res = cacher.getCacheKey({ name: "user" }, { keys: ["a"] }, { params: { a: { id: 5 } } });
 		expect(res).toBe("user:id|5");
 
-		res = cacher.getCacheKey("user", { a: [1, 3, 5] }, null, ["a"]);
+		res = cacher.getCacheKey({ name: "user" }, { keys: ["a"] }, { params: { a: [1, 3, 5] } });
 		expect(res).toBe("user:[1|3|5]");
 
-		res = cacher.getCacheKey("user", { a: 5, b: 3, c: 5 }, null, ["a"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a"] },
+			{ params: { a: 5, b: 3, c: 5 } }
+		);
 		expect(res).toBe("user:5");
 
-		res = cacher.getCacheKey("user", { a: { b: "John" } }, null, ["a.b"]);
-		expect(res).toBe("user:John");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a.b"] },
+			{ params: { a: { b: "John" } } }
+		);
+		expect(res).toBe('user:"John"');
 
-		res = cacher.getCacheKey("user", { a: 5, b: 3, c: 5 }, null, ["a", "b", "c"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "b", "c"] },
+			{ params: { a: 5, b: 3, c: 5 } }
+		);
 		expect(res).toBe("user:5|3|5");
 
-		res = cacher.getCacheKey("user", { a: 5, c: 5 }, null, ["a", "b", "c"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "b", "c"] },
+			{ params: { a: 5, c: 5 } }
+		);
 		expect(res).toBe("user:5|undefined|5");
 
-		res = cacher.getCacheKey("user", { a: "12345" });
-		expect(res).toBe("user:a|12345");
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: "12345" } });
+		expect(res).toBe('user:a|"12345"');
 
-		res = cacher.getCacheKey("user", { a: ["12345"] });
-		expect(res).toBe("user:a|[12345]");
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: ["12345"] } });
+		expect(res).toBe('user:a|["12345"]');
 
 		const d = new Date(1614529868608);
-		res = cacher.getCacheKey("user", { a: d });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: d } });
 		expect(res).toBe("user:a|1614529868608");
 
-		res = cacher.getCacheKey("user", { a: Symbol("something") });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: Symbol("something") } });
 		expect(res).toBe("user:a|Symbol(something)");
 
-		res = cacher.getCacheKey("user", { a: 5, b: { id: 3 } }, null, ["a", "c", "b"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "c", "b"] },
+			{ params: { a: 5, b: { id: 3 } } }
+		);
 		expect(res).toBe("user:5|undefined|id|3");
 
-		res = cacher.getCacheKey("user", { a: 5, b: { id: 3, other: { status: true } } }, null, [
-			"a",
-			"c",
-			"b.id"
-		]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "c", "b.id"] },
+			{ params: { a: 5, b: { id: 3, other: { status: true } } } }
+		);
 		expect(res).toBe("user:5|undefined|3");
 
-		res = cacher.getCacheKey("user", { a: 5, b: { id: 3, other: { status: true } } }, null, [
-			"a",
-			"b.id",
-			"b.other.status"
-		]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "b.id", "b.other.status"] },
+			{ params: { a: 5, b: { id: 3, other: { status: true } } } }
+		);
 		expect(res).toBe("user:5|3|true");
 
-		res = cacher.getCacheKey("user", { a: 5, b: { id: 3, other: { status: true } } });
+		res = cacher.getCacheKey({ name: "user" }, null, {
+			params: { a: 5, b: { id: 3, other: { status: true } } }
+		});
 		expect(res).toBe("user:a|5|b|id|3|other|status|true");
 
-		res = cacher.getCacheKey("user", { a: 5, b: 3 }, null, []);
+		res = cacher.getCacheKey({ name: "user" }, { keys: [] }, { params: { a: 5, b: 3 } });
 		expect(res).toBe("user");
 
-		res = cacher.getCacheKey("user", { a: Object.create(null) }, null, ["a"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a"] },
+			{ params: { a: Object.create(null) } }
+		);
 		expect(res).toBe("user:");
 
 		// Test with meta
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" });
+		res = cacher.getCacheKey({ name: "user" }, {}, { params: { a: 5 }, meta: { user: "bob" } });
 		expect(res).toBe("user:a|5");
 
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" }, ["a"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a"] },
+			{ params: { a: 5 }, meta: { user: "bob" } }
+		);
 		expect(res).toBe("user:5");
 
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" }, ["user"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["user"] },
+			{ params: { a: 5 }, meta: { user: "bob" } }
+		);
 		expect(res).toBe("user:undefined");
 
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" }, ["#user"]);
-		expect(res).toBe("user:bob");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["#user"] },
+			{ params: { a: 5 }, meta: { user: "bob" } }
+		);
+		expect(res).toBe('user:"bob"');
 
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" }, ["a", "#user"]);
-		expect(res).toBe("user:5|bob");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["a", "#user"] },
+			{ params: { a: 5 }, meta: { user: "bob" } }
+		);
+		expect(res).toBe('user:5|"bob"');
 
-		res = cacher.getCacheKey("user", { a: 5 }, { user: "bob" }, ["#user", "a"]);
-		expect(res).toBe("user:bob|5");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["#user", "a"] },
+			{ params: { a: 5 }, meta: { user: "bob" } }
+		);
+		expect(res).toBe('user:"bob"|5');
 
-		res = cacher.getCacheKey("user", { a: 5, user: "adam" }, { user: "bob" }, ["#user"]);
-		expect(res).toBe("user:bob");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["#user"] },
+			{ params: { a: 5, user: "adam" }, meta: { user: "bob" } }
+		);
+		expect(res).toBe('user:"bob"');
 
-		res = cacher.getCacheKey("user", { a: 5 }, null, ["#user"]);
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["#user"] },
+			{ params: { a: 5 }, meta: null }
+		);
 		expect(res).toBe("user:undefined");
 
-		res = cacher.getCacheKey("user", null, { a: { b: { c: "nested" } } }, ["#a.b.c"]);
-		expect(res).toBe("user:nested");
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["#a.b.c"] },
+			{ meta: { a: { b: { c: "nested" } } } }
+		);
+		expect(res).toBe('user:"nested"');
+
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["@user"] },
+			{ params: { a: 5, user: "adam" }, meta: { user: "bob" }, headers: { user: "kevin" } }
+		);
+		expect(res).toBe('user:"kevin"');
+
+		res = cacher.getCacheKey(
+			{ name: "user" },
+			{ keys: ["@a.b.c"] },
+			{ headers: { a: { b: { c: "nested" } } } }
+		);
+		expect(res).toBe('user:"nested"');
 	});
 
 	it("check getCacheKey with hashing", () => {
@@ -251,49 +341,51 @@ describe("Test BaseCacher", () => {
 		};
 
 		cacher.opts.maxParamsLength = 44;
-		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
+		res = cacher.getCacheKey({ name: "abc.def" }, {}, { params: bigObj });
+		expect(res).toBe("abc.def:NZM9OuUh6/tx+mcELOV3Z3EOaUo6f28bgdL76znnrS8=");
 
 		cacher.opts.maxParamsLength = 94;
-		res = cacher.getCacheKey("abc.def", bigObj);
+		res = cacher.getCacheKey({ name: "abc.def" }, {}, { params: bigObj });
 		expect(res).toBe(
-			"abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo="
+			'abc.def:A|C0|false|C1|true|C2|true|C3|"495f761d77d6294f"|CNZM9OuUh6/tx+mcELOV3Z3EOaUo6f28bgdL76znnrS8='
 		);
 
 		cacher.opts.maxParamsLength = 485;
-		res = cacher.getCacheKey("abc.def", bigObj);
+		res = cacher.getCacheKey({ name: "abc.def" }, {}, { params: bigObj });
 		expect(res).toBe(
-			"abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo="
+			'abc.def:A|C0|false|C1|true|C2|true|C3|"495f761d77d6294f"|C4|true|B|C0|true|C1|false|C2|true|C3|"5721c26bfddb7927"|C4|false|C|C0|"5d9e85c124d5d09e"|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|"704473bca1242604"|C3|false|C4|"6fc56107e69be769"|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|"232e6552d0b8aa98"|C3|"1d50627abe5c0463"|C4|NZM9OuUh6/tx+mcELOV3Z3EOaUo6f28bgdL76znnrS8='
 		);
 
 		cacher.opts.maxParamsLength = null;
-		res = cacher.getCacheKey("abc.def", bigObj);
+		res = cacher.getCacheKey({ name: "abc.def" }, {}, { params: bigObj });
 		expect(res).toBe(
-			"abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0e4eae08e4f|C1|197bcb312fc17f60|C2|4755|C3|true|C4|9552|J|C0|false|C1|1cc45cadbbf240f|C2|4dbb352b21c3c2f3|C3|5065|C4|792b19631c78d4f6|K|C0|13c23a525adf9e1f|C1|true|C2|true|C3|589d3499abbf6765|C4|true|L|C0|false|C1|true|C2|4350|C3|72f6c4f0e9beb03c|C4|434b74b5ff500609|M|C0|9228|C1|5254b36ec238c266|C2|true|C3|27b040089b057684|C4|true|N|C0|35d3c608ef8aac5e|C1|23fbdbd520d5ae7d|C2|false|C3|9061|C4|true|O|C0|true|C1|true|C2|2382f9fe7834e0cc|C3|true|C4|false|P|C0|true|C1|false|C2|38c0d40b91a9d1f6|C3|false|C4|5512|Q|C0|true|C1|true|C2|true|C3|true|C4|true|R|C0|70bd27c06b067734|C1|true|C2|5213493253b98636|C3|8272|C4|1264|S|C0|61044125008e634c|C1|9175|C2|true|C3|225e3d912bfbc338|C4|false|T|C0|38edc77387da030a|C1|false|C2|38d8b9e2525413fc|C3|true|C4|false|U|C0|false|C1|4b3962c3d26bddd0|C2|1e66b069bad46643|C3|3642|C4|9225|V|C0|1c40e44b54486080|C1|5a560d81078bab02|C2|1c131259e1e9aa61|C3|true|C4|9335|W|C0|false|C1|7089b0ad438df2cb|C2|216aec98f513ac08|C3|true|C4|false|X|C0|3b749354aac19f24|C1|9626|C2|true|C3|false|C4|false|Y|C0|298|C1|224075dadd108ef9|C2|3450|C3|2548|C4|true"
+			'abc.def:A|C0|false|C1|true|C2|true|C3|"495f761d77d6294f"|C4|true|B|C0|true|C1|false|C2|true|C3|"5721c26bfddb7927"|C4|false|C|C0|"5d9e85c124d5d09e"|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|"704473bca1242604"|C3|false|C4|"6fc56107e69be769"|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|"232e6552d0b8aa98"|C3|"1d50627abe5c0463"|C4|5251|I|C0|"ecd0e4eae08e4f"|C1|"197bcb312fc17f60"|C2|4755|C3|true|C4|9552|J|C0|false|C1|"1cc45cadbbf240f"|C2|"4dbb352b21c3c2f3"|C3|5065|C4|"792b19631c78d4f6"|K|C0|"13c23a525adf9e1f"|C1|true|C2|true|C3|"589d3499abbf6765"|C4|true|L|C0|false|C1|true|C2|4350|C3|"72f6c4f0e9beb03c"|C4|"434b74b5ff500609"|M|C0|9228|C1|"5254b36ec238c266"|C2|true|C3|"27b040089b057684"|C4|true|N|C0|"35d3c608ef8aac5e"|C1|"23fbdbd520d5ae7d"|C2|false|C3|9061|C4|true|O|C0|true|C1|true|C2|"2382f9fe7834e0cc"|C3|true|C4|false|P|C0|true|C1|false|C2|"38c0d40b91a9d1f6"|C3|false|C4|5512|Q|C0|true|C1|true|C2|true|C3|true|C4|true|R|C0|"70bd27c06b067734"|C1|true|C2|"5213493253b98636"|C3|8272|C4|1264|S|C0|"61044125008e634c"|C1|9175|C2|true|C3|"225e3d912bfbc338"|C4|false|T|C0|"38edc77387da030a"|C1|false|C2|"38d8b9e2525413fc"|C3|true|C4|false|U|C0|false|C1|"4b3962c3d26bddd0"|C2|"1e66b069bad46643"|C3|3642|C4|9225|V|C0|"1c40e44b54486080"|C1|"5a560d81078bab02"|C2|"1c131259e1e9aa61"|C3|true|C4|9335|W|C0|false|C1|"7089b0ad438df2cb"|C2|"216aec98f513ac08"|C3|true|C4|false|X|C0|"3b749354aac19f24"|C1|9626|C2|true|C3|false|C4|false|Y|C0|298|C1|"224075dadd108ef9"|C2|3450|C3|2548|C4|true'
 		);
 
 		cacher.opts.maxParamsLength = 44;
 		res = cacher.getCacheKey(
-			"users.list",
+			{ name: "users.list" },
+			{ keys: ["token"] },
 			{
-				token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ"
-			},
-			{},
-			["token"]
+				params: {
+					token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ"
+				}
+			}
 		);
-		expect(res).toBe("users.list:YUgoMlSXRyzkAI98NgGKRqakaZdCSJiITaRJWHyaJlU=");
+		expect(res).toBe("users.list:2Svi96M2RiYDODbpezeRkz4mBFYpfvIpVZxZdC0gs6o=");
 
 		cacher.opts.maxParamsLength = 44;
 		res = cacher.getCacheKey(
-			"users.list",
+			{ name: "users.list" },
+			{ keys: ["id", "token"] },
 			{
-				id: 123,
-				token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ"
-			},
-			{},
-			["id", "token"]
+				params: {
+					id: 123,
+					token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ"
+				}
+			}
 		);
-		expect(res).toBe("users.list:jVksjHDWP+LfXPCxdnQC9Sa10+12yis9AhWmSOwCWfY=");
+		expect(res).toBe("users.list:oV1Gcb2R2tSyJLBIYAIskfKvY202E2rscb7XiMbQ2Rs=");
 	});
 
 	it("check getCacheKey with custom keygen", () => {
@@ -304,21 +396,22 @@ describe("Test BaseCacher", () => {
 
 		cacher.init(broker);
 
-		const actionName = "posts.find.model";
-		const params = { limit: 5 };
-		const meta = { user: "bob" };
-		const keys = ["limit", "#user"];
-		const headers = { auth: false };
+		const action = { name: "posts.find.model" };
+		const opts = { keys: ["limit", "#user"] };
+		const ctx = {
+			params: { limit: 5 },
+			meta: { user: "bob" },
+			headers: { auth: false }
+		};
 
-		expect(cacher.getCacheKey(actionName, params, meta, keys, null, headers)).toBe("custom");
+		expect(cacher.getCacheKey(action, opts, ctx)).toBe("custom");
 		expect(keygen).toHaveBeenCalledTimes(1);
-		expect(keygen).toHaveBeenCalledWith(actionName, params, meta, keys, headers);
+		expect(keygen).toHaveBeenCalledWith(action, opts, ctx);
 
-		expect(cacher.getCacheKey(actionName, params, meta, keys, actionKeygen, headers)).toBe(
-			"actionKeygen"
-		);
+		opts.keygen = actionKeygen;
+		expect(cacher.getCacheKey(action, opts, ctx)).toBe("actionKeygen");
 		expect(actionKeygen).toHaveBeenCalledTimes(1);
-		expect(actionKeygen).toHaveBeenCalledWith(actionName, params, meta, keys, headers);
+		expect(actionKeygen).toHaveBeenCalledWith(action, opts, ctx);
 	});
 });
 
@@ -351,7 +444,7 @@ describe("Test middleware", () => {
 
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:id|3|name|Antsa");
+			expect(broker.cacher.get).toHaveBeenCalledWith('posts.find:id|3|name|"Antsa"');
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
@@ -360,7 +453,7 @@ describe("Test middleware", () => {
 
 	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
 		let resData = [1, 3, 5];
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
@@ -383,7 +476,7 @@ describe("Test middleware", () => {
 
 	it("should call the 'cache.set' action with custom TTL", () => {
 		let resData = [1];
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		broker.cacher.set.mockClear();
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
@@ -582,7 +675,7 @@ describe("Test middleware with lock enabled", () => {
 
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
@@ -596,7 +689,7 @@ describe("Test middleware with lock enabled", () => {
 
 	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
 		let resData = [1, 3, 5];
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
 		const unlockFn = jest.fn(() => Promise.resolve());
@@ -634,7 +727,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
@@ -661,7 +754,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(0);
@@ -690,7 +783,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(0);
@@ -727,7 +820,7 @@ describe("Test middleware with lock enabled", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
 
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		function call() {
@@ -858,7 +951,7 @@ describe("Test middleware with lock enabled", () => {
 		const unlockFn = jest.fn(() => Promise.resolve());
 		broker.cacher.lock = jest.fn(() => Promise.resolve(unlockFn));
 		broker.cacher.tryLock = jest.fn(() => Promise.resolve(unlockFn));
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cacheKey = cacher.getCacheKey(mockAction, {}, { params });
 		let cachedHandler = cacher.middleware().localAction(mockAction.handler, mockAction);
 
 		const ctx = new Context();

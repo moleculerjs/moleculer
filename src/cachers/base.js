@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -209,7 +209,7 @@ class Cacher {
 	 * @returns {any}
 	 * @memberof Cacher
 	 */
-	getParamMetaValue(key, params, meta, headers) {
+	_getParamMetaValue(key, params, meta, headers) {
 		if (key.startsWith("#") && meta != null) return _.get(meta, key.slice(1));
 		if (key.startsWith("@") && headers != null) return _.get(headers, key.slice(1));
 		else if (params != null) return _.get(params, key);
@@ -218,41 +218,39 @@ class Cacher {
 	/**
 	 * Default cache key generator
 	 *
-	 * @param {String} actionName
-	 * @param {Object|null} params
-	 * @param {Object} meta
-	 * @param {Array|null} keys
-	 * @param {Object} headers
+	 * @param {Object} action
+	 * @param {Object} opts
+	 * @param {Context} ctx
 	 * @returns {String}
 	 * @memberof Cacher
 	 */
-	defaultKeygen(actionName, params, meta, keys, headers) {
-		if (params || meta) {
-			const keyPrefix = actionName + ":";
-			if (keys) {
-				if (keys.length == 1) {
+	defaultKeygen(action, opts, ctx) {
+		if (!action) return undefined;
+
+		const { params, meta, headers } = ctx ?? {};
+
+		if (params || meta || headers) {
+			const keyPrefix = action.name + ":";
+			if (opts?.keys) {
+				if (opts.keys.length == 1) {
 					// Fast solution for ['id'] key
-					const val = this.getParamMetaValue(keys[0], params, meta, headers);
-					return (
-						keyPrefix +
-						this._hashedKey(
-							isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val
-						)
-					);
+					const val = this._getParamMetaValue(opts.keys[0], params, meta, headers);
+					return keyPrefix + this._hashedKey(this._generateKeyFromObject(val));
 				}
 
-				if (keys.length > 0) {
+				if (opts.keys.length > 0) {
 					return (
 						keyPrefix +
 						this._hashedKey(
-							keys.reduce((a, key, i) => {
-								const val = this.getParamMetaValue(key, params, meta, headers);
+							opts.keys.reduce((a, key, i) => {
+								const val = this._getParamMetaValue(key, params, meta, headers);
+								const valKey = this._generateKeyFromObject(val);
 								return (
 									a +
 									(i ? "|" : "") +
 									(isObject(val) || Array.isArray(val)
-										? this._hashedKey(this._generateKeyFromObject(val))
-										: val)
+										? this._hashedKey(valKey)
+										: valKey)
 								);
 							}, "")
 						)
@@ -262,9 +260,15 @@ class Cacher {
 				return keyPrefix + this._hashedKey(this._generateKeyFromObject(params));
 			}
 		}
-		return actionName;
+		return action.name;
 	}
 
+	/**
+	 *  Hash key if it's too long.
+	 *
+	 * @param {String} key
+	 * @returns {String}
+	 */
 	_hashedKey(key) {
 		const maxParamsLength = this.opts.maxParamsLength;
 		if (!maxParamsLength || maxParamsLength < 44 || key.length <= maxParamsLength) return key;
@@ -286,10 +290,14 @@ class Cacher {
 			return Object.keys(obj)
 				.map(key => [key, this._generateKeyFromObject(obj[key])].join("|"))
 				.join("|");
+		} else if (typeof obj === "string") {
+			return '"' + obj + '"';
 		} else if (obj != null) {
 			return obj.toString();
-		} else {
+		} else if (obj === null) {
 			return "null";
+		} else {
+			return "undefined";
 		}
 	}
 
@@ -297,20 +305,16 @@ class Cacher {
 	 * Get a cache key by name and params.
 	 * Concatenate the name and the hashed params object
 	 *
-	 * @param {String} actionName
-	 * @param {Object} params
-	 * @param {Object} meta
-	 * @param {Array|null} keys
-	 * @param {function?} actionKeygen
-	 * @param {Object} headers
+	 * @param {Object} action
+	 * @param {Object} opts
+	 * @param {Context} context
 	 * @returns {String}
 	 */
-	getCacheKey(actionName, params, meta, keys, actionKeygen, headers) {
-		if (isFunction(actionKeygen))
-			return actionKeygen.call(this, actionName, params, meta, keys, headers);
+	getCacheKey(action, opts, ctx) {
+		if (opts && isFunction(opts.keygen)) return opts.keygen.call(this, action, opts, ctx);
 		else if (isFunction(this.opts.keygen))
-			return this.opts.keygen.call(this, actionName, params, meta, keys, headers);
-		else return this.defaultKeygen(actionName, params, meta, keys, headers);
+			return this.opts.keygen.call(this, action, opts, ctx);
+		else return this.defaultKeygen(action, opts, ctx);
 	}
 
 	/**
@@ -330,6 +334,7 @@ class Cacher {
 					{},
 					isObject(opts.lock) ? opts.lock : { enabled: !!opts.lock }
 				);
+
 				if (opts.enabled !== false) {
 					const isEnabledFunction = isFunction(opts.enabled);
 
@@ -353,104 +358,15 @@ class Cacher {
 							return handler(ctx);
 						}
 
-						const cacheKey = this.getCacheKey(
-							action.name,
-							ctx.params,
-							ctx.meta,
-							opts.keys,
-							opts.keygen,
-							ctx.headers
-						);
+						const cacheKey = this.getCacheKey(action, opts, ctx);
+
 						// Using lock
 						if (opts.lock.enabled !== false) {
-							let cachePromise;
-							if (opts.lock.staleTime && this.getWithTTL) {
-								// If enable cache refresh
-								cachePromise = this.getWithTTL(cacheKey).then(({ data, ttl }) => {
-									if (data != null) {
-										if (
-											opts.lock.staleTime &&
-											ttl &&
-											ttl < opts.lock.staleTime
-										) {
-											// Cache is stale, try to refresh it.
-											this.tryLock(cacheKey, opts.lock.ttl)
-												.then(unlock => {
-													return handler(ctx)
-														.then(result => {
-															// Save the result to the cache and realse the lock.
-															return this.set(
-																cacheKey,
-																result,
-																opts.ttl
-															).then(() => unlock());
-														})
-														.catch((/*err*/) => {
-															return this.del(cacheKey).then(() =>
-																unlock()
-															);
-														});
-												})
-												.catch((/*err*/) => {
-													// The cache is refreshing on somewhere else.
-												});
-										}
-									}
-									return data;
-								});
-							} else {
-								cachePromise = this.get(cacheKey);
-							}
-							return cachePromise.then(data => {
-								if (data != null) {
-									// Found in the cache! Don't call handler, return with the content
-									ctx.cachedResult = true;
-									return data;
-								}
-								// Not found in the cache! Acquire a lock
-								return this.lock(cacheKey, opts.lock.ttl).then(unlock => {
-									return this.get(cacheKey).then(content => {
-										if (content != null) {
-											// Cache found. Realse the lock and return the value.
-											ctx.cachedResult = true;
-											return unlock().then(() => {
-												return content;
-											});
-										}
-										// Call the handler
-										return handler(ctx)
-											.then(result => {
-												// Save the result to the cache and realse the lock.
-												this.set(cacheKey, result, opts.ttl).then(() =>
-													unlock()
-												);
-												return result;
-											})
-											.catch(e => {
-												return unlock().then(() => {
-													return Promise.reject(e);
-												});
-											});
-									});
-								});
-							});
+							return this.middlewareWithLock(ctx, cacheKey, handler, opts);
+						} else {
+							// Not using lock
+							return this.middlewareWithoutLock(ctx, cacheKey, handler, opts);
 						}
-						// Not using lock
-						return this.get(cacheKey).then(content => {
-							if (content != null) {
-								// Found in the cache! Don't call handler, return with the content
-								ctx.cachedResult = true;
-								return content;
-							}
-
-							// Call the handler
-							return handler(ctx).then(result => {
-								// Save the result to the cache
-								this.set(cacheKey, result, opts.ttl);
-
-								return result;
-							});
-						});
 					}.bind(this);
 				}
 
@@ -460,9 +376,110 @@ class Cacher {
 	}
 
 	/**
+	 * Middleware functionality with lock support.
+	 *
+	 * @param {Context} ctx
+	 * @param {string} cacheKey
+	 * @param {Function} handler
+	 * @param {Object} opts
+	 * @returns {Promise<any>}
+	 */
+	middlewareWithLock(ctx, cacheKey, handler, opts) {
+		let cachePromise;
+		if (opts.lock.staleTime && this.getWithTTL) {
+			// If enable cache refresh
+			cachePromise = this.getWithTTL(cacheKey).then(({ data, ttl }) => {
+				if (data != null) {
+					if (opts.lock.staleTime && ttl && ttl < opts.lock.staleTime) {
+						// Cache is stale, try to refresh it.
+						this.tryLock(cacheKey, opts.lock.ttl)
+							.then(unlock => {
+								return handler(ctx)
+									.then(result => {
+										// Save the result to the cache and release the lock.
+										return this.set(cacheKey, result, opts.ttl).then(() =>
+											unlock()
+										);
+									})
+									.catch((/*err*/) => {
+										return this.del(cacheKey).then(() => unlock());
+									});
+							})
+							.catch((/*err*/) => {
+								// The cache is refreshing on somewhere else.
+							});
+					}
+				}
+				return data;
+			});
+		} else {
+			cachePromise = this.get(cacheKey);
+		}
+
+		return cachePromise.then(data => {
+			if (data != null) {
+				// Found in the cache! Don't call handler, return with the content
+				ctx.cachedResult = true;
+				return data;
+			}
+			// Not found in the cache! Acquire a lock
+			return this.lock(cacheKey, opts.lock.ttl).then(unlock => {
+				return this.get(cacheKey).then(content => {
+					if (content != null) {
+						// Cache found. Realse the lock and return the value.
+						ctx.cachedResult = true;
+						return unlock().then(() => {
+							return content;
+						});
+					}
+					// Call the handler
+					return handler(ctx)
+						.then(result => {
+							// Save the result to the cache and realse the lock.
+							this.set(cacheKey, result, opts.ttl).then(() => unlock());
+							return result;
+						})
+						.catch(e => {
+							return unlock().then(() => {
+								return Promise.reject(e);
+							});
+						});
+				});
+			});
+		});
+	}
+
+	/**
+	 * Middleware functionality without lock support.
+	 *
+	 * @param {Context} ctx
+	 * @param {string} cacheKey
+	 * @param {Function} handler
+	 * @param {Object} opts
+	 * @returns {Promise<any>}
+	 */
+	middlewareWithoutLock(ctx, cacheKey, handler, opts) {
+		return this.get(cacheKey).then(content => {
+			if (content != null) {
+				// Found in the cache! Don't call handler, return with the content
+				ctx.cachedResult = true;
+				return content;
+			}
+
+			// Call the handler
+			return handler(ctx).then(result => {
+				// Save the result to the cache
+				this.set(cacheKey, result, opts.ttl);
+
+				return result;
+			});
+		});
+	}
+
+	/**
 	 * Return all cache keys with available properties (ttl, lastUsed, ...etc).
 	 *
-	 * @returns Promise<Array<Object>>
+	 * @returns {Promise<Array<Object>>}
 	 */
 	getCacheKeys() {
 		// Not available
