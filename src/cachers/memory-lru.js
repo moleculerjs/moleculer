@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -106,7 +106,7 @@ class MemoryLRUCacher extends BaseCacher {
 		} else {
 			timeEnd();
 		}
-		return this.broker.Promise.resolve(null);
+		return this.broker.Promise.resolve(this.opts.missingResponse);
 	}
 
 	/**

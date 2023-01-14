@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -203,7 +203,7 @@ class RedisCacher extends BaseCacher {
 				}
 			}
 			timeEnd();
-			return null;
+			return this.opts.missingResponse;
 		});
 	}
 
@@ -335,7 +335,7 @@ class RedisCacher extends BaseCacher {
 						data = this.serializer.deserialize(data);
 					} catch (err) {
 						this.logger.error("Redis result parse error.", err, data);
-						data = null;
+						data = this.opts.missingResponse;
 					}
 				}
 				return { data, ttl };

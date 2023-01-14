@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -95,7 +95,7 @@ class MemoryCacher extends BaseCacher {
 				this.metrics.increment(METRIC.MOLECULER_CACHER_EXPIRED_TOTAL);
 				this.cache.delete(key);
 				timeEnd();
-				return this.broker.Promise.resolve(null);
+				return this.broker.Promise.resolve(this.opts.missingResponse);
 			}
 			const res = this.clone ? this.clone(item.data) : item.data;
 			timeEnd();
@@ -104,7 +104,7 @@ class MemoryCacher extends BaseCacher {
 		} else {
 			timeEnd();
 		}
-		return this.broker.Promise.resolve(null);
+		return this.broker.Promise.resolve(this.opts.missingResponse);
 	}
 
 	/**
@@ -194,7 +194,7 @@ class MemoryCacher extends BaseCacher {
 	 */
 	getWithTTL(key) {
 		this.logger.debug(`GET ${key}`);
-		let data = null;
+		let data = this.opts.missingResponse;
 		let ttl = null;
 		if (this.cache.has(key)) {
 			this.logger.debug(`FOUND ${key}`);

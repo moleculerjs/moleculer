@@ -28,7 +28,9 @@ class Cacher {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
-			maxParamsLength: null
+			maxParamsLength: null,
+			/** @type {any}  Return with this if the key is missing in the cache */
+			missingResponse: undefined
 		});
 
 		/** @type {boolean} Flag indicating the connection status */
@@ -417,7 +419,7 @@ class Cacher {
 		}
 
 		return cachePromise.then(data => {
-			if (data != null) {
+			if (data !== this.opts.missingResponse) {
 				// Found in the cache! Don't call handler, return with the content
 				ctx.cachedResult = true;
 				return data;
@@ -460,7 +462,7 @@ class Cacher {
 	 */
 	middlewareWithoutLock(ctx, cacheKey, handler, opts) {
 		return this.get(cacheKey).then(content => {
-			if (content != null) {
+			if (content !== this.opts.missingResponse) {
 				// Found in the cache! Don't call handler, return with the content
 				ctx.cachedResult = true;
 				return content;
