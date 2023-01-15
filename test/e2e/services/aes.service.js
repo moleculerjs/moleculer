@@ -9,12 +9,12 @@ module.exports = {
 	actions: {
 		encrypt(ctx) {
 			const encrypter = crypto.createCipheriv("aes-256-ctr", password, iv);
-			return ctx.params.pipe(encrypter);
+			return ctx.stream.pipe(encrypter);
 		},
 
 		decrypt(ctx) {
 			const decrypter = crypto.createDecipheriv("aes-256-ctr", password, iv);
-			return ctx.params.pipe(decrypter);
+			return ctx.stream.pipe(decrypter);
 		}
 	}
 };
