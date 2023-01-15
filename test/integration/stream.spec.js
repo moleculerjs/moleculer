@@ -2,7 +2,7 @@ const ServiceBroker = require("../../src/service-broker");
 
 const Stream = require("stream");
 
-describe("Test to send stream as ctx.param", () => {
+describe("Test to send stream", () => {
 	let b1 = new ServiceBroker({
 		logger: false,
 		namespace: "test-1",
@@ -27,12 +27,13 @@ describe("Test to send stream as ctx.param", () => {
 		actions: {
 			save(ctx) {
 				expect(FLOW).toEqual([]);
-				expect(ctx.params).toBeInstanceOf(Stream.Readable);
-				ctx.params.on("data", msg => FLOW.push(msg.toString()));
-				ctx.params.on("error", err => {
+				FLOW.push(ctx.params);
+				expect(ctx.stream).toBeInstanceOf(Stream.Readable);
+				ctx.stream.on("data", msg => FLOW.push(msg.toString()));
+				ctx.stream.on("error", err => {
 					FLOW.push("<ERROR:" + err.message + ">");
 				});
-				ctx.params.on("end", () => FLOW.push("<END>"));
+				ctx.stream.on("end", () => FLOW.push("<END>"));
 
 				return "OK";
 			}
@@ -44,44 +45,46 @@ describe("Test to send stream as ctx.param", () => {
 
 	it("should receive stream on b2", () => {
 		FLOW = [];
+		expect.assertions(6);
 		return b1.Promise.resolve()
-			.then(() => b1.call("file.save", stream))
+			.then(() => b1.call("file.save", { p: 1 }, { stream }))
 			.then(res => expect(res).toBe("OK"))
 			.then(() => stream.push("first chunk"))
 			.delay(100)
 			.then(() => {
-				expect(FLOW).toEqual(["first chunk"]);
+				expect(FLOW).toEqual([{ p: 1 }, "first chunk"]);
 				stream.push(Buffer.from("second chunk"));
 			})
 			.delay(100)
 			.then(() => {
-				expect(FLOW).toEqual(["first chunk", "second chunk"]);
+				expect(FLOW).toEqual([{ p: 1 }, "first chunk", "second chunk"]);
 				stream.emit("end");
 			})
 			.delay(100)
 			.then(() => {
-				expect(FLOW).toEqual(["first chunk", "second chunk", "<END>"]);
+				expect(FLOW).toEqual([{ p: 1 }, "first chunk", "second chunk", "<END>"]);
 			});
 	});
 
 	it("should receive stream & handle error", () => {
 		FLOW = [];
+		expect.assertions(5);
 		stream = new Stream.Readable({
 			read() {}
 		});
 
 		return b1.Promise.resolve()
-			.then(() => b1.call("file.save", stream))
+			.then(() => b1.call("file.save", null, { stream }))
 			.then(res => expect(res).toBe("OK"))
 			.then(() => stream.push("first chunk"))
 			.delay(100)
 			.then(() => {
-				expect(FLOW).toEqual(["first chunk"]);
+				expect(FLOW).toEqual([null, "first chunk"]);
 				stream.emit("error", new Error("Something happened"));
 			})
 			.delay(100)
 			.then(() => {
-				expect(FLOW).toEqual(["first chunk", "<ERROR:Something happened>", "<END>"]);
+				expect(FLOW).toEqual([null, "first chunk", "<ERROR:Something happened>", "<END>"]);
 			});
 	});
 });
@@ -192,8 +195,8 @@ describe("Test duplex streaming", () => {
 						return done();
 					}
 				});
-				ctx.params.on("error", err => pass.emit("error", err));
-				return ctx.params.pipe(pass);
+				ctx.stream.on("error", err => pass.emit("error", err));
+				return ctx.stream.pipe(pass);
 			}
 		}
 	});
@@ -208,7 +211,7 @@ describe("Test duplex streaming", () => {
 		});
 
 		return b1.Promise.resolve()
-			.then(() => b1.call("file.convert", stream))
+			.then(() => b1.call("file.convert", null, { stream }))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
 				res.on("data", msg => FLOW.push(msg.toString()));
@@ -238,7 +241,7 @@ describe("Test duplex streaming", () => {
 			read() {}
 		});
 		return b1.Promise.resolve()
-			.then(() => b1.call("file.convert", stream))
+			.then(() => b1.call("file.convert", null, { stream }))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
 				res.on("data", msg => FLOW.push(msg.toString()));
@@ -284,16 +287,16 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 		actions: {
 			store(ctx) {
 				expect(FLOW).toEqual([]);
-				expect(ctx.params).toBeInstanceOf(Stream.Readable);
+				expect(ctx.stream).toBeInstanceOf(Stream.Readable);
 				expect(
-					ctx.params.readableObjectMode === true ||
-						(ctx.params._readableState && ctx.params._readableState.objectMode === true)
+					ctx.stream.readableObjectMode === true ||
+						(ctx.stream._readableState && ctx.stream._readableState.objectMode === true)
 				).toBe(true);
-				ctx.params.on("data", msg => FLOW.push(msg));
-				ctx.params.on("error", err => {
+				ctx.stream.on("data", msg => FLOW.push(msg));
+				ctx.stream.on("error", err => {
 					FLOW.push("<ERROR:" + err.message + ">");
 				});
-				ctx.params.on("end", () => FLOW.push("<END>"));
+				ctx.stream.on("end", () => FLOW.push("<END>"));
 
 				return "OK";
 			}
@@ -306,7 +309,7 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 	it("should receive stream in objectMode on b2", () => {
 		FLOW = [];
 		return b1.Promise.resolve()
-			.then(() => b1.call("data.store", stream))
+			.then(() => b1.call("data.store", null, { stream }))
 			.then(res => expect(res).toBe("OK"))
 			.then(() => stream.push({ id: 123, data: "first record" }))
 			.delay(100)
@@ -340,7 +343,7 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 		});
 
 		return b1.Promise.resolve()
-			.then(() => b1.call("data.store", stream))
+			.then(() => b1.call("data.store", null, { stream }))
 			.then(res => expect(res).toBe("OK"))
 			.then(() => stream.push({ id: 123, data: "first record" }))
 			.delay(100)
@@ -486,9 +489,9 @@ describe("Test duplex streaming, result in objectMode", () => {
 
 				// this fake parser only works if each chunk is exactly one line
 				let line = 0;
-				ctx.params.on("data", msg => pass.push({ line: ++line, data: msg }));
-				ctx.params.on("end", () => pass.emit("end"));
-				ctx.params.on("error", err => pass.emit("error", err));
+				ctx.stream.on("data", msg => pass.push({ line: ++line, data: msg }));
+				ctx.stream.on("end", () => pass.emit("end"));
+				ctx.stream.on("error", err => pass.emit("error", err));
 				return pass;
 			}
 		}
@@ -505,7 +508,7 @@ describe("Test duplex streaming, result in objectMode", () => {
 		});
 
 		return b1.Promise.resolve()
-			.then(() => b1.call("csv.parse", stream))
+			.then(() => b1.call("csv.parse", null, { stream }))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
 				expect(
@@ -547,7 +550,7 @@ describe("Test duplex streaming, result in objectMode", () => {
 			read() {}
 		});
 		return b1.Promise.resolve()
-			.then(() => b1.call("csv.parse", stream))
+			.then(() => b1.call("csv.parse", null, { stream }))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
 				expect(
