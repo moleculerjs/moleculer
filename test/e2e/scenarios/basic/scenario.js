@@ -141,8 +141,8 @@ addScenario("send & receive stream", async () => {
 	// ---- ^ SETUP ^ ---
 
 	const s1 = fs.createReadStream(filename);
-	const s2 = await broker.call("aes.encrypt", s1);
-	const s3 = await broker.call("aes.decrypt", s2);
+	const s2 = await broker.call("aes.encrypt", null, { stream: s1 });
+	const s3 = await broker.call("aes.decrypt", null, { stream: s2 });
 
 	const receivedSHA = await getStreamSHA(s3);
 

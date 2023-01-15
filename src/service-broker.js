@@ -33,6 +33,22 @@ const { Tracer } = require("./tracing");
 const C = require("./constants");
 
 /**
+ * @typedef {Object} CallingOptions Calling options
+ * @property {number?} timeout
+ * @property {number?} retries
+ * @property {Function?} fallbackResponse
+ * @property {string?} nodeID
+ * @property {object?} meta
+ * @property {object?} parentSpan
+ * @property {Context?} parentCtx
+ * @property {string?} requestID
+ * @property {boolean?} tracking
+ * @property {boolean?} paramsCloning
+ * @property {string?} caller
+ * @property {Stream?} stream
+ */
+
+/**
  * Default broker options
  */
 const defaultOptions = {
@@ -1151,9 +1167,9 @@ class ServiceBroker {
 	/**
 	 * Call an action
 	 *
-	 * @param {String} actionName	name of action
-	 * @param {Object?} params		params of action
-	 * @param {Object?} opts		options of call (optional)
+	 * @param {String} actionName		name of action
+	 * @param {Object?} params			params of action
+	 * @param {CallingOptions?} opts	options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @performance-critical
@@ -1192,17 +1208,23 @@ class ServiceBroker {
 			ctx.setEndpoint(endpoint);
 		}
 
-		if (ctx.endpoint.local)
+		if (ctx.endpoint.local) {
 			this.logger.debug("Call action locally.", {
 				action: ctx.action.name,
 				requestID: ctx.requestID
 			});
-		else
+
+			// Stream redirection
+			if (opts.stream) {
+				ctx.stream = opts.stream;
+			}
+		} else {
 			this.logger.debug("Call action on remote node.", {
 				action: ctx.action.name,
 				nodeID: ctx.nodeID,
 				requestID: ctx.requestID
 			});
+		}
 
 		//this.setCurrentContext(ctx);
 

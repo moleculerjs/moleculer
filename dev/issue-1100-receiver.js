@@ -30,20 +30,15 @@ broker.createService({
 			async handler(ctx) {
 				// ! called two times if meta is "large"
 				this.logger.info("call receive handler", ctx.params, ctx.meta);
-				if (ctx.params) {
+				if (ctx.stream) {
 					const participants = [];
-					ctx.params.on("data", d => participants.push(d));
-					ctx.params.on("end", () =>
-						this.logger.info(
-							"received stream data",
-							participants.length,
-							ctx.meta,
-							participants
-						)
+					ctx.stream.on("data", d => participants.push(d));
+					ctx.stream.on("end", () =>
+						this.logger.info("received stream data", participants.length, ctx.meta)
 					);
 					return "OK";
 				} else {
-					this.logger.error("No stream", ctx.params, ctx.meta);
+					this.logger.error("No stream", ctx.stream, ctx.meta);
 					return "no stream";
 				}
 			}

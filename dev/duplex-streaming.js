@@ -32,13 +32,15 @@ broker2.createService({
 	name: "aes",
 	actions: {
 		encrypt(ctx) {
+			console.log("encrypt params:", ctx.params);
 			const encrypt = crypto.createCipheriv("aes-256-ctr", pass, iv);
-			return ctx.params.pipe(encrypt);
+			return ctx.stream.pipe(encrypt);
 		},
 
 		decrypt(ctx) {
+			console.log("decrypt params:", ctx.params);
 			const decrypt = crypto.createDecipheriv("aes-256-ctr", pass, iv);
-			return ctx.params.pipe(decrypt);
+			return ctx.stream.pipe(decrypt);
 		}
 	}
 });
@@ -69,8 +71,8 @@ function callAES() {
 	const stream = fs.createReadStream(fileName);
 
 	broker1
-		.call("aes.encrypt", stream)
-		.then(stream => broker1.call("aes.decrypt", stream))
+		.call("aes.encrypt", { a: 5 }, { stream })
+		.then(stream => broker1.call("aes.decrypt", { b: "John" }, { stream }))
 		.then(stream => {
 			const s = fs.createWriteStream(fileName2);
 			stream.pipe(s);

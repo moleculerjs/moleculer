@@ -35,7 +35,8 @@ broker.createService({
 				stream.push(Buffer.from(JSON.stringify(participants)));
 				stream.push(null);
 				this.logger.info("sending stream...");
-				const res = await ctx.call("receiver.receive", stream, {
+				const res = await ctx.call("receiver.receive", null, {
+					stream,
 					meta: {
 						//! meta data is missing on receiver side
 						testMeta: "testMeta",

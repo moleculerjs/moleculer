@@ -1,14 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const util = require("util");
-const { isString } = require("./utils");
-const _ = require("lodash");
+const { pick } = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
@@ -86,6 +85,8 @@ class Context {
 		this.headers = {};
 		this.responseHeaders = {};
 		this.locals = {};
+
+		this.stream = null;
 
 		this.requestID = this.id;
 
@@ -204,6 +205,7 @@ class Context {
 		newCtx.eventName = this.eventName;
 		newCtx.eventType = this.eventType;
 		newCtx.eventGroups = this.eventGroups;
+		newCtx.stream = this.stream;
 
 		newCtx.cachedResult = this.cachedResult;
 
@@ -377,12 +379,11 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, opts) {
-		if (Array.isArray(opts) || isString(opts)) opts = { groups: opts };
-		else if (opts == null) opts = {};
+		opts = opts ?? {};
+		opts.parentCtx = this;
 
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
-		opts.parentCtx = this;
 		return this.broker.emit(eventName, data, opts);
 	}
 
@@ -400,12 +401,11 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, opts) {
-		if (Array.isArray(opts) || isString(opts)) opts = { groups: opts };
-		else if (opts == null) opts = {};
+		opts = opts ?? {};
+		opts.parentCtx = this;
 
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
-		opts.parentCtx = this;
 		return this.broker.broadcast(eventName, data, opts);
 	}
 
@@ -456,7 +456,7 @@ class Context {
 	 * Convert Context to a printable POJO object.
 	 */
 	toJSON() {
-		const res = _.pick(this, [
+		const res = pick(this, [
 			"id",
 			"nodeID",
 			"action.name",

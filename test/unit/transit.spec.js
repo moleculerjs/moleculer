@@ -798,7 +798,8 @@ describe("Test Transit.requestHandler", () => {
 				expect(ctx.id).toBe(id);
 				expect(ctx.endpoint).toBe(ep);
 				expect(ctx.action).toBe(ep.action);
-				expect(ctx.params).toEqual({ streaming: true });
+				expect(ctx.params).toBeUndefined();
+				expect(ctx.stream).toEqual({ streaming: true });
 				expect(ctx.parentID).toBe("00000");
 				expect(ctx.requestID).toBe("12345-54321");
 				expect(ctx.caller).toBeNull();
@@ -962,7 +963,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 					Object.assign({}, payload, {
 						stream: false,
 						seq: 3,
-						meta: {
+						headers: {
 							$streamError: { name: "MoleculerError", message: "Some stream error" }
 						}
 					})
@@ -1961,6 +1962,7 @@ describe("Test Transit._sendRequest", () => {
 		ctx.headers = { auth: false };
 		ctx.id = "12345";
 		ctx.requestID = "req-12345";
+		ctx.setParams({ a: 5 });
 
 		const resolve = jest.fn();
 		const reject = jest.fn();
@@ -1975,7 +1977,7 @@ describe("Test Transit._sendRequest", () => {
 			let stream = new Stream.Readable({
 				read() {}
 			});
-			ctx.params = stream;
+			ctx.options.stream = stream;
 
 			return transit
 				._sendRequest(ctx, resolve, reject)
@@ -1992,7 +1994,7 @@ describe("Test Transit._sendRequest", () => {
 							meta: {},
 							headers: { auth: false },
 							tracing: null,
-							params: null,
+							params: { a: 5 },
 							parentID: null,
 							requestID: "req-12345",
 							caller: null,
@@ -2083,7 +2085,7 @@ describe("Test Transit._sendRequest", () => {
 			let stream = new Stream.Readable({
 				read() {}
 			});
-			ctx.params = stream;
+			ctx.options.stream = stream;
 
 			return transit
 				._sendRequest(ctx, resolve, reject)
@@ -2100,7 +2102,7 @@ describe("Test Transit._sendRequest", () => {
 							meta: {},
 							headers: { auth: false },
 							tracing: null,
-							params: null,
+							params: { a: 5 },
 							parentID: null,
 							requestID: "req-12345",
 							caller: null,
@@ -2181,7 +2183,7 @@ describe("Test Transit._sendRequest", () => {
 			let randomData = crypto.randomBytes(256); // length > maxChunkSize => will be splitted to several chunks
 			let stream = new Stream.PassThrough();
 			stream.end(randomData); // end stream before giving stream to transit => transit will receive "data" and "end" event immediately one after the other
-			ctx.params = stream;
+			ctx.options.stream = stream;
 
 			return transit
 				._sendRequest(ctx, resolve, reject)
@@ -2198,7 +2200,7 @@ describe("Test Transit._sendRequest", () => {
 							meta: {},
 							headers: { auth: false },
 							tracing: null,
-							params: null,
+							params: { a: 5 },
 							parentID: null,
 							requestID: "req-12345",
 							caller: null,
@@ -2271,7 +2273,7 @@ describe("Test Transit._sendRequest", () => {
 			let stream = new Stream.Readable({
 				read() {}
 			});
-			ctx.params = stream;
+			ctx.options.stream = stream;
 
 			return transit
 				._sendRequest(ctx, resolve, reject)
@@ -2288,7 +2290,7 @@ describe("Test Transit._sendRequest", () => {
 							meta: {},
 							headers: { auth: false },
 							tracing: null,
-							params: null,
+							params: { a: 5 },
 							parentID: null,
 							requestID: "req-12345",
 							caller: null,
@@ -2339,12 +2341,13 @@ describe("Test Transit._sendRequest", () => {
 							action: "users.find",
 							id: "12345",
 							level: 1,
-							meta: {
+							meta: {},
+							headers: {
+								auth: false,
 								$streamError: {
 									error: true
 								}
 							},
-							headers: { auth: false },
 							tracing: null,
 							params: null,
 							parentID: null,
@@ -2367,24 +2370,28 @@ describe("Test Transit._sendRequest", () => {
 				objectMode: true,
 				read() {}
 			});
-			ctx.params = stream;
+			ctx.options.stream = stream;
+			ctx.headers = { auth: true };
 
 			return transit
 				._sendRequest(ctx, resolve, reject)
 				.catch(protectReject)
 				.then(() => {
 					expect(transit.publish).toHaveBeenCalledTimes(1);
-					expect(transit.publish).toHaveBeenCalledWith({
+					expect(transit.publish).toHaveBeenNthCalledWith(1, {
 						type: "REQ",
 						target: "remote",
 						payload: {
 							action: "users.find",
 							id: "12345",
 							level: 1,
-							meta: { $streamObjectMode: true },
-							headers: { auth: false },
+							meta: {},
+							headers: {
+								auth: true,
+								$streamObjectMode: true
+							},
 							tracing: null,
-							params: null,
+							params: { a: 5 },
 							parentID: null,
 							requestID: "req-12345",
 							caller: null,
@@ -2401,15 +2408,15 @@ describe("Test Transit._sendRequest", () => {
 				.delay(100)
 				.then(() => {
 					expect(transit.publish).toHaveBeenCalledTimes(2);
-					expect(transit.publish).toHaveBeenCalledWith({
+					expect(transit.publish).toHaveBeenNthCalledWith(1, {
 						type: "REQ",
 						target: "remote",
 						payload: {
 							action: "users.find",
 							id: "12345",
 							level: 1,
-							meta: { $streamObjectMode: true },
-							headers: { auth: false },
+							meta: {},
+							headers: { auth: true, $streamObjectMode: true },
 							tracing: null,
 							params: { id: 0 },
 							parentID: null,
@@ -2421,15 +2428,15 @@ describe("Test Transit._sendRequest", () => {
 						}
 					});
 
-					expect(transit.publish).toHaveBeenCalledWith({
+					expect(transit.publish).toHaveBeenNthCalledWith(2, {
 						type: "REQ",
 						target: "remote",
 						payload: {
 							action: "users.find",
 							id: "12345",
 							level: 1,
-							meta: { $streamObjectMode: true },
-							headers: { auth: false },
+							meta: {},
+							headers: { auth: true, $streamObjectMode: true },
 							tracing: null,
 							params: { id: 1 },
 							parentID: null,
@@ -2446,15 +2453,15 @@ describe("Test Transit._sendRequest", () => {
 				})
 				.delay(100)
 				.then(() => {
-					expect(transit.publish).toHaveBeenCalledWith({
+					expect(transit.publish).toHaveBeenNthCalledWith(1, {
 						type: "REQ",
 						target: "remote",
 						payload: {
 							action: "users.find",
 							id: "12345",
 							level: 1,
-							meta: { $streamObjectMode: true },
-							headers: { auth: false },
+							meta: {},
+							headers: { auth: true, $streamObjectMode: true },
 							tracing: null,
 							params: null,
 							parentID: null,

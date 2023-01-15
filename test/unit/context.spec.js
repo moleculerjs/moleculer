@@ -39,6 +39,7 @@ describe("Test Context", () => {
 		expect(ctx.headers).toEqual({});
 		expect(ctx.responseHeaders).toEqual({});
 		expect(ctx.locals).toEqual({});
+		expect(ctx.stream).toEqual(null);
 
 		expect(ctx.requestID).toBe(ctx.id);
 
@@ -901,29 +902,9 @@ describe("Test emit method", () => {
 		});
 	});
 
-	it("should call broker.emit method with string param", () => {
-		broker.emit.mockClear();
-		ctx.emit("request.rest", "string-data");
-		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data", {
-			parentCtx: ctx,
-			groups: undefined
-		});
-	});
-
-	it("should call broker.emit method without payload & group", () => {
-		broker.emit.mockClear();
-		ctx.emit("request.rest", null, "mail");
-		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, {
-			parentCtx: ctx,
-			groups: ["mail"]
-		});
-	});
-
 	it("should call broker.emit method without payload & groups", () => {
 		broker.emit.mockClear();
-		ctx.emit("request.rest", null, ["mail", "users"]);
+		ctx.emit("request.rest", null, { groups: ["mail", "users"] });
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, {
 			parentCtx: ctx,
@@ -935,7 +916,7 @@ describe("Test emit method", () => {
 		const data = { id: 5 };
 		broker.emit.mockClear();
 		ctx.emit("request.rest", data, {
-			groups: ["mail"],
+			groups: "mail",
 			headers: {
 				contentType: "json"
 			}
@@ -978,19 +959,9 @@ describe("Test broadcast method", () => {
 		});
 	});
 
-	it("should call broker.broadcast method without payload & group", () => {
-		broker.broadcast.mockClear();
-		ctx.broadcast("request.rest", null, "users");
-		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, {
-			parentCtx: ctx,
-			groups: ["users"]
-		});
-	});
-
 	it("should call broker.broadcast method without payload & groups", () => {
 		broker.broadcast.mockClear();
-		ctx.broadcast("request.rest", null, ["mail", "users"]);
+		ctx.broadcast("request.rest", null, { groups: ["mail", "users"] });
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
 		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, {
 			parentCtx: ctx,
@@ -1002,7 +973,7 @@ describe("Test broadcast method", () => {
 		const data = { id: 5 };
 		broker.broadcast.mockClear();
 		ctx.broadcast("request.rest", data, {
-			groups: ["mail"],
+			groups: "mail",
 			headers: {
 				contentType: "json"
 			}

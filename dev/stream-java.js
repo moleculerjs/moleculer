@@ -52,7 +52,7 @@ broker.start()
 
 			const stream = fs.createReadStream(fileName);
 
-			broker.call("stream.sha", stream)
+			broker.call("stream.sha", null, { stream })
 				.then(({ digest }) => {
 					broker.logger.info("Time:", Date.now() - startTime + "ms");
 					broker.logger.info("Received SHA:", digest);
@@ -84,7 +84,7 @@ broker
 
 			const stream = fs.createReadStream(fileName);
 
-			broker.call("echo.reply", stream).then(stream => {
+			broker.call("echo.reply", null, { stream }).then(stream => {
 				const s = fs.createWriteStream(fileName2);
 				stream.pipe(s);
 				s.on("close", () => {

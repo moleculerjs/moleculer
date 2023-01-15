@@ -13,6 +13,7 @@ module.exports = {
 		"no-var": ["warn"],
 		"no-console": ["off"],
 		"no-unused-vars": ["off"],
-		"security/detect-possible-timing-attacks": ["off"]
+		"security/detect-possible-timing-attacks": ["off"],
+		"security/detect-non-literal-fs-filename": ["off"]
 	}
 };
