@@ -18,7 +18,7 @@ const broker1 = new ServiceBroker({
 	nodeID: "client-" + process.pid,
 	transporter: "TCP",
 	logger: console,
-	logLevel: "info"
+	logLevel: "debug"
 });
 
 // Create broker #2
@@ -26,14 +26,14 @@ const broker2 = new ServiceBroker({
 	nodeID: "converter-" + process.pid,
 	transporter: "TCP",
 	logger: console,
-	logLevel: "info"
+	logLevel: "debug"
 });
 
 broker2.createService({
 	name: "text-converter",
 	actions: {
 		upper(ctx) {
-			return ctx.params.pipe(
+			return ctx.stream.pipe(
 				new Transform({
 					transform: function (chunk, encoding, done) {
 						this.push(chunk.toString().toUpperCase());
@@ -48,7 +48,7 @@ broker2.createService({
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.then(() => broker1.waitForServices("text-converter"))
 	.then(() => {
-		broker1.call("text-converter.upper", process.stdin).then(stream => {
+		broker1.call("text-converter.upper", null, { stream: process.stdin }).then(stream => {
 			console.log(
 				"\nWrite something to the console and press ENTER. The data is transferred via streams:"
 			);

@@ -472,11 +472,11 @@ class Transit {
 				});
 			}
 
-			let pass;
+			let stream;
 			if (payload.stream !== undefined) {
-				pass = this._handleIncomingRequestStream(payload);
+				stream = this._handleIncomingRequestStream(payload);
 				// eslint-disable-next-line security/detect-possible-timing-attacks
-				if (pass === null) return this.Promise.resolve();
+				if (stream === null) return this.Promise.resolve();
 			}
 
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
@@ -485,7 +485,10 @@ class Transit {
 			const ctx = new this.broker.ContextFactory(this.broker);
 			ctx.setEndpoint(endpoint);
 			ctx.id = payload.id;
-			ctx.setParams(pass ? pass : payload.params, this.broker.options.contextParamsCloning);
+			ctx.setParams(payload.params, this.broker.options.contextParamsCloning);
+			if (stream) {
+				ctx.stream = stream;
+			}
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.caller = payload.caller;
@@ -534,44 +537,44 @@ class Transit {
 	 * @returns {Stream}
 	 */
 	_handleIncomingRequestStream(payload) {
-		let pass = this.pendingReqStreams.get(payload.id);
-		let isNew = false;
+		let stream = this.pendingReqStreams.get(payload.id);
 
-		if (!payload.stream && !pass && !payload.seq) {
+		if (!payload.stream && !stream && !payload.seq) {
 			// It is not a stream data
 			return false;
 		}
 
-		if (!pass) {
-			isNew = true;
+		if (!stream) {
 			this.logger.debug(
 				`<= New stream is received from '${payload.sender}'. Seq: ${payload.seq}`
 			);
 
 			// Create a new pass stream
-			pass = new Transform({
+			stream = new Transform({
 				// TODO: It's incorrect because the chunks may receive in random order, so it processes an empty meta.
 				// Meta is filled correctly only in the 0. chunk.
-				objectMode: payload.meta && payload.meta["$streamObjectMode"],
+				objectMode: payload.headers?.$streamObjectMode,
 				transform: function (chunk, encoding, done) {
 					this.push(chunk);
 					return done();
 				}
 			});
 
-			pass.$prevSeq = -1;
-			pass.$pool = new Map();
+			delete payload.headers?.$streamObjectMode;
 
-			this.pendingReqStreams.set(payload.id, pass);
+			stream.$prevSeq = -1;
+			stream.$pool = new Map();
+
+			this.pendingReqStreams.set(payload.id, stream);
 		}
 
-		if (payload.seq > pass.$prevSeq + 1) {
+		if (payload.seq > stream.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
 			this.logger.debug(
-				`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${payload.seq}`
+				`Put the chunk into pool (size: ${stream.$pool.size}). Seq: ${payload.seq}`
 			);
 
-			pass.$pool.set(payload.seq, payload);
+			stream.$pool.set(payload.seq, payload);
 
 			// TODO: start timer.
 			// TODO: check length of pool.
@@ -581,16 +584,17 @@ class Transit {
 		}
 
 		// the next stream chunk received
-		pass.$prevSeq = payload.seq;
+		stream.$prevSeq = payload.seq;
 
-		if (pass.$prevSeq > 0) {
+		if (stream.$prevSeq > 0) {
 			if (!payload.stream) {
 				// Check stream error
-				if (payload.meta && payload.meta["$streamError"]) {
-					pass.emit(
+				if (payload.headers?.$streamError) {
+					stream.emit(
 						"error",
-						this._createErrFromPayload(payload.meta["$streamError"], payload)
+						this._createErrFromPayload(payload.headers.$streamError, payload)
 					);
+					delete payload.headers.$streamError;
 				}
 
 				this.logger.debug(
@@ -598,7 +602,7 @@ class Transit {
 				);
 
 				// End of stream
-				pass.end();
+				stream.end();
 
 				// Remove pending request stream
 				this.pendingReqStreams.delete(payload.id);
@@ -608,8 +612,8 @@ class Transit {
 				this.logger.debug(
 					`<= Stream chunk is received from '${payload.sender}'. Seq: ${payload.seq}`
 				);
-				pass.write(
-					payload.params.type === "Buffer"
+				stream.write(
+					payload.params?.type === "Buffer"
 						? Buffer.from(payload.params.data)
 						: payload.params
 				);
@@ -617,17 +621,17 @@ class Transit {
 		}
 
 		// Check newer chunks in the pool
-		if (pass.$pool.size > 0) {
-			this.logger.debug(`Has stored packets. Size: ${pass.$pool.size}`);
-			const nextSeq = pass.$prevSeq + 1;
-			const nextPacket = pass.$pool.get(nextSeq);
+		if (stream.$pool.size > 0) {
+			this.logger.debug(`Has stored packets. Size: ${stream.$pool.size}`);
+			const nextSeq = stream.$prevSeq + 1;
+			const nextPacket = stream.$pool.get(nextSeq);
 			if (nextPacket) {
-				pass.$pool.delete(nextSeq);
+				stream.$pool.delete(nextSeq);
 				setImmediate(() => this.requestHandler(nextPacket));
 			}
 		}
 
-		return pass && payload.seq == 0 ? pass : null;
+		return stream && payload.seq == 0 ? stream : null;
 	}
 
 	/**
@@ -670,9 +674,6 @@ class Transit {
 		// Merge response meta with original meta
 		Object.assign(req.ctx.meta || {}, packet.meta || {});
 
-		// Headers (it overwrites the original headers in ctx)
-		// req.ctx.headers = packet.headers || {};
-
 		// Handle stream response
 		if (packet.stream != null) {
 			if (this._handleIncomingResponseStream(packet, req)) return;
@@ -695,37 +696,39 @@ class Transit {
 	 * @param {Object} req
 	 */
 	_handleIncomingResponseStream(packet, req) {
-		let pass = this.pendingResStreams.get(packet.id);
-		if (!pass && !packet.stream && !packet.seq) return false;
+		let stream = this.pendingResStreams.get(packet.id);
+		if (!stream && !packet.stream && !packet.seq) return false;
 
-		if (!pass) {
+		if (!stream) {
 			this.logger.debug(
 				`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`
 			);
 
-			pass = new Transform({
+			stream = new Transform({
 				// TODO: It's incorrect because the chunks may receive in random order, so it processes an empty meta.
 				// Meta is filled correctly only in the 0. chunk.
-				objectMode: packet.meta && packet.meta["$streamObjectMode"],
+				objectMode: packet.headers?.$streamObjectMode,
 				transform: function (chunk, encoding, done) {
 					this.push(chunk);
 					return done();
 				}
 			});
 
-			pass.$prevSeq = -1;
-			pass.$pool = new Map();
+			delete packet.headers?.$streamObjectMode;
 
-			this.pendingResStreams.set(packet.id, pass);
+			stream.$prevSeq = -1;
+			stream.$pool = new Map();
+
+			this.pendingResStreams.set(packet.id, stream);
 		}
 
-		if (packet.seq > pass.$prevSeq + 1) {
+		if (packet.seq > stream.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
 			this.logger.debug(
-				`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${packet.seq}`
+				`Put the chunk into pool (size: ${stream.$pool.size}). Seq: ${packet.seq}`
 			);
 
-			pass.$pool.set(packet.seq, packet);
+			stream.$pool.set(packet.seq, packet);
 
 			// TODO: start timer.
 			// TODO: check length of pool.
@@ -735,24 +738,24 @@ class Transit {
 		}
 
 		// the next stream chunk received
-		pass.$prevSeq = packet.seq;
+		stream.$prevSeq = packet.seq;
 
-		if (pass && packet.seq == 0) {
-			req.resolve(pass);
+		if (stream && packet.seq == 0) {
+			req.resolve(stream);
 		}
 
-		if (pass.$prevSeq > 0) {
+		if (stream.$prevSeq > 0) {
 			if (!packet.stream) {
 				// Received error?
 				if (!packet.success)
-					pass.emit("error", this._createErrFromPayload(packet.error, packet));
+					stream.emit("error", this._createErrFromPayload(packet.error, packet));
 
 				this.logger.debug(
 					`<= Stream closing is received from '${packet.sender}'. Seq: ${packet.seq}`
 				);
 
 				// End of stream
-				pass.end();
+				stream.end();
 
 				// Remove pending request
 				this.removePendingRequest(packet.id);
@@ -763,19 +766,19 @@ class Transit {
 				this.logger.debug(
 					`<= Stream chunk is received from '${packet.sender}'. Seq: ${packet.seq}`
 				);
-				pass.write(
-					packet.data.type === "Buffer" ? Buffer.from(packet.data.data) : packet.data
+				stream.write(
+					packet.data?.type === "Buffer" ? Buffer.from(packet.data.data) : packet.data
 				);
 			}
 		}
 
 		// Check newer chunks in the pool
-		if (pass.$pool.size > 0) {
-			this.logger.debug(`Has stored packets. Size: ${pass.$pool.size}`);
-			const nextSeq = pass.$prevSeq + 1;
-			const nextPacket = pass.$pool.get(nextSeq);
+		if (stream.$pool.size > 0) {
+			this.logger.debug(`Has stored packets. Size: ${stream.$pool.size}`);
+			const nextSeq = stream.$prevSeq + 1;
+			const nextPacket = stream.$pool.get(nextSeq);
 			if (nextPacket) {
-				pass.$pool.delete(nextSeq);
+				stream.$pool.delete(nextSeq);
 				setImmediate(() => this.responseHandler(nextPacket));
 			}
 		}
@@ -819,10 +822,9 @@ class Transit {
 	 */
 	_sendRequest(ctx, resolve, reject) {
 		const isStream =
-			ctx.params &&
-			ctx.params.readable === true &&
-			typeof ctx.params.on === "function" &&
-			typeof ctx.params.pipe === "function";
+			ctx.options?.stream?.readable === true &&
+			typeof ctx.options.stream.on === "function" &&
+			typeof ctx.options.stream.pipe === "function";
 
 		const request = {
 			action: ctx.action,
@@ -830,13 +832,13 @@ class Transit {
 			ctx,
 			resolve,
 			reject,
-			stream: isStream // ???
+			stream: isStream
 		};
 
 		const payload = {
 			id: ctx.id,
 			action: ctx.action.name,
-			params: isStream ? null : ctx.params,
+			params: ctx.params,
 			meta: ctx.meta,
 			headers: ctx.headers,
 			timeout: ctx.options.timeout,
@@ -848,13 +850,11 @@ class Transit {
 			stream: isStream
 		};
 
-		if (payload.stream) {
-			if (
-				ctx.params.readableObjectMode === true ||
-				(ctx.params._readableState && ctx.params._readableState.objectMode === true)
-			) {
-				payload.meta = payload.meta || {};
-				payload.meta["$streamObjectMode"] = true;
+		if (isStream) {
+			const s = ctx.options.stream;
+			if (s.readableObjectMode === true || s._readableState?.objectMode === true) {
+				payload.headers = payload.headers ?? {};
+				payload.headers.$streamObjectMode = true;
 			}
 			payload.seq = 0;
 		}
@@ -885,17 +885,19 @@ class Transit {
 		return this.publish(packet)
 			.then(() => {
 				if (isStream) {
-					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
+					const { stream } = ctx.options;
+
+					// Skip to send ctx.meta after the first packet because it doesn't appear on the remote side.
 					payload.meta = {};
 					// Still send information about objectMode in case of packets are received in wrong order
 					if (
-						ctx.params.readableObjectMode === true ||
-						(ctx.params._readableState && ctx.params._readableState.objectMode === true)
+						stream.readableObjectMode === true ||
+						stream._readableState?.objectMode === true
 					) {
-						payload.meta["$streamObjectMode"] = true;
+						payload.headers = payload.headers ?? {};
+						payload.headers.$streamObjectMode = true;
 					}
 
-					const stream = ctx.params;
 					stream.on("data", chunk => {
 						stream.pause();
 						const chunks = [];
@@ -907,13 +909,13 @@ class Transit {
 							let len = chunk.length;
 							let i = 0;
 							while (i < len) {
-								chunks.push(chunk.slice(i, (i += this.opts.maxChunkSize)));
+								chunks.push(chunk.subarray(i, (i += this.opts.maxChunkSize)));
 							}
 						} else {
 							chunks.push(chunk);
 						}
 						for (const ch of chunks) {
-							const copy = Object.assign({}, payload);
+							const copy = { ...payload };
 							copy.seq = ++payload.seq;
 							copy.stream = true;
 							copy.params = ch;
@@ -949,12 +951,12 @@ class Transit {
 						const copy = Object.assign({}, payload);
 						copy.seq = ++payload.seq;
 						copy.stream = false;
-						copy.meta["$streamError"] = this._createPayloadErrorField(err, payload);
+						copy.headers.$streamError = this._createPayloadErrorField(err, payload);
 						copy.params = null;
 
 						this.logger.debug(
 							`=> Send stream error ${requestID}to ${nodeName} node.`,
-							copy.meta["$streamError"]
+							copy.headers.$streamError
 						);
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy)).catch(
@@ -1120,12 +1122,9 @@ class Transit {
 		) {
 			// Streaming response
 			payload.stream = true;
-			if (
-				data.readableObjectMode === true ||
-				(data._readableState && data._readableState.objectMode === true)
-			) {
-				payload.meta = payload.meta || {};
-				payload.meta["$streamObjectMode"] = true;
+			if (data.readableObjectMode === true || data._readableState?.objectMode === true) {
+				payload.headers = payload.headers || {};
+				payload.headers.$streamObjectMode = true;
 			}
 			payload.seq = 0;
 
@@ -1143,13 +1142,13 @@ class Transit {
 					let len = chunk.length;
 					let i = 0;
 					while (i < len) {
-						chunks.push(chunk.slice(i, (i += this.opts.maxChunkSize)));
+						chunks.push(chunk.subarray(i, (i += this.opts.maxChunkSize)));
 					}
 				} else {
 					chunks.push(chunk);
 				}
 				for (const ch of chunks) {
-					const copy = Object.assign({}, payload);
+					const copy = { ...payload };
 					copy.seq = ++payload.seq;
 					copy.stream = true;
 					copy.data = ch;

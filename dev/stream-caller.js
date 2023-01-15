@@ -37,8 +37,8 @@ broker
 			const stream = fs.createReadStream(fileName);
 
 			broker
-				.call("aes.encrypt", stream)
-				.then(stream => broker.call("aes.decrypt", stream))
+				.call("aes.encrypt", null, { stream })
+				.then(stream => broker.call("aes.decrypt", null, { stream }))
 				.then(stream => {
 					const s = fs.createWriteStream(fileName2);
 					stream.pipe(s);
