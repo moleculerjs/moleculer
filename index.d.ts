@@ -334,11 +334,7 @@ declare namespace Moleculer {
 		generateSnapshot(): HistogramMetricSnapshot[];
 
 		static generateLinearBuckets(start: number, width: number, count: number): number[];
-		static generateExponentialBuckets(
-			start: number,
-			factor: number,
-			count: number
-		): number[];
+		static generateExponentialBuckets(start: number, factor: number, count: number): number[];
 	}
 
 	namespace MetricTypes {
@@ -584,7 +580,7 @@ declare namespace Moleculer {
 		call<TResult, TParams>(
 			actionName: string,
 			params: TParams,
-			opts?: CallingOptions,
+			opts?: CallingOptions
 		): Promise<TResult>;
 
 		mcall<T>(
@@ -721,7 +717,11 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type StartedStoppedHandler = () => Promise<void[]> | Promise<void> | void;
+	type ServiceSyncLifecycleHandler = <S = ServiceSettingSchema>(this: Service<S>) => void;
+	type ServiceAsyncLifecycleHandler = <S = ServiceSettingSchema>(
+		this: Service<S>
+	) => void | Promise<void>;
+
 	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
@@ -734,9 +734,9 @@ declare namespace Moleculer {
 		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
-		created?: (() => void) | (() => void)[];
-		started?: StartedStoppedHandler | StartedStoppedHandler[];
-		stopped?: StartedStoppedHandler | StartedStoppedHandler[];
+		created?: ServiceSyncLifecycleHandler | ServiceSyncLifecycleHandler[];
+		started?: ServiceAsyncLifecycleHandler | ServiceAsyncLifecycleHandler[];
+		stopped?: ServiceAsyncLifecycleHandler | ServiceAsyncLifecycleHandler[];
 
 		[name: string]: any;
 	}
@@ -967,6 +967,9 @@ declare namespace Moleculer {
 		options?: GenericObject;
 	}
 
+	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
+	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
+
 	interface BrokerOptions {
 		namespace?: string | null;
 		nodeID?: string | null;
@@ -1030,9 +1033,9 @@ declare namespace Moleculer {
 		ContextFactory?: typeof Context;
 		Promise?: PromiseConstructorLike;
 
-		created?: (broker: ServiceBroker) => void;
-		started?: (broker: ServiceBroker) => void;
-		stopped?: (broker: ServiceBroker) => void;
+		created?: BrokerSyncLifecycleHandler;
+		started?: BrokerAsyncLifecycleHandler;
+		stopped?: BrokerAsyncLifecycleHandler;
 
 		/**
 		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
