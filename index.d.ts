@@ -734,9 +734,9 @@ declare namespace Moleculer {
 		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
-		created?: ServiceSyncLifecycleHandler | ServiceSyncLifecycleHandler[];
-		started?: ServiceAsyncLifecycleHandler | ServiceAsyncLifecycleHandler[];
-		stopped?: ServiceAsyncLifecycleHandler | ServiceAsyncLifecycleHandler[];
+		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
+		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 
 		[name: string]: any;
 	}
