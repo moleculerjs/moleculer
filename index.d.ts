@@ -717,8 +717,8 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type ServiceSyncLifecycleHandler = <S = ServiceSettingSchema>(this: Service<S>) => void;
-	type ServiceAsyncLifecycleHandler = <S = ServiceSettingSchema>(
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
+	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
 		this: Service<S>
 	) => void | Promise<void>;
 
