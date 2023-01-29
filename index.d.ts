@@ -16,6 +16,9 @@ import type { Base as BaseLogger, LogLevels } from "./src/loggers";
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
 
+import type Context from "./src/context";
+export { default as Context } from "./src/context";
+
 import type { Base as BaseTransporter } from "./src/transporters";
 export * as Transporters from "./src/transporters";
 
@@ -391,88 +394,6 @@ export declare class BrokerNode {
 
 	heartbeat(payload: GenericObject): void;
 	disconnected(): void;
-}
-
-export declare class Context<P = unknown, M extends object = {}, L = GenericObject> {
-	constructor(broker: ServiceBroker, endpoint: Endpoint);
-	id: string;
-	broker: ServiceBroker;
-	endpoint: Endpoint | null;
-	action: ActionSchema | null;
-	event: EventSchema | null;
-	service: Service | null;
-	nodeID: string | null;
-
-	eventName: string | null;
-	eventType: string | null;
-	eventGroups: string[] | null;
-
-	options: CallingOptions;
-
-	parentID: string | null;
-	caller: string | null;
-
-	tracing: boolean | null;
-	span: Span | null;
-
-	needAck: boolean | null;
-	ackID: string | null;
-
-	locals: L;
-
-	level: number;
-
-	params: P;
-	meta: M;
-
-	requestID: string | null;
-
-	cachedResult: boolean;
-
-	setEndpoint(endpoint: Endpoint): void;
-	setParams(newParams: P, cloning?: boolean): void;
-	call<TResult>(actionName: string): Promise<TResult>;
-	call<TResult, TParams>(
-		actionName: string,
-		params: TParams,
-		opts?: CallingOptions
-	): Promise<TResult>;
-
-	mcall<T>(
-		def: Record<string, MCallDefinition>,
-		opts?: MCallCallingOptions
-	): Promise<Record<string, T>>;
-	mcall<T>(def: MCallDefinition[], opts?: MCallCallingOptions): Promise<T[]>;
-
-	emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string): Promise<void>;
-	emit<D>(eventName: string, data: D): Promise<void>;
-	emit(eventName: string): Promise<void>;
-
-	broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
-	broadcast<D>(eventName: string, data: D): Promise<void>;
-	broadcast(eventName: string): Promise<void>;
-
-	copy(endpoint: Endpoint): this;
-	copy(): this;
-
-	startSpan(name: string, opts?: GenericObject): Span;
-	finishSpan(span: Span, time?: number): void;
-
-	toJSON(): GenericObject;
-
-	static create(
-		broker: ServiceBroker,
-		endpoint: Endpoint,
-		params: GenericObject,
-		opts: GenericObject
-	): Context;
-	static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
-	static create(broker: ServiceBroker, endpoint: Endpoint): Context;
-	static create(broker: ServiceBroker): Context;
 }
 
 export interface ServiceSettingSchema {
