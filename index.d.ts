@@ -16,6 +16,9 @@ import type { Base as BaseLogger, LogLevels } from "./src/loggers";
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
 
+import type { Base as BaseTransporter } from "./src/transporters";
+export * as Transporters from "./src/transporters";
+
 import type { Base as BaseSerializer } from "./src/serializers";
 export * as Serializers from "./src/serializers";
 
@@ -959,7 +962,7 @@ export interface BrokerOptions {
 	logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
 	logLevel?: LogLevels | LogLevelConfig | null;
 
-	transporter?: Transporter | string | GenericObject | null;
+	transporter?: BaseTransporter | string | GenericObject | null;
 	requestTimeout?: number;
 	retryPolicy?: RetryPolicyOptions;
 
@@ -1338,41 +1341,6 @@ export namespace Packets {
 	}
 }
 
-export declare class Transporter {
-	constructor(opts?: GenericObject);
-	hasBuiltInBalancer: boolean;
-
-	init(
-		transit: Transit,
-		messageHandler: (cmd: string, msg: string) => void,
-		afterConnect: (wasReconnect: boolean) => void
-	): void;
-	connect(): Promise<any>;
-	disconnect(): Promise<any>;
-	onConnected(wasReconnect?: boolean): Promise<any>;
-
-	makeSubscriptions(topics: GenericObject[]): Promise<void>;
-	subscribe(cmd: string, nodeID?: string): Promise<void>;
-	subscribeBalancedRequest(action: string): Promise<void>;
-	subscribeBalancedEvent(event: string, group: string): Promise<void>;
-	unsubscribeFromBalancedCommands(): Promise<void>;
-
-	incomingMessage(cmd: string, msg: Buffer): Promise<void>;
-	receive(cmd: string, data: Buffer): Promise<void>;
-
-	prepublish(packet: Packet): Promise<void>;
-	publish(packet: Packet): Promise<void>;
-	publishBalancedEvent(packet: Packet, group: string): Promise<void>;
-	publishBalancedRequest(packet: Packet): Promise<void>;
-	send(topic: string, data: Buffer, meta: GenericObject): Promise<void>;
-
-	getTopicName(cmd: string, nodeID?: string): string;
-	makeBalancedSubscriptions(): Promise<void>;
-
-	serialize(packet: Packet): Buffer;
-	deserialize(type: string, data: Buffer): Packet;
-}
-
 export declare abstract class BaseDiscoverer {
 	constructor(opts?: DiscovererOptions);
 
@@ -1413,18 +1381,6 @@ export namespace Discoverers {
 export interface ValidatorOptions {
 	type: string;
 	options?: GenericObject;
-}
-
-export namespace Transporters {
-	class Base extends Transporter {}
-	class Fake extends Base {}
-	class NATS extends Base {}
-	class MQTT extends Base {}
-	class Redis extends Base {}
-	class AMQP extends Base {}
-	class Kafka extends Base {}
-	class STAN extends Base {}
-	class TCP extends Base {}
 }
 
 export namespace Errors {
@@ -1525,7 +1481,7 @@ export interface Transit {
 	connected: boolean;
 	disconnecting: boolean;
 	isReady: boolean;
-	tx: Transporter;
+	tx: BaseTransporter;
 
 	afterConnect(wasReconnect: boolean): Promise<void>;
 	connect(): Promise<void>;
