@@ -1,13 +1,18 @@
 import type { EventEmitter2 } from "eventemitter2";
+
 import type { Base as BaseCacher, CacherKeygen } from "./src/cachers";
 export * as Cachers from "./src/cachers";
-export {
+export type {
 	CacherOptions,
 	CacherKeygen,
 	MemoryCacherOptions,
 	MemoryLRUCacherOptions,
 	RedisCacherOptions
 } from "./src/cachers";
+
+import type { Base as BaseLogger, LogLevels } from "./src/loggers";
+export * as Loggers from "./src/loggers";
+export type { LogLevels } from "./src/loggers";
 
 /**
  * Moleculer uses global.Promise as the default promise library
@@ -22,8 +27,6 @@ export {
  */
 
 export type GenericObject = { [name: string]: any };
-
-export type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
 export declare class LoggerFactory {
 	constructor(broker: ServiceBroker);
@@ -966,7 +969,7 @@ export interface BrokerOptions {
 	namespace?: string | null;
 	nodeID?: string | null;
 
-	logger?: Loggers.Base | LoggerConfig | LoggerConfig[] | boolean | null;
+	logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
 	logLevel?: LogLevels | LogLevelConfig | null;
 
 	transporter?: Transporter | string | GenericObject | null;
@@ -1152,16 +1155,6 @@ export interface PongResponses {
 export interface ServiceSearchObj {
 	name: string;
 	version?: string | number;
-}
-
-export namespace Loggers {
-	class Base {
-		constructor(opts?: GenericObject);
-		init(loggerFactory: LoggerFactory): void;
-		stop(): void;
-		getLogLevel(mod: string): string;
-		getLogHandler(bindings: GenericObject): GenericObject;
-	}
 }
 
 export declare class ServiceBroker {
