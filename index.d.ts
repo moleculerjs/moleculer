@@ -44,6 +44,8 @@ import type {
 } from "./src/errors";
 export * as Errors from "./src/errors";
 
+import type { Packet } from "./src/packets";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -1116,68 +1118,6 @@ export declare class ServiceBroker {
 	static INTERNAL_MIDDLEWARES: string[];
 	static defaultOptions: BrokerOptions;
 	static Promise: PromiseConstructorLike;
-}
-
-export declare class Packet {
-	constructor(type: string, target: string, payload?: any);
-}
-
-export namespace Packets {
-	type PROTOCOL_VERSION = "4";
-	type PACKET_UNKNOWN = "???";
-	type PACKET_EVENT = "EVENT";
-	type PACKET_REQUEST = "REQ";
-	type PACKET_RESPONSE = "RES";
-	type PACKET_DISCOVER = "DISCOVER";
-	type PACKET_INFO = "INFO";
-	type PACKET_DISCONNECT = "DISCONNECT";
-	type PACKET_HEARTBEAT = "HEARTBEAT";
-	type PACKET_PING = "PING";
-	type PACKET_PONG = "PONG";
-
-	type PACKET_GOSSIP_REQ = "GOSSIP_REQ";
-	type PACKET_GOSSIP_RES = "GOSSIP_RES";
-	type PACKET_GOSSIP_HELLO = "GOSSIP_HELLO";
-
-	const PROTOCOL_VERSION: PROTOCOL_VERSION;
-	const PACKET_UNKNOWN: PACKET_UNKNOWN;
-	const PACKET_EVENT: PACKET_EVENT;
-	const PACKET_REQUEST: PACKET_REQUEST;
-	const PACKET_RESPONSE: PACKET_RESPONSE;
-	const PACKET_DISCOVER: PACKET_DISCOVER;
-	const PACKET_INFO: PACKET_INFO;
-	const PACKET_DISCONNECT: PACKET_DISCONNECT;
-	const PACKET_HEARTBEAT: PACKET_HEARTBEAT;
-	const PACKET_PING: PACKET_PING;
-	const PACKET_PONG: PACKET_PONG;
-
-	const PACKET_GOSSIP_REQ: PACKET_GOSSIP_REQ;
-	const PACKET_GOSSIP_RES: PACKET_GOSSIP_RES;
-	const PACKET_GOSSIP_HELLO: PACKET_GOSSIP_HELLO;
-
-	interface PacketPayload {
-		ver: PROTOCOL_VERSION;
-		sender: string | null;
-	}
-
-	interface Packet {
-		type:
-			| PACKET_UNKNOWN
-			| PACKET_EVENT
-			| PACKET_DISCONNECT
-			| PACKET_DISCOVER
-			| PACKET_INFO
-			| PACKET_HEARTBEAT
-			| PACKET_REQUEST
-			| PACKET_PING
-			| PACKET_PONG
-			| PACKET_RESPONSE
-			| PACKET_GOSSIP_REQ
-			| PACKET_GOSSIP_RES
-			| PACKET_GOSSIP_HELLO;
-		target?: string;
-		payload: PacketPayload;
-	}
 }
 
 export declare abstract class BaseDiscoverer {
