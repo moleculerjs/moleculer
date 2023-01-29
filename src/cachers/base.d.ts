@@ -15,7 +15,7 @@ export interface CacherOptions {
 	[key: string]: any;
 }
 
-declare abstract class Base {
+declare abstract class Cacher {
 	opts: CacherOptions;
 
 	connected: boolean | null;
@@ -49,4 +49,4 @@ declare abstract class Base {
 
 	abstract lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default Base;
+export default Cacher;

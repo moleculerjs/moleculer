@@ -8,7 +8,7 @@ export interface RedisCacherOptions extends CacherOptions {
 	pingInterval?: number;
 }
 
-declare class Redis<TClient = any> extends BaseCacher {
+declare class RedisCacher<TClient = any> extends BaseCacher {
 	opts: RedisCacherOptions;
 
 	client: TClient;
@@ -21,4 +21,4 @@ declare class Redis<TClient = any> extends BaseCacher {
 
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default Redis;
+export default RedisCacher;

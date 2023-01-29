@@ -4,7 +4,7 @@ export interface MemoryCacherOptions extends CacherOptions {
 	clone?: boolean;
 }
 
-declare class Memory extends BaseCacher {
+declare class MemoryCacher extends BaseCacher {
 	opts: MemoryCacherOptions;
 
 	constructor(opts?: MemoryCacherOptions);
@@ -13,4 +13,4 @@ declare class Memory extends BaseCacher {
 
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default Memory;
+export default MemoryCacher;

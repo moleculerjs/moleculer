@@ -5,7 +5,7 @@ export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
 	max?: number;
 }
 
-declare class MemoryLRU extends BaseCacher {
+declare class MemoryLRUCacher extends BaseCacher {
 	opts: MemoryLRUCacherOptions;
 
 	constructor(opts?: MemoryLRUCacherOptions);
@@ -14,4 +14,4 @@ declare class MemoryLRU extends BaseCacher {
 
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default MemoryLRU;
+export default MemoryLRUCacher;
