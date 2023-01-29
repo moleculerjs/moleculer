@@ -34,6 +34,9 @@ export * as TracerExporters from "./src/tracing/exporters";
 import type { Base as BaseMetric, BaseMetricOptions, BaseMetricPOJO } from "./src/metrics/types";
 export * as MetricTypes from "./src/metrics/types";
 
+import type { Base as BaseMetricReporter, MetricReporterOptions } from "./src/metrics/reporters";
+export * as MetricReporters from "./src/metrics/reporters";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -236,7 +239,7 @@ export declare class MetricRegistry {
 	logger: Logger;
 	dirty: boolean;
 	store: Map<string, BaseMetric>;
-	reporter: MetricBaseReporter[];
+	reporter: BaseMetricReporter[];
 
 	constructor(broker: ServiceBroker, opts?: MetricRegistryOptions);
 	init(broker: ServiceBroker): void;
@@ -265,41 +268,6 @@ export declare class MetricRegistry {
 	): void;
 
 	list(opts?: MetricListOptions): BaseMetricPOJO[];
-}
-
-export interface MetricReporterOptions {
-	includes?: string | string[];
-	excludes?: string | string[];
-
-	metricNamePrefix?: string;
-	metricNameSuffix?: string;
-
-	metricNameFormatter?: (name: string) => string;
-	labelNameFormatter?: (name: string) => string;
-
-	[key: string]: any;
-}
-
-export declare class MetricBaseReporter {
-	opts: MetricReporterOptions;
-
-	constructor(opts: MetricReporterOptions);
-	init(registry: MetricRegistry): void;
-
-	matchMetricName(name: string): boolean;
-	formatMetricName(name: string): string;
-	formatLabelName(name: string): string;
-	metricChanged(metric: BaseMetric, value: any, labels?: GenericObject, timestamp?: number): void;
-}
-
-export namespace MetricReporters {
-	class Base extends MetricBaseReporter {}
-	class Console extends MetricBaseReporter {}
-	class CSV extends MetricBaseReporter {}
-	class Event extends MetricBaseReporter {}
-	class Datadog extends MetricBaseReporter {}
-	class Prometheus extends MetricBaseReporter {}
-	class StatsD extends MetricBaseReporter {}
 }
 
 export interface BulkheadOptions {
