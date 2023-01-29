@@ -50,6 +50,8 @@ export * as Errors from "./src/errors";
 import type { Packet } from "./src/packets";
 import { Discoverers } from ".";
 
+export * from "./src/constants";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -1208,10 +1210,6 @@ export declare class AsyncStorage {
 	setSessionData(data: any): void;
 	getSessionData(): any | null;
 }
-
-export declare const CIRCUIT_CLOSE: string;
-export declare const CIRCUIT_HALF_OPEN: string;
-export declare const CIRCUIT_OPEN: string;
 
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
