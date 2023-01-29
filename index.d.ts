@@ -28,6 +28,9 @@ export * as Strategies from "./src/strategies";
 import type { Base as BaseValidator, ValidatorNames } from "./src/validators";
 export * as Validators from "./src/validators";
 
+import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
+export * as TracerExporters from "./src/tracing/exporters";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -200,31 +203,6 @@ export interface TracingActionOptions extends TracingOptions {
 
 export interface TracingEventOptions extends TracingOptions {
 	tags?: TracingEventTags;
-}
-
-export declare class BaseTraceExporter {
-	opts: GenericObject;
-	tracer: Tracer;
-	logger: Logger;
-
-	constructor(opts: GenericObject);
-	init(tracer: Tracer): void;
-
-	spanStarted(span: Span): void;
-	spanFinished(span: Span): void;
-
-	flattenTags(obj: GenericObject, convertToString?: boolean, path?: string): GenericObject;
-	errorToObject(err: Error): GenericObject;
-}
-
-export namespace TracerExporters {
-	class Base extends BaseTraceExporter {}
-	class Console extends BaseTraceExporter {}
-	class Datadog extends BaseTraceExporter {}
-	class Event extends BaseTraceExporter {}
-	class EventLegacy extends BaseTraceExporter {}
-	class Jaeger extends BaseTraceExporter {}
-	class Zipkin extends BaseTraceExporter {}
 }
 
 export interface MetricsReporterOptions {
