@@ -12,6 +12,9 @@ export type {
 	RedisCacherOptions
 } from "./src/cachers";
 
+import type ServiceBroker from "./src/service-broker";
+export { default as ServiceBroker, ServiceBrokerOptions } from "./src/service-broker";
+
 import type { Base as BaseLogger, LogLevels } from "./src/loggers";
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
@@ -730,82 +733,6 @@ export interface LogLevelConfig {
 	[module: string]: boolean | LogLevels;
 }
 
-export interface BrokerOptions {
-	namespace?: string | null;
-	nodeID?: string | null;
-
-	logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
-	logLevel?: LogLevels | LogLevelConfig | null;
-
-	transporter?: BaseTransporter | string | GenericObject | null;
-	requestTimeout?: number;
-	retryPolicy?: RetryPolicyOptions;
-
-	contextParamsCloning?: boolean;
-	maxCallLevel?: number;
-	heartbeatInterval?: number;
-	heartbeatTimeout?: number;
-
-	tracking?: BrokerTrackingOptions;
-
-	disableBalancer?: boolean;
-
-	registry?: BrokerRegistryOptions;
-
-	circuitBreaker?: BrokerCircuitBreakerOptions;
-
-	bulkhead?: BulkheadOptions;
-
-	transit?: BrokerTransitOptions;
-
-	uidGenerator?: () => string;
-
-	errorHandler?: ((err: Error, info: any) => void) | null;
-
-	cacher?: boolean | BaseCacher | string | GenericObject | null;
-	serializer?: BaseSerializer | string | GenericObject | null;
-	validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
-	errorRegenerator?: ErrorRegenerator | null;
-
-	metrics?: boolean | MetricRegistryOptions;
-	tracing?: boolean | TracerOptions;
-
-	internalServices?:
-		| boolean
-		| {
-				[key: string]: Partial<ServiceSchema>;
-		  };
-	internalMiddlewares?: boolean;
-
-	dependencyInterval?: number;
-	dependencyTimeout?: number;
-
-	hotReload?: boolean | HotReloadOptions;
-
-	middlewares?: (Middleware | string)[];
-
-	replCommands?: GenericObject[] | null;
-	replDelimiter?: string;
-
-	metadata?: GenericObject;
-
-	ServiceFactory?: typeof Service;
-	ContextFactory?: typeof Context;
-	Promise?: PromiseConstructorLike;
-
-	created?: (broker: ServiceBroker) => void;
-	started?: (broker: ServiceBroker) => void;
-	stopped?: (broker: ServiceBroker) => void;
-
-	/**
-	 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
-	 * You have to register this manually and stop broker in this case!
-	 */
-	skipProcessEventRegistration?: boolean;
-
-	maxSafeObjectSize?: number;
-}
-
 export interface NodeHealthStatus {
 	cpu: {
 		load1: number;
@@ -920,138 +847,6 @@ export interface PongResponses {
 export interface ServiceSearchObj {
 	name: string;
 	version?: string | number;
-}
-
-export declare class ServiceBroker {
-	constructor(options?: BrokerOptions);
-
-	options: BrokerOptions;
-
-	Promise: PromiseConstructorLike;
-	ServiceFactory: typeof Service;
-	ContextFactory: typeof Context;
-
-	started: boolean;
-
-	namespace: string;
-	nodeID: string;
-	instanceID: string;
-
-	logger: Logger;
-
-	services: Service[];
-
-	localBus: EventEmitter2;
-
-	scope: AsyncStorage;
-	metrics: MetricRegistry;
-
-	middlewares: MiddlewareHandler;
-
-	registry: ServiceRegistry;
-
-	cacher?: BaseCacher;
-	serializer?: BaseSerializer;
-	validator?: BaseValidator;
-	errorRegenerator?: ErrorRegenerator;
-
-	tracer: Tracer;
-
-	transit?: Transit;
-
-	start(): Promise<void>;
-	stop(): Promise<void>;
-
-	errorHandler(err: Error, info: GenericObject): void;
-
-	wrapMethod(
-		method: string,
-		handler: ActionHandler,
-		bindTo?: any,
-		opts?: MiddlewareCallHandlerOptions
-	): typeof handler;
-	callMiddlewareHookSync(
-		name: string,
-		args: any[],
-		opts: MiddlewareCallHandlerOptions
-	): Promise<void>;
-	callMiddlewareHook(name: string, args: any[], opts: MiddlewareCallHandlerOptions): void;
-
-	isMetricsEnabled(): boolean;
-	isTracingEnabled(): boolean;
-
-	getLogger(module: string, props?: GenericObject): Logger;
-	fatal(message: string, err?: Error, needExit?: boolean): void;
-
-	loadServices(folder?: string, fileMask?: string): number;
-	loadService(filePath: string): Service;
-	createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
-	destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
-
-	getLocalService(name: string | ServiceSearchObj): Service;
-	waitForServices(
-		serviceNames: string | string[] | ServiceSearchObj[],
-		timeout?: number,
-		interval?: number,
-		logger?: Logger
-	): Promise<void>;
-
-	findNextActionEndpoint(
-		actionName: string,
-		opts?: GenericObject,
-		ctx?: Context
-	): ActionEndpoint | MoleculerRetryableError;
-
-	call<T>(actionName: string): Promise<T>;
-	call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
-
-	mcall<T>(
-		def: Record<string, MCallDefinition>,
-		opts?: MCallCallingOptions
-	): Promise<Record<string, T>>;
-	mcall<T>(def: MCallDefinition[], opts?: MCallCallingOptions): Promise<T[]>;
-
-	emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string): Promise<void>;
-	emit<D>(eventName: string, data: D): Promise<void>;
-	emit(eventName: string): Promise<void>;
-
-	broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
-	broadcast<D>(eventName: string, data: D): Promise<void>;
-	broadcast(eventName: string): Promise<void>;
-
-	broadcastLocal<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
-	broadcastLocal<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	broadcastLocal<D>(eventName: string, data: D, groups: string): Promise<void>;
-	broadcastLocal<D>(eventName: string, data: D): Promise<void>;
-	broadcastLocal(eventName: string): Promise<void>;
-
-	ping(): Promise<PongResponses>;
-	ping(nodeID: string | string[], timeout?: number): Promise<PongResponse>;
-
-	getHealthStatus(): NodeHealthStatus;
-	getLocalNodeInfo(): BrokerNode;
-
-	getCpuUsage(): Promise<any>;
-	generateUid(): string;
-
-	hasEventListener(eventName: string): boolean;
-	getEventListener(eventName: string): EventEndpoint[];
-
-	getConstructorName(obj: any): string;
-
-	MOLECULER_VERSION: string;
-	PROTOCOL_VERSION: string;
-	[key: string]: any;
-
-	static MOLECULER_VERSION: string;
-	static PROTOCOL_VERSION: string;
-	static INTERNAL_MIDDLEWARES: string[];
-	static defaultOptions: BrokerOptions;
-	static Promise: PromiseConstructorLike;
 }
 
 export interface ValidatorOptions {
