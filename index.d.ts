@@ -19,6 +19,9 @@ export type { LogLevels } from "./src/loggers";
 import type { Base as BaseSerializer } from "./src/serializers";
 export * as Serializers from "./src/serializers";
 
+import type { Base as BaseStrategy } from "./src/strategies";
+export * as Strategies from "./src/strategies";
+
 import type { Base as BaseValidator, ValidatorNames } from "./src/validators";
 export * as Validators from "./src/validators";
 
@@ -1368,26 +1371,6 @@ export declare class Transporter {
 
 	serialize(packet: Packet): Buffer;
 	deserialize(type: string, data: Buffer): Packet;
-}
-
-export declare abstract class BaseStrategy {
-	constructor(registry: ServiceRegistry, broker: ServiceBroker, opts?: object);
-	select(list: any[], ctx?: Context): Endpoint;
-}
-
-export declare class RoundRobinStrategy extends BaseStrategy {}
-export declare class RandomStrategy extends BaseStrategy {}
-export declare class CpuUsageStrategy extends BaseStrategy {}
-export declare class LatencyStrategy extends BaseStrategy {}
-export declare class ShardStrategy extends BaseStrategy {}
-
-export namespace Strategies {
-	class Base extends BaseStrategy {}
-	class RoundRobin extends RoundRobinStrategy {}
-	class Random extends RandomStrategy {}
-	class CpuUsage extends CpuUsageStrategy {}
-	class Latency extends LatencyStrategy {}
-	class Shard extends ShardStrategy {}
 }
 
 export declare abstract class BaseDiscoverer {
