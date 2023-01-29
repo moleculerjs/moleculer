@@ -1,4 +1,13 @@
 import type { EventEmitter2 } from "eventemitter2";
+import type { Base as BaseCacher, CacherKeygen } from "./src/cachers";
+export * as Cachers from "./src/cachers";
+export {
+	CacherOptions,
+	CacherKeygen,
+	MemoryCacherOptions,
+	MemoryLRUCacherOptions,
+	RedisCacherOptions
+} from "./src/cachers";
 
 /**
  * Moleculer uses global.Promise as the default promise library
@@ -439,11 +448,11 @@ export interface BulkheadOptions {
 
 export type ActionCacheEnabledFuncType = (ctx: Context<any, any>) => boolean;
 
-export interface ActionCacheOptions<P = Record<string, unknown>, M = unknown> {
+export interface ActionCacheOptions<TParams = unknown, TMeta extends object = object> {
 	enabled?: boolean | ActionCacheEnabledFuncType;
 	ttl?: number;
 	keys?: string[];
-	keygen?: CacherKeygenFunc<P, M>;
+	keygen?: CacherKeygen<TParams, TMeta>;
 	lock?: {
 		enabled?: boolean;
 		staleTime?: number;
@@ -985,7 +994,7 @@ export interface BrokerOptions {
 
 	errorHandler?: ((err: Error, info: any) => void) | null;
 
-	cacher?: boolean | Cacher | string | GenericObject | null;
+	cacher?: boolean | BaseCacher | string | GenericObject | null;
 	serializer?: Serializer | string | GenericObject | null;
 	validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
 	errorRegenerator?: Errors.Regenerator | null;
@@ -1183,7 +1192,7 @@ export declare class ServiceBroker {
 
 	registry: ServiceRegistry;
 
-	cacher?: Cacher;
+	cacher?: BaseCacher;
 	serializer?: Serializer;
 	validator?: BaseValidator;
 	errorRegenerator?: Errors.Regenerator;
@@ -1383,84 +1392,6 @@ export declare class Transporter {
 	serialize(packet: Packet): Buffer;
 	deserialize(type: string, data: Buffer): Packet;
 }
-
-export type CacherKeygenFunc<P = Record<string, unknown>, M = unknown> = (
-	actionName: string,
-	params: P,
-	meta: M,
-	keys?: string[]
-) => string;
-export interface CacherOptions {
-	ttl?: number;
-	keygen?: CacherKeygenFunc;
-	maxParamsLength?: number;
-	[key: string]: any;
-}
-
-export interface MemoryCacherOptions extends CacherOptions {
-	clone?: boolean;
-}
-
-export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
-	max?: number;
-}
-
-export interface RedisCacherOptions extends CacherOptions {
-	prefix?: string;
-	redis?: GenericObject;
-	redlock?: GenericObject;
-	monitor?: boolean;
-	pingInterval?: number;
-}
-
-export namespace Cachers {
-	class Base {
-		constructor(opts?: CacherOptions);
-		opts: CacherOptions;
-
-		init(broker: ServiceBroker): void;
-		close(): Promise<any>;
-		get(key: string): Promise<null | GenericObject>;
-		getWithTTL(key: string): Promise<null | GenericObject>;
-		set(key: string, data: any, ttl?: number): Promise<any>;
-		del(key: string | string[]): Promise<any>;
-		clean(match?: string | string[]): Promise<any>;
-		getCacheKey(
-			actionName: string,
-			params: object,
-			meta: object,
-			keys: string[] | null
-		): string;
-		defaultKeygen(
-			actionName: string,
-			params: object | null,
-			meta: object | null,
-			keys: string[] | null
-		): string;
-		tryLock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
-		lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
-	}
-
-	class Memory extends Base {
-		constructor(opts?: MemoryCacherOptions);
-		opts: MemoryCacherOptions;
-	}
-
-	class MemoryLRU extends Base {
-		constructor(opts?: MemoryLRUCacherOptions);
-		opts: MemoryLRUCacherOptions;
-	}
-
-	class Redis<C = any> extends Base {
-		constructor(opts?: string | RedisCacherOptions);
-		opts: RedisCacherOptions;
-
-		client: C;
-		prefix: string | null;
-	}
-}
-
-export type Cacher<T extends Cachers.Base = Cachers.Base> = T;
 
 export declare class Serializer {
 	constructor(opts?: any);
