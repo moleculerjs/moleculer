@@ -6,7 +6,7 @@ export interface LoggerOptions {
 	level?: LogLevels;
 }
 
-declare abstract class Base {
+declare abstract class BaseLogger {
 	constructor(opts?: LoggerOptions);
 
 	init(loggerFactory: LoggerFactory): void;
@@ -17,4 +17,4 @@ declare abstract class Base {
 
 	getLogHandler(bindings: Record<string, any>): Record<string, any>;
 }
-export default Base;
+export default BaseLogger;
