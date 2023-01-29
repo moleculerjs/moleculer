@@ -2,7 +2,7 @@ import type { Logger } from "../../logger-factory";
 import type Span from "../span";
 import type Tracer from "../tracer";
 
-declare class BaseTraceExporter {
+declare abstract class BaseTraceExporter {
 	opts: Record<string, any>;
 
 	tracer: Tracer;
