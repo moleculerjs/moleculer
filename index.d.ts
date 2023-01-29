@@ -37,6 +37,13 @@ export * as MetricTypes from "./src/metrics/types";
 import type { Base as BaseMetricReporter, MetricReporterOptions } from "./src/metrics/reporters";
 export * as MetricReporters from "./src/metrics/reporters";
 
+import type {
+	MoleculerError,
+	MoleculerRetryableError,
+	Regenerator as ErrorRegenerator
+} from "./src/errors";
+export * as Errors from "./src/errors";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -731,7 +738,7 @@ export declare class Service<S = ServiceSettingSchema> implements ServiceSchema<
 	static getVersionedFullName(name: string, version?: string | number): string;
 }
 
-export type CheckRetryable = (err: Errors.MoleculerError | Error) => boolean;
+export type CheckRetryable = (err: MoleculerError | Error) => boolean;
 
 export interface BrokerCircuitBreakerOptions {
 	enabled?: boolean;
@@ -822,7 +829,7 @@ export interface BrokerOptions {
 	cacher?: boolean | BaseCacher | string | GenericObject | null;
 	serializer?: BaseSerializer | string | GenericObject | null;
 	validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
-	errorRegenerator?: Errors.Regenerator | null;
+	errorRegenerator?: ErrorRegenerator | null;
 
 	metrics?: boolean | MetricRegistryOptions;
 	tracing?: boolean | TracerOptions;
@@ -906,9 +913,9 @@ export interface NodeHealthStatus {
 	};
 }
 
-export type FallbackHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
+export type FallbackHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
 export type FallbackResponse = string | number | GenericObject;
-export type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
+export type FallbackResponseHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
 
 export interface ContextParentSpan {
 	id: string;
@@ -1010,7 +1017,7 @@ export declare class ServiceBroker {
 	cacher?: BaseCacher;
 	serializer?: BaseSerializer;
 	validator?: BaseValidator;
-	errorRegenerator?: Errors.Regenerator;
+	errorRegenerator?: ErrorRegenerator;
 
 	tracer: Tracer;
 
@@ -1057,7 +1064,7 @@ export declare class ServiceBroker {
 		actionName: string,
 		opts?: GenericObject,
 		ctx?: Context
-	): ActionEndpoint | Errors.MoleculerRetryableError;
+	): ActionEndpoint | MoleculerRetryableError;
 
 	call<T>(actionName: string): Promise<T>;
 	call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
@@ -1213,88 +1220,6 @@ export namespace Discoverers {
 export interface ValidatorOptions {
 	type: string;
 	options?: GenericObject;
-}
-
-export namespace Errors {
-	class MoleculerError extends Error {
-		code: number;
-		type: string;
-		data: any;
-		retryable: boolean;
-
-		constructor(message: string, code: number, type: string, data: any);
-		constructor(message: string, code: number, type: string);
-		constructor(message: string, code: number);
-		constructor(message: string);
-	}
-	class MoleculerRetryableError extends MoleculerError {}
-	class MoleculerServerError extends MoleculerRetryableError {}
-	class MoleculerClientError extends MoleculerError {}
-
-	class ServiceNotFoundError extends MoleculerRetryableError {
-		constructor(data: any);
-	}
-	class ServiceNotAvailableError extends MoleculerRetryableError {
-		constructor(data: any);
-	}
-
-	class RequestTimeoutError extends MoleculerRetryableError {
-		constructor(data: any);
-	}
-	class RequestSkippedError extends MoleculerError {
-		constructor(data: any);
-	}
-	class RequestRejectedError extends MoleculerRetryableError {
-		constructor(data: any);
-	}
-
-	class QueueIsFullError extends MoleculerRetryableError {
-		constructor(data: any);
-	}
-	class ValidationError extends MoleculerClientError {
-		constructor(message: string, type: string, data: GenericObject);
-		constructor(message: string, type: string);
-		constructor(message: string);
-	}
-	class MaxCallLevelError extends MoleculerError {
-		constructor(data: any);
-	}
-
-	class ServiceSchemaError extends MoleculerError {
-		constructor(message: string, data: any);
-	}
-
-	class BrokerOptionsError extends MoleculerError {
-		constructor(message: string, data: any);
-	}
-
-	class GracefulStopTimeoutError extends MoleculerError {
-		constructor(data: any);
-	}
-
-	class ProtocolVersionMismatchError extends MoleculerError {
-		constructor(data: any);
-	}
-
-	class InvalidPacketDataError extends MoleculerError {
-		constructor(data: any);
-	}
-
-	interface PlainMoleculerError extends MoleculerError {
-		nodeID?: string;
-
-		[key: string]: any;
-	}
-
-	class Regenerator {
-		init(broker: ServiceBroker): void;
-		restore(plainError: PlainMoleculerError, payload: GenericObject): Error;
-		extractPlainError(err: Error): PlainMoleculerError;
-		restoreCustomError(
-			plainError: PlainMoleculerError,
-			payload: GenericObject
-		): Error | undefined;
-	}
 }
 
 export interface TransitRequest {
