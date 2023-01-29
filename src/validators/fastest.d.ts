@@ -1,4 +1,4 @@
-import type Base from "./base";
+import type BaseValidator from "./base";
 
-declare class Fastest extends Base {}
-export default Fastest;
+declare class FastestValidator extends BaseValidator {}
+export default FastestValidator;

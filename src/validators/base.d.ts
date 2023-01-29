@@ -2,7 +2,7 @@ import type ServiceBroker from "../service-broker";
 
 export type ValidatorNames = "Fastest";
 
-declare abstract class Base {
+declare abstract class BaseValidator {
 	constructor();
 
 	init(broker: ServiceBroker): void;
@@ -15,4 +15,4 @@ declare abstract class Base {
 
 	convertSchemaToMoleculer(schema: any): Record<string, any>;
 }
-export default Base;
+export default BaseValidator;
