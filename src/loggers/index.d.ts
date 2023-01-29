@@ -1,1 +1,1 @@
-export { default as Base, LogLevels } from "./base";
+export { default as Base, type LogLevels } from "./base";

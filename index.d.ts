@@ -16,6 +16,9 @@ import type { Base as BaseLogger, LogLevels } from "./src/loggers";
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
 
+import type { Base as BaseValidator, ValidatorNames } from "./src/validators";
+export * as Validators from "./src/validators";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -1380,21 +1383,10 @@ export declare const Serializers: {
 	resolve: (type: string | GenericObject | Serializer) => Serializer;
 };
 
-export declare class BaseValidator {
-	constructor();
-	init(broker: ServiceBroker): void;
-	compile(schema: GenericObject): Function;
-	validate(params: GenericObject, schema: GenericObject): boolean;
-	middleware(): (handler: ActionHandler, action: ActionSchema) => any;
-	convertSchemaToMoleculer(schema: any): GenericObject;
-}
-
 export declare abstract class BaseStrategy {
 	constructor(registry: ServiceRegistry, broker: ServiceBroker, opts?: object);
 	select(list: any[], ctx?: Context): Endpoint;
 }
-
-export type ValidatorNames = "Fastest";
 
 export declare class RoundRobinStrategy extends BaseStrategy {}
 export declare class RandomStrategy extends BaseStrategy {}
@@ -1451,11 +1443,6 @@ export namespace Discoverers {
 export interface ValidatorOptions {
 	type: string;
 	options?: GenericObject;
-}
-
-export namespace Validators {
-	class Base extends BaseValidator {}
-	class Fastest extends BaseValidator {}
 }
 
 export namespace Transporters {

@@ -1,5 +1,5 @@
-import ServiceBroker from "./service-broker";
-import { LogLevels } from "./loggers";
+import type ServiceBroker from "./service-broker";
+import type { LogLevels } from "./loggers";
 
 export interface LoggerConfig {
 	type: string;
