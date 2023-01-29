@@ -1,5 +1,7 @@
 import type { EventEmitter2 } from "eventemitter2";
 
+import type { Logger, LoggerConfig } from "./src/logger-factory";
+
 import type { Base as BaseCacher, CacherKeygen } from "./src/cachers";
 export * as Cachers from "./src/cachers";
 export type {
@@ -28,31 +30,12 @@ export type { LogLevels } from "./src/loggers";
 
 export type GenericObject = { [name: string]: any };
 
-export declare class LoggerFactory {
-	constructor(broker: ServiceBroker);
-	init(opts: LoggerConfig | LoggerConfig[]): void;
-	stop(): void;
-	getLogger(bindings: GenericObject): LoggerInstance;
-	getBindingsKey(bindings: GenericObject): string;
-
-	broker: ServiceBroker;
-}
-
 export interface LoggerBindings {
 	nodeID: string;
 	ns: string;
 	mod: string;
 	svc: string;
 	ver: string | void;
-}
-
-export declare class LoggerInstance {
-	fatal(...args: any[]): void;
-	error(...args: any[]): void;
-	warn(...args: any[]): void;
-	info(...args: any[]): void;
-	debug(...args: any[]): void;
-	trace(...args: any[]): void;
 }
 
 export type ActionHandler<T = any> = (ctx: Context<any, any>) => Promise<T> | T;
@@ -113,7 +96,7 @@ export declare class Tracer {
 	constructor(broker: ServiceBroker, opts: TracerOptions | boolean);
 
 	broker: ServiceBroker;
-	logger: LoggerInstance;
+	logger: Logger;
 	opts: GenericObject;
 
 	exporter: BaseTraceExporter[];
@@ -139,7 +122,7 @@ export declare class Span {
 	constructor(tracer: Tracer, name: string, opts: GenericObject);
 
 	tracer: Tracer;
-	logger: LoggerInstance;
+	logger: Logger;
 	opts: GenericObject;
 	meta: GenericObject;
 
@@ -210,7 +193,7 @@ export interface TracingEventOptions extends TracingOptions {
 export declare class BaseTraceExporter {
 	opts: GenericObject;
 	tracer: Tracer;
-	logger: LoggerInstance;
+	logger: Logger;
 
 	constructor(opts: GenericObject);
 	init(tracer: Tracer): void;
@@ -374,7 +357,7 @@ export interface MetricListOptions {
 
 export declare class MetricRegistry {
 	broker: ServiceBroker;
-	logger: LoggerInstance;
+	logger: Logger;
 	dirty: boolean;
 	store: Map<string, BaseMetric>;
 	reporter: MetricBaseReporter[];
@@ -767,7 +750,7 @@ export declare class Service<S = ServiceSettingSchema> implements ServiceSchema<
 	schema: ServiceSchema<S>;
 	originalSchema: ServiceSchema<S>;
 	broker: ServiceBroker;
-	logger: LoggerInstance;
+	logger: Logger;
 	actions: ServiceActions;
 	Promise: PromiseConstructorLike;
 
@@ -958,11 +941,6 @@ export interface BrokerTrackingOptions {
 
 export interface LogLevelConfig {
 	[module: string]: boolean | LogLevels;
-}
-
-export interface LoggerConfig {
-	type: string;
-	options?: GenericObject;
 }
 
 export interface BrokerOptions {
@@ -1172,7 +1150,7 @@ export declare class ServiceBroker {
 	nodeID: string;
 	instanceID: string;
 
-	logger: LoggerInstance;
+	logger: Logger;
 
 	services: Service[];
 
@@ -1215,7 +1193,7 @@ export declare class ServiceBroker {
 	isMetricsEnabled(): boolean;
 	isTracingEnabled(): boolean;
 
-	getLogger(module: string, props?: GenericObject): LoggerInstance;
+	getLogger(module: string, props?: GenericObject): Logger;
 	fatal(message: string, err?: Error, needExit?: boolean): void;
 
 	loadServices(folder?: string, fileMask?: string): number;
@@ -1228,7 +1206,7 @@ export declare class ServiceBroker {
 		serviceNames: string | string[] | ServiceSearchObj[],
 		timeout?: number,
 		interval?: number,
-		logger?: LoggerInstance
+		logger?: Logger
 	): Promise<void>;
 
 	findNextActionEndpoint(
@@ -1586,7 +1564,7 @@ export interface TransitRequest {
 export interface Transit {
 	pendingRequests: Map<string, TransitRequest>;
 	nodeID: string;
-	logger: LoggerInstance;
+	logger: Logger;
 	connected: boolean;
 	disconnecting: boolean;
 	isReady: boolean;
@@ -1626,7 +1604,7 @@ export interface ActionCatalogListOptions {
 export declare class ServiceRegistry {
 	broker: ServiceBroker;
 	metrics: MetricRegistry;
-	logger: LoggerInstance;
+	logger: Logger;
 
 	opts: BrokerRegistryOptions;
 
