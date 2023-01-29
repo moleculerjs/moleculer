@@ -37,6 +37,9 @@ export * as MetricTypes from "./src/metrics/types";
 import type { Base as BaseMetricReporter, MetricReporterOptions } from "./src/metrics/reporters";
 export * as MetricReporters from "./src/metrics/reporters";
 
+import type { Base as BaseDiscoverer } from "./src/registry/discoverers";
+export * as Discoverers from "./src/registry/discoverers";
+
 import type {
 	MoleculerError,
 	MoleculerRetryableError,
@@ -45,6 +48,7 @@ import type {
 export * as Errors from "./src/errors";
 
 import type { Packet } from "./src/packets";
+import { Discoverers } from ".";
 
 /**
  * Moleculer uses global.Promise as the default promise library
@@ -1118,43 +1122,6 @@ export declare class ServiceBroker {
 	static INTERNAL_MIDDLEWARES: string[];
 	static defaultOptions: BrokerOptions;
 	static Promise: PromiseConstructorLike;
-}
-
-export declare abstract class BaseDiscoverer {
-	constructor(opts?: DiscovererOptions);
-
-	transit?: Transit;
-	localNode?: BrokerNode;
-
-	heartbeatTimer: NodeJS.Timeout;
-	checkNodesTimer: NodeJS.Timeout;
-	offlineTimer: NodeJS.Timeout;
-
-	init(registry: ServiceRegistry): void;
-
-	stop(): Promise<void>;
-	startHeartbeatTimers(): void;
-	stopHeartbeatTimers(): void;
-	disableHeartbeat(): void;
-	beat(): Promise<void>;
-	checkRemoteNodes(): void;
-	checkOfflineNodes(): void;
-	heartbeatReceived(nodeID: string, payload: GenericObject): void;
-	processRemoteNodeInfo(nodeID: string, payload: GenericObject): BrokerNode;
-	sendHeartbeat(): Promise<void>;
-	discoverNode(nodeID: string): Promise<BrokerNode | void>;
-	discoverAllNodes(): Promise<BrokerNode[] | void>;
-	localNodeReady(): Promise<void>;
-	sendLocalNodeInfo(nodeID: string): Promise<void>;
-	localNodeDisconnected(): Promise<void>;
-	remoteNodeDisconnected(nodeID: string, isUnexpected: boolean): void;
-}
-
-export namespace Discoverers {
-	class Base extends BaseDiscoverer {}
-	class Local extends BaseDiscoverer {}
-	class Redis extends BaseDiscoverer {}
-	class Etcd3 extends BaseDiscoverer {}
 }
 
 export interface ValidatorOptions {
