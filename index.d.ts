@@ -50,7 +50,14 @@ export * as Errors from "./src/errors";
 import type { Packet } from "./src/packets";
 import { Discoverers } from ".";
 
-export * from "./src/constants";
+export * as Utils from "./src/utils";
+
+export type {
+	CIRCUIT_CLOSE,
+	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
+	CIRCUIT_OPEN
+} from "./src/constants";
 
 /**
  * Moleculer uses global.Promise as the default promise library
@@ -1221,26 +1228,3 @@ export declare const METRIC: {
 	TYPE_HISTOGRAM: "histogram";
 	TYPE_INFO: "info";
 };
-
-export namespace Utils {
-	function isFunction(func: unknown): func is Function;
-	function isString(str: unknown): str is string;
-	function isObject(obj: unknown): obj is object;
-	function isPlainObject(obj: unknown): obj is object;
-	function isDate(date: unknown): date is Date;
-	function flatten<T>(arr: readonly T[] | readonly T[][]): T[];
-	function humanize(millis?: number | null): string;
-	function generateToken(): string;
-	function removeFromArray<T>(arr: T[], item: T): T[];
-	function getNodeID(): string;
-	function getIpList(): string[];
-	function isPromise<T>(promise: unknown): promise is Promise<T>;
-	function polyfillPromise(P: typeof Promise): void;
-	function clearRequireCache(filename: string): void;
-	function match(text: string, pattern: string): boolean;
-	function deprecate(prop: unknown, msg?: string): void;
-	function safetyObject(obj: unknown, options?: { maxSafeObjectSize?: number }): any;
-	function dotSet<T extends object>(obj: T, path: string, value: unknown): T;
-	function makeDirs(path: string): void;
-	function parseByteString(value: string): number;
-}
