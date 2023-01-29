@@ -16,6 +16,9 @@ import type { Base as BaseLogger, LogLevels } from "./src/loggers";
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
 
+import type { Base as BaseSerializer } from "./src/serializers";
+export * as Serializers from "./src/serializers";
+
 import type { Base as BaseValidator, ValidatorNames } from "./src/validators";
 export * as Validators from "./src/validators";
 
@@ -979,7 +982,7 @@ export interface BrokerOptions {
 	errorHandler?: ((err: Error, info: any) => void) | null;
 
 	cacher?: boolean | BaseCacher | string | GenericObject | null;
-	serializer?: Serializer | string | GenericObject | null;
+	serializer?: BaseSerializer | string | GenericObject | null;
 	validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
 	errorRegenerator?: Errors.Regenerator | null;
 
@@ -1167,7 +1170,7 @@ export declare class ServiceBroker {
 	registry: ServiceRegistry;
 
 	cacher?: BaseCacher;
-	serializer?: Serializer;
+	serializer?: BaseSerializer;
 	validator?: BaseValidator;
 	errorRegenerator?: Errors.Regenerator;
 
@@ -1366,22 +1369,6 @@ export declare class Transporter {
 	serialize(packet: Packet): Buffer;
 	deserialize(type: string, data: Buffer): Packet;
 }
-
-export declare class Serializer {
-	constructor(opts?: any);
-	init(broker: ServiceBroker): void;
-	serialize(obj: GenericObject, type?: string): Buffer;
-	deserialize(buf: Buffer, type?: string): GenericObject;
-}
-
-export declare const Serializers: {
-	Base: typeof Serializer;
-	JSON: typeof Serializer;
-	CBOR: typeof Serializer;
-	MsgPack: typeof Serializer;
-	Notepack: typeof Serializer;
-	resolve: (type: string | GenericObject | Serializer) => Serializer;
-};
 
 export declare abstract class BaseStrategy {
 	constructor(registry: ServiceRegistry, broker: ServiceBroker, opts?: object);
