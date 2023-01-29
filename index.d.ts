@@ -31,6 +31,9 @@ export * as Validators from "./src/validators";
 import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
 export * as TracerExporters from "./src/tracing/exporters";
 
+import type { Base as BaseMetric, BaseMetricOptions, BaseMetricPOJO } from "./src/metrics/types";
+export * as MetricTypes from "./src/metrics/types";
+
 /**
  * Moleculer uses global.Promise as the default promise library
  * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -220,123 +223,6 @@ export interface MetricRegistryOptions {
 	defaultMaxAgeSeconds?: number;
 	defaultAgeBuckets?: number;
 	defaultAggregator?: string;
-}
-
-export type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
-export interface BaseMetricPOJO {
-	type: string;
-	name: string;
-	description?: string;
-	labelNames: string[];
-	unit?: string;
-	values: MetricSnapshot[];
-}
-
-export declare class BaseMetric {
-	type: string;
-	name: string;
-	description?: string;
-	labelNames: string[];
-	unit?: string;
-	aggregator: string;
-
-	lastSnapshot: GenericObject | null;
-	dirty: boolean;
-	values: Map<string, GenericObject>;
-
-	constructor(opts: BaseMetricOptions, registry: MetricRegistry);
-	setDirty(): void;
-	clearDirty(): void;
-	get(labels?: GenericObject): GenericObject | null;
-	reset(labels?: GenericObject, timestamp?: number): GenericObject | null;
-	resetAll(timestamp?: number): GenericObject | null;
-	clear(): void;
-	hashingLabels(labels?: GenericObject): string;
-	snapshot(): MetricSnapshot[];
-	generateSnapshot(): MetricSnapshot[];
-	changed(value: any | null, labels?: GenericObject, timestamp?: number): void;
-	toObject(): BaseMetricPOJO;
-}
-
-export interface GaugeMetricSnapshot {
-	value: number;
-	labels: GenericObject;
-	timestamp: number;
-}
-
-export declare class GaugeMetric extends BaseMetric {
-	increment(labels?: GenericObject, value?: number, timestamp?: number): void;
-	decrement(labels?: GenericObject, value?: number, timestamp?: number): void;
-	set(value: number, labels?: GenericObject, timestamp?: number): void;
-	generateSnapshot(): GaugeMetricSnapshot[];
-}
-
-export declare class CounterMetric extends BaseMetric {
-	increment(labels?: GenericObject, value?: number, timestamp?: number): void;
-	set(value: number, labels?: GenericObject, timestamp?: number): void;
-	generateSnapshot(): GaugeMetricSnapshot[];
-}
-
-export interface InfoMetricSnapshot {
-	value: any;
-	labels: GenericObject;
-	timestamp: number;
-}
-
-export declare class InfoMetric extends BaseMetric {
-	set(value: any | null, labels?: GenericObject, timestamp?: number): void;
-	generateSnapshot(): InfoMetricSnapshot[];
-}
-
-export interface HistogramMetricSnapshot {
-	labels: GenericObject;
-	count: number;
-	sum: number;
-	timestamp: number;
-
-	buckets?: {
-		[key: string]: number;
-	};
-
-	min?: number | null;
-	mean?: number | null;
-	variance?: number | null;
-	stdDev?: number | null;
-	max?: number | null;
-	quantiles?: {
-		[key: string]: number;
-	};
-}
-
-export declare class HistogramMetric extends BaseMetric {
-	buckets: number[];
-	quantiles: number[];
-	maxAgeSeconds?: number;
-	ageBuckets?: number;
-
-	observe(value: number, labels?: GenericObject, timestamp?: number): void;
-	generateSnapshot(): HistogramMetricSnapshot[];
-
-	static generateLinearBuckets(start: number, width: number, count: number): number[];
-	static generateExponentialBuckets(start: number, factor: number, count: number): number[];
-}
-
-export namespace MetricTypes {
-	class Base extends BaseMetric {}
-	class Counter extends CounterMetric {}
-	class Gauge extends GaugeMetric {}
-	class Histogram extends HistogramMetric {}
-	class Info extends InfoMetric {}
-}
-
-export interface BaseMetricOptions {
-	type: string;
-	name: string;
-	description?: string;
-	labelNames?: string[];
-	unit?: string;
-	aggregator?: string;
-	[key: string]: unknown;
 }
 
 export interface MetricListOptions {
