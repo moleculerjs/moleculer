@@ -261,7 +261,7 @@ export default class MoleculerRunner {
 							level
 								.split("_")
 								.map((value, index) => {
-									if (index == 0) {
+									if (index === 0) {
 										return value;
 									} else {
 										return value[0].toUpperCase() + value.substring(1);
@@ -392,7 +392,7 @@ export default class MoleculerRunner {
 			patterns
 				.map(s => s.trim())
 				.forEach(p => {
-					const skipping = p[0] == "!";
+					const skipping = p[0] === "!";
 					if (skipping) p = p.slice(1);
 
 					if (p.startsWith("npm:")) {
@@ -422,7 +422,7 @@ export default class MoleculerRunner {
 							files.push(...allServiceFiles.filter(file => re.test(file)));
 						}
 
-						if (files.length == 0) {
+						if (files.length === 0) {
 							this.broker.logger.warn(
 								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
 							);
