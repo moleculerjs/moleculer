@@ -74,7 +74,7 @@ class MoleculerRunner {
 		-r, --repl       Start REPL mode (disabled by default)
 		-s, --silent     Silent mode. No logger (disabled by default)
 		-v, --version    Output the version number
-	*/
+	 */
 	processFlags(procArgs) {
 		Args.option("config", "Load the configuration from a file")
 			.option("repl", "Start REPL mode", false)
@@ -385,6 +385,7 @@ class MoleculerRunner {
 
 		if (patterns.length > 0) {
 			let serviceFiles = [];
+			const allServiceFiles = glob(path.join(svcDir, fileMask), { absolute: true });
 
 			patterns
 				.map(s => s.trim())
@@ -396,38 +397,34 @@ class MoleculerRunner {
 						// Load NPM module
 						this.loadNpmModule(p.slice(4));
 					} else {
-						let files;
+						const files = [];
 						const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
 						// Check is it a directory?
 						if (this.isDirectory(svcPath)) {
 							if (this.config.hotReload) {
 								this.watchFolders.push(svcPath);
 							}
-							files = glob(svcPath + "/" + fileMask, { absolute: true });
-							if (files.length == 0)
-								return this.broker.logger.warn(
-									kleur
-										.yellow()
-										.bold(
-											`There is no service files in directory: '${svcPath}'`
-										)
-								);
+							files.push(...glob(svcPath + "/" + fileMask, { absolute: true }));
 						} else if (this.isServiceFile(svcPath)) {
-							files = [svcPath.replace(/\\/g, "/")];
+							files.push(svcPath.replace(/\\/g, "/"));
 						} else if (this.isServiceFile(svcPath + ".service.js")) {
-							files = [svcPath.replace(/\\/g, "/") + ".service.js"];
+							files.push(svcPath.replace(/\\/g, "/") + ".service.js");
 						} else {
 							// Load with glob
-							files = glob(p, { cwd: svcDir, absolute: true });
-							if (files.length == 0)
-								this.broker.logger.warn(
-									kleur
-										.yellow()
-										.bold(`There is no matched file for pattern: '${p}'`)
-								);
+							files.push(...glob(p, { cwd: svcDir, absolute: true }));
 						}
 
-						if (files && files.length > 0) {
+						if (files.length === 0) {
+							// eslint-disable-next-line security/detect-non-literal-regexp
+							const re = new RegExp(`${_.escapeRegExp(`${p}.service.`)}[tj]s$`);
+							files.push(...allServiceFiles.filter(file => re.test(file)));
+						}
+
+						if (files.length == 0) {
+							this.broker.logger.warn(
+								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
+							);
+						} else {
 							if (skipping)
 								serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
 							else serviceFiles.push(...files);
