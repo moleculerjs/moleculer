@@ -270,7 +270,7 @@ export default class MoleculerRunner {
 							level
 								.split("_")
 								.map((value, index) => {
-									if (index == 0) {
+									if (index === 0) {
 										return value;
 									} else {
 										return value[0].toUpperCase() + value.substring(1);
@@ -400,7 +400,7 @@ export default class MoleculerRunner {
 			patterns
 				.map(s => s.trim())
 				.forEach(p => {
-					const skipping = p[0] == "!";
+					const skipping = p[0] === "!";
 					if (skipping) p = p.slice(1);
 
 					let files;
@@ -411,7 +411,7 @@ export default class MoleculerRunner {
 							this.watchFolders.push(svcPath);
 						}
 						files = glob.sync(svcPath + "/" + fileMask, { absolute: true });
-						if (files.length == 0)
+						if (files.length === 0)
 							return this.broker.logger.warn(
 								kleur
 									.yellow()
@@ -426,7 +426,7 @@ export default class MoleculerRunner {
 					} else {
 						// Load with glob
 						files = glob.sync(p, { cwd: svcDir, absolute: true });
-						if (files.length == 0)
+						if (files.length === 0)
 							this.broker.logger.warn(
 								kleur
 									.yellow()
