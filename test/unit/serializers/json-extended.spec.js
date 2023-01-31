@@ -46,6 +46,54 @@ describe("Test JSONExtSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
+	it("should serialize Map data", () => {
+		const now = new Date(1675191894523);
+		const map = new Map();
+		map.set("a", 5);
+		map.set("b", 98765432123456789n);
+		map.set("c", now);
+
+		const obj = {
+			map,
+			d: "John"
+		};
+
+		const s = serializer.serialize(obj);
+		expect(s.toString()).toBe(
+			// eslint-disable-next-line no-useless-escape
+			`{\"map\":\"[[MP]]{\\\"a\\\":5,\\\"b\\\":\\\"[[BI]]98765432123456789\\\",\\\"c\\\":\\\"[[DT]]1675191894523\\\"}\",\"d\":\"John\"}`
+		);
+
+		const res = serializer.deserialize(s);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+		expect(res.map).toBeInstanceOf(Map);
+	});
+
+	it("should serialize Set data", () => {
+		const now = new Date(1675191894523);
+		const set = new Set();
+		set.add(5);
+		set.add(98765432123456789n);
+		set.add(now);
+
+		const obj = {
+			set,
+			d: "John"
+		};
+
+		const s = serializer.serialize(obj);
+		expect(s.toString()).toBe(
+			// eslint-disable-next-line no-useless-escape
+			`{\"set\":\"[[ST]][5,\\\"[[BI]]98765432123456789\\\",\\\"[[DT]]1675191894523\\\"]\",\"d\":\"John\"}`
+		);
+
+		const res = serializer.deserialize(s);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+		expect(res.set).toBeInstanceOf(Set);
+	});
+
 	it("should serialize Buffer data", () => {
 		const buf = crypto.randomBytes(20);
 		const base64 = buf.toString("base64");

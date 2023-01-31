@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -8,9 +8,11 @@
 
 const BaseSerializer = require("./base");
 //const { isDate } = require("../utils");
-const { isDate, isRegExp } = require("util").types;
+const { isDate, isRegExp, isMap, isSet } = require("util").types;
 
 const PREFIX_BIGINT = "[[BI]]";
+const PREFIX_MAP = "[[MP]]";
+const PREFIX_SET = "[[ST]]";
 const PREFIX_DATE = "[[DT]]";
 const PREFIX_BUFFER = "[[BF]]";
 const PREFIX_REGEXP = "[[RE]]";
@@ -35,18 +37,24 @@ class JSONExtSerializer extends BaseSerializer {
 	/**
 	 * JSON stringify replacer.
 	 *
+	 * @param {object} obj
 	 * @param {String} key
-	 * @param {any} value
+	 * @param {any} value Already converted value
 	 */
-	replacer(key, value) {
+	replacer(obj, key, value) {
 		if (value == null) return value;
 
-		const v = this[key];
+		// Get the original value
+		const v = obj[key];
 
 		if (typeof v == "bigint") {
 			return PREFIX_BIGINT + v;
 		} else if (isDate(v)) {
 			return PREFIX_DATE + v.valueOf();
+		} else if (isMap(v)) {
+			return PREFIX_MAP + this.serialize(Object.fromEntries(v));
+		} else if (isSet(v)) {
+			return PREFIX_SET + this.serialize(Array.from(v));
 		} else if (isRegExp(v)) {
 			return PREFIX_REGEXP + v.flags + "|" + v.source;
 		} else if (Buffer.isBuffer(v)) {
@@ -68,6 +76,10 @@ class JSONExtSerializer extends BaseSerializer {
 					return BigInt(value.slice(6));
 				case PREFIX_DATE:
 					return new Date(Number(value.slice(6)));
+				case PREFIX_MAP:
+					return new Map(Object.entries(this.deserialize(value.slice(6))));
+				case PREFIX_SET:
+					return new Set(this.deserialize(value.slice(6)));
 				case PREFIX_BUFFER:
 					return Buffer.from(value.slice(6), "base64");
 				case PREFIX_REGEXP: {
@@ -91,7 +103,12 @@ class JSONExtSerializer extends BaseSerializer {
 	 * @memberof Serializer
 	 */
 	serialize(obj) {
-		return Buffer.from(JSON.stringify(obj, this.replacer));
+		const self = this;
+		return Buffer.from(
+			JSON.stringify(obj, function (key, value) {
+				return self.replacer.call(self, this, key, value);
+			})
+		);
 	}
 
 	/**
@@ -104,7 +121,10 @@ class JSONExtSerializer extends BaseSerializer {
 	 * @memberof Serializer
 	 */
 	deserialize(buf) {
-		return JSON.parse(buf, this.reviver);
+		const self = this;
+		return JSON.parse(buf, function (key, value) {
+			return self.reviver.call(self, key, value);
+		});
 	}
 }
 
