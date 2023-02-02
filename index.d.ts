@@ -1726,7 +1726,7 @@ declare namespace Moleculer {
 		skipInternal?: boolean;
 		withActions?: boolean;
 		withEvents?: boolean;
-		grouping?: boolea;
+		grouping?: boolean;
 	}
 
 	class ServiceRegistry {
