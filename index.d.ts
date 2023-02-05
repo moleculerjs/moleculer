@@ -1720,6 +1720,15 @@ declare namespace Moleculer {
 		withEndpoints?: boolean;
 	}
 
+	interface ServiceListCatalogOptions {
+		onlyLocal?: boolean;
+		onlyAvailable?: boolean;
+		skipInternal?: boolean;
+		withActions?: boolean;
+		withEvents?: boolean;
+		grouping?: boolean;
+	}
+
 	class ServiceRegistry {
 		broker: ServiceBroker;
 		metrics: MetricRegistry;
@@ -1734,7 +1743,8 @@ declare namespace Moleculer {
 		actions: any;
 		events: any;
 
-		getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[];
+		getServiceList<S = ServiceSettingSchema>(opts?: ServiceListCatalogOptions): ServiceSchema<S>[];
+		getActionList(opts?: ActionCatalogListOptions): ActionSchema[];
 	}
 
 	class AsyncStorage {
