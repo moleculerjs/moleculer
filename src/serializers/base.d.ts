@@ -1,4 +1,4 @@
-import type ServiceBroker from "../service-broker";
+import type ServiceBroker = require("../service-broker");
 
 declare abstract class Serializer {
 	constructor(opts?: any);
@@ -9,4 +9,4 @@ declare abstract class Serializer {
 
 	deserialize(buf: Buffer, type: string): Record<string, any>;
 }
-export default Serializer;
+export = Serializer;

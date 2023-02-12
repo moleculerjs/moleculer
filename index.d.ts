@@ -1,8 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Base as BaseSerializer } from "./src/serializers";
-export * as Serializers from "./src/serializers";
-
 import type { Base as BaseStrategy } from "./src/strategies";
 export * as Strategies from "./src/strategies";
 
@@ -44,6 +41,8 @@ export type { Logger, LoggerConfig } from "./src/logger-factory";
 export * as Cachers from "./src/cachers";
 
 export * as Transporters from "./src/transporters";
+
+export * as Serializers from "./src/serializers";
 
 export * as MetricTypes from "./src/metrics/types";
 

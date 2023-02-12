@@ -1,4 +1,4 @@
-import BaseSerializer from "./base";
+import BaseSerializer = require("./base");
 
 declare class CborSerializer extends BaseSerializer {}
-export default CborSerializer;
+export = CborSerializer;

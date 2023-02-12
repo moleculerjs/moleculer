@@ -1,6 +1,15 @@
-export { default as Base } from "./base";
-export { default as JSON } from "./json";
-export { default as JSONExt } from "./json-extended";
-export { default as MsgPack } from "./msgpack";
-export { default as Notepack } from "./notepack";
-export { default as CBOR } from "./cbor";
+import Serializer = require("./base");
+import JSONSerializer = require("./json");
+import JSONExtSerializer = require("./json-extended");
+import MsgPackSerializer = require("./msgpack");
+import NotepackSerializer = require("./notepack");
+import CborSerializer = require("./cbor");
+
+export {
+	Serializer as Base,
+	JSONSerializer as JSON,
+	JSONExtSerializer as JSONExt,
+	MsgPackSerializer as MsgPack,
+	NotepackSerializer as Notepack,
+	CborSerializer as CBOR
+};

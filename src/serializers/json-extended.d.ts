@@ -1,4 +1,4 @@
-import BaseSerializer from "./base";
+import BaseSerializer = require("./base");
 
 declare class JSONExtSerializer extends BaseSerializer {}
-export default JSONExtSerializer;
+export = JSONExtSerializer;

@@ -1,4 +1,4 @@
-import BaseSerializer from "./base";
+import BaseSerializer = require("./base");
 
 declare class MsgPackSerializer extends BaseSerializer {}
-export default MsgPackSerializer;
+export = MsgPackSerializer;
