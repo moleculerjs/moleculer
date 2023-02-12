@@ -4,8 +4,10 @@ import GaugeMetric = require("./gauge");
 import HistogramMetric = require("./histogram");
 import InfoMetric = require("./info");
 
-export { BaseMetric as Base };
-export { CounterMetric as Counter };
-export { GaugeMetric as Gauge };
-export { HistogramMetric as Histogram };
-export { InfoMetric as Info };
+export {
+	BaseMetric as Base,
+	CounterMetric as Counter,
+	GaugeMetric as Gauge,
+	HistogramMetric as Histogram,
+	InfoMetric as Info
+};

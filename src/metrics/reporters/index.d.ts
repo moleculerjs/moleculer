@@ -6,10 +6,12 @@ import DatadogReporter = require("./datadog");
 import PrometheusReporter = require("./prometheus");
 import StatsDReporter = require("./statsd");
 
-export { MetricBaseReporter as Base };
-export { ConsoleReporter as Console };
-export { CSVReporter as CSV };
-export { EventReporter as Event };
-export { DatadogReporter as Datadog };
-export { PrometheusReporter as Prometheus };
-export { StatsDReporter as StatsD };
+export {
+	MetricBaseReporter as Base,
+	ConsoleReporter as Console,
+	CSVReporter as CSV,
+	EventReporter as Event,
+	DatadogReporter as Datadog,
+	PrometheusReporter as Prometheus,
+	StatsDReporter as StatsD
+};
