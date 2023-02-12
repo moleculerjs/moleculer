@@ -2,8 +2,6 @@ import type { EventEmitter2 } from "eventemitter2";
 
 import type { Packet } from "./src/packets";
 
-export * as Utils from "./src/utils";
-
 import ServiceBroker = require("./src/service-broker");
 export { ServiceBroker };
 export type { ServiceBrokerOptions } from "./src/service-broker";
@@ -35,6 +33,8 @@ export * as MetricReporters from "./src/metrics/reporters";
 export * as Discoverers from "./src/registry/discoverers";
 
 export * as Errors from "./src/errors";
+
+export * as Utils from "./src/utils";
 
 export type {
 	CIRCUIT_CLOSE,
