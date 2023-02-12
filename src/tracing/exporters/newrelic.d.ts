@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class NewRelicTraceExporter extends BaseTraceExporter {}
-export default NewRelicTraceExporter;
+export = NewRelicTraceExporter;

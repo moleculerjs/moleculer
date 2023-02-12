@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class ZipkinTraceExporter extends BaseTraceExporter {}
-export default ZipkinTraceExporter;
+export = ZipkinTraceExporter;

@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class DatadogTraceExporter extends BaseTraceExporter {}
-export default DatadogTraceExporter;
+export = DatadogTraceExporter;

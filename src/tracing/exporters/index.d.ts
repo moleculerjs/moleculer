@@ -1,8 +1,19 @@
-export { default as Base } from "./base";
-export { default as Console } from "./console";
-export { default as Datadog } from "./datadog";
-export { default as Event } from "./event";
-export { default as EventLegacy } from "./event-legacy";
-export { default as Jaeger } from "./jaeger";
-export { default as Zipkin } from "./zipkin";
-export { default as NewRelic } from "./newrelic";
+import BaseTraceExporter = require("./base");
+import ConsoleTraceExporter = require("./console");
+import DatadogTraceExporter = require("./datadog");
+import EventTraceExporter = require("./event");
+import EventLegacyTraceExporter = require("./event-legacy");
+import JaegerTraceExporter = require("./jaeger");
+import ZipkinTraceExporter = require("./zipkin");
+import NewRelicTraceExporter = require("./newrelic");
+
+export {
+	BaseTraceExporter as Base,
+	ConsoleTraceExporter as Console,
+	DatadogTraceExporter as Datadog,
+	EventTraceExporter as Event,
+	EventLegacyTraceExporter as EventLegacy,
+	JaegerTraceExporter as Jaeger,
+	ZipkinTraceExporter as Zipkin,
+	NewRelicTraceExporter as NewRelic
+};

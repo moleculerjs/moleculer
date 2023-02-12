@@ -1,8 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
-export * as TracerExporters from "./src/tracing/exporters";
-
 import type {
 	MoleculerError,
 	MoleculerRetryableError,
@@ -42,6 +39,8 @@ export * as Strategies from "./src/strategies";
 
 export * as Validators from "./src/validators";
 export type { ValidatorNames } from "./src/validators";
+
+export * as TracerExporters from "./src/tracing/exporters";
 
 export * as MetricTypes from "./src/metrics/types";
 

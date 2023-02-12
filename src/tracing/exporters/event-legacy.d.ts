@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class EventLegacyTraceExporter extends BaseTraceExporter {}
-export default EventLegacyTraceExporter;
+export = EventLegacyTraceExporter;

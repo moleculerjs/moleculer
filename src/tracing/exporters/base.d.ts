@@ -1,6 +1,6 @@
 import type { Logger } from "../../logger-factory";
-import type Span from "../span";
-import type Tracer from "../tracer";
+import type Span = require("../span");
+import type Tracer = require("../tracer");
 
 declare abstract class BaseTraceExporter {
 	opts: Record<string, any>;
@@ -25,4 +25,4 @@ declare abstract class BaseTraceExporter {
 
 	errorToObject(err: Error): Record<string, any>;
 }
-export default BaseTraceExporter;
+export = BaseTraceExporter;

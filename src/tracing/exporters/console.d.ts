@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class ConsoleTraceExporter extends BaseTraceExporter {}
-export default ConsoleTraceExporter;
+export = ConsoleTraceExporter;

@@ -1,4 +1,4 @@
-import BaseTraceExporter from "./base";
+import BaseTraceExporter = require("./base");
 
 declare class JaegerTraceExporter extends BaseTraceExporter {}
-export default JaegerTraceExporter;
+export = JaegerTraceExporter;
