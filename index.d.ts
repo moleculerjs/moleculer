@@ -1,8 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Base as BaseValidator, ValidatorNames } from "./src/validators";
-export * as Validators from "./src/validators";
-
 import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
 export * as TracerExporters from "./src/tracing/exporters";
 
@@ -42,6 +39,9 @@ export * as Transporters from "./src/transporters";
 export * as Serializers from "./src/serializers";
 
 export * as Strategies from "./src/strategies";
+
+export * as Validators from "./src/validators";
+export type { ValidatorNames } from "./src/validators";
 
 export * as MetricTypes from "./src/metrics/types";
 

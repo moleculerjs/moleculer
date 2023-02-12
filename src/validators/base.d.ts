@@ -1,4 +1,4 @@
-import type ServiceBroker from "../service-broker";
+import type ServiceBroker = require("../service-broker");
 
 export type ValidatorNames = "Fastest";
 
@@ -15,4 +15,4 @@ declare abstract class BaseValidator {
 
 	convertSchemaToMoleculer(schema: any): Record<string, any>;
 }
-export default BaseValidator;
+export = BaseValidator;

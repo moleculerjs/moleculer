@@ -1,4 +1,4 @@
-import type BaseValidator from "./base";
+import type BaseValidator = require("./base");
 
 declare class FastestValidator extends BaseValidator {}
-export default FastestValidator;
+export = FastestValidator;
