@@ -1,4 +1,4 @@
-import BaseDiscoverer from "./base";
+import BaseDiscoverer = require("./base");
 
 declare class LocalDiscoverer extends BaseDiscoverer {}
-export default LocalDiscoverer;
+export = LocalDiscoverer;

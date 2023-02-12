@@ -15,9 +15,6 @@ export * as Validators from "./src/validators";
 import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
 export * as TracerExporters from "./src/tracing/exporters";
 
-import type { Base as BaseDiscoverer } from "./src/registry/discoverers";
-export * as Discoverers from "./src/registry/discoverers";
-
 import type {
 	MoleculerError,
 	MoleculerRetryableError,
@@ -26,7 +23,6 @@ import type {
 export * as Errors from "./src/errors";
 
 import type { Packet } from "./src/packets";
-import { Discoverers } from ".";
 
 export * as Utils from "./src/utils";
 
@@ -53,6 +49,8 @@ export * as Cachers from "./src/cachers";
 export * as MetricTypes from "./src/metrics/types";
 
 export * as MetricReporters from "./src/metrics/reporters";
+
+export * as Discoverers from "./src/registry/discoverers";
 
 /**
  * Moleculer uses global.Promise as the default promise library

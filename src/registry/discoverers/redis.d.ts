@@ -1,4 +1,4 @@
-import BaseDiscoverer from "./base";
+import BaseDiscoverer = require("./base");
 
 declare class RedisDiscoverer extends BaseDiscoverer {}
-export default RedisDiscoverer;
+export = RedisDiscoverer;

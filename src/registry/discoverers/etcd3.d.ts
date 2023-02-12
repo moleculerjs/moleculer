@@ -1,4 +1,4 @@
-import BaseDiscoverer from "./base";
+import BaseDiscoverer = require("./base");
 
 declare class Etcd3Discoverer extends BaseDiscoverer {}
-export default Etcd3Discoverer;
+export = Etcd3Discoverer;

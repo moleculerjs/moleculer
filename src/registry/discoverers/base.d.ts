@@ -1,6 +1,6 @@
-import Transit from "../../transit";
-import Registry from "../registry";
-import Node from "../node";
+import Transit = require("../../transit");
+import Registry = require("../registry");
+import Node = require("../node");
 
 export interface DiscovererOptions extends Record<string, any> {
 	heartbeatInterval?: number;
@@ -57,4 +57,4 @@ declare abstract class BaseDiscoverer {
 
 	remoteNodeDisconnected(nodeID: string, isUnexpected: boolean): void;
 }
-export default BaseDiscoverer;
+export = BaseDiscoverer;
