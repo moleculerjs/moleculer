@@ -1,10 +1,23 @@
-export { default as Base } from "./base";
-export { default as Fake } from "./fake";
-export { default as NATS } from "./nats";
-export { default as MQTT } from "./mqtt";
-export { default as Redis } from "./redis";
-export { default as AMQP } from "./amqp";
-export { default as AMQP10 } from "./amqp10";
-export { default as Kafka } from "./kafka";
-export { default as STAN } from "./stan";
-export { default as TCP } from "./tcp";
+import BaseTransporter = require("./base");
+import FakeTransporter = require("./fake");
+import NatsTransporter = require("./nats");
+import MqttTransporter = require("./mqtt");
+import RedisTransporter = require("./redis");
+import AmqpTransporter = require("./amqp");
+import Amqp10Transporter = require("./amqp10");
+import KafkaTransporter = require("./kafka");
+import StanTransporter = require("./stan");
+import TcpTransporter = require("./tcp");
+
+export {
+	BaseTransporter as Base,
+	FakeTransporter as Fake,
+	NatsTransporter as NATS,
+	MqttTransporter as MQTT,
+	RedisTransporter as Redis,
+	AmqpTransporter as AMQP,
+	Amqp10Transporter as AMQP10,
+	KafkaTransporter as Kafka,
+	StanTransporter as STAN,
+	TcpTransporter as TCP
+};

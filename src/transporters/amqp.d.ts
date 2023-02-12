@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class AmqpTransporter extends BaseTransporter {}
-export default AmqpTransporter;
+export = AmqpTransporter;

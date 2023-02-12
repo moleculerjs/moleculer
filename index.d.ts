@@ -1,8 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Base as BaseTransporter } from "./src/transporters";
-export * as Transporters from "./src/transporters";
-
 import type { Base as BaseSerializer } from "./src/serializers";
 export * as Serializers from "./src/serializers";
 
@@ -45,6 +42,8 @@ export type { LogLevels } from "./src/loggers";
 export type { Logger, LoggerConfig } from "./src/logger-factory";
 
 export * as Cachers from "./src/cachers";
+
+export * as Transporters from "./src/transporters";
 
 export * as MetricTypes from "./src/metrics/types";
 

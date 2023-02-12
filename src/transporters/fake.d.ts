@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class FakeTransporter extends BaseTransporter {}
-export default FakeTransporter;
+export = FakeTransporter;

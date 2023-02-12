@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class KafkaTransporter extends BaseTransporter {}
-export default KafkaTransporter;
+export = KafkaTransporter;

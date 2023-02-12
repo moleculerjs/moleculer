@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class TcpTransporter extends BaseTransporter {}
-export default TcpTransporter;
+export = TcpTransporter;

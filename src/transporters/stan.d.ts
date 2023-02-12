@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class StanTransporter extends BaseTransporter {}
-export default StanTransporter;
+export = StanTransporter;

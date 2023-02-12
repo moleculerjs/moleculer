@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class MqttTransporter extends BaseTransporter {}
-export default MqttTransporter;
+export = MqttTransporter;

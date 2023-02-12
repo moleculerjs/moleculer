@@ -1,4 +1,4 @@
-import type Transit from "../transit";
+import type Transit = require("../transit");
 import type { Packet } from "../packets";
 
 declare abstract class BaseTransporter {
@@ -50,4 +50,4 @@ declare abstract class BaseTransporter {
 
 	deserialize(type: string, data: Buffer): Packet;
 }
-export default BaseTransporter;
+export = BaseTransporter;

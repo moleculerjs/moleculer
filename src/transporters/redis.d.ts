@@ -1,4 +1,4 @@
-import BaseTransporter from "./base";
+import BaseTransporter = require("./base");
 
 declare class RedisTransporter extends BaseTransporter {}
-export default RedisTransporter;
+export = RedisTransporter;
