@@ -17,4 +17,4 @@ declare abstract class BaseLogger {
 
 	getLogHandler(bindings: Record<string, any>): Record<string, any>;
 }
-export default BaseLogger;
+export = BaseLogger;

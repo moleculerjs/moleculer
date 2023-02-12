@@ -2,10 +2,6 @@ import type { EventEmitter2 } from "eventemitter2";
 
 import type { Logger, LoggerConfig } from "./src/logger-factory";
 
-import type { Base as BaseLogger, LogLevels } from "./src/loggers";
-export * as Loggers from "./src/loggers";
-export type { LogLevels } from "./src/loggers";
-
 import type Context from "./src/context";
 export { default as Context } from "./src/context";
 
@@ -55,10 +51,14 @@ export type {
 import ServiceBroker = require("./src/service-broker");
 import { ServiceBrokerOptions } from "./src/service-broker";
 
+import * as Loggers from "./src/loggers";
+import type { LogLevels } from "./src/loggers";
+
 import * as Cachers from "./src/cachers";
 
 declare namespace moleculer {
 	export { ServiceBroker, ServiceBrokerOptions };
+	export { Loggers, LogLevels };
 	export { Cachers };
 
 	/**
