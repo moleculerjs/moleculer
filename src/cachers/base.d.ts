@@ -1,4 +1,4 @@
-import type ServiceBroker from "../service-broker";
+import type ServiceBroker = require("../service-broker");
 
 export type CacherKeygen<TParams = unknown, TMeta extends object = object> = (
 	actionName: string,

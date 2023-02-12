@@ -1,4 +1,5 @@
-import BaseCacher, { CacherOptions } from "./base";
+import BaseCacher = require("./base");
+import type { CacherOptions } from "./base";
 
 export interface RedisCacherOptions extends CacherOptions {
 	prefix?: string;

@@ -1,5 +1,5 @@
-import BaseCacher from "./base";
-import { MemoryCacherOptions } from "./memory";
+import BaseCacher = require("./base");
+import type { MemoryCacherOptions } from "./memory";
 
 export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
 	max?: number;
