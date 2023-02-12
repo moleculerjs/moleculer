@@ -1,22 +1,8 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type {
-	MoleculerError,
-	MoleculerRetryableError,
-	Regenerator as ErrorRegenerator
-} from "./src/errors";
-export * as Errors from "./src/errors";
-
 import type { Packet } from "./src/packets";
 
 export * as Utils from "./src/utils";
-
-export type {
-	CIRCUIT_CLOSE,
-	CIRCUIT_HALF_OPEN,
-	CIRCUIT_HALF_OPEN_WAIT,
-	CIRCUIT_OPEN
-} from "./src/constants";
 
 import ServiceBroker = require("./src/service-broker");
 export { ServiceBroker };
@@ -47,6 +33,15 @@ export * as MetricTypes from "./src/metrics/types";
 export * as MetricReporters from "./src/metrics/reporters";
 
 export * as Discoverers from "./src/registry/discoverers";
+
+export * as Errors from "./src/errors";
+
+export type {
+	CIRCUIT_CLOSE,
+	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
+	CIRCUIT_OPEN
+} from "./src/constants";
 
 /**
  * Moleculer uses global.Promise as the default promise library
