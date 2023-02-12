@@ -787,20 +787,6 @@ export declare class ServiceRegistry {
 	getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[];
 }
 
-export declare class AsyncStorage {
-	broker: ServiceBroker;
-	store: Map<string, any>;
-
-	constructor(broker: ServiceBroker);
-
-	enable(): void;
-	disable(): void;
-	stop(): void;
-	getAsyncId(): number;
-	setSessionData(data: any): void;
-	getSessionData(): any | null;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
