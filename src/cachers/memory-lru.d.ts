@@ -1,14 +1,16 @@
 import BaseCacher = require("./base");
 import type { MemoryCacherOptions } from "./memory";
 
-export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
-	max?: number;
+declare namespace MemoryLRUCacher {
+	export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
+		max?: number;
+	}
 }
 
 declare class MemoryLRUCacher extends BaseCacher {
-	opts: MemoryLRUCacherOptions;
+	opts: MemoryLRUCacher.MemoryLRUCacherOptions;
 
-	constructor(opts?: MemoryLRUCacherOptions);
+	constructor(opts?: MemoryLRUCacher.MemoryLRUCacherOptions);
 
 	tryLock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 

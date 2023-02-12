@@ -1,22 +1,24 @@
 import type MetricRegistry = require("../registry");
 
-export interface BaseMetricOptions {
-	type: string;
-	name: string;
-	description?: string;
-	labelNames?: string[];
-	unit?: string;
-	aggregator?: string;
-	[key: string]: unknown;
-}
+declare namespace BaseMetric {
+	export interface BaseMetricOptions {
+		type: string;
+		name: string;
+		description?: string;
+		labelNames?: string[];
+		unit?: string;
+		aggregator?: string;
+		[key: string]: unknown;
+	}
 
-export interface BaseMetricPOJO<TValue = unknown> {
-	type: string;
-	name: string;
-	description?: string;
-	labelNames: string[];
-	unit?: string;
-	values: TValue[];
+	export interface BaseMetricPOJO<TValue = unknown> {
+		type: string;
+		name: string;
+		description?: string;
+		labelNames: string[];
+		unit?: string;
+		values: TValue[];
+	}
 }
 
 declare abstract class BaseMetric<TValue = unknown> {
@@ -38,7 +40,7 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	values: Map<string, Record<string, any>>;
 
-	constructor(opts: BaseMetricOptions, registry: MetricRegistry);
+	constructor(opts: BaseMetric.BaseMetricOptions, registry: MetricRegistry);
 
 	setDirty(): void;
 
@@ -60,6 +62,6 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	changed(value: any | null, labels?: Record<string, any>, timestamp?: number): void;
 
-	toObject(): BaseMetricPOJO<TValue>;
+	toObject(): BaseMetric.BaseMetricPOJO<TValue>;
 }
 export = BaseMetric;

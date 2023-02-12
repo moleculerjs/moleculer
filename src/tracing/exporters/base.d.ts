@@ -2,9 +2,11 @@ import type { Logger } from "../../logger-factory";
 import type Span = require("../span");
 import type Tracer = require("../tracer");
 
-export interface TracerExporterOptions {
-	type: string;
-	options?: Record<string, any>;
+declare namespace BaseTraceExporter {
+	export interface TracerExporterOptions {
+		type: string;
+		options?: Record<string, any>;
+	}
 }
 
 declare abstract class BaseTraceExporter {

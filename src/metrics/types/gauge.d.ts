@@ -1,18 +1,20 @@
 import BaseMetric = require("./base");
 
-export interface GaugeMetricSnapshot {
-	value: number;
-	labels: Record<string, any>;
-	timestamp: number;
+declare namespace GaugeMetric {
+	export interface GaugeMetricSnapshot {
+		value: number;
+		labels: Record<string, any>;
+		timestamp: number;
+	}
 }
 
-declare class GaugeMetric extends BaseMetric<GaugeMetricSnapshot> {
+declare class GaugeMetric extends BaseMetric<GaugeMetric.GaugeMetricSnapshot> {
 	increment(labels?: Record<string, any>, value?: number, timestamp?: number): void;
 
 	decrement(labels?: Record<string, any>, value?: number, timestamp?: number): void;
 
 	set(value: number, labels?: Record<string, any>, timestamp?: number): void;
 
-	generateSnapshot(): GaugeMetricSnapshot[];
+	generateSnapshot(): GaugeMetric.GaugeMetricSnapshot[];
 }
 export = GaugeMetric;

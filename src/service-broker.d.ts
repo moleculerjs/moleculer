@@ -14,83 +14,85 @@ import type { Tracer } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseValidator, ValidatorNames } from "./validators";
 
-type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
-type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
+declare namespace ServiceBroker {
+	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
+	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
 
-export interface ServiceBrokerOptions {
-	namespace?: string | null;
-	nodeID?: string | null;
+	export interface ServiceBrokerOptions {
+		namespace?: string | null;
+		nodeID?: string | null;
 
-	logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
-	logLevel?: LogLevels | LogLevelConfig | null;
+		logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
+		logLevel?: LogLevels | LogLevelConfig | null;
 
-	transporter?: BaseTransporter | string | Record<string, any> | null;
-	requestTimeout?: number;
-	retryPolicy?: RetryPolicyOptions;
+		transporter?: BaseTransporter | string | Record<string, any> | null;
+		requestTimeout?: number;
+		retryPolicy?: RetryPolicyOptions;
 
-	contextParamsCloning?: boolean;
-	maxCallLevel?: number;
-	heartbeatInterval?: number;
-	heartbeatTimeout?: number;
+		contextParamsCloning?: boolean;
+		maxCallLevel?: number;
+		heartbeatInterval?: number;
+		heartbeatTimeout?: number;
 
-	tracking?: BrokerTrackingOptions;
+		tracking?: BrokerTrackingOptions;
 
-	disableBalancer?: boolean;
+		disableBalancer?: boolean;
 
-	registry?: BrokerRegistryOptions;
+		registry?: BrokerRegistryOptions;
 
-	circuitBreaker?: BrokerCircuitBreakerOptions;
+		circuitBreaker?: BrokerCircuitBreakerOptions;
 
-	bulkhead?: BulkheadOptions;
+		bulkhead?: BulkheadOptions;
 
-	transit?: BrokerTransitOptions;
+		transit?: BrokerTransitOptions;
 
-	uidGenerator?: () => string;
+		uidGenerator?: () => string;
 
-	errorHandler?: ((err: Error, info: any) => void) | null;
+		errorHandler?: ((err: Error, info: any) => void) | null;
 
-	cacher?: boolean | BaseCacher | string | Record<string, any> | null;
-	serializer?: BaseSerializer | string | Record<string, any> | null;
-	validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
-	errorRegenerator?: ErrorRegenerator | null;
+		cacher?: boolean | BaseCacher | string | Record<string, any> | null;
+		serializer?: BaseSerializer | string | Record<string, any> | null;
+		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
+		errorRegenerator?: ErrorRegenerator | null;
 
-	metrics?: boolean | MetricRegistryOptions;
-	tracing?: boolean | TracerOptions;
+		metrics?: boolean | MetricRegistryOptions;
+		tracing?: boolean | TracerOptions;
 
-	internalServices?:
-		| boolean
-		| {
-				[key: string]: Partial<ServiceSchema>;
-		  };
-	internalMiddlewares?: boolean;
+		internalServices?:
+			| boolean
+			| {
+					[key: string]: Partial<ServiceSchema>;
+			  };
+		internalMiddlewares?: boolean;
 
-	dependencyInterval?: number;
-	dependencyTimeout?: number;
+		dependencyInterval?: number;
+		dependencyTimeout?: number;
 
-	hotReload?: boolean | HotReloadOptions;
+		hotReload?: boolean | HotReloadOptions;
 
-	middlewares?: (Middleware | string)[];
+		middlewares?: (Middleware | string)[];
 
-	replCommands?: Record<string, any>[] | null;
-	replDelimiter?: string;
+		replCommands?: Record<string, any>[] | null;
+		replDelimiter?: string;
 
-	metadata?: Record<string, any>;
+		metadata?: Record<string, any>;
 
-	ServiceFactory?: typeof Service;
-	ContextFactory?: typeof Context;
-	Promise?: PromiseConstructorLike;
+		ServiceFactory?: typeof Service;
+		ContextFactory?: typeof Context;
+		Promise?: PromiseConstructorLike;
 
-	created?: BrokerSyncLifecycleHandler;
-	started?: BrokerAsyncLifecycleHandler;
-	stopped?: BrokerAsyncLifecycleHandler;
+		created?: BrokerSyncLifecycleHandler;
+		started?: BrokerAsyncLifecycleHandler;
+		stopped?: BrokerAsyncLifecycleHandler;
 
-	/**
-	 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
-	 * You have to register this manually and stop broker in this case!
-	 */
-	skipProcessEventRegistration?: boolean;
+		/**
+		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
+		 * You have to register this manually and stop broker in this case!
+		 */
+		skipProcessEventRegistration?: boolean;
 
-	maxSafeObjectSize?: number;
+		maxSafeObjectSize?: number;
+	}
 }
 
 declare class ServiceBroker {
@@ -100,7 +102,7 @@ declare class ServiceBroker {
 
 	static INTERNAL_MIDDLEWARES: string[];
 
-	static defaultOptions: ServiceBrokerOptions;
+	static defaultOptions: ServiceBroker.ServiceBrokerOptions;
 
 	static Promise: PromiseConstructorLike;
 
@@ -108,7 +110,7 @@ declare class ServiceBroker {
 
 	PROTOCOL_VERSION: "4";
 
-	options: ServiceBrokerOptions;
+	options: ServiceBroker.ServiceBrokerOptions;
 
 	Promise: PromiseConstructorLike;
 
@@ -150,7 +152,7 @@ declare class ServiceBroker {
 
 	transit?: Transit;
 
-	constructor(options?: ServiceBrokerOptions);
+	constructor(options?: ServiceBroker.ServiceBrokerOptions);
 
 	start(): Promise<void>;
 

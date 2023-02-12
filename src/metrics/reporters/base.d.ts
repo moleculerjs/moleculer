@@ -1,23 +1,25 @@
 import type MetricRegistry = require("../registry");
 import type BaseMetric = require("../types/base");
 
-export interface MetricReporterOptions {
-	includes?: string | string[];
-	excludes?: string | string[];
+declare namespace MetricBaseReporter {
+	export interface MetricReporterOptions {
+		includes?: string | string[];
+		excludes?: string | string[];
 
-	metricNamePrefix?: string;
-	metricNameSuffix?: string;
+		metricNamePrefix?: string;
+		metricNameSuffix?: string;
 
-	metricNameFormatter?: (name: string) => string;
-	labelNameFormatter?: (name: string) => string;
+		metricNameFormatter?: (name: string) => string;
+		labelNameFormatter?: (name: string) => string;
 
-	[key: string]: any;
+		[key: string]: any;
+	}
 }
 
 declare abstract class MetricBaseReporter {
-	opts: MetricReporterOptions;
+	opts: MetricBaseReporter.MetricReporterOptions;
 
-	constructor(opts: MetricReporterOptions);
+	constructor(opts: MetricBaseReporter.MetricReporterOptions);
 
 	init(registry: MetricRegistry): void;
 

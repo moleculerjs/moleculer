@@ -1,13 +1,15 @@
 import LoggerFactory = require("../logger-factory");
 
-export type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+declare namespace BaseLogger {
+	export type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
-export interface LoggerOptions {
-	level?: LogLevels;
+	export interface LoggerOptions {
+		level?: LogLevels;
+	}
 }
 
 declare abstract class BaseLogger {
-	constructor(opts?: LoggerOptions);
+	constructor(opts?: BaseLogger.LoggerOptions);
 
 	init(loggerFactory: LoggerFactory): void;
 

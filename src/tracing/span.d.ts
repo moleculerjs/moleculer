@@ -1,11 +1,13 @@
 import Tracer = require("./tracer");
 import type { Logger } from "../logger-factory";
 
-export interface SpanLogEntry {
-	name: string;
-	fields: Record<string, any>;
-	time: number;
-	elapsed: number;
+declare namespace Span {
+	export interface SpanLogEntry {
+		name: string;
+		fields: Record<string, any>;
+		time: number;
+		elapsed: number;
+	}
 }
 
 declare class Span {
@@ -35,7 +37,7 @@ declare class Span {
 
 	error: Error | null;
 
-	logs: SpanLogEntry[];
+	logs: Span.SpanLogEntry[];
 	tags: Record<string, any>;
 
 	start(time?: number): Span;
@@ -45,4 +47,5 @@ declare class Span {
 	finish(time?: number): Span;
 	startSpan(name: string, opts?: Record<string, any>): Span;
 }
+
 export = Span;

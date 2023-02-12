@@ -1,26 +1,28 @@
 import type ServiceBroker = require("../service-broker");
 
-export type CacherKeygen<TParams = unknown, TMeta extends object = object> = (
-	actionName: string,
-	params: TParams,
-	meta: TMeta,
-	keys?: string[]
-) => string;
+declare namespace Cacher {
+	export type CacherKeygen<TParams = unknown, TMeta extends object = object> = (
+		actionName: string,
+		params: TParams,
+		meta: TMeta,
+		keys?: string[]
+	) => string;
 
-export interface CacherOptions {
-	ttl?: number;
-	keygen?: CacherKeygen;
-	maxParamsLength?: number;
-	missingResponse?: any;
-	[key: string]: any;
+	export interface CacherOptions {
+		ttl?: number;
+		keygen?: CacherKeygen;
+		maxParamsLength?: number;
+		missingResponse?: any;
+		[key: string]: any;
+	}
 }
 
 declare abstract class Cacher {
-	opts: CacherOptions;
+	opts: Cacher.CacherOptions;
 
 	connected: boolean | null;
 
-	constructor(opts?: CacherOptions);
+	constructor(opts?: Cacher.CacherOptions);
 
 	init(broker: ServiceBroker): void;
 

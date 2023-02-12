@@ -2,16 +2,18 @@ import Transit = require("../../transit");
 import Registry = require("../registry");
 import Node = require("../node");
 
-export interface DiscovererOptions extends Record<string, any> {
-	heartbeatInterval?: number;
-	heartbeatTimeout?: number;
-	disableHeartbeatChecks?: boolean;
-	disableOfflineNodeRemoving?: boolean;
-	cleanOfflineNodesTimeout?: number;
+declare namespace BaseDiscoverer {
+	export interface DiscovererOptions extends Record<string, any> {
+		heartbeatInterval?: number;
+		heartbeatTimeout?: number;
+		disableHeartbeatChecks?: boolean;
+		disableOfflineNodeRemoving?: boolean;
+		cleanOfflineNodesTimeout?: number;
+	}
 }
 
 declare abstract class BaseDiscoverer {
-	constructor(opts?: DiscovererOptions);
+	constructor(opts?: BaseDiscoverer.DiscovererOptions);
 
 	transit?: Transit;
 

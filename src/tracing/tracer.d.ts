@@ -2,50 +2,53 @@ import ServiceBroker = require("../service-broker");
 import Context = require("../context");
 import Span = require("./span");
 import BaseTraceExporter = require("./exporters/base");
+import type { Logger } from "../logger-factory";
 import type { TracerExporterOptions } from "./exporters/base";
 
-export type TracingActionTagsFunc = (ctx: Context, response?: any) => Record<string, any>;
-export type TracingActionTags =
-	| TracingActionTagsFuncType
-	| {
-			params?: boolean | string[];
-			meta?: boolean | string[];
-			response?: boolean | string[];
-	  };
+declare namespace Tracer {
+	export type TracingActionTagsFunc = (ctx: Context, response?: any) => Record<string, any>;
+	export type TracingActionTags =
+		| TracingActionTagsFunc
+		| {
+				params?: boolean | string[];
+				meta?: boolean | string[];
+				response?: boolean | string[];
+		  };
 
-export type TracingEventTagsFunc = (ctx: Context) => Record<string, any>;
-export type TracingEventTags =
-	| TracingEventTagsFuncType
-	| {
-			params?: boolean | string[];
-			meta?: boolean | string[];
-	  };
+	export type TracingEventTagsFunc = (ctx: Context) => Record<string, any>;
+	export type TracingEventTags =
+		| TracingEventTagsFunc
+		| {
+				params?: boolean | string[];
+				meta?: boolean | string[];
+		  };
 
-export interface TracerOptions {
-	enabled?: boolean;
-	exporter?: string | TracerExporterOptions | (TracerExporterOptions | string)[] | null;
-	sampling?: {
-		rate?: number | null;
-		tracesPerSecond?: number | null;
-		minPriority?: number | null;
-	};
+	export interface TracerOptions {
+		enabled?: boolean;
+		exporter?: string | TracerExporterOptions | (TracerExporterOptions | string)[] | null;
+		sampling?: {
+			rate?: number | null;
+			tracesPerSecond?: number | null;
+			minPriority?: number | null;
+		};
 
-	actions?: boolean;
-	events?: boolean;
+		actions?: boolean;
+		events?: boolean;
 
-	errorFields?: string[];
-	stackTrace?: boolean;
+		errorFields?: string[];
+		stackTrace?: boolean;
 
-	defaultTags?: Record<string, any> | Function | null;
+		defaultTags?: Record<string, any> | Function | null;
 
-	tags?: {
-		action?: TracingActionTags;
-		event?: TracingEventTags;
-	};
+		tags?: {
+			action?: TracingActionTags;
+			event?: TracingEventTags;
+		};
+	}
 }
 
 declare class Tracer {
-	constructor(broker: ServiceBroker, opts: TracerOptions | boolean);
+	constructor(broker: ServiceBroker, opts: Tracer.TracerOptions | boolean);
 
 	broker: ServiceBroker;
 

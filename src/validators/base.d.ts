@@ -1,7 +1,8 @@
 import type ServiceBroker = require("../service-broker");
 
-export type ValidatorNames = "Fastest";
-
+declare namespace BaseValidator {
+	export type ValidatorNames = "Fastest";
+}
 declare abstract class BaseValidator {
 	constructor();
 

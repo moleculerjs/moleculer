@@ -1,17 +1,21 @@
 import BaseTransporter = require("./transporters/base");
 import Context = require("./context");
+import type { Packet } from "./packets";
+import type { Logger } from "./logger-factory";
 
-export interface TransitRequest {
-	action: string;
-	nodeID: string;
-	ctx: Context;
-	resolve: (value: any) => void;
-	reject: (reason: any) => void;
-	stream: boolean;
+declare namespace Transit {
+	export interface TransitRequest {
+		action: string;
+		nodeID: string;
+		ctx: Context;
+		resolve: (value: any) => void;
+		reject: (reason: any) => void;
+		stream: boolean;
+	}
 }
 
 declare class Transit {
-	pendingRequests: Map<string, TransitRequest>;
+	pendingRequests: Map<string, Transit.TransitRequest>;
 	nodeID: string;
 	logger: Logger;
 	connected: boolean;
