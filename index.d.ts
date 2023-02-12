@@ -1,7 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Packet } from "./src/packets";
-
 import ServiceBroker = require("./src/service-broker");
 export { ServiceBroker };
 export type { ServiceBrokerOptions } from "./src/service-broker";
