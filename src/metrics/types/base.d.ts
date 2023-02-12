@@ -1,4 +1,4 @@
-import type MetricRegistry from "../registry";
+import type MetricRegistry = require("../registry");
 
 export interface BaseMetricOptions {
 	type: string;
@@ -62,4 +62,4 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	toObject(): BaseMetricPOJO<TValue>;
 }
-export default BaseMetric;
+export = BaseMetric;

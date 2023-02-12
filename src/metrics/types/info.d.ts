@@ -1,4 +1,4 @@
-import BaseMetric from "./base";
+import BaseMetric = require("./base");
 
 export interface InfoMetricSnapshot {
 	value: any;
@@ -11,4 +11,4 @@ declare class InfoMetric extends BaseMetric<InfoMetricSnapshot> {
 
 	generateSnapshot(): InfoMetricSnapshot[];
 }
-export default InfoMetric;
+export = InfoMetric;

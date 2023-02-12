@@ -1,4 +1,4 @@
-import BaseMetric from "./base";
+import BaseMetric = require("./base");
 
 export interface HistogramMetricSnapshot {
 	labels: Record<string, any>;
@@ -31,4 +31,4 @@ declare class HistogramMetric extends BaseMetric<HistogramMetricSnapshot> {
 
 	generateSnapshot(): HistogramMetricSnapshot[];
 }
-export default HistogramMetric;
+export = HistogramMetric;

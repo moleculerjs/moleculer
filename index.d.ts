@@ -18,12 +18,6 @@ export * as Validators from "./src/validators";
 import type { Base as BaseTraceExporter } from "./src/tracing/exporters";
 export * as TracerExporters from "./src/tracing/exporters";
 
-import type { Base as BaseMetric, BaseMetricOptions, BaseMetricPOJO } from "./src/metrics/types";
-export * as MetricTypes from "./src/metrics/types";
-
-import type { Base as BaseMetricReporter, MetricReporterOptions } from "./src/metrics/reporters";
-export * as MetricReporters from "./src/metrics/reporters";
-
 import type { Base as BaseDiscoverer } from "./src/registry/discoverers";
 export * as Discoverers from "./src/registry/discoverers";
 
@@ -47,14 +41,18 @@ export type {
 } from "./src/constants";
 
 import ServiceBroker = require("./src/service-broker");
-import { ServiceBrokerOptions } from "./src/service-broker";
+import type { ServiceBrokerOptions } from "./src/service-broker";
 
-import * as Loggers from "./src/loggers";
+import Loggers from "./src/loggers";
 import type { LogLevels } from "./src/loggers";
 
 import type { Logger, LoggerConfig } from "./src/logger-factory";
 
-import * as Cachers from "./src/cachers";
+import Cachers from "./src/cachers";
+
+import MetricTypes from "./src/metrics/types";
+
+import MetricReporters from "./src/metrics/reporters";
 
 declare namespace moleculer {
 	export { ServiceBroker, ServiceBrokerOptions };
@@ -63,6 +61,10 @@ declare namespace moleculer {
 	export { Logger, LoggerConfig };
 
 	export { Cachers };
+
+	export { MetricTypes };
+
+	export { MetricReporters };
 
 	/**
 	 * Moleculer uses global.Promise as the default promise library

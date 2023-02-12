@@ -1,4 +1,4 @@
-import MetricBaseReporter from "./base";
+import MetricBaseReporter = require("./base");
 
 declare class PrometheusReporter extends MetricBaseReporter {}
-export default PrometheusReporter;
+export = PrometheusReporter;

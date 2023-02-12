@@ -1,4 +1,4 @@
-import BaseMetric from "./base";
+import BaseMetric = require("./base");
 
 export interface GaugeMetricSnapshot {
 	value: number;
@@ -15,4 +15,4 @@ declare class GaugeMetric extends BaseMetric<GaugeMetricSnapshot> {
 
 	generateSnapshot(): GaugeMetricSnapshot[];
 }
-export default GaugeMetric;
+export = GaugeMetric;

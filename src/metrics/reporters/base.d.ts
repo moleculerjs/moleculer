@@ -1,5 +1,5 @@
-import type MetricRegistry from "../registry";
-import type BaseMetric from "../types/base";
+import type MetricRegistry = require("../registry");
+import type BaseMetric = require("../types/base");
 
 export interface MetricReporterOptions {
 	includes?: string | string[];
@@ -34,4 +34,4 @@ declare abstract class MetricBaseReporter {
 		timestamp?: number
 	): void;
 }
-export default MetricBaseReporter;
+export = MetricBaseReporter;

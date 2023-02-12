@@ -1,4 +1,4 @@
-import MetricBaseReporter from "./base";
+import MetricBaseReporter = require("./base");
 
 declare class CSVReporter extends MetricBaseReporter {}
-export default CSVReporter;
+export = CSVReporter;

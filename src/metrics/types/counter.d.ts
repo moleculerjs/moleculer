@@ -1,4 +1,4 @@
-import BaseMetric from "./base";
+import BaseMetric = require("./base");
 
 export interface CounterMetricSnapshot {
 	value: number;
@@ -13,4 +13,4 @@ declare class CounterMetric extends BaseMetric<CounterMetricSnapshot> {
 
 	generateSnapshot(): CounterMetricSnapshot[];
 }
-export default CounterMetric;
+export = CounterMetric;

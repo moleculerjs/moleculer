@@ -1,4 +1,4 @@
-import MetricBaseReporter from "./base";
+import MetricBaseReporter = require("./base");
 
 declare class DatadogReporter extends MetricBaseReporter {}
-export default DatadogReporter;
+export = DatadogReporter;
