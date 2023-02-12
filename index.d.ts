@@ -109,65 +109,6 @@ export interface TracingEventOptions extends TracingOptions {
 	tags?: TracingEventTags;
 }
 
-export interface MetricsReporterOptions {
-	type: string;
-	options?: MetricReporterOptions;
-}
-
-export interface MetricRegistryOptions {
-	enabled?: boolean;
-	collectProcessMetrics?: boolean;
-	collectInterval?: number;
-	reporter?: string | MetricsReporterOptions | (MetricsReporterOptions | string)[] | null;
-	defaultBuckets?: number[];
-	defaultQuantiles?: number[];
-	defaultMaxAgeSeconds?: number;
-	defaultAgeBuckets?: number;
-	defaultAggregator?: string;
-}
-
-export interface MetricListOptions {
-	type: string | string[];
-	includes: string | string[];
-	excludes: string | string[];
-}
-
-export declare class MetricRegistry {
-	broker: ServiceBroker;
-	logger: Logger;
-	dirty: boolean;
-	store: Map<string, BaseMetric>;
-	reporter: BaseMetricReporter[];
-
-	constructor(broker: ServiceBroker, opts?: MetricRegistryOptions);
-	init(broker: ServiceBroker): void;
-	stop(): void;
-	isEnabled(): boolean;
-	register(opts: BaseMetricOptions): BaseMetric | null;
-
-	hasMetric(name: string): boolean;
-	getMetric(name: string): BaseMetric;
-
-	increment(name: string, labels?: GenericObject, value?: number, timestamp?: number): void;
-	decrement(name: string, labels?: GenericObject, value?: number, timestamp?: number): void;
-	set(name: string, value: any | null, labels?: GenericObject, timestamp?: number): void;
-	observe(name: string, value: number, labels?: GenericObject, timestamp?: number): void;
-
-	reset(name: string, labels?: GenericObject, timestamp?: number): void;
-	resetAll(name: string, timestamp?: number): void;
-
-	timer(name: string, labels?: GenericObject, timestamp?: number): () => number;
-
-	changed(
-		metric: BaseMetric,
-		value: any | null,
-		labels?: GenericObject,
-		timestamp?: number
-	): void;
-
-	list(opts?: MetricListOptions): BaseMetricPOJO[];
-}
-
 export interface BulkheadOptions {
 	enabled?: boolean;
 	concurrency?: number;
