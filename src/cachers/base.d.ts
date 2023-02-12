@@ -49,4 +49,5 @@ declare abstract class Cacher {
 
 	abstract lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default Cacher;
+
+export = Cacher;

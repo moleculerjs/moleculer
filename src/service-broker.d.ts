@@ -254,4 +254,5 @@ declare class ServiceBroker {
 
 	[key: string]: any;
 }
-export default ServiceBroker;
+
+export = ServiceBroker;

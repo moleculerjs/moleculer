@@ -13,4 +13,5 @@ declare class MemoryCacher extends BaseCacher {
 
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default MemoryCacher;
+
+export = MemoryCacher;

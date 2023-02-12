@@ -1,4 +1,9 @@
-export { default as Base, type CacherOptions, type CacherKeygen } from "./base";
-export { default as Memory, type MemoryCacherOptions } from "./memory";
-export { default as MemoryLRU, type MemoryLRUCacherOptions } from "./memory-lru";
-export { default as Redis, type RedisCacherOptions } from "./redis";
+import Cacher = require("./base");
+import MemoryCacher = require("./memory");
+import MemoryLRUCacher = require("./memory-lru");
+import RedisCacher = require("./redis");
+
+export { Cacher as Base };
+export { MemoryCacher as Memory };
+export { MemoryLRUCacher as MemoryLRU };
+export { RedisCacher as Redis };

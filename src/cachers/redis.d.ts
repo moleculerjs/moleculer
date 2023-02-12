@@ -21,4 +21,5 @@ declare class RedisCacher<TClient = any> extends BaseCacher {
 
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }
-export default RedisCacher;
+
+export = RedisCacher;
