@@ -28,6 +28,9 @@ export * as MetricTypes from "./src/metrics/types";
 
 export * as MetricReporters from "./src/metrics/reporters";
 
+import Transit = require("./src/transit");
+export { Transit };
+
 export * as Discoverers from "./src/registry/discoverers";
 
 export * as Errors from "./src/errors";
@@ -719,48 +722,6 @@ export interface ServiceSearchObj {
 export interface ValidatorOptions {
 	type: string;
 	options?: GenericObject;
-}
-
-export interface TransitRequest {
-	action: string;
-	nodeID: string;
-	ctx: Context;
-	resolve: (value: any) => void;
-	reject: (reason: any) => void;
-	stream: boolean;
-}
-
-export interface Transit {
-	pendingRequests: Map<string, TransitRequest>;
-	nodeID: string;
-	logger: Logger;
-	connected: boolean;
-	disconnecting: boolean;
-	isReady: boolean;
-	tx: BaseTransporter;
-
-	afterConnect(wasReconnect: boolean): Promise<void>;
-	connect(): Promise<void>;
-	disconnect(): Promise<void>;
-	ready(): Promise<void>;
-	sendDisconnectPacket(): Promise<void>;
-	makeSubscriptions(): Promise<void[]>;
-	messageHandler(cmd: string, msg: GenericObject): boolean | Promise<void> | undefined;
-	request(ctx: Context): Promise<void>;
-	sendEvent(ctx: Context): Promise<void>;
-	removePendingRequest(id: string): void;
-	removePendingRequestByNodeID(nodeID: string): void;
-	sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
-	sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
-	discoverNodes(): Promise<void>;
-	discoverNode(nodeID: string): Promise<void>;
-	sendNodeInfo(info: BrokerNode, nodeID?: string): Promise<void | void[]>;
-	sendPing(nodeID: string, id?: string): Promise<void>;
-	sendPong(payload: GenericObject): Promise<void>;
-	processPong(payload: GenericObject): void;
-	sendHeartbeat(localNode: BrokerNode): Promise<void>;
-	subscribe(topic: string, nodeID: string): Promise<void>;
-	publish(packet: Packet): Promise<void>;
 }
 
 export interface ActionCatalogListOptions {
