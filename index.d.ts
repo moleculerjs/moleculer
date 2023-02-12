@@ -41,29 +41,19 @@ export type {
 } from "./src/constants";
 
 import ServiceBroker = require("./src/service-broker");
-import type { ServiceBrokerOptions } from "./src/service-broker";
 
-import Loggers from "./src/loggers";
-import type { LogLevels } from "./src/loggers";
+export { ServiceBroker };
+export type { ServiceBrokerOptions } from "./src/service-broker";
 
-import type { Logger, LoggerConfig } from "./src/logger-factory";
+export * as Loggers from "./src/loggers";
+export type { LogLevels } from "./src/loggers";
+export type { Logger, LoggerConfig } from "./src/logger-factory";
 
-import Cachers from "./src/cachers";
+export * as Cachers from "./src/cachers";
 
-import MetricTypes from "./src/metrics/types";
+export * as MetricTypes from "./src/metrics/types";
 
-import MetricReporters from "./src/metrics/reporters";
-
-export { ServiceBroker, ServiceBrokerOptions };
-
-export { Loggers, LogLevels };
-export { Logger, LoggerConfig };
-
-export { Cachers };
-
-export { MetricTypes };
-
-export { MetricReporters };
+export * as MetricReporters from "./src/metrics/reporters";
 
 /**
  * Moleculer uses global.Promise as the default promise library
