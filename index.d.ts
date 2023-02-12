@@ -89,51 +89,6 @@ export interface HotReloadOptions {
 	modules?: string[];
 }
 
-export interface SpanLogEntry {
-	name: string;
-	fields: GenericObject;
-	time: number;
-	elapsed: number;
-}
-
-export declare class Span {
-	constructor(tracer: Tracer, name: string, opts: GenericObject);
-
-	tracer: Tracer;
-	logger: Logger;
-	opts: GenericObject;
-	meta: GenericObject;
-
-	name: string;
-	id: string;
-	traceID: string;
-	parentID: string | null;
-
-	service?: {
-		name: string;
-		version: string | number | null | undefined;
-	};
-
-	priority: number;
-	sampled: boolean;
-
-	startTime: number | null;
-	finishTime: number | null;
-	duration: number | null;
-
-	error: Error | null;
-
-	logs: SpanLogEntry[];
-	tags: GenericObject;
-
-	start(time?: number): Span;
-	addTags(obj: GenericObject): Span;
-	log(name: string, fields?: GenericObject, time?: number): Span;
-	setError(err: Error): Span;
-	finish(time?: number): Span;
-	startSpan(name: string, opts?: GenericObject): Span;
-}
-
 export type TracingSpanNameOption = string | ((ctx: Context) => string);
 
 export interface TracingOptions {
