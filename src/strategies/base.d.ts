@@ -1,6 +1,6 @@
-import type Context from "../context";
-import type ServiceBroker from "../service-broker";
-import type Registry from "../registry";
+import type Context = require("../context");
+import type ServiceBroker = require("../service-broker");
+import type Registry = require("../registry");
 import type { Endpoint } from "../registry";
 
 declare abstract class BaseStrategy {
@@ -8,4 +8,4 @@ declare abstract class BaseStrategy {
 
 	select(list: any[], ctx?: Context): Endpoint;
 }
-export default BaseStrategy;
+export = BaseStrategy;

@@ -1,4 +1,4 @@
-import BaseStrategy from "./base";
+import BaseStrategy = require("./base");
 
 declare class LatencyStrategy extends BaseStrategy {}
-export default LatencyStrategy;
+export = LatencyStrategy;

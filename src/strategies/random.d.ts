@@ -1,4 +1,4 @@
-import BaseStrategy from "./base";
+import BaseStrategy = require("./base");
 
 declare class RandomStrategy extends BaseStrategy {}
-export default RandomStrategy;
+export = RandomStrategy;

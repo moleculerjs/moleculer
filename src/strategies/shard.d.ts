@@ -1,4 +1,4 @@
-import BaseStrategy from "./base";
+import BaseStrategy = require("./base");
 
 declare class ShardStrategy extends BaseStrategy {}
-export default ShardStrategy;
+export = ShardStrategy;

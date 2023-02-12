@@ -1,6 +1,15 @@
-export { default as Base } from "./base";
-export { default as RoundRobin } from "./round-robin";
-export { default as Random } from "./random";
-export { default as CpuUsage } from "./cpu-usage";
-export { default as Latency } from "./latency";
-export { default as Shard } from "./shard";
+import BaseStrategy = require("./base");
+import RoundRobinStrategy = require("./round-robin");
+import RandomStrategy = require("./random");
+import CpuUsageStrategy = require("./cpu-usage");
+import LatencyStrategy = require("./latency");
+import ShardStrategy = require("./shard");
+
+export {
+	BaseStrategy as Base,
+	RoundRobinStrategy as RoundRobin,
+	RandomStrategy as Random,
+	CpuUsageStrategy as CpuUsage,
+	LatencyStrategy as Latency,
+	ShardStrategy as Shard
+};

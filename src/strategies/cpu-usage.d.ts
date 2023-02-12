@@ -1,4 +1,4 @@
-import BaseStrategy from "./base";
+import BaseStrategy = require("./base");
 
 declare class CpuUsageStrategy extends BaseStrategy {}
-export default CpuUsageStrategy;
+export = CpuUsageStrategy;
