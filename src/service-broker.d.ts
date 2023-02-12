@@ -14,6 +14,7 @@ import type { Tracer } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseValidator, ValidatorNames } from "./validators";
 import type BrokerNode = require("./registry/node");
+import BaseDiscoverer = require("./registry/discoverers/base");
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -93,6 +94,13 @@ declare namespace ServiceBroker {
 		skipProcessEventRegistration?: boolean;
 
 		maxSafeObjectSize?: number;
+	}
+
+	export interface BrokerRegistryOptions {
+		strategy?: Function | string;
+		strategyOptions?: Record<string, any>;
+		preferLocal?: boolean;
+		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
 	}
 }
 

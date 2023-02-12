@@ -31,6 +31,9 @@ export * as MetricReporters from "./src/metrics/reporters";
 import Transit = require("./src/transit");
 export { Transit };
 
+import Registry = require("./src/registry");
+export { Registry };
+
 export * as Discoverers from "./src/registry/discoverers";
 
 export * as Errors from "./src/errors";
@@ -480,13 +483,6 @@ export interface RetryPolicyOptions {
 	check?: CheckRetryable;
 }
 
-export interface BrokerRegistryOptions {
-	strategy?: Function | string;
-	strategyOptions?: GenericObject;
-	preferLocal?: boolean;
-	discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
-}
-
 export interface RegistryDiscovererOptions {
 	type: string;
 	options: DiscovererOptions;
@@ -597,16 +593,6 @@ export interface MCallDefinition<P extends GenericObject = GenericObject>
 	options?: CallingOptions;
 }
 
-export interface Endpoint {
-	broker: ServiceBroker;
-
-	id: string;
-	node: GenericObject;
-
-	local: boolean;
-	state: boolean;
-}
-
 export interface ActionEndpoint extends Endpoint {
 	service: Service;
 	action: ActionSchema;
@@ -642,23 +628,6 @@ export interface ActionCatalogListOptions {
 	onlyAvailable?: boolean;
 	skipInternal?: boolean;
 	withEndpoints?: boolean;
-}
-
-export declare class ServiceRegistry {
-	broker: ServiceBroker;
-	metrics: MetricRegistry;
-	logger: Logger;
-
-	opts: BrokerRegistryOptions;
-
-	StrategyFactory: BaseStrategy;
-
-	nodes: any;
-	services: any;
-	actions: any;
-	events: any;
-
-	getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[];
 }
 
 export declare const MOLECULER_VERSION: string;

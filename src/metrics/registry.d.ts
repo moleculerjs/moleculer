@@ -2,6 +2,7 @@ import ServiceBroker = require("../service-broker");
 import BaseMetric = require("./types/base");
 import type { BaseMetricPOJO, BaseMetricOptions } from "./types/base";
 import type { MetricReporterOptions } from "./reporters/base";
+import type { Logger } from "../logger-factory";
 
 declare namespace MetricRegistry {
 	export interface MetricListOptions {
