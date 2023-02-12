@@ -100,4 +100,4 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	toJSON(): Record<string, any>;
 }
-export default Context;
+export = Context;

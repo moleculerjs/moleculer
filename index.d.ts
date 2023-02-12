@@ -1,8 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type Context from "./src/context";
-export { default as Context } from "./src/context";
-
 import type { Base as BaseTransporter } from "./src/transporters";
 export * as Transporters from "./src/transporters";
 
@@ -41,9 +38,11 @@ export type {
 } from "./src/constants";
 
 import ServiceBroker = require("./src/service-broker");
-
 export { ServiceBroker };
 export type { ServiceBrokerOptions } from "./src/service-broker";
+
+import Context = require("./src/context");
+export { Context };
 
 export * as Loggers from "./src/loggers";
 export type { LogLevels } from "./src/loggers";
