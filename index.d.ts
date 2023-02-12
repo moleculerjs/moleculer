@@ -182,34 +182,6 @@ export type ServiceActionsSchema<S = ServiceSettingSchema> = {
 	[key: string]: ActionSchema | ActionHandler | boolean;
 } & ThisType<Service<S>>;
 
-export declare class BrokerNode {
-	id: string;
-	instanceID: string | null;
-	available: boolean;
-	local: boolean;
-	lastHeartbeatTime: number;
-	config: GenericObject;
-	client: GenericObject;
-	metadata: GenericObject;
-
-	ipList: string[];
-	port: number | null;
-	hostname: string | null;
-	udpAddress: string | null;
-
-	rawInfo: GenericObject;
-	services: [GenericObject];
-
-	cpu: number | null;
-	cpuSeq: number | null;
-
-	seq: number;
-	offlineSince: number | null;
-
-	heartbeat(payload: GenericObject): void;
-	disconnected(): void;
-}
-
 export interface ServiceSettingSchema {
 	$noVersionPrefix?: boolean;
 	$noServiceNamePrefix?: boolean;

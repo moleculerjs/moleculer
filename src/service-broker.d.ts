@@ -13,6 +13,7 @@ import type Service from "./service";
 import type { Tracer } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseValidator, ValidatorNames } from "./validators";
+import type BrokerNode = require("./registry/node");
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;

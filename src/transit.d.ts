@@ -1,5 +1,6 @@
 import BaseTransporter = require("./transporters/base");
 import Context = require("./context");
+import BrokerNode = require("./registry/node");
 import type { Packet } from "./packets";
 import type { Logger } from "./logger-factory";
 
