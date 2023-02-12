@@ -2,6 +2,7 @@ import Endpoint from "./registry/endpoint";
 import ServiceBroker from "./service-broker";
 import Service from "./service";
 import Span from "./tracing/span";
+import type { ActionSchema, CallingOptions } from "./service";
 
 declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>> {
 	static create(

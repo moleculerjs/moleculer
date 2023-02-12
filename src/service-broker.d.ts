@@ -102,6 +102,15 @@ declare namespace ServiceBroker {
 		preferLocal?: boolean;
 		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
 	}
+
+	export interface BrokerCircuitBreakerOptions {
+		enabled?: boolean;
+		threshold?: number;
+		windowTime?: number;
+		minRequestCount?: number;
+		halfOpenTime?: number;
+		check?: CheckRetryable;
+	}
 }
 
 declare class ServiceBroker {

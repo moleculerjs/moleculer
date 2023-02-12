@@ -3,6 +3,7 @@ import BaseMetric = require("./types/base");
 import type { BaseMetricPOJO, BaseMetricOptions } from "./types/base";
 import type { MetricReporterOptions } from "./reporters/base";
 import type { Logger } from "../logger-factory";
+import MetricBaseReporter = require("./reporters/base");
 
 declare namespace MetricRegistry {
 	export interface MetricListOptions {
@@ -34,7 +35,7 @@ declare class MetricRegistry {
 	logger: Logger;
 	dirty: boolean;
 	store: Map<string, BaseMetric>;
-	reporter: BaseMetricReporter[];
+	reporter: MetricBaseReporter[];
 
 	constructor(broker: ServiceBroker, opts?: MetricRegistry.MetricRegistryOptions);
 	init(broker: ServiceBroker): void;
