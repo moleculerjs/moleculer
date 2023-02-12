@@ -1,7 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
 
-import type { Logger, LoggerConfig } from "./src/logger-factory";
-
 import type Context from "./src/context";
 export { default as Context } from "./src/context";
 
@@ -54,11 +52,16 @@ import { ServiceBrokerOptions } from "./src/service-broker";
 import * as Loggers from "./src/loggers";
 import type { LogLevels } from "./src/loggers";
 
+import type { Logger, LoggerConfig } from "./src/logger-factory";
+
 import * as Cachers from "./src/cachers";
 
 declare namespace moleculer {
 	export { ServiceBroker, ServiceBrokerOptions };
+
 	export { Loggers, LogLevels };
+	export { Logger, LoggerConfig };
+
 	export { Cachers };
 
 	/**
