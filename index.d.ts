@@ -500,7 +500,7 @@ declare namespace Moleculer {
 		service?: Service;
 		tracing?: boolean | TracingEventOptions;
 		bulkhead?: BulkheadOptions;
-		handler?: ActionHandler;
+		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
 		context?: boolean;
 
 		[key: string]: any;
@@ -508,6 +508,10 @@ declare namespace Moleculer {
 
 	type ServiceActionsSchema<S = ServiceSettingSchema> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;
+	} & ThisType<Service<S>>;
+
+	type ServiceEventsSchema<S = ServiceSettingSchema> = {
+		[key: string]: EventSchema | ServiceEventHandler | ServiceEventLegacyHandler | boolean;
 	} & ThisType<Service<S>>;
 
 	class BrokerNode {
@@ -662,7 +666,7 @@ declare namespace Moleculer {
 	type Middleware = {
 		[name: string]:
 			| ((handler: ActionHandler, action: ActionSchema) => any)
-			| ((handler: ActionHandler, event: ServiceEvent) => any)
+			| ((handler: ActionHandler, event: EventSchema) => any)
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
 			| ((broker: ServiceBroker) => any)
@@ -733,7 +737,7 @@ declare namespace Moleculer {
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
-		events?: ServiceEvents;
+		events?: ServiceEventsSchema;
 		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
 		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
@@ -771,6 +775,7 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions: ServiceActions;
+		events: ServiceEvents;
 		Promise: PromiseConstructorLike;
 
 		_init(): void;
