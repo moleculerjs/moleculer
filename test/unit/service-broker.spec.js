@@ -1695,7 +1695,6 @@ describe("Test broker.servicesChanged", () => {
 		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
 		broker.servicesChanged(true);
 
-		jest.runAllTimers();
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", {
 			localService: true
@@ -1710,7 +1709,6 @@ describe("Test broker.servicesChanged", () => {
 		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
 		broker.servicesChanged(true);
 
-		jest.runAllTimers();
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", {
 			localService: true
