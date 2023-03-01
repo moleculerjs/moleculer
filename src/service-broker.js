@@ -942,7 +942,6 @@ class ServiceBroker {
 	 */
 	servicesChanged(localService = false) {
 		this.broadcastLocal("$services.changed", { localService });
-
 		// Should notify remote nodes, because our service list is changed.
 		if (localService && this.transit) {
 			this.localServiceChanged();
@@ -953,7 +952,9 @@ class ServiceBroker {
 	 * It's a debounced method to send INFO packets to remote nodes.
 	 */
 	localServiceChanged() {
-		this.registry.discoverer.sendLocalNodeInfo();
+		if (!this.stopping) {
+			this.registry.discoverer.sendLocalNodeInfo();
+		}
 	}
 
 	/**

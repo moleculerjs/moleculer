@@ -59,6 +59,7 @@ utils.isInheritedClass = jest.requireActual("../../src/utils").isInheritedClass;
 
 const { protectReject } = require("./utils");
 const path = require("path");
+const _ = require("lodash");
 const lolex = require("@sinonjs/fake-timers");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
@@ -1660,6 +1661,10 @@ describe("Test broker.destroyService", () => {
 describe("Test broker.servicesChanged", () => {
 	let broker;
 
+	// Un-debounce the function
+	// Make it a regular function again
+	_.debounce = jest.fn(param => param);
+
 	broker = new ServiceBroker({
 		logger: false,
 		transporter: "Fake"
@@ -1667,11 +1672,6 @@ describe("Test broker.servicesChanged", () => {
 
 	broker.broadcastLocal = jest.fn();
 	broker.registry.discoverer.sendLocalNodeInfo = jest.fn();
-	// Un-debounce the function
-	// Make it a regular function again
-	broker.localServiceChanged = () => {
-		return broker.registry.discoverer.sendLocalNodeInfo();
-	};
 
 	beforeAll(() => broker.start());
 
@@ -1691,16 +1691,32 @@ describe("Test broker.servicesChanged", () => {
 
 	it("should call broadcastLocal & transit.sendNodeInfo", () => {
 		broker.broadcastLocal.mockClear();
+		broker.stopping = false;
 		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
-
 		broker.servicesChanged(true);
 
+		jest.runAllTimers();
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", {
 			localService: true
 		});
 
 		expect(broker.registry.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should not call transit.sendNodeInfo if broker is stopping", () => {
+		broker.broadcastLocal.mockClear();
+		broker.stopping = true;
+		broker.registry.discoverer.sendLocalNodeInfo.mockClear();
+		broker.servicesChanged(true);
+
+		jest.runAllTimers();
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", {
+			localService: true
+		});
+
+		expect(broker.registry.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(0);
 	});
 });
 
