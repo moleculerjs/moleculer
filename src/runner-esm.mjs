@@ -69,7 +69,7 @@ export default class MoleculerRunner {
 	 * Available options:
 		-c, --config     Load the configuration from a file
 		-e, --env        Load .env file from the current directory
-		-E, --envfile    Load specified .env files using glob patterns that are separated by commas. For example, '-E .env,.env.dev.*' loads the .env file and all .env.dev.* files.
+		-E, --envfile    Load specified .env files using glob patterns that are separated by commas. Example "-E '.env.dev.\*'": loads the all .env.dev.* files.
 		-h, --help       Output usage information
 		-H, --hot        Hot reload services if changed (disabled by default)
 		-i, --instances  Launch [number] instances node (load balanced)
@@ -84,7 +84,10 @@ export default class MoleculerRunner {
 			.option(["H", "hot"], "Hot reload services if changed", false)
 			.option("silent", "Silent mode. No logger", false)
 			.option("env", "Load .env file from the current directory")
-			.option("envfile", "Load a specified .env file")
+			.option(
+				"envfile",
+				"Load specified .env files using glob patterns that are separated by commas. Example \"-E '.env.dev.*'\": loads the all .env.dev.* files."
+			)
 			.option("instances", "Launch [number] instances node (load balanced)")
 			.option("mask", "Filemask for service loading");
 
