@@ -66,7 +66,7 @@ class MoleculerRunner {
 	 * Available options:
 		-c, --config     Load the configuration from a file
 		-e, --env        Load .env file from the current directory
-		-E, --envfile    Load a specified .env file
+		-E, --envfile    Load specified .env files using glob patterns that are separated by commas. For example, '-E .env,.env.dev.*' loads the .env file and all .env.dev.* files.
 		-h, --help       Output usage information
 		-H, --hot        Hot reload services if changed (disabled by default)
 		-i, --instances  Launch [number] instances node (load balanced)
@@ -113,8 +113,17 @@ class MoleculerRunner {
 			try {
 				const dotenv = require("dotenv");
 
-				if (this.flags.envfile) dotenv.config({ path: this.flags.envfile });
-				else dotenv.config();
+				if (this.flags.envfile) {
+					this.flags.envfile.split(",").forEach(envFile => {
+						glob.sync(path.join(process.cwd(), envFile), { absolute: true }).forEach(
+							envFile => {
+								dotenv.config({ path: envFile });
+							}
+						);
+					});
+				} else {
+					dotenv.config();
+				}
 			} catch (err) {
 				throw new Error(
 					"The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command."
