@@ -406,7 +406,9 @@ export default class MoleculerRunner {
 							return this.broker.logger.warn(
 								kleur
 									.yellow()
-									.bold(`There is no service files in directory: '${svcPath}'`)
+									.bold(
+										`There is no service files in directory: '${svcPath}'`
+									)
 							);
 					} else if (this.isServiceFile(svcPath)) {
 						files = [svcPath.replace(/\\/g, "/")];
@@ -417,7 +419,9 @@ export default class MoleculerRunner {
 						files = glob.sync(p, { cwd: svcDir, absolute: true });
 						if (files.length == 0)
 							this.broker.logger.warn(
-								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
+								kleur
+									.yellow()
+									.bold(`There is no matched file for pattern: '${p}'`)
 							);
 					}
 

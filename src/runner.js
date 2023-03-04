@@ -9,7 +9,7 @@ const ServiceBroker = require("./service-broker");
 const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
-const glob = require("glob").sync;
+const glob = require("glob");
 const _ = require("lodash");
 const Args = require("args");
 const os = require("os");
@@ -403,7 +403,7 @@ class MoleculerRunner {
 							if (this.config.hotReload) {
 								this.watchFolders.push(svcPath);
 							}
-							files = glob(svcPath + "/" + fileMask, { absolute: true });
+							files = glob.sync(svcPath + "/" + fileMask, { absolute: true });
 							if (files.length == 0)
 								return this.broker.logger.warn(
 									kleur
