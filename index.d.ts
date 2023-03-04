@@ -815,7 +815,7 @@ declare namespace Moleculer {
 		 * @param mixinSchema Mixin schema
 		 * @param svcSchema Service schema
 		 */
-		mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
+		mergeSchemas(mixinSchema: Partial<ServiceSchema>, svcSchema: Partial<ServiceSchema>): Partial<ServiceSchema>;
 
 		/**
 		 * Merge `settings` property in schema
