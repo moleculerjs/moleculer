@@ -430,7 +430,7 @@ class MoleculerRunner {
 							files = [svcPath.replace(/\\/g, "/") + ".service.js"];
 						} else {
 							// Load with glob
-							files = glob(p, { cwd: svcDir, absolute: true });
+							files = glob.sync(p, { cwd: svcDir, absolute: true });
 							if (files.length === 0)
 								this.broker.logger.warn(
 									kleur
