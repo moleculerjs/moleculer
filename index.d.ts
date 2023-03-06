@@ -815,7 +815,7 @@ declare namespace Moleculer {
 		 * @param mixinSchema Mixin schema
 		 * @param svcSchema Service schema
 		 */
-		mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
+		mergeSchemas(mixinSchema: Partial<ServiceSchema>, svcSchema: Partial<ServiceSchema>): Partial<ServiceSchema>;
 
 		/**
 		 * Merge `settings` property in schema
@@ -1234,7 +1234,7 @@ declare namespace Moleculer {
 
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
-		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
+		createService(schema: ServiceSchema, schemaMods?: Partial<ServiceSchema>): Service;
 		destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
 
 		getLocalService(name: string | ServiceSearchObj): Service;
