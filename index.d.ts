@@ -815,7 +815,10 @@ declare namespace Moleculer {
 		 * @param mixinSchema Mixin schema
 		 * @param svcSchema Service schema
 		 */
-		mergeSchemas(mixinSchema: Partial<ServiceSchema>, svcSchema: Partial<ServiceSchema>): Partial<ServiceSchema>;
+		mergeSchemas(
+			mixinSchema: Partial<ServiceSchema>,
+			svcSchema: Partial<ServiceSchema>
+		): Partial<ServiceSchema>;
 
 		/**
 		 * Merge `settings` property in schema
@@ -1424,7 +1427,7 @@ declare namespace Moleculer {
 	interface RedisCacherOptions extends CacherOptions {
 		prefix?: string;
 		redis?: GenericObject;
-		redlock?: GenericObject;
+		redlock?: boolean | GenericObject;
 		monitor?: boolean;
 		pingInterval?: number;
 	}
@@ -1743,7 +1746,9 @@ declare namespace Moleculer {
 		actions: any;
 		events: any;
 
-		getServiceList<S = ServiceSettingSchema>(opts?: ServiceListCatalogOptions): ServiceSchema<S>[];
+		getServiceList<S = ServiceSettingSchema>(
+			opts?: ServiceListCatalogOptions
+		): ServiceSchema<S>[];
 		getActionList(opts?: ActionCatalogListOptions): ActionSchema[];
 	}
 
