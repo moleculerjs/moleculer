@@ -1,6 +1,17 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.29...master)
 
+--------------------------------------------------
+<a name="0.14.29"></a>
+# [0.14.29](https://github.com/moleculerjs/moleculer/compare/v0.14.28...v0.14.29) (2023-03-12)
+
+## Changes
+- Improve lifecycle handler types [#1179](https://github.com/moleculerjs/moleculer/pull/1179)
+- add service list options & define getActionList type [#1182](https://github.com/moleculerjs/moleculer/pull/1182)
+- mergeSchema can be used to merge 2 mixins [#1187](https://github.com/moleculerjs/moleculer/pull/1187)
+- fix: do not emit send node info during broker stopping event [#1186](https://github.com/moleculerjs/moleculer/pull/1186)
+- Allow opt out of redlock in redis cacher [#1192](https://github.com/moleculerjs/moleculer/issues/1192)
+  
 --------------------------------------------------
 <a name="0.14.28"></a>
 # [0.14.28](https://github.com/moleculerjs/moleculer/compare/v0.14.27...v0.14.28) (2023-01-08)
