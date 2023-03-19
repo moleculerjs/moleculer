@@ -1343,7 +1343,7 @@ declare namespace Moleculer {
 			sender: string | null;
 		}
 
-		type packetType =
+		type PacketType =
 			| PACKET_UNKNOWN
 			| PACKET_EVENT
 			| PACKET_DISCONNECT
@@ -1359,7 +1359,7 @@ declare namespace Moleculer {
 			| PACKET_GOSSIP_HELLO;
 
 		interface Packet {
-			type: packetType;
+			type: PacketType;
 
 			target?: string;
 			payload: PacketPayload;
@@ -1678,47 +1678,49 @@ declare namespace Moleculer {
 	 */
 	type KleurColor = keyof Kleur | string;
 
-	type ActionLoggerOptions = {
-		logger?: LoggerInstance;
-		logLevel?: LogLevels;
-		logParams?: boolean;
-		logResponse?: boolean;
-		logMeta?: boolean;
-		folder?: string | null;
-		extension?: string;
-		colors?: {
-			request?: KleurColor;
-			response?: KleurColor;
-			error?: KleurColor;
-		};
-		whitelist?: Array<string>;
-	};
-	type TransitLoggerOptions = {
-		logger?: LoggerInstance;
-		logLevel?: LogLevels;
-		logPacketData?: boolean;
-		folder?: string | null;
-		extension?: string;
-		colors?: {
-			receive?: KleurColor;
-			send?: KleurColor;
-		};
-		packetFilter?: Array<Packets.packetType>;
-	};
-	type CompressionOptions = {
-		method?: "deflate" | "deflateRaw" | "gzip";
-		threshold?: number | string;
-	};
-	export const Middlewares: {
-		Debugging: {
-			ActionLogger(options?: ActionLoggerOptions): Middleware;
-			TransitLogger(options?: TransitLoggerOptions): Middleware;
-		};
-		Transmit: {
-			Compression(options?: CompressionOptions): Middleware;
-			Encryption(password: string, algorithm: string, iv: string | Buffer): Middleware;
-		};
-	};
+	namespace Middlewares {
+		namespace Debugging {
+			interface ActionLoggerOptions {
+				logger?: LoggerInstance;
+				logLevel?: LogLevels;
+				logParams?: boolean;
+				logResponse?: boolean;
+				logMeta?: boolean;
+				folder?: string | null;
+				extension?: string;
+				colors?: {
+					request?: KleurColor;
+					response?: KleurColor;
+					error?: KleurColor;
+				};
+				whitelist?: string[];
+			}
+			interface TransitLoggerOptions {
+				logger?: LoggerInstance;
+				logLevel?: LogLevels;
+				logPacketData?: boolean;
+				folder?: string | null;
+				extension?: string;
+				colors?: {
+					receive?: KleurColor;
+					send?: KleurColor;
+				};
+				packetFilter?: Packet.packetType[];
+			}
+
+			const ActionLogger = (options?: ActionLoggerOptions) => Middleware;
+			const TransitLogger = (options?: TransitLoggerOptions) => Middleware;
+		}
+		namespace Transmit {
+			interface CompressionOptions {
+				method?: "deflate" | "deflateRaw" | "gzip";
+				threshold?: number | string;
+			}
+			const Compression = (options?: CompressionOptions) => Middleware;
+			const Encryption = (password: string, algorithm: string, iv: string | Buffer) => Middleware;
+		}
+
+	}
 
 	interface TransitRequest {
 		action: string;
