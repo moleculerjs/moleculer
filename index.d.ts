@@ -52,7 +52,9 @@ export { Transit };
 
 import Registry = require("./src/registry");
 export { Registry };
-export type { Endpoint } from "./src/registry/endpoint";
+
+import type Endpoint = require("./src/registry/endpoint");
+export type { Endpoint };
 
 export * as Discoverers from "./src/registry/discoverers";
 
@@ -71,4 +73,9 @@ export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
 
+// Below this point are type exports which are part of modules not exported as part of the main index.js file
+
 export type { CallMiddlewareHandler, Middleware } from "./src/middleware";
+
+import type ActionEndpoint = require("./src/registry/endpoint-action");
+export type { ActionEndpoint };
