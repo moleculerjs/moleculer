@@ -76,42 +76,6 @@ export interface LoggerBindings {
 	ver: string | void;
 }
 
-export type CallMiddlewareHandler = (
-	actionName: string,
-	params: any,
-	opts: CallingOptions
-) => Promise<any>;
-export type Middleware = {
-	[name: string]:
-		| ((handler: ActionHandler, action: ActionSchema) => any)
-		| ((handler: ActionHandler, event: ServiceEvent) => any)
-		| ((handler: ActionHandler) => any)
-		| ((service: Service) => any)
-		| ((broker: ServiceBroker) => any)
-		| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
-};
-
-export type MiddlewareInit = (broker: ServiceBroker) => Middleware;
-export interface MiddlewareCallHandlerOptions {
-	reverse?: boolean;
-}
-
-export interface MiddlewareHandler {
-	list: Middleware[];
-
-	add(mw: string | Middleware | MiddlewareInit): void;
-	wrapHandler(method: string, handler: ActionHandler, def: ActionSchema): typeof handler;
-	callHandlers(method: string, args: any[], opts: MiddlewareCallHandlerOptions): Promise<void>;
-	callSyncHandlers(method: string, args: any[], opts: MiddlewareCallHandlerOptions): void;
-	count(): number;
-	wrapMethod(
-		method: string,
-		handler: ActionHandler,
-		bindTo?: any,
-		opts?: MiddlewareCallHandlerOptions
-	): typeof handler;
-}
-
 export type CheckRetryable = (err: MoleculerError | Error) => boolean;
 
 export interface RetryPolicyOptions {
@@ -146,10 +110,6 @@ export interface BrokerTransitOptions {
 export interface BrokerTrackingOptions {
 	enabled?: boolean;
 	shutdownTimeout?: number;
-}
-
-export interface LogLevelConfig {
-	[module: string]: boolean | LogLevels;
 }
 
 export interface NodeHealthStatus {

@@ -6,18 +6,20 @@ import type { Regenerator as ErrorRegenerator } from "./errors";
 import type { Base as BaseLogger, LogLevels } from "./loggers";
 import type { Logger, LoggerConfig } from "./logger-factory";
 import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
-import type MiddlewareHandler from "./middleware";
+import type { MiddlewareCallHandlerOptions } from "./middleware";
 import type { BulkheadOptions } from "./middlewares";
 import type ServiceRegistry from "./registry";
 import type { Base as BaseSerializer } from "./serializers";
-import type Service, { ServiceSchema } from "./service";
+import type { ServiceSchema } from "./service";
 import type { Tracer } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
+import type MiddlewareHandler = require("./middleware");
 import type BrokerNode = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import BaseDiscoverer = require("./registry/discoverers/base");
+import type Service = require("./service");
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -132,6 +134,10 @@ declare namespace ServiceBroker {
 
 	export interface HotReloadOptions {
 		modules?: string[];
+	}
+
+	export interface LogLevelConfig {
+		[module: string]: boolean | LogLevels;
 	}
 }
 
