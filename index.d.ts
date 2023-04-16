@@ -56,26 +56,6 @@ export type {
 	CIRCUIT_OPEN
 } from "./src/constants";
 
-/**
- * Moleculer uses global.Promise as the default promise library
- * If you are using a third-party promise library (e.g. Bluebird), you will need to
- * assign type definitions to use for your promise library.  You will need to have a .d.ts file
- * with the following code when you compile:
- *
- * - import Bluebird from "bluebird";
- *   declare module "moleculer" {
- *     type Promise<T> = Bluebird<T>;
- *   }
- */
-
-export interface LoggerBindings {
-	nodeID: string;
-	ns: string;
-	mod: string;
-	svc: string;
-	ver: string | void;
-}
-
 export interface ContextParentSpan {
 	id: string;
 	traceID: string;
