@@ -129,6 +129,10 @@ declare namespace ServiceBroker {
 		name: string;
 		version?: string | number;
 	}
+
+	export interface HotReloadOptions {
+		modules?: string[];
+	}
 }
 
 declare class ServiceBroker {

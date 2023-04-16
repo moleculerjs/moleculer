@@ -76,10 +76,6 @@ export interface LoggerBindings {
 	ver: string | void;
 }
 
-export interface HotReloadOptions {
-	modules?: string[];
-}
-
 export type CallMiddlewareHandler = (
 	actionName: string,
 	params: any,
