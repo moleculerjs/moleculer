@@ -1,4 +1,5 @@
+import MetricConstants = require("./constants");
 import MetricRegistry = require("./registry");
 
-export { MetricRegistry };
+export { MetricConstants, MetricRegistry };
 export type { MetricRegistryOptions } from "./registry";

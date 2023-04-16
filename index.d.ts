@@ -37,6 +37,8 @@ export * as MetricTypes from "./src/metrics/types";
 
 export * as MetricReporters from "./src/metrics/reporters";
 
+export * as METRIC from "./src/metrics/constants";
+
 import Transit = require("./src/transit");
 export { Transit };
 
@@ -59,10 +61,3 @@ export type {
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
-
-export declare const METRIC: {
-	TYPE_COUNTER: "counter";
-	TYPE_GAUGE: "gauge";
-	TYPE_HISTOGRAM: "histogram";
-	TYPE_INFO: "info";
-};
