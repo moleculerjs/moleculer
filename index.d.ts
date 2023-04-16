@@ -7,6 +7,9 @@ export type { ServiceBrokerOptions } from "./src/service-broker";
 import Service = require("./src/service");
 export { Service };
 export type {
+	ActionHooks,
+	ServiceHooks,
+	ServiceHooksAfter,
 	ServiceSchema,
 	ServiceSettingSchema,
 	ServiceAction,
