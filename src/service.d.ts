@@ -7,6 +7,7 @@ import type { BulkheadOptions } from "./middlewares";
 import type {
 	BrokerCircuitBreakerOptions,
 	CallingOptions,
+	FallbackHandler,
 	RetryPolicyOptions
 } from "./service-broker";
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
