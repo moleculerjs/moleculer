@@ -2,6 +2,7 @@ import Context = require("./context");
 import ServiceBroker = require("./service-broker");
 import type { Logger } from "./logger-factory";
 import type { CacherKeygen } from "./cachers/base";
+import type { BulkheadOptions } from "./middlewares";
 import type { BrokerCircuitBreakerOptions } from "./service-broker";
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 

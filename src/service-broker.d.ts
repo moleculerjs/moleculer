@@ -7,6 +7,7 @@ import type { Base as BaseLogger } from "./loggers";
 import type { Logger } from "./logger-factory";
 import type { MetricRegistry } from "./metrics";
 import type MiddlewareHandler from "./middleware";
+import type { BulkheadOptions } from "./middlewares";
 import type ServiceRegistry from "./registry";
 import type { Base as BaseSerializer } from "./serializers";
 import type Service from "./service";

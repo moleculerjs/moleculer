@@ -82,12 +82,6 @@ export interface HotReloadOptions {
 	modules?: string[];
 }
 
-export interface BulkheadOptions {
-	enabled?: boolean;
-	concurrency?: number;
-	maxQueueSize?: number;
-}
-
 export interface ActionHooks {
 	before?: string | ActionHookBefore | (string | ActionHookBefore)[];
 	after?: string | ActionHookAfter | (string | ActionHookAfter)[];
