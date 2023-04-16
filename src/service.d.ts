@@ -3,6 +3,7 @@ import ServiceBroker = require("./service-broker");
 import type { Logger } from "./logger-factory";
 import type { CacherKeygen } from "./cachers/base";
 import type { BrokerCircuitBreakerOptions } from "./service-broker";
+import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
 	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
@@ -181,6 +182,23 @@ declare namespace Service {
 		tracking?: boolean;
 		paramsCloning?: boolean;
 		caller?: string;
+	}
+
+	export type TracingSpanNameOption = string | ((ctx: Context) => string);
+
+	export interface TracingOptions {
+		enabled?: boolean;
+		tags?: TracingActionTags | TracingEventTags;
+		spanName?: TracingSpanNameOption;
+		safetyTags?: boolean;
+	}
+
+	export interface TracingActionOptions extends TracingOptions {
+		tags?: TracingActionTags;
+	}
+
+	export interface TracingEventOptions extends TracingOptions {
+		tags?: TracingEventTags;
 	}
 }
 

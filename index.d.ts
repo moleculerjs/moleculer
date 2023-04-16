@@ -82,23 +82,6 @@ export interface HotReloadOptions {
 	modules?: string[];
 }
 
-export type TracingSpanNameOption = string | ((ctx: Context) => string);
-
-export interface TracingOptions {
-	enabled?: boolean;
-	tags?: TracingActionTags | TracingEventTags;
-	spanName?: TracingSpanNameOption;
-	safetyTags?: boolean;
-}
-
-export interface TracingActionOptions extends TracingOptions {
-	tags?: TracingActionTags;
-}
-
-export interface TracingEventOptions extends TracingOptions {
-	tags?: TracingEventTags;
-}
-
 export interface BulkheadOptions {
 	enabled?: boolean;
 	concurrency?: number;
