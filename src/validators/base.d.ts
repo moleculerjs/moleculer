@@ -6,7 +6,7 @@ declare namespace BaseValidator {
 
 	export interface ValidatorOptions {
 		type: string;
-		options?: GenericObject;
+		options?: Record<string, any>;
 	}
 }
 declare abstract class BaseValidator {

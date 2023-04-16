@@ -15,6 +15,8 @@ import type { Tracer } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
 import type BrokerNode = require("./registry/node");
+import type ActionEndpoint = require("./registry/endpoint-action");
+import type EventEndpoint = require("./registry/endpoint-event");
 import BaseDiscoverer = require("./registry/discoverers/base");
 
 declare namespace ServiceBroker {

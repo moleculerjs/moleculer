@@ -221,16 +221,6 @@ export interface MCallDefinition<P extends GenericObject = GenericObject>
 	options?: CallingOptions;
 }
 
-export interface ActionEndpoint extends Endpoint {
-	service: Service;
-	action: ActionSchema;
-}
-
-export interface EventEndpoint extends Endpoint {
-	service: Service;
-	event: EventSchema;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
