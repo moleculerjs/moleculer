@@ -76,19 +76,6 @@ export interface LoggerBindings {
 	ver: string | void;
 }
 
-export interface RegistryDiscovererOptions {
-	type: string;
-	options: DiscovererOptions;
-}
-
-export interface DiscovererOptions extends Record<string, any> {
-	heartbeatInterval?: number;
-	heartbeatTimeout?: number;
-	disableHeartbeatChecks?: boolean;
-	disableOfflineNodeRemoving?: boolean;
-	cleanOfflineNodesTimeout?: number;
-}
-
 export interface ContextParentSpan {
 	id: string;
 	traceID: string;

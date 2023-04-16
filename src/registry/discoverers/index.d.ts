@@ -9,3 +9,4 @@ export {
 	Etcd3Discoverer as Etcd3,
 	RedisDiscoverer as Redis
 };
+export { RegistryDiscovererOptions } from "./base";

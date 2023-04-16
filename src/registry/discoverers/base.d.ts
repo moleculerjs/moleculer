@@ -10,6 +10,11 @@ declare namespace BaseDiscoverer {
 		disableOfflineNodeRemoving?: boolean;
 		cleanOfflineNodesTimeout?: number;
 	}
+
+	export interface RegistryDiscovererOptions {
+		type: string;
+		options: DiscovererOptions;
+	}
 }
 
 declare abstract class BaseDiscoverer {

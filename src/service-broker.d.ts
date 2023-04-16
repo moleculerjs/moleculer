@@ -13,6 +13,7 @@ import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
 import type { Middleware, MiddlewareCallHandlerOptions } from "./middleware";
 import type { BulkheadOptions } from "./middlewares";
 import type ServiceRegistry from "./registry";
+import type { Base as BaseDiscoverer, RegistryDiscovererOptions } from "./registry/discoverers";
 import type { Base as BaseSerializer } from "./serializers";
 import type { ActionHandler, ServiceSchema } from "./service";
 import type { Tracer, TracerOptions } from "./tracing";
@@ -23,7 +24,6 @@ import type MiddlewareHandler = require("./middleware");
 import type BrokerNode = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
-import BaseDiscoverer = require("./registry/discoverers/base");
 import type Service = require("./service");
 
 declare namespace ServiceBroker {
