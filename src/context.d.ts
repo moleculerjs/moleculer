@@ -1,8 +1,15 @@
+import type { BulkheadOptions } from "./middlewares";
 import Endpoint from "./registry/endpoint";
 import ServiceBroker from "./service-broker";
 import Service from "./service";
 import Span from "./tracing/span";
-import type { ActionSchema, CallingOptions } from "./service";
+import type {
+	ActionHandler,
+	ActionParams,
+	ActionSchema,
+	CallingOptions,
+	TracingEventOptions
+} from "./service";
 
 declare namespace Context {
 	export interface EventSchema {
