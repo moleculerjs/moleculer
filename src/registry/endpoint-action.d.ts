@@ -1,7 +1,8 @@
+import Endpoint = require("./endpoint");
 import type Service = require("../service");
 import type { ActionSchema } from "../service";
 
-declare class ActionEndpoint {
+declare class ActionEndpoint extends Endpoint {
 	service: Service;
 	action: ActionSchema;
 }
