@@ -4,6 +4,21 @@ import Service from "./service";
 import Span from "./tracing/span";
 import type { ActionSchema, CallingOptions } from "./service";
 
+declare namespace Context {
+	export interface EventSchema {
+		name?: string;
+		group?: string;
+		params?: ActionParams;
+		service?: Service;
+		tracing?: boolean | TracingEventOptions;
+		bulkhead?: BulkheadOptions;
+		handler?: ActionHandler;
+		context?: boolean;
+
+		[key: string]: any;
+	}
+}
+
 declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>> {
 	static create(
 		broker: ServiceBroker,
@@ -23,7 +38,7 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	action: ActionSchema | null;
 
-	event: EventSchema | null;
+	event: Context.EventSchema | null;
 
 	service: Service | null;
 

@@ -88,19 +88,6 @@ export interface ActionHooks {
 	error?: string | ActionHookError | (string | ActionHookError)[];
 }
 
-export interface EventSchema {
-	name?: string;
-	group?: string;
-	params?: ActionParams;
-	service?: Service;
-	tracing?: boolean | TracingEventOptions;
-	bulkhead?: BulkheadOptions;
-	handler?: ActionHandler;
-	context?: boolean;
-
-	[key: string]: any;
-}
-
 export type CallMiddlewareHandler = (
 	actionName: string,
 	params: any,
