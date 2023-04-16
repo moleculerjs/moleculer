@@ -122,6 +122,12 @@ declare namespace Service {
 	export type ActionHookAfter = (ctx: Context<any, any>, res: any) => Promise<any> | any;
 	export type ActionHookError = (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 
+	export interface ActionHooks {
+		before?: string | ActionHookBefore | (string | ActionHookBefore)[];
+		after?: string | ActionHookAfter | (string | ActionHookAfter)[];
+		error?: string | ActionHookError | (string | ActionHookError)[];
+	}
+
 	export interface ServiceHooksBefore {
 		[key: string]: string | ActionHookBefore | (string | ActionHookBefore)[];
 	}

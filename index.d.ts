@@ -82,12 +82,6 @@ export interface HotReloadOptions {
 	modules?: string[];
 }
 
-export interface ActionHooks {
-	before?: string | ActionHookBefore | (string | ActionHookBefore)[];
-	after?: string | ActionHookAfter | (string | ActionHookAfter)[];
-	error?: string | ActionHookError | (string | ActionHookError)[];
-}
-
 export type CallMiddlewareHandler = (
 	actionName: string,
 	params: any,
