@@ -10,12 +10,12 @@ import type {
 import type { Base as BaseLogger, LogLevels } from "./loggers";
 import type { Logger, LoggerConfig } from "./logger-factory";
 import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
-import type { MiddlewareCallHandlerOptions } from "./middleware";
+import type { Middleware, MiddlewareCallHandlerOptions } from "./middleware";
 import type { BulkheadOptions } from "./middlewares";
 import type ServiceRegistry from "./registry";
 import type { Base as BaseSerializer } from "./serializers";
 import type { ActionHandler, ServiceSchema } from "./service";
-import type { Tracer } from "./tracing";
+import type { Tracer, TracerOptions } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseTransporter } from "./transporters";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
