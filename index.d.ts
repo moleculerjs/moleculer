@@ -2,12 +2,13 @@ import type { EventEmitter2 } from "eventemitter2";
 
 import ServiceBroker = require("./src/service-broker");
 export { ServiceBroker };
-export type { ServiceBrokerOptions } from "./src/service-broker";
+export type { ServiceBrokerOptions, CallingOptions } from "./src/service-broker";
 
 import Service = require("./src/service");
 export { Service };
 export type {
 	ActionHooks,
+	ActionHandler,
 	ServiceHooks,
 	ServiceHooksAfter,
 	ServiceSchema,
@@ -24,6 +25,7 @@ export type { LogLevels } from "./src/loggers";
 export type { Logger, LoggerConfig } from "./src/logger-factory";
 
 export * as Cachers from "./src/cachers";
+export type { RedisCacherOptions } from "./src/cachers";
 
 export * as Transporters from "./src/transporters";
 
@@ -64,3 +66,5 @@ export type {
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
+
+export type { CallMiddlewareHandler } from "./src/middleware";

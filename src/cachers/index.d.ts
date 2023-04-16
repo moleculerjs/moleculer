@@ -9,3 +9,4 @@ export {
 	MemoryLRUCacher as MemoryLRU,
 	RedisCacher as Redis
 };
+export type { RedisCacherOptions } from "./redis";
