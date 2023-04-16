@@ -56,12 +56,6 @@ export type {
 	CIRCUIT_OPEN
 } from "./src/constants";
 
-export interface ContextParentSpan {
-	id: string;
-	traceID: string;
-	sampled: boolean;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];

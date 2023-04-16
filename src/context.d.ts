@@ -19,6 +19,12 @@ declare namespace Context {
 
 		[key: string]: any;
 	}
+
+	export interface ContextParentSpan {
+		id: string;
+		traceID: string;
+		sampled: boolean;
+	}
 }
 
 declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>> {

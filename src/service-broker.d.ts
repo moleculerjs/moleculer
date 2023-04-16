@@ -1,7 +1,7 @@
 import type { EventEmitter2 } from "eventemitter2";
 import type AsyncStorage from "./async-storage";
 import type { Base as BaseCacher } from "./cachers";
-import type Context from "./context";
+import type { ContextParentSpan } from "./context";
 import type {
 	Regenerator as ErrorRegenerator,
 	MoleculerError,
@@ -20,6 +20,7 @@ import type { Tracer, TracerOptions } from "./tracing";
 import type Transit from "./transit";
 import type { Base as BaseTransporter } from "./transporters";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
+import type Context = require("./context");
 import type MiddlewareHandler = require("./middleware");
 import type BrokerNode = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
