@@ -76,17 +76,6 @@ export interface LoggerBindings {
 	ver: string | void;
 }
 
-export type CheckRetryable = (err: MoleculerError | Error) => boolean;
-
-export interface RetryPolicyOptions {
-	enabled?: boolean;
-	retries?: number;
-	delay?: number;
-	maxDelay?: number;
-	factor?: number;
-	check?: CheckRetryable;
-}
-
 export interface RegistryDiscovererOptions {
 	type: string;
 	options: DiscovererOptions;

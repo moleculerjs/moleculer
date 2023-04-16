@@ -2,7 +2,11 @@ import type { EventEmitter2 } from "eventemitter2";
 import type AsyncStorage from "./async-storage";
 import type { Base as BaseCacher } from "./cachers";
 import type Context from "./context";
-import type { Regenerator as ErrorRegenerator, MoleculerRetryableError } from "./errors";
+import type {
+	Regenerator as ErrorRegenerator,
+	MoleculerError,
+	MoleculerRetryableError
+} from "./errors";
 import type { Base as BaseLogger, LogLevels } from "./loggers";
 import type { Logger, LoggerConfig } from "./logger-factory";
 import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
@@ -194,6 +198,17 @@ declare namespace ServiceBroker {
 			iso: string;
 			utc: string;
 		};
+	}
+
+	export type CheckRetryable = (err: MoleculerError | Error) => boolean;
+
+	export interface RetryPolicyOptions {
+		enabled?: boolean;
+		retries?: number;
+		delay?: number;
+		maxDelay?: number;
+		factor?: number;
+		check?: CheckRetryable;
 	}
 }
 
