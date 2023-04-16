@@ -3,6 +3,11 @@ import type { ActionHandler, ActionSchema } from "../service";
 
 declare namespace BaseValidator {
 	export type ValidatorNames = "Fastest";
+
+	export interface ValidatorOptions {
+		type: string;
+		options?: GenericObject;
+	}
 }
 declare abstract class BaseValidator {
 	constructor();

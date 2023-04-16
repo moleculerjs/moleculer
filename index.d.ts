@@ -231,11 +231,6 @@ export interface EventEndpoint extends Endpoint {
 	event: EventSchema;
 }
 
-export interface ValidatorOptions {
-	type: string;
-	options?: GenericObject;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];

@@ -13,7 +13,7 @@ import type { Base as BaseSerializer } from "./serializers";
 import type Service, { ServiceSchema } from "./service";
 import type { Tracer } from "./tracing";
 import type Transit from "./transit";
-import type { Base as BaseValidator, ValidatorNames } from "./validators";
+import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
 import type BrokerNode = require("./registry/node");
 import BaseDiscoverer = require("./registry/discoverers/base");
 
