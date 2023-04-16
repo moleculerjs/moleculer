@@ -122,6 +122,11 @@ declare namespace ServiceBroker {
 	export interface PongResponses {
 		[name: string]: PongResponse;
 	}
+
+	export interface ServiceSearchObj {
+		name: string;
+		version?: string | number;
+	}
 }
 
 declare class ServiceBroker {
@@ -218,12 +223,12 @@ declare class ServiceBroker {
 
 	createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 
-	destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
+	destroyService(service: Service | string | ServiceBroker.ServiceSearchObj): Promise<void>;
 
-	getLocalService(name: string | ServiceSearchObj): Service;
+	getLocalService(name: string | ServiceBroker.ServiceSearchObj): Service;
 
 	waitForServices(
-		serviceNames: string | string[] | ServiceSearchObj[],
+		serviceNames: string | string[] | ServiceBroker.ServiceSearchObj[],
 		timeout?: number,
 		interval?: number,
 		logger?: Logger

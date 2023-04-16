@@ -231,11 +231,6 @@ export interface EventEndpoint extends Endpoint {
 	event: EventSchema;
 }
 
-export interface ServiceSearchObj {
-	name: string;
-	version?: string | number;
-}
-
 export interface ValidatorOptions {
 	type: string;
 	options?: GenericObject;
