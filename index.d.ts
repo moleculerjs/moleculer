@@ -257,13 +257,6 @@ export interface ValidatorOptions {
 	options?: GenericObject;
 }
 
-export interface ActionCatalogListOptions {
-	onlyLocal?: boolean;
-	onlyAvailable?: boolean;
-	skipInternal?: boolean;
-	withEndpoints?: boolean;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
