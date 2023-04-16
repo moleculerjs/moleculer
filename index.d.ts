@@ -9,6 +9,8 @@ export { Service };
 export type {
 	ActionHooks,
 	ActionHandler,
+	ActionParams,
+	ActionVisibility,
 	ServiceHooks,
 	ServiceHooksAfter,
 	ServiceSchema,
@@ -69,4 +71,4 @@ export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];
 
-export type { CallMiddlewareHandler } from "./src/middleware";
+export type { CallMiddlewareHandler, Middleware } from "./src/middleware";
