@@ -1,15 +1,10 @@
 import type { BulkheadOptions } from "./middlewares";
 import Endpoint from "./registry/endpoint";
-import ServiceBroker from "./service-broker";
+import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
 import Service from "./service";
 import Span from "./tracing/span";
-import type {
-	ActionHandler,
-	ActionParams,
-	ActionSchema,
-	CallingOptions,
-	TracingEventOptions
-} from "./service";
+import type { ActionHandler, ActionParams, ActionSchema, TracingEventOptions } from "./service";
+import type ServiceBroker = require("./service-broker");
 
 declare namespace Context {
 	export interface EventSchema {

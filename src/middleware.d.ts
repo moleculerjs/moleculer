@@ -1,4 +1,5 @@
 import type { ActionHandler, ActionSchema, ServiceEvent } from "./service";
+import type { CallingOptions } from "./service-broker";
 import type Service = require("./service");
 import type ServiceBroker = require("./service-broker");
 

@@ -210,6 +210,38 @@ declare namespace ServiceBroker {
 		factor?: number;
 		check?: CheckRetryable;
 	}
+
+	export type FallbackHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
+	export type FallbackResponse = string | number | Record<string, any>;
+	export type FallbackResponseHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
+
+	export interface CallingOptions {
+		timeout?: number;
+		retries?: number;
+		fallbackResponse?: FallbackResponse | FallbackResponse[] | FallbackResponseHandler;
+		nodeID?: string;
+		meta?: Record<string, any>;
+		parentSpan?: ContextParentSpan;
+		parentCtx?: Context;
+		requestID?: string;
+		tracking?: boolean;
+		paramsCloning?: boolean;
+		caller?: string;
+	}
+
+	export interface MCallCallingOptions extends CallingOptions {
+		settled?: boolean;
+	}
+
+	export interface CallDefinition<P extends Record<string, any> = Record<string, any>> {
+		action: string;
+		params: P;
+	}
+
+	export interface MCallDefinition<P extends Record<string, any> = Record<string, any>>
+		extends CallDefinition<P> {
+		options?: CallingOptions;
+	}
 }
 
 declare class ServiceBroker {
@@ -327,14 +359,17 @@ declare class ServiceBroker {
 	call<TReturn, TParams>(
 		actionName: string,
 		params: TParams,
-		opts?: CallingOptions
+		opts?: ServiceBroker.CallingOptions
 	): Promise<TReturn>;
 
 	mcall<TReturn>(
-		def: Record<string, MCallDefinition>,
-		opts?: MCallCallingOptions
+		def: Record<string, ServiceBroker.MCallDefinition>,
+		opts?: ServiceBroker.MCallCallingOptions
 	): Promise<Record<string, TReturn>>;
-	mcall<TReturn>(def: MCallDefinition[], opts?: MCallCallingOptions): Promise<TReturn[]>;
+	mcall<TReturn>(
+		def: ServiceBroker.MCallDefinition[],
+		opts?: ServiceBroker.MCallCallingOptions
+	): Promise<TReturn[]>;
 
 	emit<TData>(eventName: string, data: TData, opts: Record<string, any>): Promise<void>;
 	emit<TData>(eventName: string, data: TData, groups: string[]): Promise<void>;

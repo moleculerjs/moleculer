@@ -62,20 +62,6 @@ export interface ContextParentSpan {
 	sampled: boolean;
 }
 
-export interface MCallCallingOptions extends CallingOptions {
-	settled?: boolean;
-}
-
-export interface CallDefinition<P extends Record<string, any> = Record<string, any>> {
-	action: string;
-	params: P;
-}
-
-export interface MCallDefinition<P extends Record<string, any> = Record<string, any>>
-	extends CallDefinition<P> {
-	options?: CallingOptions;
-}
-
 export declare const MOLECULER_VERSION: string;
 export declare const PROTOCOL_VERSION: string;
 export declare const INTERNAL_MIDDLEWARES: string[];

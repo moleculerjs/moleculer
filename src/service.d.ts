@@ -4,7 +4,11 @@ import type { MoleculerError } from "./errors";
 import type { Logger } from "./logger-factory";
 import type { CacherKeygen } from "./cachers/base";
 import type { BulkheadOptions } from "./middlewares";
-import type { BrokerCircuitBreakerOptions, RetryPolicyOptions } from "./service-broker";
+import type {
+	BrokerCircuitBreakerOptions,
+	CallingOptions,
+	RetryPolicyOptions
+} from "./service-broker";
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
@@ -172,24 +176,6 @@ declare namespace Service {
 	export interface WaitForServicesResult {
 		services: string[];
 		statuses: { name: string; available: boolean }[];
-	}
-
-	export type FallbackHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
-	export type FallbackResponse = string | number | Record<string, any>;
-	export type FallbackResponseHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
-
-	export interface CallingOptions {
-		timeout?: number;
-		retries?: number;
-		fallbackResponse?: FallbackResponse | FallbackResponse[] | FallbackResponseHandler;
-		nodeID?: string;
-		meta?: Record<string, any>;
-		parentSpan?: ContextParentSpan;
-		parentCtx?: Context;
-		requestID?: string;
-		tracking?: boolean;
-		paramsCloning?: boolean;
-		caller?: string;
 	}
 
 	export type TracingSpanNameOption = string | ((ctx: Context) => string);
