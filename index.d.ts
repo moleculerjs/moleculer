@@ -231,16 +231,6 @@ export interface EventEndpoint extends Endpoint {
 	event: EventSchema;
 }
 
-export interface PongResponse {
-	nodeID: string;
-	elapsedTime: number;
-	timeDiff: number;
-}
-
-export interface PongResponses {
-	[name: string]: PongResponse;
-}
-
 export interface ServiceSearchObj {
 	name: string;
 	version?: string | number;

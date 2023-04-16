@@ -112,6 +112,16 @@ declare namespace ServiceBroker {
 		halfOpenTime?: number;
 		check?: CheckRetryable;
 	}
+
+	export interface PongResponse {
+		nodeID: string;
+		elapsedTime: number;
+		timeDiff: number;
+	}
+
+	export interface PongResponses {
+		[name: string]: PongResponse;
+	}
 }
 
 declare class ServiceBroker {
@@ -256,8 +266,8 @@ declare class ServiceBroker {
 	broadcastLocal<TData>(eventName: string, data: TData): Promise<void>;
 	broadcastLocal(eventName: string): Promise<void>;
 
-	ping(): Promise<PongResponses>;
-	ping(nodeID: string | string[], timeout?: number): Promise<PongResponse>;
+	ping(): Promise<ServiceBroker.PongResponses>;
+	ping(nodeID: string | string[], timeout?: number): Promise<ServiceBroker.PongResponse>;
 
 	getHealthStatus(): NodeHealthStatus;
 
