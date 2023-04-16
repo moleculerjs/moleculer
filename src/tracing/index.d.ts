@@ -1,4 +1,5 @@
+import Span = require("./span");
 import Tracer = require("./tracer");
 
-export { Tracer };
+export { Span, Tracer };
 export { type TracerOptions } from "./tracer";

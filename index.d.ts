@@ -36,6 +36,7 @@ export * as Strategies from "./src/strategies";
 export * as Validators from "./src/validators";
 export type { ValidatorNames } from "./src/validators";
 
+export type { Span, TracerOptions } from "./src/tracing";
 export * as TracerExporters from "./src/tracing/exporters";
 
 export * as MetricTypes from "./src/metrics/types";
@@ -49,6 +50,7 @@ export { Transit };
 
 import Registry = require("./src/registry");
 export { Registry };
+export type { Endpoint } from "./src/registry/endpoint";
 
 export * as Discoverers from "./src/registry/discoverers";
 
