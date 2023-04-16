@@ -68,8 +68,6 @@ export type {
  *   }
  */
 
-export type GenericObject = { [name: string]: any };
-
 export interface LoggerBindings {
 	nodeID: string;
 	ns: string;
@@ -134,7 +132,7 @@ export interface RegistryDiscovererOptions {
 	options: DiscovererOptions;
 }
 
-export interface DiscovererOptions extends GenericObject {
+export interface DiscovererOptions extends Record<string, any> {
 	heartbeatInterval?: number;
 	heartbeatTimeout?: number;
 	disableHeartbeatChecks?: boolean;
@@ -211,12 +209,12 @@ export interface MCallCallingOptions extends CallingOptions {
 	settled?: boolean;
 }
 
-export interface CallDefinition<P extends GenericObject = GenericObject> {
+export interface CallDefinition<P extends Record<string, any> = Record<string, any>> {
 	action: string;
 	params: P;
 }
 
-export interface MCallDefinition<P extends GenericObject = GenericObject>
+export interface MCallDefinition<P extends Record<string, any> = Record<string, any>>
 	extends CallDefinition<P> {
 	options?: CallingOptions;
 }
