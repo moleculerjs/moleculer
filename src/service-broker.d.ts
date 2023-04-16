@@ -139,6 +139,61 @@ declare namespace ServiceBroker {
 	export interface LogLevelConfig {
 		[module: string]: boolean | LogLevels;
 	}
+
+	export interface BrokerTransitOptions {
+		maxQueueSize?: number;
+		disableReconnect?: boolean;
+		disableVersionCheck?: boolean;
+		maxChunkSize?: number;
+	}
+
+	export interface BrokerTrackingOptions {
+		enabled?: boolean;
+		shutdownTimeout?: number;
+	}
+
+	export interface NodeHealthStatus {
+		cpu: {
+			load1: number;
+			load5: number;
+			load15: number;
+			cores: number;
+			utilization: number;
+		};
+		mem: {
+			free: number;
+			total: number;
+			percent: number;
+		};
+		os: {
+			uptime: number;
+			type: string;
+			release: string;
+			hostname: string;
+			arch: string;
+			platform: string;
+			user: string;
+		};
+		process: {
+			pid: NodeJS.Process["pid"];
+			memory: NodeJS.MemoryUsage;
+			uptime: number;
+			argv: string[];
+		};
+		client: {
+			type: string;
+			version: string;
+			langVersion: NodeJS.Process["version"];
+		};
+		net: {
+			ip: string[];
+		};
+		time: {
+			now: number;
+			iso: string;
+			utc: string;
+		};
+	}
 }
 
 declare class ServiceBroker {
@@ -286,7 +341,7 @@ declare class ServiceBroker {
 	ping(): Promise<ServiceBroker.PongResponses>;
 	ping(nodeID: string | string[], timeout?: number): Promise<ServiceBroker.PongResponse>;
 
-	getHealthStatus(): NodeHealthStatus;
+	getHealthStatus(): ServiceBroker.NodeHealthStatus;
 
 	getLocalNodeInfo(): BrokerNode;
 
