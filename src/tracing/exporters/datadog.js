@@ -157,17 +157,10 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		sc._traceId = this.convertID(span.traceID);
 		sc._spanId = this.convertID(span.id);
 
-		// Activate span in Datadog tracer
-		const asyncId = asyncHooks.executionAsyncId();
-		this.ddScope._spans = this.ddScope._spans || {};
-		const oldSpan = this.ddScope._spans[asyncId];
-
-		this.ddScope._spans[asyncId] = ddSpan;
+		this.ddTracer.scope()._enter(ddSpan);
 
 		span.meta.datadog = {
-			span: ddSpan,
-			asyncId,
-			oldSpan
+			span: ddSpan
 		};
 	}
 
@@ -192,12 +185,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		this.addLogs(ddSpan, span.logs);
 
 		ddSpan.finish(span.finishTime);
-
-		if (item.oldSpan) {
-			this.ddScope._spans[item.asyncId] = item.oldSpan;
-		} else {
-			delete this.ddScope._spans[item.asyncId];
-		}
+		this.ddTracer.scope()._exit(ddSpan);
 	}
 
 	/**

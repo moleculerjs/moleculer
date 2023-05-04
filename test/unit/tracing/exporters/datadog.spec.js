@@ -11,10 +11,13 @@ const DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/s
 const DatadogID = require("dd-trace/packages/dd-trace/src/id");
 const ddTrace = require("dd-trace");
 
+let fakeSpans = [];
+
 const fakeTracerScope = {
-	_spans: {},
+	_enter: jest.fn(span => fakeSpans.push(span)),
+	_exit: jest.fn(() => fakeSpans.pop()),
 	_destroy: jest.fn(),
-	active: jest.fn(() => fakeDdSpan)
+	active: jest.fn(() => fakeSpans[fakeSpans.length - 1])
 };
 
 const fakeSpanContext = {
@@ -44,6 +47,10 @@ const { MoleculerRetryableError } = require("../../../../src/errors");
 const broker = new ServiceBroker({ logger: false });
 
 describe("Test Datadog tracing exporter class", () => {
+	beforeEach(() => {
+		fakeSpans = [fakeDdSpan]; // existing tests expect this to be the "base" span
+	});
+
 	describe("Test Constructor", () => {
 		it("should create with default options", () => {
 			const exporter = new DatadogTraceExporter();
@@ -255,9 +262,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeSpanContext._spanId.toString()).toEqual("abc1234567890123");
 
 			expect(span.meta.datadog).toEqual({
-				span: fakeDdSpan,
-				asyncId: asyncHooks.executionAsyncId(),
-				oldSpan: undefined
+				span: fakeDdSpan
 			});
 		});
 
@@ -269,8 +274,8 @@ describe("Test Datadog tracing exporter class", () => {
 			exporter.convertID = jest.fn(id => id);
 			exporter.opts.env = "testing";
 
-			const fakeOldSpan = { name: "old-span" };
-			fakeTracerScope._spans[asyncHooks.executionAsyncId()] = fakeOldSpan;
+			const fakeOldSpan = { name: "old-span", context: jest.fn() };
+			fakeTracerScope._enter(fakeOldSpan);
 
 			const span = {
 				name: "Test Span",
@@ -344,9 +349,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeSpanContext._spanId.toString()).toEqual("aaa-12345678901234567890");
 
 			expect(span.meta.datadog).toEqual({
-				span: fakeDdSpan,
-				asyncId: asyncHooks.executionAsyncId(),
-				oldSpan: fakeOldSpan
+				span: fakeDdSpan
 			});
 		});
 	});
@@ -359,7 +362,8 @@ describe("Test Datadog tracing exporter class", () => {
 				errorFields: ["name", "message", "retryable", "data", "code"]
 			},
 			getCurrentTraceID: jest.fn(),
-			getActiveSpanID: jest.fn()
+			getActiveSpanID: jest.fn(),
+			...fakeDdTracer
 		};
 		const exporter = new DatadogTraceExporter({
 			defaultTags: {
@@ -380,9 +384,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 				meta: {
 					datadog: {
-						span: fakeDdSpan,
-						asyncId: asyncHooks.executionAsyncId(),
-						oldSpan: undefined
+						span: fakeDdSpan
 					}
 				}
 			};
@@ -404,8 +406,8 @@ describe("Test Datadog tracing exporter class", () => {
 			exporter.addTags = jest.fn();
 			exporter.addLogs = jest.fn();
 
-			const fakeOldSpan = { name: "old-span" };
-			fakeTracerScope._spans[asyncHooks.executionAsyncId()] = null;
+			const fakeOldSpan = { name: "old-span", context: jest.fn() };
+			fakeTracerScope._enter(fakeOldSpan);
 
 			const err = new MoleculerRetryableError("Something happened", 512, "SOMETHING", {
 				a: 5
@@ -420,12 +422,12 @@ describe("Test Datadog tracing exporter class", () => {
 
 				meta: {
 					datadog: {
-						span: fakeDdSpan,
-						asyncId: asyncHooks.executionAsyncId(),
-						oldSpan: fakeOldSpan
+						span: fakeDdSpan
 					}
 				}
 			};
+
+			fakeTracerScope._enter(span);
 
 			exporter.spanFinished(span);
 
@@ -444,7 +446,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeDdSpan.finish).toHaveBeenCalledTimes(1);
 			expect(fakeDdSpan.finish).toHaveBeenCalledWith(1050);
 
-			expect(fakeTracerScope._spans[asyncHooks.executionAsyncId()]).toBe(fakeOldSpan);
+			expect(exporter.tracer.scope().active()).toBe(fakeOldSpan);
 
 			expect(fakeTracerScope._destroy).toHaveBeenCalledTimes(0);
 		});
@@ -603,6 +605,7 @@ describe("Test Datadog tracing exporter class", () => {
 		});
 
 		it("should retun with the original traceID", () => {
+			fakeTracerScope.active.mockClear();
 			fakeDdSpan.context.mockClear();
 			let oldGetCurrentTraceID = jest.fn();
 			const fakeTracer = {
