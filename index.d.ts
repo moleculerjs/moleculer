@@ -21,8 +21,8 @@ declare namespace Moleculer {
 		constructor(broker: ServiceBroker);
 		init(opts: LoggerConfig | LoggerConfig[]): void;
 		stop(): void;
-		getLogger(bindings: GenericObject): LoggerInstance;
-		getBindingsKey(bindings: GenericObject): string;
+		getLogger(bindings: LoggerBindings): LoggerInstance;
+		getBindingsKey(bindings: LoggerBindings): string;
 
 		broker: ServiceBroker;
 	}
@@ -32,7 +32,7 @@ declare namespace Moleculer {
 		ns: string;
 		mod: string;
 		svc: string;
-		ver: string | void;
+		ver?: string;
 	}
 
 	class LoggerInstance {
@@ -1165,12 +1165,14 @@ declare namespace Moleculer {
 	}
 
 	namespace Loggers {
+		type LogHandler = (level: LogLevels, args: unknown[]) => void;
+
 		class Base {
 			constructor(opts?: GenericObject);
 			init(loggerFactory: LoggerFactory): void;
 			stop(): void;
-			getLogLevel(mod: string): string;
-			getLogHandler(bindings: GenericObject): GenericObject;
+			getLogLevel(mod: string): LogLevels | null;
+			getLogHandler(bindings?: LoggerBindings): LogHandler | null;
 		}
 	}
 
