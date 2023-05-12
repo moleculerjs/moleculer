@@ -3,10 +3,9 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const fs = require("fs");
-const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
-const Middlewares = require("..").Middlewares;
 
 const ServiceBroker = require("../src/service-broker");
+const { randomInt } = require("../src/utils");
 
 // Create broker
 const broker = new ServiceBroker({
@@ -127,27 +126,9 @@ broker.createService({
 		setInterval(() => {
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ /*, someData*/ });
-
-			//broker.ping("server").then(res => broker.logger.info(res));
 		}, 5000);
 	}
 });
-/*
-broker.createService({
-	name: "math",
-	actions: {
-		add(ctx) {
-			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
-			if (_.random(100) > 70)
-				return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
-
-			return {
-				count: ctx.params.count,
-				res: Number(ctx.params.a) + Number(ctx.params.b)
-			};
-		},
-	}
-});*/
 
 let reqCount = 0;
 let pendingReqs = [];
@@ -158,12 +139,6 @@ broker
 	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {
-			/* Overload protection
-			if (broker.transit.pendingRequests.size > 10) {
-				broker.logger.warn(kleur.yellow().bold(`Queue is big (${broker.transit.pendingRequests.size})! Waiting...`));
-				return;
-			}*/
-
 			let pendingInfo = "";
 			if (pendingReqs.length > 10) {
 				pendingInfo = ` [${pendingReqs.slice(0, 10).join(",")}] + ${
@@ -173,7 +148,7 @@ broker
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
 
-			const payload = { a: _.random(0, 10), b: _.random(0, 10) };
+			const payload = { a: randomInt(0, 10), b: randomInt(0, 10) };
 			const count = ++reqCount;
 			pendingReqs.push(count);
 			let p = broker.call("math.add", payload, { meta: { count } });

@@ -1,5 +1,6 @@
-const ServiceBroker = require("../src/service-broker");
 const _ = require("lodash");
+const ServiceBroker = require("../src/service-broker");
+const { randomInt } = require("../src/utils");
 
 function createBroker(opts) {
 	const broker = new ServiceBroker(
@@ -38,8 +39,7 @@ function createBroker(opts) {
 						vnodes: 12
 					},
 					handler(ctx) {
-						//this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
-						return 20 + _.random(60);
+						return 20 + randomInt(60);
 					}
 				}
 			}
@@ -69,7 +69,7 @@ async function start() {
 	const usernames = ["john", "bob", "adam", "steve", "mark"];
 
 	setInterval(async () => {
-		const name = usernames[_.random(usernames.length - 1)];
+		const name = usernames[randomInt(usernames.length - 1)];
 		await main.call("users.getAge", { name });
 	}, 1000);
 }

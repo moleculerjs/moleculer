@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
-const { removeFromArray } = require("../../utils");
+const { removeFromArray, randomInt } = require("../../utils");
 const P = require("../../packets");
 const C = require("../../constants");
 
@@ -43,7 +43,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 		});
 
 		// Loop counter for full checks. Starts from a random value for better distribution
-		this.idx = this.opts.fullCheck > 1 ? _.random(this.opts.fullCheck - 1) : 0;
+		this.idx = this.opts.fullCheck > 1 ? randomInt(this.opts.fullCheck - 1) : 0;
 
 		// Etcd client instance
 		this.client = null;

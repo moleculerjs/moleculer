@@ -15,7 +15,7 @@ const ServiceBroker = require("../src/service-broker");
 
 const { MoleculerError } = require("../src/errors");
 const _ = require("lodash");
-const { inspect } = require("util");
+const { randomInt } = require("../src/utils");
 
 const THROW_ERR = false;
 
@@ -244,7 +244,6 @@ broker.createService({
 			},
 			async handler(ctx) {
 				const span1 = ctx.startSpan("Fake delay");
-				//await this.Promise.delay(10 + _.random(30));
 				ctx.finishSpan(span1);
 				return ctx.params.postID * 3;
 			}
@@ -265,7 +264,7 @@ broker.createService({
 						userID: ctx.params.userID
 					});
 
-				await this.Promise.delay(_.random(10));
+				await this.Promise.delay(randomInt(10));
 				return ctx.params.userID * 3;
 			}
 		}
@@ -280,7 +279,6 @@ broker.createService({
 		count: {
 			tracing: true,
 			async handler(ctx) {
-				//await this.Promise.delay(_.random(50));
 				return Math.round(Math.random() * 10);
 			}
 		}
@@ -295,7 +293,6 @@ broker.createService({
 		count: {
 			tracing: true,
 			async handler(ctx) {
-				//await this.Promise.delay(_.random(50));
 				return Math.round(Math.random() * 10);
 			}
 		}

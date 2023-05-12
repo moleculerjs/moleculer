@@ -10,7 +10,7 @@ const _ = require("lodash");
 const BaseStrategy = require("./base");
 const crypto = require("crypto");
 const LRU = require("lru-cache");
-const { isFunction } = require("../utils");
+const { isFunction, randomInt } = require("../utils");
 
 /**
  * Sharding invocation strategy
@@ -67,7 +67,8 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	select(list, ctx) {
-		let key = this.getKeyFromContext(ctx);
+		const key = this.getKeyFromContext(ctx);
+
 		if (key != null) {
 			if (this.needRebuild) this.rebuild(list);
 
@@ -76,7 +77,7 @@ class ShardStrategy extends BaseStrategy {
 		}
 
 		// Return a random item (no key)
-		return list[_.random(0, list.length - 1)];
+		return list[randomInt(0, list.length - 1)];
 	}
 
 	/**
