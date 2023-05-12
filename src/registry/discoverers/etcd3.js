@@ -256,7 +256,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 			})
 
 			.then(packets => {
-				_.compact(packets).map(packet => {
+				packets.filter(Boolean).map(packet => {
 					if (packet.sender == this.broker.nodeID) return;
 
 					removeFromArray(prevNodes, packet.sender);

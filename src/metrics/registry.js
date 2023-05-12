@@ -65,7 +65,7 @@ class MetricRegistry {
 					? this.opts.reporter
 					: [this.opts.reporter];
 
-				this.reporter = _.compact(reporters).map(r => {
+				this.reporter = reporters.filter(Boolean).map(r => {
 					const reporter = Reporters.resolve(r);
 					reporter.init(this);
 					return reporter;

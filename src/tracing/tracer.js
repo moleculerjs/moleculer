@@ -92,7 +92,7 @@ class Tracer {
 					? this.opts.exporter
 					: [this.opts.exporter];
 
-				this.exporter = _.compact(exporters).map(r => {
+				this.exporter = exporters.filter(Boolean).map(r => {
 					const exporter = Exporters.resolve(r);
 					exporter.init(this);
 					return exporter;

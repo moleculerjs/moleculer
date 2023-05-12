@@ -689,7 +689,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	mergeSchemaUniqArray(src, target) {
-		return _.uniqWith(_.compact(flatten([src, target])), _.isEqual);
+		return _.uniqWith(flatten([src, target]).filter(Boolean), _.isEqual);
 	}
 
 	/**
@@ -720,9 +720,9 @@ class Service {
 				const modHook = wrapToArray(src[k][k2]);
 				const resHook = wrapToArray(target[k][k2]);
 
-				target[k][k2] = _.compact(
-					flatten(k === "before" ? [resHook, modHook] : [modHook, resHook])
-				);
+				target[k][k2] = flatten(
+					k === "before" ? [resHook, modHook] : [modHook, resHook]
+				).filter(Boolean);
 			});
 		});
 
@@ -752,9 +752,9 @@ class Service {
 					const modHook = wrapToArray(srcAction.hooks[k]);
 					const resHook = wrapToArray(targetAction.hooks[k]);
 
-					srcAction.hooks[k] = _.compact(
-						flatten(k === "before" ? [resHook, modHook] : [modHook, resHook])
-					);
+					srcAction.hooks[k] = flatten(
+						k === "before" ? [resHook, modHook] : [modHook, resHook]
+					).filter(Boolean);
 				});
 			}
 
@@ -789,9 +789,11 @@ class Service {
 			const modEvent = wrapToHandler(src[k]);
 			const resEvent = wrapToHandler(target[k]);
 
-			let handler = _.compact(
-				flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null])
-			);
+			let handler = flatten([
+				resEvent ? resEvent.handler : null,
+				modEvent ? modEvent.handler : null
+			]).filter(Boolean);
+
 			if (handler.length === 1) handler = handler[0];
 
 			target[k] = _.defaultsDeep(modEvent, resEvent);
@@ -810,7 +812,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	mergeSchemaLifecycleHandlers(src, target) {
-		return _.compact(flatten([target, src]));
+		return flatten([target, src]).filter(Boolean);
 	}
 
 	/**

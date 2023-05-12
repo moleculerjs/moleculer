@@ -54,7 +54,7 @@ class LoggerFactory {
 				opts = [opts];
 			}
 
-			this.appenders = _.compact(opts).map(o => {
+			this.appenders = opts.filter(Boolean).map(o => {
 				// Built-in shorthand
 				if (isString(o))
 					return Loggers.resolve({ type: o, options: { level: globalLogLevel } });
@@ -118,7 +118,7 @@ class LoggerFactory {
 		const broker = this.broker;
 		const appenders = this.appenders;
 
-		const logHandlers = _.compact(appenders.map(app => app.getLogHandler(bindings)));
+		const logHandlers = appenders.map(app => app.getLogHandler(bindings)).filter(Boolean);
 		const hasNewLogEntryMiddleware =
 			broker.middlewares && broker.middlewares.registeredHooks.newLogEntry;
 

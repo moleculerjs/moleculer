@@ -281,7 +281,7 @@ class BaseTransporter {
 						);
 					}
 
-					return this.broker.Promise.all(_.compact(flatten(p, true)));
+					return this.broker.Promise.all(flatten(p, true).filter(Boolean));
 				})
 			);
 		});

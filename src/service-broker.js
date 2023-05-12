@@ -350,7 +350,7 @@ class ServiceBroker {
 	registerMiddlewares(userMiddlewares) {
 		// Register user middlewares
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0) {
-			_.compact(userMiddlewares).forEach(mw => this.middlewares.add(mw));
+			userMiddlewares.filter(Boolean).forEach(mw => this.middlewares.add(mw));
 		}
 
 		if (this.options.internalMiddlewares) {
@@ -1024,8 +1024,8 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
 		serviceNames = _.uniq(
-			_.compact(
-				serviceNames.map(x => {
+			serviceNames
+				.map(x => {
 					if (utils.isPlainObject(x) && x.name) {
 						if (Array.isArray(x.version)) {
 							return x.version.map(v =>
@@ -1038,7 +1038,7 @@ class ServiceBroker {
 						return x;
 					}
 				})
-			)
+				.filter(Boolean)
 		);
 
 		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
