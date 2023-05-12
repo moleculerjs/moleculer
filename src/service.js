@@ -662,7 +662,7 @@ class Service {
 			const targetSS = target && target.$secureSettings ? target.$secureSettings : [];
 			if (!target) target = {};
 
-			target.$secureSettings = _.uniq([].concat(srcSS, targetSS));
+			target.$secureSettings = [...new Set([...srcSS, ...targetSS])];
 		}
 
 		return _.defaultsDeep(src, target);

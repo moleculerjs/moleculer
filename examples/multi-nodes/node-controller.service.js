@@ -270,12 +270,12 @@ module.exports = {
 			);
 			console.log(kleur.yellow().bold("========"));
 
-			const nodeIDs = _.uniq(
-				[].concat(
-					Object.keys(this.workerRegistry),
-					this.broker.registry.nodes.toArray().map(node => node.id)
-				)
-			)
+			const nodeIDs = [
+				...new Set([
+					...Object.keys(this.workerRegistry),
+					...this.broker.registry.nodes.toArray().map(node => node.id)
+				])
+			]
 				.filter(nodeID => nodeID != this.broker.nodeID)
 				.sort((a, b) => Number(a.replace(/[^\d]/g, "")) - Number(b.replace(/[^\d]/g, "")));
 

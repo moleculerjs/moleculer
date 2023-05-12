@@ -119,9 +119,13 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
-		return _.uniq(
-			this.events.filter(list => utils.match(eventName, list.name)).map(item => item.group)
-		);
+		return [
+			...new Set(
+				this.events
+					.filter(list => utils.match(eventName, list.name))
+					.map(item => item.group)
+			)
+		];
 	}
 
 	/**
