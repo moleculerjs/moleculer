@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { isFunction, isString, match } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
