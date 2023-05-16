@@ -21,6 +21,11 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
+			// if (randomInt(100) > 90) {
+			// 	this.logger.info(kleur.bold.red("Throw random error..."));
+			// 	throw new MoleculerError("Random error!", 510);
+			// }
+
 			this.logger.info(
 				_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20),
 				`(from: ${ctx.nodeID})`

@@ -39,6 +39,7 @@ function createBroker(opts) {
 						vnodes: 12
 					},
 					handler(ctx) {
+						//this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
 						return 20 + randomInt(60);
 					}
 				}

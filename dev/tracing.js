@@ -244,6 +244,7 @@ broker.createService({
 			},
 			async handler(ctx) {
 				const span1 = ctx.startSpan("Fake delay");
+				// await this.Promise.delay(10 + randomInt(30));
 				ctx.finishSpan(span1);
 				return ctx.params.postID * 3;
 			}
@@ -279,6 +280,7 @@ broker.createService({
 		count: {
 			tracing: true,
 			async handler(ctx) {
+				// await this.Promise.delay(randomInt(50));
 				return Math.round(Math.random() * 10);
 			}
 		}
@@ -293,6 +295,7 @@ broker.createService({
 		count: {
 			tracing: true,
 			async handler(ctx) {
+				// await this.Promise.delay(randomInt(50));
 				return Math.round(Math.random() * 10);
 			}
 		}
