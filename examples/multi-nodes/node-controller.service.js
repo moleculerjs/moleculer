@@ -3,7 +3,7 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const cluster = require("cluster");
-const { humanize } = require("../../src/utils");
+const { humanize, uniq } = require("../../src/utils");
 
 const padS = _.padStart;
 const padE = _.padEnd;
@@ -270,12 +270,10 @@ module.exports = {
 			);
 			console.log(kleur.yellow().bold("========"));
 
-			const nodeIDs = [
-				...new Set([
-					...Object.keys(this.workerRegistry),
-					...this.broker.registry.nodes.toArray().map(node => node.id)
-				])
-			]
+			const nodeIDs = uniq([
+				...Object.keys(this.workerRegistry),
+				...this.broker.registry.nodes.toArray().map(node => node.id)
+			])
 				.filter(nodeID => nodeID != this.broker.nodeID)
 				.sort((a, b) => Number(a.replace(/[^\d]/g, "")) - Number(b.replace(/[^\d]/g, "")));
 

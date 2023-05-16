@@ -429,7 +429,7 @@ export default class MoleculerRunner {
 				});
 
 			await Promise.all(
-				[...new Set(serviceFiles)].map(async f => {
+				utils.uniq(serviceFiles).map(async f => {
 					const mod = await import(f.startsWith("/") ? f : "/" + f);
 					const content = mod.default;
 

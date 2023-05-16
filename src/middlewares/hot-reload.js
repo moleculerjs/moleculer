@@ -12,7 +12,7 @@ const path = require("path");
 const watch = require("recursive-watch");
 const _ = require("lodash");
 
-const { clearRequireCache, makeDirs, isFunction, isString } = require("../utils");
+const { clearRequireCache, makeDirs, isFunction, isString, uniq } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -254,7 +254,7 @@ module.exports = function HotReloadMiddleware(broker) {
 				watchItem.services.push(service.fullName);
 			}
 
-			watchItem.others = [...new Set([...watchItem.others, ...(parents || [])])];
+			watchItem.others = uniq([...watchItem.others, ...(parents || [])]);
 		} else if (isMoleculerConfig(fName)) {
 			const watchItem = getWatchItem(fName);
 			watchItem.brokerRestart = true;
@@ -263,7 +263,7 @@ module.exports = function HotReloadMiddleware(broker) {
 			if (parents) {
 				const watchItem = getWatchItem(fName);
 				watchItem.brokerRestart = true;
-				watchItem.others = [...new Set([...watchItem.others, ...(parents || [])])];
+				watchItem.others = uniq([...watchItem.others, ...(parents || [])]);
 			}
 		}
 

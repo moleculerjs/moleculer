@@ -1023,25 +1023,23 @@ class ServiceBroker {
 	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
-		serviceNames = [
-			...new Set(
-				_.compact(
-					serviceNames.map(x => {
-						if (utils.isPlainObject(x) && x.name) {
-							if (Array.isArray(x.version)) {
-								return x.version.map(v =>
-									this.ServiceFactory.getVersionedFullName(x.name, v)
-								);
-							} else {
-								return this.ServiceFactory.getVersionedFullName(x.name, x.version);
-							}
-						} else if (utils.isString(x)) {
-							return x;
+		serviceNames = utils.uniq(
+			_.compact(
+				serviceNames.map(x => {
+					if (utils.isPlainObject(x) && x.name) {
+						if (Array.isArray(x.version)) {
+							return x.version.map(v =>
+								this.ServiceFactory.getVersionedFullName(x.name, v)
+							);
+						} else {
+							return this.ServiceFactory.getVersionedFullName(x.name, x.version);
 						}
-					})
-				)
+					} else if (utils.isString(x)) {
+						return x;
+					}
+				})
 			)
-		];
+		);
 
 		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
 

@@ -620,6 +620,16 @@ const utils = {
 					.map(x => x.trim())
 					.filter(Boolean)
 			: [];
+	},
+
+	/**
+	 * Creates a duplicate-free version of an array
+	 *
+	 * @param {Array<String|Number>} arr
+	 * @returns {Array<String|Number>}
+	 */
+	uniq(arr) {
+		return [...new Set(arr)];
 	}
 };
 

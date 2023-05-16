@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten, functionArguments, deprecate } = require("./utils");
+const { isObject, isFunction, flatten, functionArguments, deprecate, uniq } = require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -662,7 +662,7 @@ class Service {
 			const targetSS = target && target.$secureSettings ? target.$secureSettings : [];
 			if (!target) target = {};
 
-			target.$secureSettings = [...new Set([...srcSS, ...targetSS])];
+			target.$secureSettings = uniq([...srcSS, ...targetSS]);
 		}
 
 		return _.defaultsDeep(src, target);
