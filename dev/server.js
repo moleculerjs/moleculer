@@ -1,11 +1,9 @@
 "use strict";
 
-const path = require("path");
 const _ = require("lodash");
-const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
-const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
-const Middlewares = require("../src/middlewares");
+const { MoleculerRetryableError } = require("../src/errors");
+const { randomInt } = require("../src/utils");
 
 // Create broker
 const broker = new ServiceBroker({
@@ -83,12 +81,11 @@ broker.createService({
 			//fallback: (ctx, err) => ({ count: ctx.params.count, res: 999, fake: true }),
 			//fallback: "fakeResult",
 			handler(ctx) {
-				const wait = _.random(500, 1500);
 				this.logger.info(
 					_.padEnd(`${ctx.meta.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20),
 					`(from: ${ctx.nodeID})`
 				);
-				if (_.random(100) > 80)
+				if (randomInt(100) > 80)
 					return this.Promise.reject(
 						new MoleculerRetryableError("Random error!", 510, "RANDOM_ERROR")
 					);

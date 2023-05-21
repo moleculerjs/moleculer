@@ -3,13 +3,17 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 
-module.exports = function () {
-	let posts = fakerator.times(fakerator.entity.post, 10);
+const { randomInt } = require("../src/utils");
 
-	_.each(posts, (post, i) => {
+module.exports = function () {
+	const posts = fakerator.times(fakerator.entity.post, 10);
+
+	for (let i = 0; i < posts.length; i++) {
+		const post = posts[i];
+
 		post.id = i + 1;
-		post.author = _.random(1, 5);
-	});
+		post.author = randomInt(1, 5);
+	}
 
 	return {
 		name: "posts",

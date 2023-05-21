@@ -10,7 +10,8 @@ const EventEmitter = require("events");
 const os = require("os");
 const dgram = require("dgram");
 const ipaddr = require("ipaddr.js");
-const _ = require("lodash");
+const { randomInt } = require("../../../src/utils");
+
 /**
  * UDP Discovery Server for TcpTransporter
  *
@@ -87,7 +88,7 @@ class UdpServer extends EventEmitter {
 			})
 			.then(() => {
 				// Send first discover message after ~1 sec
-				setTimeout(() => this.discover(), _.random(500) + 500);
+				setTimeout(() => this.discover(), randomInt(500) + 500);
 
 				this.startDiscovering();
 			});
