@@ -29,7 +29,7 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 # Top sponsors
 
 <table style="text-align:center;"><tr>
-    <td><a href="https://www.server-eye.de/" target="_blank"><img src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
+    <td><a href="https://www.servereye.de/" target="_blank"><img src="https://www.servereye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
     <!--td><a href="https://sonderformat.llc/" target="_blank"><img src="https://sonderformat.llc/sonderformat/logo/sonderformat-wide-col.png" width="300" valign="middle" /></a></td-->
 </tr></table>
 
