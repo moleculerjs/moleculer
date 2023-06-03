@@ -630,9 +630,9 @@ const utils = {
 	 */
 	uniq(arr) {
 		return [...new Set(arr)];
-  },
-  
-  /**
+	},
+
+	/**
 	 * Produces a random floating number between the inclusive lower and upper bounds.
 	 *
 	 * @param {Number} a
