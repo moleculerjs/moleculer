@@ -3,7 +3,7 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const cluster = require("cluster");
-const { humanize, uniq } = require("../../src/utils");
+const { humanize, uniq, randomInt } = require("../../src/utils");
 
 const padS = _.padStart;
 const padE = _.padEnd;
@@ -67,7 +67,7 @@ module.exports = {
 				this.logger.info(`Stopping ${this.nodes.length - num} nodes...`);
 				const tmp = Array.from(this.nodes);
 				return _.times(this.nodes.length - num, () => {
-					const idx = _.random(tmp.length - 1);
+					const idx = randomInt(tmp.length - 1);
 					const node = tmp.splice(idx, 1)[0];
 					if (opts.kill) return this.killNode(node);
 					else return this.stopNode(node);

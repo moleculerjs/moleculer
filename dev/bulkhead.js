@@ -2,7 +2,7 @@
 
 const _ = require("lodash");
 const ServiceBroker = require("../src/service-broker");
-const E = require("../src/errors");
+const { randomInt } = require("../src/utils");
 
 const broker = new ServiceBroker({
 	bulkhead: {
@@ -31,7 +31,7 @@ broker.createService({
 				concurrency: 1
 			},
 			async handler(ctx) {
-				await this.Promise.delay(_.random(500, 2500));
+				await this.Promise.delay(randomInt(500, 2500));
 
 				this.logger.info("First called.", ctx.params);
 
@@ -45,7 +45,7 @@ broker.createService({
 				concurrency: 1
 			},
 			async handler(ctx) {
-				await this.Promise.delay(_.random(500, 2500));
+				await this.Promise.delay(randomInt(500, 2500));
 
 				this.logger.info("Second called.", ctx.params);
 
@@ -62,7 +62,7 @@ broker.createService({
 			},
 			async handler(ctx) {
 				this.logger.info("Event received.", ctx.params);
-				await this.Promise.delay(_.random(500, 2500));
+				await this.Promise.delay(randomInt(500, 2500));
 				this.logger.info("User created.", ctx.params);
 			}
 		},
@@ -70,7 +70,7 @@ broker.createService({
 		"post.created": {
 			async handler(ctx) {
 				this.logger.info("Event received.", ctx.params);
-				await this.Promise.delay(_.random(500, 2500));
+				await this.Promise.delay(randomInt(500, 2500));
 				this.logger.info("Post created.", ctx.params);
 			}
 		}

@@ -12,7 +12,7 @@ const { BrokerOptionsError } = require("../../errors");
 const BaseDiscoverer = require("./base");
 const { METRIC } = require("../../metrics");
 const Serializers = require("../../serializers");
-const { removeFromArray, isFunction } = require("../../utils");
+const { removeFromArray, isFunction, randomInt } = require("../../utils");
 const P = require("../../packets");
 const C = require("../../constants");
 
@@ -43,7 +43,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 		});
 
 		// Loop counter for full checks. Starts from a random value for better distribution
-		this.idx = this.opts.fullCheck > 1 ? _.random(this.opts.fullCheck - 1) : 0;
+		this.idx = this.opts.fullCheck > 1 ? randomInt(this.opts.fullCheck - 1) : 0;
 
 		// Redis client instance
 		this.client = null;

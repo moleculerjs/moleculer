@@ -50,6 +50,9 @@ jest.mock("../../src/utils", () => ({
 	deprecate() {},
 	uniq(arr) {
 		return [...new Set(arr)];
+  },
+	randomInt() {
+		return 2;
 	}
 }));
 polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
