@@ -448,7 +448,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 			prefix + key,
 			cacher.serializer.serialize(data1),
 			"EX",
-			60			
+			60
 		);
 	});
 
