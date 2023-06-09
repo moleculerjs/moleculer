@@ -13,7 +13,6 @@ const {
 const { registerInstrumentations } = require("@opentelemetry/instrumentation");
 const { getNodeAutoInstrumentations } = require("@opentelemetry/auto-instrumentations-node");
 const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-proto");
-const { B3Propagator, B3InjectEncoding } = require("@opentelemetry/propagator-b3");
 const { SemanticResourceAttributes } = require("@opentelemetry/semantic-conventions");
 
 // const { OTLPMetricExporter } = require("@opentelemetry/exporter-metrics-otlp-proto");
@@ -45,9 +44,7 @@ const provider = new node.NodeTracerProvider({
 // Configure span processor to send spans to the exporter
 provider.addSpanProcessor(new tracing.SimpleSpanProcessor(new tracing.ConsoleSpanExporter()));
 provider.addSpanProcessor(new tracing.BatchSpanProcessor(exporter));
-provider.register({
-	propagator: new B3Propagator({ injectEncoding: B3InjectEncoding.MULTI_HEADER })
-});
+provider.register();
 
 registerInstrumentations({
 	// Instrumentation configuration
