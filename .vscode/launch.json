@@ -61,6 +61,17 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch demo: opentelemetry",
+			"program": "${workspaceRoot}/examples/opentelemetry/index.js",
+			"runtimeArgs": [
+				"-r",
+				"./examples/opentelemetry/tracing.js"
+			],
+			"cwd": "${workspaceRoot}"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}/benchmark/index.js",
 			"args": ["common"],
