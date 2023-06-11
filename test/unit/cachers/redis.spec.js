@@ -15,7 +15,7 @@ Redis.mockImplementation(() => {
 		subscribe: jest.fn(),
 		publish: jest.fn(),
 		quit: jest.fn(),
-		setex: jest.fn(),
+		set: jest.fn(),
 
 		onCallbacks
 	};
@@ -321,7 +321,6 @@ describe("Test RedisCacher set & get without prefix", () => {
 			prefix + key,
 			cacher.serializer.serialize(data1)
 		);
-		expect(cacher.client.setex).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call client.getBuffer with key & return with data1", () => {
@@ -440,16 +439,17 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 			cacher.logger[level].mockClear()
 		);
 
-		cacher.client.setex = jest.fn(() => Promise.resolve());
+		cacher.client.set = jest.fn(() => Promise.resolve());
 	});
 
-	it("should call client.setex with key & data", () => {
+	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
-		expect(cacher.client.setex).toHaveBeenCalledTimes(1);
-		expect(cacher.client.setex).toHaveBeenCalledWith(
+		expect(cacher.client.set).toHaveBeenCalledTimes(1);
+		expect(cacher.client.set).toHaveBeenCalledWith(
 			prefix + key,
-			60,
-			cacher.serializer.serialize(data1)
+			cacher.serializer.serialize(data1),
+			"EX",
+			60
 		);
 	});
 

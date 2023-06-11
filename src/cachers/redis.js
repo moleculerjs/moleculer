@@ -229,7 +229,7 @@ class RedisCacher extends BaseCacher {
 
 		let p;
 		if (ttl) {
-			p = this.client.setex(this.prefix + key, ttl, data);
+			p = this.client.set(this.prefix + key, data, "EX", ttl);
 		} else {
 			p = this.client.set(this.prefix + key, data);
 		}
