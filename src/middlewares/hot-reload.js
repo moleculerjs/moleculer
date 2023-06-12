@@ -276,7 +276,10 @@ module.exports = function HotReloadMiddleware(broker) {
 			} else if (parents) {
 				parents.push(fName);
 			}
-			mod.children.forEach(m => processModule(m, service, service ? level + 1 : 0, parents));
+			mod.children.forEach(m => {
+				if(m.filename.indexOf("node_modules") !== -1) return;
+				processModule(m, service, service ? level + 1 : 0, parents)
+			});
 		}
 	}
 
