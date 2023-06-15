@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { isFunction, isString, match } = require("../utils");
 
 module.exports = function actionHookMiddleware(broker) {
@@ -43,13 +42,13 @@ module.exports = function actionHookMiddleware(broker) {
 		if (isString(hooks)) return service && isFunction(service[hooks]) ? service[hooks] : null;
 
 		if (Array.isArray(hooks)) {
-			return _.compact(
-				hooks.map(h => {
+			return hooks
+				.map(h => {
 					if (isString(h)) return service && isFunction(service[h]) ? service[h] : null;
 
 					return h;
 				})
-			);
+				.filter(Boolean);
 		}
 
 		return hooks;
