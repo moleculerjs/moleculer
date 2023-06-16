@@ -47,6 +47,7 @@ class PrometheusReporter extends BaseReporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
+			host: "0.0.0.0",
 			port: 3030,
 			path: "/metrics",
 			defaultLabels: registry => ({
@@ -66,7 +67,7 @@ class PrometheusReporter extends BaseReporter {
 
 		this.server = http.createServer();
 		this.server.on("request", this.handler.bind(this));
-		this.server.listen(this.opts.port, err => {
+		this.server.listen(this.opts.port, this.opts.host, err => {
 			if (err) {
 				/* istanbul ignore next */
 				return this.registry.broker.fatal(
