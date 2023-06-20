@@ -39,6 +39,7 @@ describe("Test Prometheus Reporter class", () => {
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
 
+				host: "0.0.0.0",
 				port: 12345,
 				path: "/meter"
 			});
@@ -51,6 +52,7 @@ describe("Test Prometheus Reporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
+				host: "0.0.0.0",
 				port: 12345,
 				path: "/meter",
 				defaultLabels: expect.any(Function)
