@@ -24,6 +24,7 @@ describe("Test Prometheus Reporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
+				host: "0.0.0.0",
 				port: 3030,
 				path: "/metrics",
 				defaultLabels: expect.any(Function)
