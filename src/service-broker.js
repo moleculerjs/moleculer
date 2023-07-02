@@ -740,19 +740,31 @@ class ServiceBroker {
 	/**
 	 * Load services from a folder
 	 *
-	 * @param {string} [folder="./services"]		Folder of services
+	 * @param {string} [folder="./services"]			Folder of services
 	 * @param {string} [fileMask="**\/*.service.js"]	Service filename mask
-	 * @returns	{Number}							Number of found services
+	 * @param {array<string>} [excludedFiles]			Excluded files
+	 * @returns	{Number}								Number of found services
 	 *
 	 * @memberof ServiceBroker
 	 */
-	loadServices(folder = "./services", fileMask = "**/*.service.js") {
+	loadServices(folder = "./services", fileMask = "**/*.service.js", excludedFiles) {
 		this.logger.debug(`Search services in '${folder}/${fileMask}'...`);
 
 		let serviceFiles;
 
-		if (Array.isArray(fileMask)) serviceFiles = fileMask.map(f => path.join(folder, f));
-		else serviceFiles = glob.sync(path.join(folder, fileMask));
+		if (Array.isArray(fileMask)) {
+			serviceFiles = fileMask.map(f => path.join(folder, f));
+		} else {
+			if (excludedFiles) {
+				let ignoredFiles = [];
+				excludedFiles.forEach(excludedFile => {
+					ignoredFiles.push(path.join(folder, excludedFile));
+				});
+				serviceFiles = glob.sync(path.join(folder, fileMask), { ignore: ignoredFiles });
+			} else {
+				serviceFiles = glob.sync(path.join(folder, fileMask));
+			}
+		}
 
 		if (serviceFiles) serviceFiles.forEach(filename => this.loadService(filename));
 
