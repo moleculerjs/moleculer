@@ -1,6 +1,6 @@
 import ServiceBroker = require("../service-broker");
 
-declare class Endpoint {
+declare abstract class Endpoint {
 	broker: ServiceBroker;
 
 	id: string;

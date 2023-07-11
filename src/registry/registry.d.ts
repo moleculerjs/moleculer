@@ -4,7 +4,7 @@ import BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
 import type { BrokerRegistryOptions } from "../service-broker";
-import type { ServiceSchema } from "../service";
+import ActionCatalog = require("./action-catalog");
 
 declare namespace ServiceRegistry {}
 
@@ -19,9 +19,9 @@ declare class ServiceRegistry {
 
 	nodes: any;
 	services: any;
-	actions: any;
+	actions: ActionCatalog;
 	events: any;
 
-	getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[];
+	getServiceList(opts?: ActionCatalogListOptions): ReturnType<ActionCatalog["list"]>;
 }
 export = ServiceRegistry;
