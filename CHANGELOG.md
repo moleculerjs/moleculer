@@ -2,6 +2,15 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.29...master)
 
 --------------------------------------------------
+<a name="0.14.30"></a>
+# [0.14.30](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.14.30) (2023-07-15)
+
+## Changes
+- Improve d.ts files [#1208](https://github.com/moleculerjs/moleculer/pull/1208), [#1210](https://github.com/moleculerjs/moleculer/pull/1210), [#1225](https://github.com/moleculerjs/moleculer/pull/1225)
+- replace deprecated redis.setex with redis.set method [#1191](https://github.com/moleculerjs/moleculer/pull/1191)
+- rewrite `_.random` without lodash [#1212](https://github.com/moleculerjs/moleculer/pull/1212)  
+
+--------------------------------------------------
 <a name="0.14.29"></a>
 # [0.14.29](https://github.com/moleculerjs/moleculer/compare/v0.14.28...v0.14.29) (2023-03-12)
 
