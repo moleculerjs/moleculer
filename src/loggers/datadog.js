@@ -167,7 +167,8 @@ class DatadogLogger extends BaseLogger {
 					"Content-Type": "application/json"
 				}
 			})
-				.then((/*res*/) => {
+				.then(res => {
+					if (res.status >= 400) throw new Error(res.statusText);
 					// console.info("Logs are uploaded to DataDog. Status: ", res.statusText);
 				})
 				.catch(err => {
