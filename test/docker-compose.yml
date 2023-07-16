@@ -64,5 +64,4 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://127.0.0.1:2379
     ports:
-      - 2379:2379
-    restart: unless-stopped
+      - "2379:2379"
