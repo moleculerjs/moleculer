@@ -25,14 +25,7 @@ const toMoleculerLogLevel = level => {
 };
 
 /**
- * Lightweight transporter for Kafka
- *
- * For test:
- *   1. clone https://github.com/wurstmeister/kafka-docker.git repo
- *   2. follow instructions on https://github.com/wurstmeister/kafka-docker#pre-requisites
- * 	 3. start containers with Docker Compose
- *
- * 			docker-compose -f docker-compose-single-broker.yml up -d
+ * Transporter for Kafka
  *
  * @class KafkaTransporter
  * @extends {Transporter}
@@ -47,7 +40,7 @@ class KafkaTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts === "string") {
-			opts = { brokers: opts.replace("kafka://", "") };
+			opts = { client: { brokers: [opts.replace("kafka://", "")] } };
 		} else if (opts == null) {
 			opts = {};
 		}
@@ -55,7 +48,11 @@ class KafkaTransporter extends Transporter {
 		opts = defaultsDeep(opts, {
 			// KafkaClient options. More info: https://kafka.js.org/docs/configuration
 			client: {
-				brokers: Array.isArray(opts.brokers) ? opts.brokers : [opts.brokers],
+				brokers: Array.isArray(opts.brokers)
+					? opts.brokers
+					: opts.brokers
+					? [opts.brokers]
+					: null,
 				logLevel: 1,
 				logCreator:
 					logLevel =>
@@ -138,15 +135,15 @@ class KafkaTransporter extends Transporter {
 	 */
 	async disconnect() {
 		if (this.admin) {
-			await this.admin.disconnect;
+			await this.admin.disconnect();
 			this.admin = null;
 		}
 		if (this.producer) {
-			await this.producer.disconnect;
+			await this.producer.disconnect();
 			this.producer = null;
 		}
 		if (this.consumer) {
-			await this.consumer.disconnect;
+			await this.consumer.disconnect();
 			this.consumer = null;
 		}
 	}

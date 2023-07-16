@@ -80,8 +80,8 @@ const broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	middlewares: [
-		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
-		//Middlewares.Transmit.Compression(),
+		// Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		// Middlewares.Transmit.Compression()
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//Middlewares.Debugging.ActionLogger({ logParams: true, logResponse: true, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//require("./RedisHeartbeat")

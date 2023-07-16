@@ -119,18 +119,18 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve KafkaTransporter from connection string", () => {
-			let trans = Transporters.resolve("kafka://localhost:2181");
+			let trans = Transporters.resolve("kafka://localhost:9093");
 			expect(trans).toBeInstanceOf(Transporters.Kafka);
 			expect(trans.opts).toEqual({
-				host: "localhost:2181",
 				client: {
-					kafkaHost: "localhost:2181"
+					brokers: ["localhost:9093"],
+					logCreator: expect.any(Function),
+					logLevel: 1
 				},
-				consumer: {},
-				customPartitioner: undefined,
 				producer: {},
-				publish: {
-					attributes: 0,
+				consumer: {},
+				publish: {},
+				publishMessage: {
 					partition: 0
 				}
 			});
@@ -138,23 +138,23 @@ describe("Test Transporter resolver", () => {
 
 		it("should resolve KafkaTransporter from obj", () => {
 			let options = {
-				host: "localhost:2181",
-				publish: {
+				client: { brokers: ["localhost:9093"] },
+				publishMessage: {
 					partition: 2
 				}
 			};
 			let trans = Transporters.resolve({ type: "Kafka", options });
 			expect(trans).toBeInstanceOf(Transporters.Kafka);
 			expect(trans.opts).toEqual({
-				host: "localhost:2181",
 				client: {
-					kafkaHost: "localhost:2181"
+					brokers: ["localhost:9093"],
+					logCreator: expect.any(Function),
+					logLevel: 1
 				},
-				consumer: {},
-				customPartitioner: undefined,
 				producer: {},
-				publish: {
-					attributes: 0,
+				consumer: {},
+				publish: {},
+				publishMessage: {
 					partition: 2
 				}
 			});
