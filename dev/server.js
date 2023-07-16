@@ -20,10 +20,10 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	//transporter: "kafka://localhost:9093",
+	transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "AMQP10",
-	transporter: "NATS",
+	//transporter: "NATS",
 	//serializer: "MsgPack",
 
 	//disableBalancer: true,
