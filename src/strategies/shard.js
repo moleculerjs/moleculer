@@ -10,7 +10,7 @@ const _ = require("lodash");
 const BaseStrategy = require("./base");
 const crypto = require("crypto");
 const LRU = require("lru-cache");
-const { isFunction } = require("../utils");
+const { isFunction, randomInt } = require("../utils");
 
 /**
  * Sharding invocation strategy
@@ -76,7 +76,7 @@ class ShardStrategy extends BaseStrategy {
 		}
 
 		// Return a random item (no key)
-		return list[_.random(0, list.length - 1)];
+		return list[randomInt(0, list.length - 1)];
 	}
 
 	/**

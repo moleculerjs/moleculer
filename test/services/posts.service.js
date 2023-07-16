@@ -1,14 +1,14 @@
 const _ = require("lodash");
 const fakerator = require("fakerator")();
 
-const { delay } = require("../../src/utils");
+const { delay, randomInt } = require("../../src/utils");
 
 module.exports = function () {
 	let posts = fakerator.times(fakerator.entity.post, 10);
 
 	_.each(posts, (post, i) => {
 		post.id = i + 1;
-		post.author = _.random(1, 5);
+		post.author = randomInt(1, 5);
 	});
 
 	return {
