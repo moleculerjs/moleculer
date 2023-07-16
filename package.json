@@ -96,7 +96,7 @@
     "jest-cli": "^27.5.1",
     "jest-diff": "^27.5.1",
     "joi": "^17.7.0",
-    "kafka-node": "^5.0.0",
+    "kafkajs": "^2.2.4",
     "lockfile-lint": "^4.10.0",
     "log4js": "^6.7.1",
     "moleculer-repl": "^0.7.3",
@@ -140,7 +140,7 @@
     "etcd3": "^1.0.0",
     "ioredis": "^4.0.0 || ^5.0.0",
     "jaeger-client": "^3.0.0",
-    "kafka-node": "^5.0.0",
+    "kafkajs": "^2.2.4",
     "log4js": "^6.0.0",
     "mqtt": "^4.0.0",
     "msgpack5": "^5.0.0 || ^6.0.0",
@@ -177,7 +177,7 @@
     "jaeger-client": {
       "optional": true
     },
-    "kafka-node": {
+    "kafkajs": {
       "optional": true
     },
     "log4js": {

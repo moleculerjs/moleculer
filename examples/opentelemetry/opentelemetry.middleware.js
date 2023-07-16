@@ -40,14 +40,15 @@ module.exports = {
 					delete ctx.meta.$otel;
 				}
 
+				const actionObj = ctx.action
+					? {
+							name: ctx.action.name,
+							rawName: ctx.action.rawName
+					  }
+					: null;
 				let tags = {
 					callingLevel: ctx.level,
-					action: ctx.action
-						? {
-								name: ctx.action.name,
-								rawName: ctx.action.rawName
-						  }
-						: null,
+					action: actionObj,
 					remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 					callerNodeID: ctx.nodeID,
 					nodeID: ctx.broker.nodeID,

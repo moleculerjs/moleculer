@@ -20,10 +20,10 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	//transporter: "kafka://localhost:9093",
+	transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "AMQP10",
-	transporter: "NATS",
+	//transporter: "NATS",
 	//serializer: "MsgPack",
 
 	//disableBalancer: true,
@@ -63,8 +63,8 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 
 	middlewares: [
-		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
-		//Middlewares.Transmit.Compression(),
+		// Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		// Middlewares.Transmit.Compression()
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//Middlewares.Debugging.ActionLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//require("./RedisHeartbeat")

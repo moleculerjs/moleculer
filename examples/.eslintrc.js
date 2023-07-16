@@ -13,6 +13,7 @@ module.exports = {
 		"no-var": ["warn"],
 		"no-console": ["off"],
 		"no-unused-vars": ["off"],
+		"no-mixed-spaces-and-tabs": ["off"],
 		"security/detect-possible-timing-attacks": ["off"]
 	}
 };
