@@ -623,6 +623,16 @@ const utils = {
 	},
 
 	/**
+	 * Creates a duplicate-free version of an array
+	 *
+	 * @param {Array<String|Number>} arr
+	 * @returns {Array<String|Number>}
+	 */
+	uniq(arr) {
+		return [...new Set(arr)];
+	},
+
+	/**
 	 * Produces a random floating number between the inclusive lower and upper bounds.
 	 *
 	 * @param {Number} a

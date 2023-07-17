@@ -1023,7 +1023,7 @@ class ServiceBroker {
 	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
-		serviceNames = _.uniq(
+		serviceNames = utils.uniq(
 			_.compact(
 				serviceNames.map(x => {
 					if (utils.isPlainObject(x) && x.name) {
