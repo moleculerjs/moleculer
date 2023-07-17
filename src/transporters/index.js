@@ -18,7 +18,6 @@ const Transporters = {
 	AMQP: require("./amqp"),
 	AMQP10: require("./amqp10"),
 	Kafka: require("./kafka"),
-	STAN: require("./stan"),
 	TCP: require("./tcp")
 };
 
@@ -52,7 +51,6 @@ function resolve(opt) {
 			TransporterClass = Transporters.AMQP;
 		else if (opt.startsWith("amqp10://")) TransporterClass = Transporters.AMQP10;
 		else if (opt.startsWith("kafka://")) TransporterClass = Transporters.Kafka;
-		else if (opt.startsWith("stan://")) TransporterClass = Transporters.STAN;
 		else if (opt.startsWith("tcp://")) TransporterClass = Transporters.TCP;
 
 		if (TransporterClass) return new TransporterClass(opt);

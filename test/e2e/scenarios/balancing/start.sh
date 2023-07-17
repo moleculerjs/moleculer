@@ -13,7 +13,7 @@ node node3.js & \
 node scenario.js
 
 case $TRANSPORTER in
-  (NATS|STAN|AMQP)
+  (NATS|AMQP)
   	export DISABLEBALANCER=true;
 	export NAMESPACE=balancing-disabled;
 	echo "Start balancing scenario with disabled balancer...";

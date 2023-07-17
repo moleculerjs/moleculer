@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, STAN, Kafka, TCP]
+        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, Kafka, TCP]
         serializer: [JSON, JSONExt, MsgPack, Notepack, CBOR]
         discoverer: [Local, Etcd3, Redis]
       fail-fast: false
@@ -80,11 +80,6 @@ jobs:
     - name: Start ActiveMQ
       run: docker-compose up -d activemq && sleep 30
       if: ${{ matrix.transporter == 'AMQP10' }}
-      working-directory: ./test
-
-    - name: Start NATS Streaming
-      run: docker-compose up -d stan && sleep 10
-      if: ${{ matrix.transporter == 'STAN' }}
       working-directory: ./test
 
     - name: Start Kafka

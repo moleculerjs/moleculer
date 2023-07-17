@@ -22,14 +22,6 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  stan:
-    image: nats-streaming
-    ports:
-      - "4222:4222"
-    volumes:
-      - ./nats.config:/nats.config
-    command: "-c /nats.config"
-
   activemq:
     image: rmohr/activemq
     ports:
