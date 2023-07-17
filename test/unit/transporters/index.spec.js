@@ -161,29 +161,6 @@ describe("Test Transporter resolver", () => {
 		});
 	});
 
-	describe("Resolve NATS Streaming transporter", () => {
-		it("should resolve NatsStreamingTransporter from connection string", () => {
-			let trans = Transporters.resolve("stan://localhost:4222");
-			expect(trans).toBeInstanceOf(Transporters.STAN);
-		});
-
-		it("should resolve NatsStreamingTransporter from string", () => {
-			let trans = Transporters.resolve("STAN");
-			expect(trans).toBeInstanceOf(Transporters.STAN);
-		});
-
-		it("should resolve NatsStreamingTransporter from obj without type", () => {
-			let options = { url: "stan://localhost:4222" };
-			let trans = Transporters.resolve({ type: "STAN", options });
-			expect(trans).toBeInstanceOf(Transporters.STAN);
-			expect(trans.opts).toEqual({
-				clusterID: "test-cluster",
-				preserveBuffers: true,
-				url: "stan://localhost:4222"
-			});
-		});
-	});
-
 	describe("Resolve TCP transporter", () => {
 		it("should resolve TcpTransporter from connection string", () => {
 			let trans = Transporters.resolve("tcp://192.168.0.100:6000");

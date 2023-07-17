@@ -6,7 +6,6 @@ import RedisTransporter = require("./redis");
 import AmqpTransporter = require("./amqp");
 import Amqp10Transporter = require("./amqp10");
 import KafkaTransporter = require("./kafka");
-import StanTransporter = require("./stan");
 import TcpTransporter = require("./tcp");
 
 export {
@@ -18,6 +17,5 @@ export {
 	AmqpTransporter as AMQP,
 	Amqp10Transporter as AMQP10,
 	KafkaTransporter as Kafka,
-	StanTransporter as STAN,
 	TcpTransporter as TCP
 };

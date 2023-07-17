@@ -103,7 +103,6 @@
     "mqtt": "^4.3.7",
     "msgpack5": "^6.0.2",
     "nats": "2.7.1",
-    "node-nats-streaming": "^0.3.2",
     "nodemon": "^2.0.20",
     "notepack.io": "^2.3.0",
     "npm-check": "^6.0.1",
@@ -145,7 +144,6 @@
     "mqtt": "^4.0.0",
     "msgpack5": "^5.0.0 || ^6.0.0",
     "nats": "^1.0.0 || ^2.0.0",
-    "node-nats-streaming": "^0.0.51 || ^0.2.0 || ^0.3.0",
     "notepack.io": "^2.0.0",
     "pino": "^6.0.0 || ^7.0.0",
     "redlock": "^4.0.0",
@@ -190,9 +188,6 @@
       "optional": true
     },
     "nats": {
-      "optional": true
-    },
-    "node-nats-streaming": {
       "optional": true
     },
     "notepack.io": {
