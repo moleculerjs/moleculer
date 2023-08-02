@@ -48,6 +48,9 @@ jest.mock("../../src/utils", () => ({
 		return ["ctx"];
 	},
 	deprecate() {},
+	uniq(arr) {
+		return [...new Set(arr)];
+	},
 	randomInt() {
 		return 2;
 	}

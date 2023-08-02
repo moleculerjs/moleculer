@@ -1,3 +1,6 @@
+// for Node 10 compatibility
+global.globalThis = global;
+
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
