@@ -186,6 +186,9 @@ class ServiceBroker {
 			// Broker started flag
 			this.started = false;
 
+			/** @type {Boolean} Broker is starting inital services flag*/
+			this.servicesStarted = false;
+
 			/** @type {Boolean} Broker stopping flag*/
 			this.stopping = false;
 
@@ -463,16 +466,19 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return this.Promise.all(this.services.map(svc => svc._start.call(svc))).catch(
-					err => {
-						/* istanbul ignore next */
-						this.logger.error("Unable to start all services.", err);
-						throw err;
-					}
-				);
+				const startingServices = this.services.map(svc => svc._start.call(svc));
+				// Set servicesStarted, so new services created from now on will be started when registered
+				this.servicesStarted = true;
+				// Wait for services `started` handlers
+				return this.Promise.all(startingServices).catch(err => {
+					/* istanbul ignore next */
+					this.logger.error("Unable to start all services.", err);
+					throw err;
+				});
 			})
 			.then(() => {
 				this.started = true;
+				this.servicesStarted = false;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
 			})
@@ -784,7 +790,7 @@ class ServiceBroker {
 				svc = new schema(this);
 
 				// If broker is started, call the started lifecycle event of service
-				if (this.started) this._restartService(svc);
+				if (this.started || this.servicesStarted) this._restartService(svc);
 			} else if (utils.isFunction(schema)) {
 				// Function
 				svc = schema(this);
@@ -792,7 +798,7 @@ class ServiceBroker {
 					svc = this.createService(svc);
 				} else {
 					// If broker is started, call the started lifecycle event of service
-					if (this.started) this._restartService(svc);
+					if (this.started || this.servicesStarted) this._restartService(svc);
 				}
 			} else if (schema) {
 				// Schema object
@@ -834,8 +840,8 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, schema, schemaMods);
 		}
 
-		// If broker has started yet, call the started lifecycle event of service
-		if (this.started) this._restartService(service);
+		// If broker has began to start its initial services yet, call the started lifecycle event of service
+		if (this.started || this.servicesStarted) this._restartService(service);
 
 		return service;
 	}

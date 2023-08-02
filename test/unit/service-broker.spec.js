@@ -520,20 +520,47 @@ describe("Test ServiceBroker constructor", () => {
 
 describe("Test broker.start", () => {
 	describe("without transporter", () => {
-		const schema = {
-			name: "test",
-			started: jest.fn()
-		};
+		let schema;
+		let optStarted;
+		let broker;
+		let svc;
 
-		const optStarted = jest.fn();
+		beforeEach(() => {
+			schema = {
+				name: "test",
+				started: jest.fn(() => Promise.resolve())
+			};
 
-		const broker = new ServiceBroker({
-			logger: false,
-			transporter: null,
-			started: optStarted
+			optStarted = jest.fn();
+			broker = new ServiceBroker({
+				logger: false,
+				transporter: null,
+				started: optStarted
+			});
+
+			svc = broker.createService(schema);
 		});
 
-		const svc = broker.createService(schema);
+		it("should call started of services, created whilst starting an initial service", async () => {
+			const shouldBeCalled = jest.fn();
+			const serviceStartingOthers = broker.createService({
+				name: "test",
+				started: () => {
+					broker.createService({
+						name: "test",
+						started: shouldBeCalled
+					});
+					broker.waitForServices("test");
+					// do something
+				}
+			});
+			broker.broadcastLocal = jest.fn();
+			broker.metrics.set = jest.fn();
+			broker.callMiddlewareHook = jest.fn();
+			broker.registry.regenerateLocalRawInfo = jest.fn();
+			await broker.start();
+			expect(shouldBeCalled).toHaveBeenCalledTimes(1);
+		});
 
 		it("should call started of services", async () => {
 			broker.services.forEach(svc => (svc._start = jest.fn()));
@@ -570,22 +597,53 @@ describe("Test broker.start", () => {
 			started: jest.fn(() => Promise.resolve())
 		};
 
-		const optStarted = jest.fn();
-		const broker = new ServiceBroker({
-			logger: false,
-			transporter: "Fake",
-			started: optStarted
-		});
-
-		const svc = broker.createService(schema);
-
-		it("should call started of services", async () => {
-			broker.services.forEach(svc => (svc._start = jest.fn()));
+		it("should call started of services, created whilst starting an initial service", async () => {
+			const optStarted = jest.fn();
+			const broker = new ServiceBroker({
+				logger: false,
+				transporter: "Fake",
+				started: optStarted
+			});
+			broker.transit.connect = jest.fn(() => Promise.resolve());
+			broker.transit.ready = jest.fn(() => Promise.resolve());
 			broker.transit.connect = jest.fn(() => Promise.resolve());
 			broker.transit.ready = jest.fn(() => Promise.resolve());
 			broker.broadcastLocal = jest.fn();
 			broker.metrics.set = jest.fn();
 			broker.callMiddlewareHook = jest.fn();
+			broker.createService(schema);
+			const shouldBeCalled = jest.fn();
+			broker.createService({
+				name: "test2",
+				started: () => {
+					broker.createService({
+						name: "test3",
+						started: shouldBeCalled
+					});
+					broker.waitForServices("test");
+					// do something
+				}
+			});
+			await broker.start();
+			expect(shouldBeCalled).toHaveBeenCalledTimes(1);
+		});
+
+		it("should call started of services", async () => {
+			const optStarted = jest.fn();
+			const broker = new ServiceBroker({
+				logger: false,
+				transporter: "Fake",
+				started: optStarted
+			});
+			const svc = broker.createService(schema);
+			broker.transit.connect = jest.fn(() => Promise.resolve());
+			broker.transit.ready = jest.fn(() => Promise.resolve());
+			broker.transit.connect = jest.fn(() => Promise.resolve());
+			broker.transit.ready = jest.fn(() => Promise.resolve());
+			broker.broadcastLocal = jest.fn();
+			broker.metrics.set = jest.fn();
+			broker.callMiddlewareHook = jest.fn();
+			broker.services.forEach(svc => (svc._start = jest.fn()));
 			//broker.scope.enable = jest.fn();
 			//broker.tracer.restartScope = jest.fn();
 
