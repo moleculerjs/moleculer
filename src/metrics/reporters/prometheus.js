@@ -47,7 +47,6 @@ class PrometheusReporter extends BaseReporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			host: "0.0.0.0",
 			port: 3030,
 			path: "/metrics",
 			defaultLabels: registry => ({
@@ -55,6 +54,14 @@ class PrometheusReporter extends BaseReporter {
 				nodeID: registry.broker.nodeID
 			})
 		});
+
+		if (!this.opts.host && this.opts.port !== 0) {
+			this.opts.host = "0.0.0.0";
+		}
+		if (this.opts.port === 0) {
+			// host can not be used in combination with port 0 = auto port assignment
+			delete this.opts.host;
+		}
 	}
 
 	/**
@@ -76,7 +83,9 @@ class PrometheusReporter extends BaseReporter {
 			}
 
 			this.logger.info(
-				`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`
+				`Prometheus metric reporter listening on http://${this.server.address().address}:${
+					this.server.address().port
+				}${this.opts.path} address.`
 			);
 		});
 		this.defaultLabels = isFunction(this.opts.defaultLabels)
