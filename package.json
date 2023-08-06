@@ -85,7 +85,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-security": "^1.7.1",
-    "etcd3": "^1.1.0",
+    "etcd3": "^1.1.2",
     "event-loop-stats": "^1.4.1",
     "fakerator": "^0.3.6",
     "gc-stats": "^1.4.0",

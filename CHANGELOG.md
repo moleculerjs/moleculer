@@ -2,6 +2,15 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.29...master)
 
 --------------------------------------------------
+<a name="0.14.31"></a>
+# [0.14.31](https://github.com/moleculerjs/moleculer/compare/v0.14.30...v0.14.31) (2023-08-06)
+
+## Changes
+- fix prometheus reporter to accept host option [#1221](https://github.com/moleculerjs/moleculer/pull/1221)
+- remove usage of _.uniq [#1211](https://github.com/moleculerjs/moleculer/pull/1211)
+- fix: started not being called when createService is used [#1229](https://github.com/moleculerjs/moleculer/pull/1229)  
+
+--------------------------------------------------
 <a name="0.14.30"></a>
 # [0.14.30](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.14.30) (2023-07-15)
 
