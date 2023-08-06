@@ -597,22 +597,22 @@ describe("Test broker.start", () => {
 			started: jest.fn(() => Promise.resolve())
 		};
 
+		const optStarted = jest.fn();
+		const broker = new ServiceBroker({
+			logger: false,
+			transporter: "Fake",
+			started: optStarted
+		});
+		broker.transit.connect = jest.fn(() => Promise.resolve());
+		broker.transit.ready = jest.fn(() => Promise.resolve());
+		broker.broadcastLocal = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.callMiddlewareHook = jest.fn();
+		const svc = broker.createService(schema);
+
 		it("should call started of services, created whilst starting an initial service", async () => {
-			const optStarted = jest.fn();
-			const broker = new ServiceBroker({
-				logger: false,
-				transporter: "Fake",
-				started: optStarted
-			});
-			broker.transit.connect = jest.fn(() => Promise.resolve());
-			broker.transit.ready = jest.fn(() => Promise.resolve());
-			broker.transit.connect = jest.fn(() => Promise.resolve());
-			broker.transit.ready = jest.fn(() => Promise.resolve());
-			broker.broadcastLocal = jest.fn();
-			broker.metrics.set = jest.fn();
-			broker.callMiddlewareHook = jest.fn();
-			broker.createService(schema);
 			const shouldBeCalled = jest.fn();
+
 			broker.createService({
 				name: "test2",
 				started: () => {
@@ -629,20 +629,13 @@ describe("Test broker.start", () => {
 		});
 
 		it("should call started of services", async () => {
-			const optStarted = jest.fn();
-			const broker = new ServiceBroker({
-				logger: false,
-				transporter: "Fake",
-				started: optStarted
-			});
-			const svc = broker.createService(schema);
-			broker.transit.connect = jest.fn(() => Promise.resolve());
-			broker.transit.ready = jest.fn(() => Promise.resolve());
-			broker.transit.connect = jest.fn(() => Promise.resolve());
-			broker.transit.ready = jest.fn(() => Promise.resolve());
-			broker.broadcastLocal = jest.fn();
-			broker.metrics.set = jest.fn();
-			broker.callMiddlewareHook = jest.fn();
+			optStarted.mockClear();
+			broker.transit.connect.mockClear();
+			broker.transit.ready.mockClear();
+			broker.broadcastLocal.mockClear();
+			broker.metrics.set.mockClear();
+			broker.callMiddlewareHook.mockClear();
+
 			broker.services.forEach(svc => (svc._start = jest.fn()));
 			//broker.scope.enable = jest.fn();
 			//broker.tracer.restartScope = jest.fn();
