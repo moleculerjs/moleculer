@@ -1,10 +1,11 @@
 {
   "name": "moleculer",
-  "version": "0.14.28",
+  "version": "0.14.31",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "exports": {
     ".": {
+      "types": "./index.d.ts",
       "require": "./index.js",
       "import": "./index.mjs"
     }
@@ -76,13 +77,13 @@
     "avsc": "^5.7.7",
     "benchmarkify": "^3.0.0",
     "bunyan": "^1.8.15",
-    "cbor-x": "^1.5.0",
+    "cbor-x": "1.5.0",
     "coveralls": "^3.1.1",
     "dd-trace": "^0.36.3",
     "debug": "^4.3.4",
-    "dotenv": "^16.0.3",
-    "eslint": "^8.31.0",
-    "eslint-config-prettier": "^8.6.0",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
@@ -115,15 +116,15 @@
     "tsd": "^0.22.0",
     "typescript": "^4.9.4",
     "v8-natives": "^1.2.5",
-    "winston": "^3.8.2",
+    "winston": "^3.10.0",
     "winston-context": "^0.0.7"
   },
   "dependencies": {
     "args": "^5.0.3",
     "eventemitter2": "^6.4.9",
-    "fastest-validator": "^1.16.0",
+    "fastest-validator": "^1.17.0",
     "glob": "^7.2.0",
-    "ipaddr.js": "^2.0.1",
+    "ipaddr.js": "^2.1.0",
     "kleur": "^4.1.5",
     "lodash": "^4.17.21",
     "lru-cache": "^6.0.0",

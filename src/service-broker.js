@@ -202,6 +202,9 @@ class ServiceBroker {
 			// Broker started flag
 			this.started = false;
 
+			/** @type {Boolean} Broker is starting inital services flag*/
+			this.servicesStarting = false;
+
 			/** @type {Boolean} Broker stopping flag*/
 			this.stopping = false;
 
@@ -479,16 +482,19 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return this.Promise.all(this.services.map(svc => svc._start.call(svc))).catch(
-					err => {
-						/* istanbul ignore next */
-						this.logger.error("Unable to start all services.", err);
-						throw err;
-					}
-				);
+				const startingServices = this.services.map(svc => svc._start.call(svc));
+				// Set servicesStarting, so new services created from now on will be started when registered
+				this.servicesStarting = true;
+				// Wait for services `started` handlers
+				return this.Promise.all(startingServices).catch(err => {
+					/* istanbul ignore next */
+					this.logger.error("Unable to start all services.", err);
+					throw err;
+				});
 			})
 			.then(() => {
 				this.started = true;
+				this.servicesStarting = false;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 				this.broadcastLocal("$broker.started");
 			})
@@ -800,7 +806,7 @@ class ServiceBroker {
 				svc = new schema(this);
 
 				// If broker is started, call the started lifecycle event of service
-				if (this.started) this._restartService(svc);
+				if (this.started || this.servicesStarting) this._restartService(svc);
 			} else if (utils.isFunction(schema)) {
 				// Function
 				svc = schema(this);
@@ -808,7 +814,7 @@ class ServiceBroker {
 					svc = this.createService(svc);
 				} else {
 					// If broker is started, call the started lifecycle event of service
-					if (this.started) this._restartService(svc);
+					if (this.started || this.servicesStarting) this._restartService(svc);
 				}
 			} else if (schema) {
 				// Schema object
@@ -850,8 +856,8 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, schema, schemaMods);
 		}
 
-		// If broker has started yet, call the started lifecycle event of service
-		if (this.started) this._restartService(service);
+		// If broker has began to start its initial services yet, call the started lifecycle event of service
+		if (this.started || this.servicesStarting) this._restartService(service);
 
 		return service;
 	}
@@ -958,7 +964,6 @@ class ServiceBroker {
 	 */
 	servicesChanged(localService = false) {
 		this.broadcastLocal("$services.changed", { localService });
-
 		// Should notify remote nodes, because our service list is changed.
 		if (localService && this.transit) {
 			this.localServiceChanged();
@@ -969,7 +974,9 @@ class ServiceBroker {
 	 * It's a debounced method to send INFO packets to remote nodes.
 	 */
 	localServiceChanged() {
-		this.registry.discoverer.sendLocalNodeInfo();
+		if (!this.stopping) {
+			this.registry.discoverer.sendLocalNodeInfo();
+		}
 	}
 
 	/**
@@ -1033,7 +1040,7 @@ class ServiceBroker {
 	) {
 		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
 
-		serviceNames = _.uniq(
+		serviceNames = utils.uniq(
 			_.compact(
 				serviceNames.map(x => {
 					if (utils.isPlainObject(x) && x.name) {

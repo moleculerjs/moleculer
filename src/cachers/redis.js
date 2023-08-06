@@ -6,7 +6,7 @@
 
 "use strict";
 
-let Redis, Redlock;
+let Redis;
 const BaseCacher = require("./base");
 const _ = require("lodash");
 const { METRIC } = require("../metrics");
@@ -37,7 +37,14 @@ class RedisCacher extends BaseCacher {
 			pingInterval: null
 		});
 
-		this.pingTimer = null;
+		this.pingIntervalHandle = null;
+
+		/**
+		 * Redlock client instance
+		 * @memberof RedisCacher
+		 */
+		this.redlock = null;
+		this.redlockNonBlocking = null;
 	}
 
 	/**
@@ -96,24 +103,20 @@ class RedisCacher extends BaseCacher {
 			this.logger.error(err);
 		});
 
-		if (this.opts.lock) {
+		// check for !== false for backwards compatibility purposes; should be changed to opt-in in a breaking change release
+		if (this.opts.redlock !== false) {
+			let Redlock;
 			try {
 				Redlock = require("redlock");
 			} catch (err) {
-				/* istanbul ignore next */
-				this.logger.warn(
-					"The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command."
-				);
+				Redlock = null;
 			}
-
-			if (Redlock) {
+			if (Redlock != null) {
 				let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [
 					this.client
 				];
 
-				// redlock client instance
 				this.redlock = new Redlock(redlockClients, _.omit(this.opts.redlock, ["clients"]));
-
 				// Non-blocking redlock client, used for tryLock()
 				this.redlockNonBlocking = new Redlock(redlockClients, {
 					retryCount: 0
@@ -352,6 +355,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	lock(key, ttl = 15000) {
+		if (this.redlock == null) {
+			return this._handleMissingRedlock();
+		}
+
 		key = this.prefix + key + "-lock";
 		return this.redlock.lock(key, ttl).then(lock => {
 			return () => lock.unlock();
@@ -368,10 +375,25 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	tryLock(key, ttl = 15000) {
+		if (this.redlockNonBlocking == null) {
+			return this._handleMissingRedlock();
+		}
+
 		key = this.prefix + key + "-lock";
 		return this.redlockNonBlocking.lock(key, ttl).then(lock => {
 			return () => lock.unlock();
 		});
+	}
+
+	/**
+	 * Common code for handling unavailable Redlock
+	 * @returns {Promise}
+	 */
+	_handleMissingRedlock() {
+		this.logger.error(
+			"The 'redlock' package is missing or redlock is disabled. If you want to enable cache lock, please install it with 'npm install redlock --save' command."
+		);
+		return Promise.resolve();
 	}
 
 	_sequentialPromises(elements) {

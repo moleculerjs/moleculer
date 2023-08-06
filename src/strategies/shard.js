@@ -67,7 +67,8 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	select(list, ctx) {
-		let key = this.getKeyFromContext(ctx);
+		const key = this.getKeyFromContext(ctx);
+
 		if (key != null) {
 			if (this.needRebuild) this.rebuild(list);
 

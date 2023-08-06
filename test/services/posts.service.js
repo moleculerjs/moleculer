@@ -6,10 +6,12 @@ const { delay, randomInt } = require("../../src/utils");
 module.exports = function () {
 	let posts = fakerator.times(fakerator.entity.post, 10);
 
-	_.each(posts, (post, i) => {
+	for (let i = 0; i < posts.length; i++) {
+		const post = posts[i];
+
 		post.id = i + 1;
 		post.author = randomInt(1, 5);
-	});
+	}
 
 	return {
 		name: "posts",

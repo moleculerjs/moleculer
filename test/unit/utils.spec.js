@@ -809,3 +809,14 @@ describe("Test utils.functionArguments", () => {
 		expect(utils.functionArguments(async function (alpha, beta) {})).toEqual(["alpha", "beta"]);
 	});
 });
+
+describe("Test utils.uniq", () => {
+	it("should return duplicate-free version of an array", () => {
+		expect(utils.uniq([1, 2, 3, 3])).toEqual([1, 2, 3]);
+		expect(utils.uniq(["one", "one", "two", "three"])).toEqual(["one", "two", "three"]);
+
+		expect(utils.uniq([null, null, undefined, undefined])).toEqual([null, undefined]);
+		expect(utils.uniq([null, null])).toEqual([null]);
+		expect(utils.uniq([undefined, undefined])).toEqual([undefined]);
+	});
+});

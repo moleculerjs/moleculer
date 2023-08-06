@@ -12,7 +12,7 @@ const path = require("path");
 const watch = require("recursive-watch");
 const _ = require("lodash");
 
-const { clearRequireCache, makeDirs, isFunction, isString } = require("../utils");
+const { clearRequireCache, makeDirs, isFunction, isString, uniq } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -250,10 +250,11 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (service) {
 			// It is a service dependency. We should reload this service if this file has changed.
 			const watchItem = getWatchItem(fName);
-			if (!watchItem.services.includes(service.fullName))
+			if (!watchItem.services.includes(service.fullName)) {
 				watchItem.services.push(service.fullName);
+			}
 
-			watchItem.others = _.uniq([].concat(watchItem.others, parents || []));
+			watchItem.others = uniq([...watchItem.others, ...(parents || [])]);
 		} else if (isMoleculerConfig(fName)) {
 			const watchItem = getWatchItem(fName);
 			watchItem.brokerRestart = true;
@@ -262,7 +263,7 @@ module.exports = function HotReloadMiddleware(broker) {
 			if (parents) {
 				const watchItem = getWatchItem(fName);
 				watchItem.brokerRestart = true;
-				watchItem.others = _.uniq([].concat(watchItem.others, parents || []));
+				watchItem.others = uniq([...watchItem.others, ...(parents || [])]);
 			}
 		}
 

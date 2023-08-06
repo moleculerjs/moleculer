@@ -3,10 +3,11 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
+const { randomInt } = require("../src/utils");
 
 const COUNT = process.argv[2] ? Number(process.argv[2]) : 20;
 const nodePrefix = process.argv[3] || "node";
-const namespace = "viz-" + Math.round(_.random(100));
+const namespace = "viz-" + randomInt(100);
 
 console.log(`Create ${COUNT} nodes...`);
 
@@ -55,8 +56,8 @@ Promise.all(brokers.map(({ broker }) => broker.start())).then(() => {
 		printStatuses();
 	}, 1000);
 
-	const timer = setInterval(() => {
-		const idx = _.random(brokers.length - 1);
+	setInterval(() => {
+		const idx = randomInt(brokers.length - 1);
 		const { nodeID, broker } = brokers[idx];
 
 		if (broker) {

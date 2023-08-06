@@ -3,10 +3,9 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const fs = require("fs");
-const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
-const Middlewares = require("..").Middlewares;
 
 const ServiceBroker = require("../src/service-broker");
+const { randomInt } = require("../src/utils");
 
 // Create broker
 const broker = new ServiceBroker({
@@ -138,9 +137,8 @@ broker.createService({
 	actions: {
 		add(ctx) {
 			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
-			if (_.random(100) > 70)
+			if (randomInt(100) > 70)
 				return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
-
 			return {
 				count: ctx.params.count,
 				res: Number(ctx.params.a) + Number(ctx.params.b)
@@ -173,7 +171,7 @@ broker
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
 
-			const payload = { a: _.random(0, 10), b: _.random(0, 10) };
+			const payload = { a: randomInt(0, 10), b: randomInt(0, 10) };
 			const count = ++reqCount;
 			pendingReqs.push(count);
 			let p = broker.call("math.add", payload, { meta: { count } });
