@@ -1,1 +1,1 @@
-export { type BulkheadOptions } from "./bulkhead";
+export { BulkheadOptions } from "./bulkhead";
