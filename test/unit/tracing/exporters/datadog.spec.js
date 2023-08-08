@@ -574,12 +574,12 @@ describe("Test Datadog tracing exporter class", () => {
 		it("should truncate ID", () => {
 			expect(exporter.convertID()).toBeNull();
 			expect(exporter.convertID("")).toBeNull();
-			expect(exporter.convertID("12345678").toString()).toEqual("12345678");
+			expect(exporter.convertID("12345678").toString()).toEqual("0000000012345678");
 			expect(exporter.convertID("123456789-0123456").toString()).toEqual("1234567890123456");
 			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual(
 				"1234567890123456"
 			);
-			expect(exporter.convertID("abc-def").toString()).toEqual("abcdef");
+			expect(exporter.convertID("abc-def").toString()).toEqual("0000000000abcdef");
 			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual(
 				"abcdefabcdefabcd"
 			);

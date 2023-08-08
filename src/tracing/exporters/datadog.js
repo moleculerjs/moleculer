@@ -2,7 +2,6 @@
 
 const _ = require("lodash");
 const BaseTraceExporter = require("./base");
-const asyncHooks = require("async_hooks");
 const { isFunction } = require("../../utils");
 
 let DatadogSpanContext;
