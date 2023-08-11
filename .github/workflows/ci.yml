@@ -49,7 +49,6 @@ jobs:
           ${{ runner.os }}-
 
     - name: Disable proto
-      if: ${{ matrix.node-version != '10.x' }}
       run: export NODE_OPTIONS=--disable-proto=delete
 
     - name: Install dependencies

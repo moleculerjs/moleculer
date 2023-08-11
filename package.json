@@ -70,7 +70,7 @@
     "@opentelemetry/semantic-conventions": "^1.15.2",
     "@sinonjs/fake-timers": "^11.0.0",
     "@types/bunyan": "^1.8.8",
-    "@types/ioredis": "^5.0.0",
+    "@types/ioredis": "^4.28.10",
     "@types/node": "^20.4.9",
     "@types/pino": "^7.0.5",
     "amqplib": "^0.10.3",

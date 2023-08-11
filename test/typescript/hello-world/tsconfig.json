@@ -16,7 +16,6 @@
 		"strictFunctionTypes": false,
         "preserveConstEnums": true,
 		"skipLibCheck": true,
-        "suppressImplicitAnyIndexErrors": true,
         "outDir": "./out",
         "baseUrl": ".",
         "paths": {
