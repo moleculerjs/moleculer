@@ -7,7 +7,7 @@ module.exports = {
 	extends: ["eslint:recommended", "plugin:security/recommended", "plugin:prettier/recommended"],
 	parserOptions: {
 		sourceType: "module",
-		ecmaVersion: 2018
+		ecmaVersion: 2023
 	},
 	rules: {
 		"no-var": ["warn"],

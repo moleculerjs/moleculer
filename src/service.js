@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten, functionArguments, deprecate, uniq } = require("./utils");
+const { isObject, isFunction, flatten, functionArguments, uniq } = require("./utils");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
