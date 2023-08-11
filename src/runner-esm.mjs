@@ -69,7 +69,7 @@ export default class MoleculerRunner {
 	 * Available options:
 		-c, --config     Load the configuration from a file
 		-e, --env        Load .env file from the current directory
-		-E, --envfile    Load a specified .env file
+		-E, --envfile    Load specified .env files using glob patterns that are separated by commas. Example "-E '.env.dev.\*'": loads the all .env.dev.* files.
 		-h, --help       Output usage information
 		-H, --hot        Hot reload services if changed (disabled by default)
 		-i, --instances  Launch [number] instances node (load balanced)
@@ -84,7 +84,10 @@ export default class MoleculerRunner {
 			.option(["H", "hot"], "Hot reload services if changed", false)
 			.option("silent", "Silent mode. No logger", false)
 			.option("env", "Load .env file from the current directory")
-			.option("envfile", "Load a specified .env file")
+			.option(
+				"envfile",
+				"Load specified .env files using glob patterns that are separated by commas. Example \"-E '.env.dev.*'\": loads the all .env.dev.* files."
+			)
 			.option("instances", "Launch [number] instances node (load balanced)")
 			.option("mask", "Filemask for service loading");
 
@@ -116,8 +119,17 @@ export default class MoleculerRunner {
 			try {
 				const dotenv = await import("dotenv");
 
-				if (this.flags.envfile) dotenv.config({ path: this.flags.envfile });
-				else dotenv.config();
+				if (this.flags.envfile) {
+					this.flags.envfile.split(",").forEach(envFile => {
+						glob.sync(path.join(process.cwd(), envFile), { absolute: true }).forEach(
+							envFile => {
+								dotenv.config({ path: envFile });
+							}
+						);
+					});
+				} else {
+					dotenv.config();
+				}
 			} catch (err) {
 				throw new Error(
 					"The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command."
@@ -261,7 +273,7 @@ export default class MoleculerRunner {
 							level
 								.split("_")
 								.map((value, index) => {
-									if (index == 0) {
+									if (index === 0) {
 										return value;
 									} else {
 										return value[0].toUpperCase() + value.substring(1);
@@ -391,7 +403,7 @@ export default class MoleculerRunner {
 			patterns
 				.map(s => s.trim())
 				.forEach(p => {
-					const skipping = p[0] == "!";
+					const skipping = p[0] === "!";
 					if (skipping) p = p.slice(1);
 
 					let files;
@@ -402,7 +414,7 @@ export default class MoleculerRunner {
 							this.watchFolders.push(svcPath);
 						}
 						files = glob.sync(svcPath + "/" + fileMask, { absolute: true });
-						if (files.length == 0)
+						if (files.length === 0)
 							return this.broker.logger.warn(
 								kleur
 									.yellow()
@@ -415,7 +427,7 @@ export default class MoleculerRunner {
 					} else {
 						// Load with glob
 						files = glob.sync(p, { cwd: svcDir, absolute: true });
-						if (files.length == 0)
+						if (files.length === 0)
 							this.broker.logger.warn(
 								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
 							);
