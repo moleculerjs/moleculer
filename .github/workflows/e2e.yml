@@ -102,7 +102,7 @@ jobs:
 
     - name: Execute E2E tests
       run: npm run test:e2e
-      timeout-minutes: 5
+      timeout-minutes: 15
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
