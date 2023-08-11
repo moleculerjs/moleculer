@@ -1,18 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test NewRelic tracing exporter class Test makePayload should convert errored span to newrelic payload 1`] = `
-Object {
-  "annotations": Array [
-    Object {
+{
+  "annotations": [
+    {
       "timestamp": 1000000,
       "value": "sr",
     },
-    Object {
+    {
       "timestamp": 1050000,
       "value": "ss",
     },
-    Object {
-      "endpoint": Object {
+    {
+      "endpoint": {
         "ipv4": "",
         "port": 0,
         "serviceName": "v1.posts",
@@ -25,16 +25,16 @@ Object {
   "duration": 50000,
   "id": "spanid1234567890",
   "kind": "CONSUMER",
-  "localEndpoint": Object {
+  "localEndpoint": {
     "serviceName": "v1.posts",
   },
   "name": "Test Span",
   "parentId": "parentid12345678",
-  "remoteEndpoint": Object {
+  "remoteEndpoint": {
     "serviceName": "v1.posts",
   },
   "shared": true,
-  "tags": Object {
+  "tags": {
     "a": "5",
     "b": "John",
     "c": "true",
@@ -55,13 +55,13 @@ Object {
 `;
 
 exports[`Test NewRelic tracing exporter class Test makePayload should convert normal span to newrelic payload 1`] = `
-Object {
-  "annotations": Array [
-    Object {
+{
+  "annotations": [
+    {
       "timestamp": 1000000,
       "value": "sr",
     },
-    Object {
+    {
       "timestamp": 1050000,
       "value": "ss",
     },
@@ -70,16 +70,16 @@ Object {
   "duration": 50000,
   "id": "spanid1234567890",
   "kind": "CONSUMER",
-  "localEndpoint": Object {
+  "localEndpoint": {
     "serviceName": "v1.posts",
   },
   "name": "Test Span",
   "parentId": "parentid12345678",
-  "remoteEndpoint": Object {
+  "remoteEndpoint": {
     "serviceName": "v1.posts",
   },
   "shared": true,
-  "tags": Object {
+  "tags": {
     "a": "5",
     "b": "John",
     "c": "true",

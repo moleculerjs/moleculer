@@ -1,52 +1,52 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test Console tracing exporter class Test removeSpanWithChildren method should clear printed spans 1`] = `
-Object {
-  "span1": Object {
-    "children": Array [
+{
+  "span1": {
+    "children": [
       "span2",
       "span5",
     ],
-    "span": Object {
+    "span": {
       "id": "span1",
       "parentID": null,
     },
   },
-  "span2": Object {
-    "children": Array [
+  "span2": {
+    "children": [
       "span3",
     ],
-    "span": Object {
+    "span": {
       "id": "span2",
       "parentID": "span1",
     },
   },
-  "span3": Object {
-    "children": Array [
+  "span3": {
+    "children": [
       "span4",
     ],
-    "span": Object {
+    "span": {
       "id": "span3",
       "parentID": "span2",
     },
   },
-  "span4": Object {
-    "children": Array [],
-    "span": Object {
+  "span4": {
+    "children": [],
+    "span": {
       "id": "span4",
       "parentID": "span3",
     },
   },
-  "span5": Object {
-    "children": Array [],
-    "span": Object {
+  "span5": {
+    "children": [],
+    "span": {
       "id": "span5",
       "parentID": "span1",
     },
   },
-  "span6": Object {
-    "children": Array [],
-    "span": Object {
+  "span6": {
+    "children": [],
+    "span": {
       "id": "span6",
       "parentID": null,
     },
@@ -55,7 +55,7 @@ Object {
 `;
 
 exports[`Test Console tracing exporter class Test spans printing should print full trace 1`] = `
-Array [
+[
   "┌──────────────────────────────────────────────────────────────────────────────┐",
   "│ ID: span-1                                                 Depth: 3 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",
@@ -68,7 +68,7 @@ Array [
 `;
 
 exports[`Test Console tracing exporter class Test spans printing should print full trace with error 1`] = `
-Array [
+[
   "┌──────────────────────────────────────────────────────────────────────────────┐",
   "│ ID: span-1                                                 Depth: 3 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",
@@ -81,7 +81,7 @@ Array [
 `;
 
 exports[`Test Console tracing exporter class Test spans printing should print to the default logger 1`] = `
-Array [
+[
   "┌──────────────────────────────────────────────────────────────────────────────┐",
   "│ ID: span-1                                                 Depth: 3 Total: 4 │",
   "├──────────────────────────────────────────────────────────────────────────────┤",

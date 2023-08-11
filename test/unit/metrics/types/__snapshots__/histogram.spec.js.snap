@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test Base Metric class Test generateSnapshot & generateItemSnapshot methods should generate snapshot 1`] = `
-Array [
-  Object {
-    "buckets": Object {
+[
+  {
+    "buckets": {
       "1": 0,
       "10": 5,
       "2": 1,
@@ -13,12 +13,12 @@ Array [
     },
     "count": 5,
     "key": "",
-    "labels": Object {},
+    "labels": {},
     "lastValue": 5,
     "max": 8,
     "mean": 4.8,
     "min": 2,
-    "quantiles": Object {
+    "quantiles": {
       "0.1": 2,
       "0.5": 5,
       "0.9": 8,
@@ -29,8 +29,8 @@ Array [
     "timestamp": 1558295472803,
     "variance": 5.7,
   },
-  Object {
-    "buckets": Object {
+  {
+    "buckets": {
       "1": 1,
       "10": 4,
       "2": 3,
@@ -40,14 +40,14 @@ Array [
     },
     "count": 4,
     "key": "5",
-    "labels": Object {
+    "labels": {
       "a": 5,
     },
     "lastValue": 4,
     "max": 4,
     "mean": 2.25,
     "min": 1,
-    "quantiles": Object {
+    "quantiles": {
       "0.1": 1,
       "0.5": 2,
       "0.9": 4,
@@ -62,11 +62,11 @@ Array [
 `;
 
 exports[`Test TimeWindowQuantiles class should generate snapshot 1`] = `
-Object {
+{
   "max": 8,
   "mean": 3.8333333333333335,
   "min": 0,
-  "quantiles": Object {
+  "quantiles": {
     "0.1": 0,
     "0.5": 2,
     "0.9": 8,

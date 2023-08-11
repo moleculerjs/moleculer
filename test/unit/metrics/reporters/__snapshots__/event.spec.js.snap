@@ -1,100 +1,100 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test EventReporter class Test sendEvent method should call broker emit with changes 1`] = `
-Array [
-  Object {
+[
+  {
     "description": undefined,
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "os.datetime.utc",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 123456,
       },
     ],
   },
-  Object {
+  {
     "description": "Test Info Metric",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "test.info",
     "type": "info",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": "Test Value",
       },
     ],
   },
-  Object {
+  {
     "description": "Test Counter Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.counter",
     "type": "counter",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 5,
       },
-      Object {
-        "key": "\\"posts\\\\comments\\"",
-        "labels": Object {
-          "action": "posts\\\\comments",
+      {
+        "key": ""posts\\comments"",
+        "labels": {
+          "action": "posts\\comments",
         },
         "timestamp": 12345678000,
         "value": 8,
       },
     ],
   },
-  Object {
+  {
     "description": "Test Gauge Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.gauge-total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
-        "key": "\\"users-\\"John\\"\\"",
-        "labels": Object {
-          "action": "users-\\"John\\"",
+    "values": [
+      {
+        "key": ""users-"John""",
+        "labels": {
+          "action": "users-"John"",
         },
         "timestamp": 12345678000,
         "value": -8,
       },
-      Object {
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
-        "value": Object {
+        "value": {
           "action": "posts",
         },
       },
     ],
   },
-  Object {
+  {
     "description": undefined,
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.histogram",
     "type": "histogram",
     "unit": "byte",
-    "values": Array [
-      Object {
-        "buckets": Object {
+    "values": [
+      {
+        "buckets": {
           "1": 0,
           "10": 4,
           "100": 4,
@@ -110,12 +110,12 @@ Array [
         },
         "count": 4,
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "lastValue": 2,
         "max": 8,
         "mean": 4.5,
         "min": 2,
-        "quantiles": Object {
+        "quantiles": {
           "0.5": 2,
           "0.9": 8,
           "0.95": 8,
@@ -127,8 +127,8 @@ Array [
         "timestamp": 12345678000,
         "variance": 9,
       },
-      Object {
-        "buckets": Object {
+      {
+        "buckets": {
           "1": 1,
           "10": 3,
           "100": 3,
@@ -143,15 +143,15 @@ Array [
           "5000": 3,
         },
         "count": 3,
-        "key": "\\"auth\\"",
-        "labels": Object {
+        "key": ""auth"",
+        "labels": {
           "action": "auth",
         },
         "lastValue": 7,
         "max": 7,
         "mean": 3.6666666666666665,
         "min": 1,
-        "quantiles": Object {
+        "quantiles": {
           "0.5": 3,
           "0.9": 7,
           "0.95": 7,
@@ -169,265 +169,265 @@ Array [
 `;
 
 exports[`Test EventReporter class Test sendEvent method with onlyChanges should call broker.broadcast 1`] = `
-Array [
-  Object {
+[
+  {
     "description": "Moleculer implementation type",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.node.type",
     "type": "info",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": "nodejs",
       },
     ],
   },
-  Object {
+  {
     "description": "Moleculer protocol version",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.node.versions.protocol",
     "type": "info",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": "4",
       },
     ],
   },
-  Object {
+  {
     "description": "Moleculer namespace",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.broker.namespace",
     "type": "info",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": "",
       },
     ],
   },
-  Object {
+  {
     "description": "ServiceBroker started",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.broker.started",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 0,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of local services",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.broker.local.services.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 1,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of local middlewares",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.broker.middlewares.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 13,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of registered nodes",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.registry.nodes.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 1,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of online nodes",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.registry.nodes.online.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 1,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of registered services",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.registry.services.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 0,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of registered actions",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.registry.actions.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 0,
       },
     ],
   },
-  Object {
+  {
     "description": "Number of registered events",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "moleculer.registry.events.total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 0,
       },
     ],
   },
-  Object {
+  {
     "description": undefined,
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "os.datetime.utc",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 123456,
       },
     ],
   },
-  Object {
+  {
     "description": "Test Info Metric",
-    "labelNames": Array [],
+    "labelNames": [],
     "name": "test.info",
     "type": "info",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": "Test Value",
       },
     ],
   },
-  Object {
+  {
     "description": "Test Counter Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.counter",
     "type": "counter",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 5,
       },
-      Object {
-        "key": "\\"posts\\\\comments\\"",
-        "labels": Object {
-          "action": "posts\\\\comments",
+      {
+        "key": ""posts\\comments"",
+        "labels": {
+          "action": "posts\\comments",
         },
         "timestamp": 12345678000,
         "value": 8,
       },
     ],
   },
-  Object {
+  {
     "description": "Test Gauge Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.gauge-total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
-        "key": "\\"users-\\"John\\"\\"",
-        "labels": Object {
-          "action": "users-\\"John\\"",
+    "values": [
+      {
+        "key": ""users-"John""",
+        "labels": {
+          "action": "users-"John"",
         },
         "timestamp": 12345678000,
         "value": -8,
       },
-      Object {
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
-        "value": Object {
+        "value": {
           "action": "posts",
         },
       },
     ],
   },
-  Object {
+  {
     "description": undefined,
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.histogram",
     "type": "histogram",
     "unit": "byte",
-    "values": Array [
-      Object {
-        "buckets": Object {
+    "values": [
+      {
+        "buckets": {
           "1": 0,
           "10": 4,
           "100": 4,
@@ -443,12 +443,12 @@ Array [
         },
         "count": 4,
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "lastValue": 2,
         "max": 8,
         "mean": 4.5,
         "min": 2,
-        "quantiles": Object {
+        "quantiles": {
           "0.5": 2,
           "0.9": 8,
           "0.95": 8,
@@ -460,8 +460,8 @@ Array [
         "timestamp": 12345678000,
         "variance": 9,
       },
-      Object {
-        "buckets": Object {
+      {
+        "buckets": {
           "1": 1,
           "10": 3,
           "100": 3,
@@ -476,15 +476,15 @@ Array [
           "5000": 3,
         },
         "count": 3,
-        "key": "\\"auth\\"",
-        "labels": Object {
+        "key": ""auth"",
+        "labels": {
           "action": "auth",
         },
         "lastValue": 7,
         "max": 7,
         "mean": 3.6666666666666665,
         "min": 1,
-        "quantiles": Object {
+        "quantiles": {
           "0.5": 3,
           "0.9": 7,
           "0.95": 7,
@@ -502,60 +502,60 @@ Array [
 `;
 
 exports[`Test EventReporter class Test sendEvent method with onlyChanges should send changes only 1`] = `
-Array [
-  Object {
+[
+  {
     "description": "Test Counter Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.counter",
     "type": "counter",
     "unit": undefined,
-    "values": Array [
-      Object {
+    "values": [
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
         "value": 12,
       },
-      Object {
-        "key": "\\"posts\\\\comments\\"",
-        "labels": Object {
-          "action": "posts\\\\comments",
+      {
+        "key": ""posts\\comments"",
+        "labels": {
+          "action": "posts\\comments",
         },
         "timestamp": 12345678000,
         "value": 8,
       },
     ],
   },
-  Object {
+  {
     "description": "Test Gauge Metric",
-    "labelNames": Array [
+    "labelNames": [
       "action",
     ],
     "name": "test.gauge-total",
     "type": "gauge",
     "unit": undefined,
-    "values": Array [
-      Object {
-        "key": "\\"users-\\"John\\"\\"",
-        "labels": Object {
-          "action": "users-\\"John\\"",
+    "values": [
+      {
+        "key": ""users-"John""",
+        "labels": {
+          "action": "users-"John"",
         },
         "timestamp": 12345678000,
         "value": -8,
       },
-      Object {
+      {
         "key": "",
-        "labels": Object {},
+        "labels": {},
         "timestamp": 12345678000,
-        "value": Object {
+        "value": {
           "action": "posts",
         },
       },
-      Object {
-        "key": "\\"posts\\"",
-        "labels": Object {
+      {
+        "key": ""posts"",
+        "labels": {
           "action": "posts",
         },
         "timestamp": 12345678000,

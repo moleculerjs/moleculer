@@ -1,239 +1,239 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test CSVReporter class Test flush method should call broker emit with changes 1`] = `
-Array [
-  Array [
+[
+  [
     "./reports/metrics/moleculer.node.type.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.node.type",
       "nodejs",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.node.versions.protocol.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.node.versions.protocol",
       "4",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.broker.namespace.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.broker.namespace",
       "",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.broker.started.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.broker.started",
       "0",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.broker.local.services.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.broker.local.services.total",
       "1",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.broker.middlewares.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.broker.middlewares.total",
       "13",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.registry.nodes.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.registry.nodes.total",
       "1",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.registry.nodes.online.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.registry.nodes.online.total",
       "1",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.registry.services.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.registry.services.total",
       "0",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.registry.actions.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.registry.actions.total",
       "0",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/moleculer.registry.events.total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "moleculer.registry.events.total",
       "0",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/os.datetime.utc.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "os.datetime.utc",
       "123456",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.info.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "test.info",
       "Test Value",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.counter.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "test.counter",
       "",
       "5",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.counter.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "test.counter",
-      "posts\\\\comments",
+      "posts\\comments",
       "8",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.gauge-total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "test.gauge-total",
-      "users-\\"John\\"",
+      "users-"John"",
       "-8",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.gauge-total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
     ],
-    Array [
+    [
       12345678000,
       "test.gauge-total",
       "",
       "[object Object]",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.histogram.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
@@ -262,7 +262,7 @@ Array [
       "Quantile_0.99",
       "Quantile_0.999",
     ],
-    Array [
+    [
       12345678000,
       "test.histogram",
       "",
@@ -292,9 +292,9 @@ Array [
       8,
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.histogram.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
@@ -323,7 +323,7 @@ Array [
       "Quantile_0.99",
       "Quantile_0.999",
     ],
-    Array [
+    [
       12345678000,
       "test.histogram",
       "auth",
@@ -357,17 +357,17 @@ Array [
 `;
 
 exports[`Test CSVReporter class Test flush method should write changes only 1`] = `
-Array [
-  Array [
+[
+  [
     "./reports/metrics/test.counter.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
       "MyField",
     ],
-    Array [
+    [
       12345678000,
       "test.counter",
       "",
@@ -375,16 +375,16 @@ Array [
       "MyData",
     ],
   ],
-  Array [
+  [
     "./reports/metrics/test.gauge-total.csv",
-    Array [
+    [
       "Timestamp",
       "Metric",
       "Label action",
       "Value",
       "MyField",
     ],
-    Array [
+    [
       12345678000,
       "test.gauge-total",
       "posts",

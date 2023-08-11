@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test Zipkin tracing exporter class Test makePayload should convert errored span to zipkin payload 1`] = `
-Object {
-  "annotations": Array [
-    Object {
-      "endpoint": Object {
+{
+  "annotations": [
+    {
+      "endpoint": {
         "ipv4": "",
         "port": 0,
         "serviceName": "v1.posts",
@@ -17,16 +17,16 @@ Object {
   "duration": 50000,
   "id": "spanid1234567890",
   "kind": "SERVER",
-  "localEndpoint": Object {
+  "localEndpoint": {
     "serviceName": "v1.posts",
   },
   "name": "Test Span",
   "parentId": "parentid12345678",
-  "remoteEndpoint": Object {
+  "remoteEndpoint": {
     "serviceName": "v1.posts",
   },
   "shared": true,
-  "tags": Object {
+  "tags": {
     "a": "5",
     "b": "John",
     "c": "true",
@@ -47,22 +47,22 @@ Object {
 `;
 
 exports[`Test Zipkin tracing exporter class Test makePayload should convert normal span to zipkin payload 1`] = `
-Object {
-  "annotations": Array [],
+{
+  "annotations": [],
   "debug": false,
   "duration": 50000,
   "id": "spanid1234567890",
   "kind": "SERVER",
-  "localEndpoint": Object {
+  "localEndpoint": {
     "serviceName": "v1.posts",
   },
   "name": "Test Span",
   "parentId": "parentid12345678",
-  "remoteEndpoint": Object {
+  "remoteEndpoint": {
     "serviceName": "v1.posts",
   },
   "shared": true,
-  "tags": Object {
+  "tags": {
     "a": "5",
     "b": "John",
     "c": "true",
