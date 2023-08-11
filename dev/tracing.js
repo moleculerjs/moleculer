@@ -28,6 +28,7 @@ const broker = new ServiceBroker({
 	cacher: true, //"redis://localhost:6379",
 
 	tracing: {
+		enabled: true,
 		events: true,
 		stackTrace: true,
 		sampling: {
@@ -49,19 +50,20 @@ const broker = new ServiceBroker({
 					tracer
 				}
 			},
-			{
+			/*{
 				type: "Zipkin",
 				options: {
 					baseURL: "http://localhost:9411"
 				}
-			},
+			},*/
+			/*
 			{
 				type: "Jaeger",
 				options: {
 					endpoint: "http://localhost:14268/api/traces"
 					//host: "localhost",
 				}
-			}
+			}*/
 			/*{
 				type: "Event",
 				options: {
