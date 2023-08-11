@@ -186,11 +186,14 @@ class RedisDiscoverer extends BaseDiscoverer {
 	recreateInfoUpdateTimer() {
 		if (this.infoUpdateTimer) clearTimeout(this.infoUpdateTimer);
 
-		this.infoUpdateTimer = setTimeout(() => {
-			// Reset the INFO packet expiry.
-			this.client.expire(this.INFO_KEY, 60 * 60); // 60 mins
-			this.recreateInfoUpdateTimer();
-		}, 20 * 60 * 1000); // 20 mins
+		this.infoUpdateTimer = setTimeout(
+			() => {
+				// Reset the INFO packet expiry.
+				this.client.expire(this.INFO_KEY, 60 * 60); // 60 mins
+				this.recreateInfoUpdateTimer();
+			},
+			20 * 60 * 1000
+		); // 20 mins
 		this.infoUpdateTimer.unref();
 	}
 

@@ -19,7 +19,6 @@ module.exports = {
 		"no-var": ["error"],
 		"no-console": ["error"],
 		"no-unused-vars": ["warn"],
-		"no-mixed-spaces-and-tabs": ["warn"],
 		"no-trailing-spaces": ["error"],
 		"security/detect-object-injection": ["off"],
 		"security/detect-non-literal-require": ["off"],
