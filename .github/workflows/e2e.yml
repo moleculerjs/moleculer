@@ -28,8 +28,7 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        # transporter: [NATS, Redis, MQTT, AMQP, AMQP10, Kafka, TCP]
-        transporter: [Kafka]
+        transporter: [NATS, Redis, MQTT, AMQP, AMQP10, Kafka, TCP]
         serializer: [JSON, JSONExt, MsgPack, Notepack, CBOR]
         discoverer: [Local, Etcd3, Redis]
       fail-fast: false
@@ -103,12 +102,12 @@ jobs:
 
     - name: Execute E2E tests
       run: npm run test:e2e
-      timeout-minutes: 10
+      timeout-minutes: 5
       env:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
         DISCOVERER: ${{ matrix.discoverer }}
-        LOGLEVEL: "${{ matrix.transporter == 'Kafka' && 'debug' || 'warn' }}"
+        # LOGLEVEL: "${{ matrix.transporter == 'Kafka' && 'debug' || 'warn' }}"
 
     - name: Stop containers
       run: docker-compose down -v
