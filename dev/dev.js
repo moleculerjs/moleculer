@@ -1,6 +1,8 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
+	transporter: "Redis",
+
 	metrics: {
 		enabled: true
 	},

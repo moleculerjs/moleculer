@@ -21,6 +21,18 @@ Redis.mockImplementation(() => {
 	};
 });
 
+Redis.Cluster = jest.fn(() => {
+	let onCallbacks = {};
+	return {
+		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
+		disconnect: jest.fn(),
+		subscribe: jest.fn(),
+		publish: jest.fn(),
+
+		onCallbacks
+	};
+});
+
 const RedisCacher = require("../../../src/cachers/redis");
 const Serializers = require("../../../src/serializers");
 
@@ -164,7 +176,7 @@ describe("Test RedisCacher cluster", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		cacher.init(broker);
-		expect(cacher.client).toBeInstanceOf(Redis.Cluster);
+		expect(cacher.client).toBeDefined();
 	});
 
 	it("should fail to init redis cluster without nodes", () => {

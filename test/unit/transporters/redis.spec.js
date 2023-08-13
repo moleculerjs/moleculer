@@ -22,7 +22,7 @@ Redis.mockImplementation(() => {
 	};
 });
 
-Redis.Cluster.mockImplementation(() => {
+Redis.Cluster = jest.fn(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
