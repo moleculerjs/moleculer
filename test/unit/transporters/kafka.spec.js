@@ -24,6 +24,12 @@ const FakeKafkaConsumer = {
 	connect: jest.fn(),
 	disconnect: jest.fn(),
 	subscribe: jest.fn(),
+	events: {
+		GROUP_JOIN: "consumer.group_join"
+	},
+	on: jest.fn((event, cb) => {
+		if (event == "consumer.group_join") cb();
+	}),
 	run: jest.fn(opts => {
 		consumerRunOpts = opts;
 	})
