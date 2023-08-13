@@ -178,6 +178,7 @@ class KafkaTransporter extends Transporter {
 					// id: "default-kafka-consumer",
 					// kafkaHost: this.opts.host,
 					groupId: this.broker.instanceID
+					// groupId: this.broker.nodeID
 					// fromOffset: "latest",
 					// encoding: "buffer"
 				},
@@ -185,6 +186,12 @@ class KafkaTransporter extends Transporter {
 			);
 
 			this.consumer = this.client.consumer(consumerOptions);
+
+			let groupJoinResolve;
+			const groupJoinPromise = new Promise(resolve => (groupJoinResolve = resolve));
+
+			this.consumer.on(this.consumer.events.GROUP_JOIN, event => groupJoinResolve(event));
+
 			await this.consumer.connect();
 
 			this.consumer.subscribe({ topics: topics.map(topic => topic.topic) });
@@ -201,6 +208,10 @@ class KafkaTransporter extends Transporter {
 					// });
 				}
 			});
+
+			this.logger.debug("Wait for consumer to join to consumer group...");
+			await groupJoinPromise;
+			this.logger.info("The consumer joined to consumer group successfully.");
 		} catch (err) {
 			this.logger.error("Kafka Consumer error", err.message);
 			this.logger.debug(err);

@@ -125,6 +125,18 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch E2E test",
+			"program": "${workspaceRoot}/test/e2e/scenarios/dependencies/scenario.js",
+			"cwd": "${workspaceRoot}/test/e2e/scenarios/dependencies",
+			"env": {
+				"TRANSPORTER": "Kafka",
+				"DISCOVERER": "Etcd3",
+				"LOGLEVEL": "debug"
+			},
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}/examples/runner",
