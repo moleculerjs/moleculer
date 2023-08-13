@@ -9,7 +9,7 @@
 const _ = require("lodash");
 const BaseStrategy = require("./base");
 const crypto = require("crypto");
-const LRU = require("lru-cache");
+const { LRUCache } = require("lru-cache");
 const { isFunction, randomInt } = require("../utils");
 
 /**
@@ -30,9 +30,8 @@ class ShardStrategy extends BaseStrategy {
 			cacheSize: 1000
 		});
 
-		this.cache = new LRU({
-			max: this.opts.cacheSize,
-			maxAge: null
+		this.cache = new LRUCache({
+			max: this.opts.cacheSize
 		});
 
 		this.needRebuild = true;
@@ -131,7 +130,7 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	rebuild(list) {
-		this.cache.reset();
+		this.cache.clear();
 		this.ring = [];
 
 		const arr = list.map(ep => ep.id).sort();

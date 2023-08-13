@@ -1202,15 +1202,25 @@ describe("Test loadServices", () => {
 	const broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
-	it("should load 5 services", () => {
+	it("should load 5 services ", () => {
 		const count = broker.loadServices("./test/services");
 		expect(count).toBe(5);
 		expect(broker.loadService).toHaveBeenCalledTimes(5);
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/users.service.js")
+		);
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/posts.service.js")
+		);
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/math.service.js")
+		);
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/utils/util.service.js")
+		);
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/greeter.es6.service.js")
+		);
 	});
 
 	it("should load 1 services", () => {
@@ -1218,7 +1228,9 @@ describe("Test loadServices", () => {
 		const count = broker.loadServices("./test/services", "users.*.js");
 		expect(count).toBe(1);
 		expect(broker.loadService).toHaveBeenCalledTimes(1);
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith(
+			path.normalize("test/services/users.service.js")
+		);
 	});
 
 	it("should load 0 services", () => {
@@ -1234,10 +1246,10 @@ describe("Test loadServices", () => {
 		expect(count).toBe(2);
 		expect(broker.loadService).toHaveBeenCalledTimes(2);
 		expect(broker.loadService).toHaveBeenCalledWith(
-			path.join("test", "services", "users.service")
+			path.normalize("test/services/users.service")
 		);
 		expect(broker.loadService).toHaveBeenCalledWith(
-			path.join("test", "services", "math.service")
+			path.normalize("test/services/math.service")
 		);
 	});
 });

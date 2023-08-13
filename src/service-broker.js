@@ -8,7 +8,7 @@
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const _ = require("lodash");
-const glob = require("glob");
+const { globSync } = require("glob");
 const path = require("path");
 const { format } = require("util");
 
@@ -774,7 +774,7 @@ class ServiceBroker {
 		let serviceFiles;
 
 		if (Array.isArray(fileMask)) serviceFiles = fileMask.map(f => path.join(folder, f));
-		else serviceFiles = glob.sync(path.join(folder, fileMask));
+		else serviceFiles = globSync(folder + "/" + fileMask);
 
 		if (serviceFiles) serviceFiles.forEach(filename => this.loadService(filename));
 

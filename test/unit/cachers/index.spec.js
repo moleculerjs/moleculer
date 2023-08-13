@@ -50,14 +50,14 @@ describe("Test Cacher resolver with valid instances", () => {
 	});
 
 	it("should resolve MemoryLRUCacher from obj", () => {
-		let options = { ttl: 100, max: 1000 };
+		let options = { max: 1000 };
 		cacher = Cachers.resolve({ type: "MemoryLRU", options });
 		expect(cacher).toBeInstanceOf(Cachers.MemoryLRU);
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			maxParamsLength: null,
-			ttl: 100,
-			max: 1000
+			max: 1000,
+			ttl: null
 		});
 	});
 

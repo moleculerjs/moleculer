@@ -4,6 +4,7 @@ import type { MemoryCacherOptions } from "./memory";
 declare namespace MemoryLRUCacher {
 	export interface MemoryLRUCacherOptions extends MemoryCacherOptions {
 		max?: number;
+		ttl?: number;
 	}
 }
 

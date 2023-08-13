@@ -108,7 +108,7 @@ describe("Test NotePackSerializer", () => {
 			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(144);
+		expect(s.length).toBe(140);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);

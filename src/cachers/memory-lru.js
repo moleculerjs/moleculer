@@ -9,7 +9,7 @@
 const _ = require("lodash");
 const utils = require("../utils");
 const BaseCacher = require("./base");
-const LRU = require("lru-cache");
+const { LRUCache } = require("lru-cache");
 const { METRIC } = require("../metrics");
 
 const Lock = require("../lock");
@@ -30,11 +30,12 @@ class MemoryLRUCacher extends BaseCacher {
 		super(opts);
 
 		// Cache container
-		this.cache = new LRU({
-			max: this.opts.max,
-			maxAge: this.opts.ttl ? this.opts.ttl * 1000 : null,
+		this.cache = new LRUCache({
+			max: this.opts.max ? this.opts.max : 1000,
+			ttl: this.opts.ttl ? this.opts.ttl * 1000 : undefined,
 			updateAgeOnGet: !!this.opts.ttl
 		});
+
 		// Async lock
 		this._lock = new Lock();
 		// Start TTL timer
@@ -127,7 +128,7 @@ class MemoryLRUCacher extends BaseCacher {
 
 		data = this.clone ? this.clone(data) : data;
 
-		this.cache.set(key, data, ttl ? ttl * 1000 : null);
+		this.cache.set(key, data, { ttl: ttl ? ttl * 1000 : 0 });
 
 		timeEnd();
 		this.logger.debug(`SET ${key}`);
@@ -149,7 +150,7 @@ class MemoryLRUCacher extends BaseCacher {
 
 		keys = Array.isArray(keys) ? keys : [keys];
 		keys.forEach(key => {
-			this.cache.del(key);
+			this.cache.delete(key);
 			this.logger.debug(`REMOVE ${key}`);
 		});
 		timeEnd();
@@ -171,12 +172,15 @@ class MemoryLRUCacher extends BaseCacher {
 		const matches = Array.isArray(match) ? match : [match];
 		this.logger.debug(`CLEAN ${matches.join(", ")}`);
 
-		this.cache.keys().forEach(key => {
-			if (matches.some(match => utils.match(key, match))) {
-				this.logger.debug(`REMOVE ${key}`);
-				this.cache.del(key);
+		const keys = this.cache.keys();
+		let key = keys.next();
+		while (!key.done) {
+			if (matches.some(match => utils.match(key.value, match))) {
+				this.logger.debug(`REMOVE ${key.value}`);
+				this.cache.delete(key.value);
 			}
-		});
+			key = keys.next();
+		}
 		timeEnd();
 
 		return this.broker.Promise.resolve();
@@ -236,7 +240,7 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 	checkTTL() {
-		this.cache.prune();
+		this.cache.purgeStale();
 	}
 
 	/**
@@ -245,13 +249,16 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @returns Promise<Array<Object>>
 	 */
 	getCacheKeys() {
-		return Promise.resolve(
-			this.cache.keys().map(key => {
-				return {
-					key
-				};
-			})
-		);
+		const res = [];
+
+		const keys = this.cache.keys();
+		let key = keys.next();
+		while (!key.done) {
+			res.push({ key: key.value });
+			key = keys.next();
+		}
+
+		return Promise.resolve(res);
 	}
 }
 
