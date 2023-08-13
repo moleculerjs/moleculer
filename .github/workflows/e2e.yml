@@ -107,7 +107,7 @@ jobs:
         TRANSPORTER: ${{ matrix.transporter }}
         SERIALIZER: ${{ matrix.serializer }}
         DISCOVERER: ${{ matrix.discoverer }}
-        # LOGLEVEL: "${{ matrix.serializer == 'CBOR' && 'debug' || 'info' }}"
+        LOGLEVEL: "${{ matrix.transporter == 'Kafka' && 'info' || 'warn' }}"
 
     - name: Stop containers
       run: docker-compose down -v
