@@ -128,7 +128,7 @@
     "kleur": "^4.1.5",
     "lodash": "^4.17.21",
     "lru-cache": "^10.0.1",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^2.6.13",
     "recursive-watch": "^1.1.4"
   },
   "peerDependencies": {

@@ -64,7 +64,5 @@ jobs:
       run: npm run test:esm
 
     - name: Upload code coverage
-      run: npm run coverall
       if:  github.ref == 'refs/heads/master'
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      uses: coverallsapp/github-action@v2
