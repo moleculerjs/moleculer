@@ -64,5 +64,5 @@ jobs:
       run: npm run test:esm
 
     - name: Upload code coverage
-      if:  github.ref == 'refs/heads/master'
+      if: github.repository == 'moleculerjs/moleculer'
       uses: coverallsapp/github-action@v2
