@@ -895,7 +895,7 @@ class Transit {
 						} else {
 							chunks.push(chunk);
 						}
-						for (const ch of chunks) {
+						const publishMap = chunks.map(ch => {
 							const copy = Object.assign({}, payload);
 							copy.seq = ++payload.seq;
 							copy.stream = true;
@@ -905,12 +905,13 @@ class Transit {
 								`=> Send stream chunk ${requestID}to ${nodeName} node. Seq: ${copy.seq}`
 							);
 
-							this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy)).catch(
-								publishCatch
-							);
-						}
-						stream.resume();
-						return;
+							return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
+						});
+
+						return this.Promise.all(publishMap).then(
+							() => stream.resume(),
+							publishCatch
+						);
 					});
 
 					stream.on("end", () => {
@@ -1126,7 +1127,7 @@ class Transit {
 				} else {
 					chunks.push(chunk);
 				}
-				for (const ch of chunks) {
+				const publishMap = chunks.map(ch => {
 					const copy = Object.assign({}, payload);
 					copy.seq = ++payload.seq;
 					copy.stream = true;
@@ -1134,10 +1135,9 @@ class Transit {
 
 					this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
 
-					this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy)).catch(publishCatch);
-				}
-				stream.resume();
-				return;
+					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
+				});
+				return this.Promise.all(publishMap).then(() => stream.resume(), publishCatch);
 			});
 
 			stream.on("end", () => {
