@@ -1834,6 +1834,131 @@ declare namespace Moleculer {
 		function makeDirs(path: string): void;
 		function parseByteString(value: string): number;
 	}
+
+	interface RunnerFlags {
+
+		config?: string;
+
+		repl?: boolean;
+
+		hot?: boolean;
+
+		silent?: boolean;
+
+		env?: boolean;
+
+		envfile?: string;
+
+		instances?: number;
+
+		mask?: string;
+
+	}
+
+	/**
+	 * Moleculer Runner
+	 */
+	class Runner {
+		worker: NodeJS.ClusterWorker | null;
+		broker: ServiceBroker | null;
+
+		/**
+		 * Watch folders for hot reload
+		 */
+		watchFolders: string[];
+
+		/**
+		 * Parsed CLI flags
+		 */
+		flags: RunnerFlags | null;
+
+		/**
+		 * Loaded configuration file
+		 */
+		configFile: Partial<ServiceBroker.BrokerOptions>;
+
+		/**
+		 * Merged configuration
+		 */
+		config: Partial<ServiceBroker.BrokerOptions>;
+
+		/**
+		 * Process command line arguments
+		 */
+		processFlags(args: string[]): void;
+
+		/**
+		 * Load environment variables from '.env' file
+		 */
+		loadEnvFile(): void;
+
+		/**
+		 * Load configuration file
+		 *
+		 * Try to load a configuration file in order to:
+		 *
+		 *		- load file defined in MOLECULER_CONFIG env var
+		 * 		- try to load file which is defined in CLI option with --config
+		 * 		- try to load the `moleculer.config.js` file if exist in the cwd
+		 * 		- try to load the `moleculer.config.json` file if exist in the cwd
+		 */
+		loadConfigFile(): Promise<void>;
+
+		/**
+		 * Normalize a value from env variable
+		 */
+		normalizeEnvValue(value: string): string | number | boolean;
+
+		/**
+		 * Overwrite config values from environment variables
+		 */
+		overwriteFromEnv(obj: any, prefix?: string): any;
+
+		/**
+		 * Merge broker options from config file & env variables
+		 */
+		mergeOptions(): void;
+
+		/**
+		 * Check if a path is a directory
+		 */
+		isDirectory(path: string): boolean;
+
+		/**
+		 * Check if a path is a service file
+		 */
+		isServiceFile(path: string): boolean;
+
+		/**
+		 * Load services from files or directories
+		 */
+		loadServices(): void;
+
+		/**
+		 * Start cluster workers
+		 */
+		startWorkers(instances: number): void;
+
+		/**
+		 * Load service from NPM module
+		 */
+		loadNpmModule(name: string): ServiceBroker.Service;
+
+		/**
+		 * Start Moleculer broker
+		 */
+		startBroker(): Promise<ServiceBroker>;
+
+		/**
+		 * Restart broker
+		 */
+		restartBroker(): Promise<ServiceBroker>;
+
+		/**
+		 * Start runner
+		 */
+		start(args: string[]): Promise<void>;
+	}
 }
 
 export = Moleculer;
