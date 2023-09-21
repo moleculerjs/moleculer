@@ -1,4 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
+import type { Worker } from "cluster";
 
 declare namespace Moleculer {
 	/**
@@ -1835,22 +1836,49 @@ declare namespace Moleculer {
 		function parseByteString(value: string): number;
 	}
 
+	/**
+	 * Parsed CLI flags
+	 */
 	interface RunnerFlags {
 
+		/**
+		 * Path to load configuration from a file
+		 */
 		config?: string;
 
+		/**
+		 * Start REPL mode
+		 */
 		repl?: boolean;
 
+		/**
+		 * Enable hot reload mode
+		 */
 		hot?: boolean;
 
+		/**
+		 * Silent mode. No logger
+		 */
 		silent?: boolean;
 
+		/**
+		 * Load .env file from current directory
+		 */
 		env?: boolean;
 
+		/**
+		 * Load .env files by glob pattern
+		 */
 		envfile?: string;
 
+		/**
+		 * Number of node instances to start in cluster mode
+		 */
 		instances?: number;
 
+		/**
+		 * File mask for loading services
+		 */
 		mask?: string;
 
 	}
@@ -1859,7 +1887,7 @@ declare namespace Moleculer {
 	 * Moleculer Runner
 	 */
 	class Runner {
-		worker: NodeJS.ClusterWorker | null;
+		worker: Worker | null;
 		broker: ServiceBroker | null;
 
 		/**
