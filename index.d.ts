@@ -1903,12 +1903,12 @@ declare namespace Moleculer {
 		/**
 		 * Loaded configuration file
 		 */
-		configFile: Partial<ServiceBroker.BrokerOptions>;
+		configFile: Partial<BrokerOptions>;
 
 		/**
 		 * Merged configuration
 		 */
-		config: Partial<ServiceBroker.BrokerOptions>;
+		config: Partial<BrokerOptions>;
 
 		/**
 		 * Process command line arguments
@@ -1970,7 +1970,7 @@ declare namespace Moleculer {
 		/**
 		 * Load service from NPM module
 		 */
-		loadNpmModule(name: string): ServiceBroker.Service;
+		loadNpmModule(name: string): Service;
 
 		/**
 		 * Start Moleculer broker
