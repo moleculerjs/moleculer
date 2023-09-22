@@ -1836,7 +1836,8 @@ declare namespace Moleculer {
 		function parseByteString(value: string): number;
 	}
 
-	const Middlewares = {
+	/* @private */
+	interface MoleculerMiddlewares {
 		Transmit: {
 			/**
 			 * Encrypts the Transporter payload
@@ -1882,8 +1883,9 @@ declare namespace Moleculer {
 				 */
 				threshold?: number | string
 			}) => Middleware,
-		},
+		}
 	}
+	const Middlewares: MoleculerMiddlewares
 }
 
 export = Moleculer;
