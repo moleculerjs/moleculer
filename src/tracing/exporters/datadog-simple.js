@@ -1,7 +1,6 @@
 "use strict";
 
 const _ = require("lodash");
-const fetch = require("node-fetch");
 const BaseTraceExporter = require("./base");
 const { isFunction } = require("../../utils");
 

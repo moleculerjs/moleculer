@@ -9,8 +9,6 @@
 const BaseLogger = require("./base");
 const _ = require("lodash");
 const os = require("os");
-const fetch = require("node-fetch");
-fetch.Promise = Promise;
 const { MoleculerError } = require("../errors");
 
 const util = require("util");

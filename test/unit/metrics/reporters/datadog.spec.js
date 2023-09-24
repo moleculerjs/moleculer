@@ -2,9 +2,7 @@
 
 const os = require("os");
 const lolex = require("@sinonjs/fake-timers");
-jest.mock("node-fetch");
-const fetch = require("node-fetch");
-fetch.mockImplementation(() => Promise.resolve({ statusText: "" }));
+global.fetch = jest.fn(() => Promise.resolve({ statusText: "" }));
 
 const DatadogReporter = require("../../../../src/metrics/reporters/datadog");
 const ServiceBroker = require("../../../../src/service-broker");
