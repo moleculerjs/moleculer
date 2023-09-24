@@ -1,8 +1,6 @@
 "use strict";
 
-jest.mock("node-fetch");
-const fetch = require("node-fetch");
-fetch.mockImplementation(() => Promise.resolve({ statusText: "" }));
+global.fetch = jest.fn(() => Promise.resolve({ statusText: "" }));
 
 const DatadogLogger = require("../../../src/loggers/datadog");
 
