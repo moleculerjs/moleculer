@@ -1,4 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
+import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from 'crypto'
 import type { Worker } from "cluster";
 
 declare namespace Moleculer {
@@ -1987,6 +1988,57 @@ declare namespace Moleculer {
 		 */
 		start(args: string[]): Promise<void>;
 	}
+
+	/* @private */
+	interface MoleculerMiddlewares {
+		Transmit: {
+			/**
+			 * Encrypts the Transporter payload
+			 * @param key The key to use for encryption
+			 * @param [algorithm] The algorithm to use for encryption. Default is aes-256-cbc
+			 * @param [iv] The initialization vector to use for encryption. Optional
+			 * @example // moleculer.config.js
+			 * const crypto = require("crypto");
+			 * const { Middlewares } = require("moleculer");
+			 * const initVector = crypto.randomBytes(16);
+			 *
+			 * module.exports = {
+			 *   middlewares: [
+			 *     Middlewares.Transmit.Encryption("secret-password", "aes-256-cbc", initVector) // "aes-256-cbc" is the default
+			 *   ]
+			 * };
+			 */
+			Encryption: (key: CipherKey, algorithm?: CipherCCMTypes|CipherOCBTypes|CipherGCMTypes|string, iv?: BinaryLike | null)=> Middleware,
+			Compression: (opts?: {
+				/**
+				 * @default deflate
+				 */
+				method?: 'gzip' | 'deflate' | 'deflateRaw'
+				/**
+				 * Compression middleware reduces the size of the messages that go through the transporter module.
+				 * This middleware uses built-in Node zlib lib.
+				 * Threshold should be a number of bytes or a string like 100kb, 4mb, etc. Accepted units are:
+				 * - kb, for kilobytes
+				 * - mb, for megabytes
+				 * - gb, for gigabytes
+				 * - tb, for terabytes
+				 * - pb, for petabytes
+				 * @default 1kb
+				 * @example // moleculer.config.js
+				 * const { Middlewares } = require("moleculer");
+				 *
+				 * // Create broker
+				 * module.exports = {
+				 *   middlewares: [
+				 *     Middlewares.Transmit.Compression("deflate") // or "deflateRaw" or "gzip"
+				 *   ]
+				 * };
+				 */
+				threshold?: number | string
+			}) => Middleware,
+		}
+	}
+	const Middlewares: MoleculerMiddlewares
 }
 
 export = Moleculer;
