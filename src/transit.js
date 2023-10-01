@@ -895,23 +895,23 @@ class Transit {
 						} else {
 							chunks.push(chunk);
 						}
-						const publishMap = chunks.map(ch => {
-							const copy = Object.assign({}, payload);
-							copy.seq = ++payload.seq;
-							copy.stream = true;
-							copy.params = ch;
 
-							this.logger.debug(
-								`=> Send stream chunk ${requestID}to ${nodeName} node. Seq: ${copy.seq}`
-							);
+						return this.Promise.all(
+							chunks.map(ch => {
+								const copy = Object.assign({}, payload);
+								copy.seq = ++payload.seq;
+								copy.stream = true;
+								copy.params = ch;
 
-							return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
-						});
+								this.logger.debug(
+									`=> Send stream chunk ${requestID}to ${nodeName} node. Seq: ${copy.seq}`
+								);
 
-						return this.Promise.all(publishMap).then(
-							() => stream.resume(),
-							publishCatch
-						);
+								return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy));
+							})
+						)
+							.then(() => stream.resume())
+							.catch(publishCatch);
 					});
 
 					stream.on("end", () => {
@@ -1127,17 +1127,23 @@ class Transit {
 				} else {
 					chunks.push(chunk);
 				}
-				const publishMap = chunks.map(ch => {
-					const copy = Object.assign({}, payload);
-					copy.seq = ++payload.seq;
-					copy.stream = true;
-					copy.data = ch;
 
-					this.logger.debug(`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`);
+				return this.Promise.all(
+					chunks.map(ch => {
+						const copy = Object.assign({}, payload);
+						copy.seq = ++payload.seq;
+						copy.stream = true;
+						copy.data = ch;
 
-					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
-				});
-				return this.Promise.all(publishMap).then(() => stream.resume(), publishCatch);
+						this.logger.debug(
+							`=> Send stream chunk to ${nodeID} node. Seq: ${copy.seq}`
+						);
+
+						return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy));
+					})
+				)
+					.then(() => stream.resume())
+					.catch(publishCatch);
 			});
 
 			stream.on("end", () => {
