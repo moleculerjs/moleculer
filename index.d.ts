@@ -667,6 +667,7 @@ declare namespace Moleculer {
 			| ((handler: ActionHandler, event: ServiceEvent) => any)
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
+			| ((service: Service, serviceSchema: ServiceSchema) => any)
 			| ((broker: ServiceBroker) => any)
 			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
 	};
