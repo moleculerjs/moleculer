@@ -1,4 +1,4 @@
-import type { BulkheadOptions } from "./middlewares/index";
+import type { BulkheadOptions } from "./middlewares";
 import Endpoint = require("./registry/endpoint");
 import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
 import Service = require("./service");
