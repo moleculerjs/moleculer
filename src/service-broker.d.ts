@@ -11,7 +11,7 @@ import type { Base as BaseLogger, LogLevels } from "./loggers";
 import type { Logger, LoggerConfig } from "./logger-factory";
 import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
 import type { Middleware, MiddlewareCallHandlerOptions } from "./middleware";
-import type { BulkheadOptions } from "./middlewares";
+import type { BulkheadOptions } from "./middlewares/index";
 import type ServiceRegistry from "./registry";
 import type { Base as BaseDiscoverer, RegistryDiscovererOptions } from "./registry/discoverers";
 import type { Base as BaseSerializer } from "./serializers";

@@ -1,4 +1,4 @@
-import type { BulkheadOptions } from "./middlewares";
+import type { BulkheadOptions } from "./middlewares/index";
 import Endpoint from "./registry/endpoint";
 import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
 import Service from "./service";

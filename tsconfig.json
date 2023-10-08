@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"strict": false,
+		"checkJs": true,
+		"declaration": true,
+		"declarationDir": "types",
+		"outDir": "dist",
+		"target": "ES2022"
+	},
+	"include": ["**.js"],
+	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js", "types"]
+}

@@ -3,7 +3,7 @@ import ServiceBroker = require("./service-broker");
 import type { MoleculerError } from "./errors";
 import type { Logger } from "./logger-factory";
 import type { CacherKeygen } from "./cachers/base";
-import type { BulkheadOptions } from "./middlewares";
+import type { BulkheadOptions } from "./middlewares/index";
 import type {
 	BrokerCircuitBreakerOptions,
 	CallingOptions,
