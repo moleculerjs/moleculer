@@ -1,8 +1,8 @@
 import type { BulkheadOptions } from "./middlewares/index";
-import Endpoint from "./registry/endpoint";
+import Endpoint = require("./registry/endpoint");
 import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
-import Service from "./service";
-import Span from "./tracing/span";
+import Service = require("./service");
+import Span = require("./tracing/span");
 import type { ActionHandler, ActionParams, ActionSchema, TracingEventOptions } from "./service";
 import type ServiceBroker = require("./service-broker");
 

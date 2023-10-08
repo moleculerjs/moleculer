@@ -1,4 +1,4 @@
-import ServiceBroker from "./service-broker";
+import type ServiceBroker = require("./service-broker");
 
 export declare class ExtendableError extends Error {
 	message: string;

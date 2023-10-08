@@ -1,5 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
-import type AsyncStorage from "./async-storage";
+import type AsyncStorage = require("./async-storage");
 import type { Base as BaseCacher } from "./cachers";
 import type { ContextParentSpan } from "./context";
 import type {
@@ -12,12 +12,12 @@ import type { Logger, LoggerConfig } from "./logger-factory";
 import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
 import type { Middleware, MiddlewareCallHandlerOptions } from "./middleware";
 import type { BulkheadOptions } from "./middlewares/index";
-import type ServiceRegistry from "./registry";
+import type ServiceRegistry = require("./registry");
 import type { Base as BaseDiscoverer, RegistryDiscovererOptions } from "./registry/discoverers";
 import type { Base as BaseSerializer } from "./serializers";
 import type { ActionHandler, ServiceSchema } from "./service";
 import type { Tracer, TracerOptions } from "./tracing";
-import type Transit from "./transit";
+import type Transit = require("./transit");
 import type { Base as BaseTransporter } from "./transporters";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
 import type Context = require("./context");

@@ -6,7 +6,8 @@
 		"declaration": true,
 		"declarationDir": "types",
 		"outDir": "dist",
-		"target": "ES2022"
+		"target": "ES2022",
+		"moduleResolution": "node",
 	},
 	"include": ["**.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js", "types"]
