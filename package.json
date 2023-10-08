@@ -36,7 +36,7 @@
     "prerelease": "npm run esm-wrapper",
     "release": "npm publish --access public && git push --follow-tags",
     "release:beta": "npm publish --tag next --access public && git push --follow-tags",
-    "typecheck": "tsc --noEmit true"
+    "tsc": "tsc"
   },
   "keywords": [
     "microservice",
