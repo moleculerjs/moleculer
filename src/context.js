@@ -180,7 +180,7 @@ class Context {
 	 * @returns {Context}
 	 */
 	copy(ep) {
-		const newCtx = this.constructor(this.broker);
+		const newCtx = new this.constructor(this.broker);
 
 		newCtx.nodeID = this.nodeID;
 		newCtx.setEndpoint(ep || this.endpoint);
