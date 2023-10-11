@@ -40,12 +40,13 @@ declare class Span {
 	logs: Span.SpanLogEntry[];
 	tags: Record<string, any>;
 
-	start(time?: number): Span;
+	start(time?: number | null): Span;
 	addTags(obj: Record<string, any>): Span;
 	log(name: string, fields?: Record<string, any>, time?: number): Span;
 	setError(err: Error): Span;
-	finish(time?: number): Span;
+	finish(time?: number | null): Span;
 	startSpan(name: string, opts?: Record<string, any>): Span;
+	isActive(): boolean;
 }
 
 export = Span;

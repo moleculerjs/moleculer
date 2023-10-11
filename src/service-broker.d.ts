@@ -217,8 +217,8 @@ declare namespace ServiceBroker {
 	export type FallbackResponseHandler = (ctx: Context, err: MoleculerError) => Promise<any>;
 
 	export interface CallingOptions {
-		timeout?: number;
-		retries?: number;
+		timeout?: number | null;
+		retries?: number | null;
 		fallbackResponse?: FallbackResponse | FallbackResponse[] | FallbackResponseHandler;
 		nodeID?: string;
 		meta?: Record<string, any>;
@@ -228,6 +228,7 @@ declare namespace ServiceBroker {
 		tracking?: boolean;
 		paramsCloning?: boolean;
 		caller?: string;
+		headers?: Record<string, any>;
 	}
 
 	export interface MCallCallingOptions extends CallingOptions {

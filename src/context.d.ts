@@ -1,10 +1,13 @@
 import type { BulkheadOptions } from "./middlewares";
-import Endpoint = require("./registry/endpoint");
+import ActionEndpoint = require("./registry/endpoint-action");
+import EventEndpoint = require("./registry/endpoint-event");
 import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
 import Service = require("./service");
 import Span = require("./tracing/span");
 import type { ActionHandler, ActionParams, ActionSchema, TracingEventOptions } from "./service";
 import type ServiceBroker = require("./service-broker");
+import { Stream } from "stream";
+import util = require("util");
 
 declare namespace Context {
 	export interface EventSchema {
@@ -27,22 +30,22 @@ declare namespace Context {
 	}
 }
 
-declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>> {
+declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>, THeaders = Record<string, any>> {
 	static create(
 		broker: ServiceBroker,
-		endpoint: Endpoint,
+		endpoint: ActionEndpoint|EventEndpoint,
 		params: Record<string, any>,
 		opts: Record<string, any>
 	): Context;
-	static create(broker: ServiceBroker, endpoint: Endpoint, params: Record<string, any>): Context;
-	static create(broker: ServiceBroker, endpoint: Endpoint): Context;
+	static create(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint, params: Record<string, any>): Context;
+	static create(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint): Context;
 	static create(broker: ServiceBroker): Context;
 
 	id: string;
 
 	broker: ServiceBroker;
 
-	endpoint: Endpoint | null;
+	endpoint: ActionEndpoint | EventEndpoint | null;
 
 	action: ActionSchema | null;
 
@@ -80,13 +83,19 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	meta: TMeta;
 
+	headers: THeaders;
+
+	responseHeaders: THeaders;
+
 	requestID: string | null;
+
+	stream: Stream | null;
 
 	cachedResult: boolean;
 
-	constructor(broker: ServiceBroker, endpoint: Endpoint);
+	constructor(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint);
 
-	setEndpoint(endpoint: Endpoint): void;
+	setEndpoint(endpoint: ActionEndpoint|EventEndpoint): void;
 
 	setParams(newParams: TParams, cloning?: boolean): void;
 
@@ -115,7 +124,7 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 	broadcast<D>(eventName: string, data: D): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
-	copy(endpoint: Endpoint): this;
+	copy(endpoint: ActionEndpoint|EventEndpoint): this;
 	copy(): this;
 
 	startSpan(name: string, opts?: Record<string, any>): Span;
@@ -123,5 +132,11 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 	finishSpan(span: Span, time?: number): void;
 
 	toJSON(): Record<string, any>;
+
+	startHrTime: [number, number] | null;
+
+	_spanStack: Span[];
+
+	[util.inspect.custom](depth?: number, options?: Record<string, any>): string;
 }
 export = Context;

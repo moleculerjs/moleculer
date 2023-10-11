@@ -8,7 +8,7 @@
 		"outDir": "dist",
 		"target": "ES2022",
 		"moduleResolution": "node",
-		"noEmit": true
+		"noEmit": true,
 	},
 	"include": ["**.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js", "types"]

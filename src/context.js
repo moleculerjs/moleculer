@@ -11,12 +11,19 @@ const { pick } = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
+ * @typedef {import("./service-broker")} ServiceBroker Moleculer Service Broker instance
+ * @typedef {import("./service-broker").CallingOptions} CallingOptions Calling Options
+ * @typedef {import("./registry/endpoint")} Endpoint Registry Endpoint
+ * @typedef {import("./registry/endpoint-action")} ActionEndpoint Registry Action Endpoint
+ * @typedef {import("./registry/endpoint-event")} EventEndpoint Registry Event Endpoint
+ * @typedef {import("./tracing/span")} Span Tracing Span
+ */
+
+/**
  * Merge metadata
  *
+ * @param {Context} ctx
  * @param {Object} newMeta
- *
- * @private
- * @memberof Context
  */
 function mergeMeta(ctx, newMeta) {
 	if (newMeta) Object.assign(ctx.meta, newMeta);
@@ -26,14 +33,6 @@ function mergeMeta(ctx, newMeta) {
 /**
  * Context class for action calls
  *
- * @property {String} id - Context ID
- * @property {ServiceBroker} broker - Broker instance
- * @property {Action} action - Action definition
- * @property {String} [nodeID=null] - Node ID
- * @property {String} parentID - Parent Context ID
- * @property {Boolean} tracing - Enable tracing
- * @property {Number} [level=1] - Level of context
- *
  * @class Context
  */
 class Context {
@@ -41,7 +40,7 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Endpoint} endpoint
+	 * @param {ActionEndpoint|EventEndpoint} endpoint
 	 *
 	 * @memberof Context
 	 */
@@ -70,6 +69,7 @@ class Context {
 		// The groups of event
 		this.eventGroups = null;
 
+		/** @type {CallingOptions} */
 		this.options = {
 			timeout: null,
 			retries: null
@@ -97,12 +97,8 @@ class Context {
 		this.needAck = null;
 		this.ackID = null;
 
-		//this.startTime = null;
-		//his.startHrTime = null;
-		//this.stopTime = null;
-		//this.duration = null;
+		this.startHrTime = null;
 
-		//this.error = null;
 		this.cachedResult = false;
 	}
 
@@ -110,9 +106,9 @@ class Context {
 	 * Create a new Context instance
 	 *
 	 * @param {ServiceBroker} broker
-	 * @param {Endpoint} endpoint
+	 * @param {ActionEndpoint|EventEndpoint} endpoint
 	 * @param {Object?} params
-	 * @param {Object} opts
+	 * @param {CallingOptions} opts
 	 * @returns {Context}
 	 *
 	 * @static
@@ -184,7 +180,7 @@ class Context {
 	 * @returns {Context}
 	 */
 	copy(ep) {
-		const newCtx = new this.constructor(this.broker);
+		const newCtx = this.constructor(this.broker);
 
 		newCtx.nodeID = this.nodeID;
 		newCtx.setEndpoint(ep || this.endpoint);
@@ -215,7 +211,7 @@ class Context {
 	/**
 	 * Set endpoint of context
 	 *
-	 * @param {Endpoint} endpoint
+	 * @param {ActionEndpoint|EventEndpoint} endpoint
 	 * @memberof Context
 	 */
 	setEndpoint(endpoint) {
@@ -252,7 +248,7 @@ class Context {
 	 *
 	 * @param {String} actionName
 	 * @param {Object?} params
-	 * @param {Object?} opts
+	 * @param {Object?} _opts
 	 * @returns {Promise}
 	 *
 	 * @example <caption>Call an other service with params & options</caption>
@@ -369,7 +365,7 @@ class Context {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any?} payload
+	 * @param {any?} data
 	 * @param {Object?} opts
 	 * @returns {Promise}
 	 *
@@ -391,7 +387,7 @@ class Context {
 	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any?} payload
+	 * @param {any?} data
 	 * @param {Object?} opts
 	 * @returns {Promise}
 	 *
