@@ -2181,7 +2181,6 @@ describe("Test Transit._sendRequest", () => {
 		});
 
 		it("should send splitted stream chunks from finished stream", () => {
-			transit.publish = jest.fn(() => Promise.resolve());
 			transit.opts.maxChunkSize = 100;
 			let randomData = crypto.randomBytes(256); // length > maxChunkSize => will be splitted to several chunks
 			let stream = new Stream.PassThrough();
