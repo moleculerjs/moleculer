@@ -1968,7 +1968,7 @@ describe("Test Transit._sendRequest", () => {
 		const reject = jest.fn();
 
 		beforeEach(() => {
-			transit.publish = jest.fn(() => Promise.resolve());
+			transit.publish = jest.fn(() => Promise.resolve().delay(40));
 		});
 
 		it("should send stream chunks", () => {
@@ -2115,8 +2115,11 @@ describe("Test Transit._sendRequest", () => {
 					transit.publish.mockClear();
 					stream.push(randomData);
 				})
-				.delay(100)
+				.delay(20)
+				.then(() => expect(stream.isPaused()).toBeTruthy())
+				.delay(80)
 				.then(() => {
+					expect(stream.isPaused()).toBeFalsy();
 					expect(transit.publish).toHaveBeenCalledTimes(
 						Math.ceil(randomData.length / transit.opts.maxChunkSize)
 					);
@@ -2211,8 +2214,11 @@ describe("Test Transit._sendRequest", () => {
 					});
 					transit.publish.mockClear();
 				})
-				.delay(100)
+				.delay(20)
+				.then(() => expect(stream.isPaused()).toBeTruthy())
+				.delay(80)
 				.then(() => {
+					expect(stream.isPaused()).toBeFalsy();
 					expect(transit.publish).toHaveBeenCalledTimes(
 						Math.ceil(randomData.length / transit.opts.maxChunkSize) + 1
 					);
@@ -2791,6 +2797,10 @@ describe("Test Transit.sendResponse", () => {
 	});
 
 	describe("with Stream", () => {
+		beforeEach(() => {
+			transit.publish = jest.fn(() => Promise.resolve().delay(40));
+		});
+
 		it("should send stream chunks", () => {
 			transit.publish.mockClear();
 
@@ -2900,8 +2910,11 @@ describe("Test Transit.sendResponse", () => {
 					transit.publish.mockClear();
 					stream.push("first chunk");
 				})
-				.delay(100)
+				.delay(20)
+				.then(() => expect(stream.isPaused()).toBeTruthy())
+				.delay(80)
 				.then(() => {
+					expect(stream.isPaused()).toBeFalsy();
 					expect(transit.publish).toHaveBeenCalledTimes(1);
 					expect(transit.publish).toHaveBeenCalledWith({
 						payload: {
@@ -2973,8 +2986,11 @@ describe("Test Transit.sendResponse", () => {
 					transit.publish.mockClear();
 					stream.push(randomData);
 				})
-				.delay(100)
+				.delay(20)
+				.then(() => expect(stream.isPaused()).toBeTruthy())
+				.delay(80)
 				.then(() => {
+					expect(stream.isPaused()).toBeFalsy();
 					expect(transit.publish).toHaveBeenCalledTimes(
 						Math.ceil(randomData.length / transit.opts.maxChunkSize)
 					);
