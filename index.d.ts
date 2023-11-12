@@ -169,18 +169,18 @@ declare namespace Moleculer {
 	type TracingActionTags =
 		| TracingActionTagsFuncType
 		| {
-		params?: boolean | string[];
-		meta?: boolean | string[];
-		response?: boolean | string[];
-	};
+				params?: boolean | string[];
+				meta?: boolean | string[];
+				response?: boolean | string[];
+		  };
 
 	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
 	type TracingEventTags =
 		| TracingEventTagsFuncType
 		| {
-		params?: boolean | string[];
-		meta?: boolean | string[];
-	};
+				params?: boolean | string[];
+				meta?: boolean | string[];
+		  };
 
 	type TracingSpanNameOption = string | ((ctx: Context) => string);
 
@@ -1020,8 +1020,8 @@ declare namespace Moleculer {
 		internalServices?:
 			| boolean
 			| {
-			[key: string]: Partial<ServiceSchema>;
-		};
+					[key: string]: Partial<ServiceSchema>;
+			  };
 		internalMiddlewares?: boolean;
 
 		dependencyInterval?: number;
@@ -2027,11 +2027,11 @@ declare namespace Moleculer {
 	};
 	/* @private */
 	interface MoleculerMiddlewares {
+		Debugging: {
+			ActionLogger: (options?: ActionLoggerOptions) => Middleware;
+			TransitLogger: (options?: TransitLoggerOptions) => Middleware;
+		};
 		Transmit: {
-			Debugging: {
-				ActionLogger(options?: ActionLoggerOptions): Middleware;
-				TransitLogger(options?: TransitLoggerOptions): Middleware;
-			};
 			/**
 			 * Encrypts the Transporter payload
 			 * @param key The key to use for encryption
