@@ -435,7 +435,7 @@ class MoleculerRunner {
 					}
 				});
 
-			_.uniq(serviceFiles).forEach(f => this.broker.loadService(f));
+			utils.uniq(serviceFiles).forEach(f => this.broker.loadService(f));
 		}
 	}
 

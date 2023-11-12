@@ -29,7 +29,7 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 # Top sponsors
 
 <table style="text-align:center;"><tr>
-    <td><a href="https://www.server-eye.de/" target="_blank"><img src="https://www.server-eye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
+    <td><a href="https://www.servereye.de/" target="_blank"><img src="https://www.servereye.de/wp-content/uploads/server-eye_logo2019.png" width="300" valign="middle" /></a></td>
     <!--td><a href="https://sonderformat.llc/" target="_blank"><img src="https://sonderformat.llc/sonderformat/logo/sonderformat-wide-col.png" width="300" valign="middle" /></a></td-->
 </tr></table>
 
@@ -156,7 +156,7 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
-Copyright (c) 2016-2022 MoleculerJS
+Copyright (c) 2016-2023 MoleculerJS
 
 [![@moleculerjs](https://img.shields.io/badge/github-moleculerjs-green.svg)](https://github.com/moleculerjs) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
 

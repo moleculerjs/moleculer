@@ -1,6 +1,56 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.26...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.32...master)
 
+--------------------------------------------------
+<a name="0.14.32"></a>
+# [0.14.32](https://github.com/moleculerjs/moleculer/compare/v0.14.31...v0.14.32) (2023-11-12)
+
+## Changes
+- update peer dependency for mqtt to 5.0.2 [#1236](https://github.com/moleculerjs/moleculer/pull/1236)
+- update d.ts [#1245](https://github.com/moleculerjs/moleculer/pull/1245), [#1246](https://github.com/moleculerjs/moleculer/pull/1246), [#1248](https://github.com/moleculerjs/moleculer/pull/1248)
+- fix stream sending logic to avoid memory leak [#1243](https://github.com/moleculerjs/moleculer/pull/1243)  
+
+--------------------------------------------------
+<a name="0.14.31"></a>
+# [0.14.31](https://github.com/moleculerjs/moleculer/compare/v0.14.30...v0.14.31) (2023-08-06)
+
+## Changes
+- fix prometheus reporter to accept host option [#1221](https://github.com/moleculerjs/moleculer/pull/1221)
+- remove usage of _.uniq [#1211](https://github.com/moleculerjs/moleculer/pull/1211)
+- fix: started not being called when createService is used [#1229](https://github.com/moleculerjs/moleculer/pull/1229)  
+
+--------------------------------------------------
+<a name="0.14.30"></a>
+# [0.14.30](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.14.30) (2023-07-15)
+
+## Changes
+- Improve d.ts files [#1208](https://github.com/moleculerjs/moleculer/pull/1208), [#1210](https://github.com/moleculerjs/moleculer/pull/1210), [#1225](https://github.com/moleculerjs/moleculer/pull/1225)
+- replace deprecated redis.setex with redis.set method [#1191](https://github.com/moleculerjs/moleculer/pull/1191)
+- rewrite `_.random` without lodash [#1212](https://github.com/moleculerjs/moleculer/pull/1212)  
+
+--------------------------------------------------
+<a name="0.14.29"></a>
+# [0.14.29](https://github.com/moleculerjs/moleculer/compare/v0.14.28...v0.14.29) (2023-03-12)
+
+## Changes
+- Improve lifecycle handler types [#1179](https://github.com/moleculerjs/moleculer/pull/1179)
+- add service list options & define getActionList type [#1182](https://github.com/moleculerjs/moleculer/pull/1182)
+- mergeSchema can be used to merge 2 mixins [#1187](https://github.com/moleculerjs/moleculer/pull/1187)
+- fix: do not emit send node info during broker stopping event [#1186](https://github.com/moleculerjs/moleculer/pull/1186)
+- Allow opt out of redlock in redis cacher [#1192](https://github.com/moleculerjs/moleculer/issues/1192)
+  
+--------------------------------------------------
+<a name="0.14.28"></a>
+# [0.14.28](https://github.com/moleculerjs/moleculer/compare/v0.14.27...v0.14.28) (2023-01-08)
+
+## Changes
+- fix no clean exit on shutdown, with disableBalancer: true [#1168](https://github.com/moleculerjs/moleculer/pull/1168)
+- change `__proto__` to `Object.getProtoTypeOf` [#1170](https://github.com/moleculerjs/moleculer/pull/1170)
+- fix merge schemas (handling nulls) [#1172](https://github.com/moleculerjs/moleculer/pull/1172)
+- fix hot reload error handling [#1174](https://github.com/moleculerjs/moleculer/issues/1174)
+- update d.ts file
+- update dependencies
+  
 --------------------------------------------------
 <a name="0.14.27"></a>
 # [0.14.27](https://github.com/moleculerjs/moleculer/compare/v0.14.26...v0.14.27) (2022-12-17)

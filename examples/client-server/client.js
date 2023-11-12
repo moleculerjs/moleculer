@@ -6,6 +6,8 @@ let kleur = require("kleur");
 
 let ServiceBroker = require("../../src/service-broker");
 
+const { randomInt } = require("../../src/utils");
+
 let transporter = process.env.TRANSPORTER || "TCP";
 
 // Create broker
@@ -81,7 +83,7 @@ broker
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
 
-			let payload = { a: _.random(0, 100), b: _.random(0, 100), count: ++reqCount };
+			let payload = { a: randomInt(0, 100), b: randomInt(0, 100), count: ++reqCount };
 			pendingReqs.push(reqCount);
 			let p = broker.call("math.add", payload);
 			if (p.ctx) {

@@ -1,4 +1,6 @@
 import type { EventEmitter2 } from "eventemitter2";
+import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from 'crypto'
+import type { Worker } from "cluster";
 import type { Kleur } from "kleur";
 
 declare namespace Moleculer {
@@ -22,8 +24,8 @@ declare namespace Moleculer {
 		constructor(broker: ServiceBroker);
 		init(opts: LoggerConfig | LoggerConfig[]): void;
 		stop(): void;
-		getLogger(bindings: GenericObject): LoggerInstance;
-		getBindingsKey(bindings: GenericObject): string;
+		getLogger(bindings: LoggerBindings): LoggerInstance;
+		getBindingsKey(bindings: LoggerBindings): string;
 
 		broker: ServiceBroker;
 	}
@@ -33,7 +35,7 @@ declare namespace Moleculer {
 		ns: string;
 		mod: string;
 		svc: string;
-		ver: string | void;
+		ver?: string;
 	}
 
 	class LoggerInstance {
@@ -167,18 +169,18 @@ declare namespace Moleculer {
 	type TracingActionTags =
 		| TracingActionTagsFuncType
 		| {
-				params?: boolean | string[];
-				meta?: boolean | string[];
-				response?: boolean | string[];
-		  };
+		params?: boolean | string[];
+		meta?: boolean | string[];
+		response?: boolean | string[];
+	};
 
 	type TracingEventTagsFuncType = (ctx: Context) => GenericObject;
 	type TracingEventTags =
 		| TracingEventTagsFuncType
 		| {
-				params?: boolean | string[];
-				meta?: boolean | string[];
-		  };
+		params?: boolean | string[];
+		meta?: boolean | string[];
+	};
 
 	type TracingSpanNameOption = string | ((ctx: Context) => string);
 
@@ -335,11 +337,7 @@ declare namespace Moleculer {
 		generateSnapshot(): HistogramMetricSnapshot[];
 
 		static generateLinearBuckets(start: number, width: number, count: number): number[];
-		static generateExponentialBuckets(
-			start: number,
-			factor: number,
-			count: number
-		): number[];
+		static generateExponentialBuckets(start: number, factor: number, count: number): number[];
 	}
 
 	namespace MetricTypes {
@@ -585,7 +583,7 @@ declare namespace Moleculer {
 		call<TResult, TParams>(
 			actionName: string,
 			params: TParams,
-			opts?: CallingOptions,
+			opts?: CallingOptions
 		): Promise<TResult>;
 
 		mcall<T>(
@@ -670,6 +668,7 @@ declare namespace Moleculer {
 			| ((handler: ActionHandler, event: ServiceEvent) => any)
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
+			| ((service: Service, serviceSchema: ServiceSchema) => any)
 			| ((broker: ServiceBroker) => any)
 			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
 	};
@@ -722,7 +721,11 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type StartedStoppedHandler = () => Promise<void[]> | Promise<void> | void;
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
+	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
+		this: Service<S>
+	) => void | Promise<void>;
+
 	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
@@ -735,9 +738,9 @@ declare namespace Moleculer {
 		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
-		created?: (() => void) | (() => void)[];
-		started?: StartedStoppedHandler | StartedStoppedHandler[];
-		stopped?: StartedStoppedHandler | StartedStoppedHandler[];
+		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
+		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 
 		[name: string]: any;
 	}
@@ -816,7 +819,10 @@ declare namespace Moleculer {
 		 * @param mixinSchema Mixin schema
 		 * @param svcSchema Service schema
 		 */
-		mergeSchemas(mixinSchema: ServiceSchema, svcSchema: ServiceSchema): ServiceSchema;
+		mergeSchemas(
+			mixinSchema: Partial<ServiceSchema>,
+			svcSchema: Partial<ServiceSchema>
+		): Partial<ServiceSchema>;
 
 		/**
 		 * Merge `settings` property in schema
@@ -968,6 +974,9 @@ declare namespace Moleculer {
 		options?: GenericObject;
 	}
 
+	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
+	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
+
 	interface BrokerOptions {
 		namespace?: string | null;
 		nodeID?: string | null;
@@ -1011,8 +1020,8 @@ declare namespace Moleculer {
 		internalServices?:
 			| boolean
 			| {
-					[key: string]: Partial<ServiceSchema>;
-			  };
+			[key: string]: Partial<ServiceSchema>;
+		};
 		internalMiddlewares?: boolean;
 
 		dependencyInterval?: number;
@@ -1031,9 +1040,9 @@ declare namespace Moleculer {
 		ContextFactory?: typeof Context;
 		Promise?: PromiseConstructorLike;
 
-		created?: (broker: ServiceBroker) => void;
-		started?: (broker: ServiceBroker) => void;
-		stopped?: (broker: ServiceBroker) => void;
+		created?: BrokerSyncLifecycleHandler;
+		started?: BrokerAsyncLifecycleHandler;
+		stopped?: BrokerAsyncLifecycleHandler;
 
 		/**
 		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
@@ -1124,26 +1133,6 @@ declare namespace Moleculer {
 		options?: CallingOptions;
 	}
 
-	interface Endpoint {
-		broker: ServiceBroker;
-
-		id: string;
-		node: GenericObject;
-
-		local: boolean;
-		state: boolean;
-	}
-
-	interface ActionEndpoint extends Endpoint {
-		service: Service;
-		action: ActionSchema;
-	}
-
-	interface EventEndpoint extends Endpoint {
-		service: Service;
-		event: EventSchema;
-	}
-
 	interface PongResponse {
 		nodeID: string;
 		elapsedTime: number;
@@ -1160,12 +1149,14 @@ declare namespace Moleculer {
 	}
 
 	namespace Loggers {
+		type LogHandler = (level: LogLevels, args: unknown[]) => void;
+
 		class Base {
 			constructor(opts?: GenericObject);
 			init(loggerFactory: LoggerFactory): void;
 			stop(): void;
-			getLogLevel(mod: string): string;
-			getLogHandler(bindings: GenericObject): GenericObject;
+			getLogLevel(mod: string): LogLevels | null;
+			getLogHandler(bindings?: LoggerBindings): LogHandler | null;
 		}
 	}
 
@@ -1232,7 +1223,7 @@ declare namespace Moleculer {
 
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
-		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
+		createService(schema: ServiceSchema, schemaMods?: Partial<ServiceSchema>): Service;
 		destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
 
 		getLocalService(name: string | ServiceSearchObj): Service;
@@ -1343,24 +1334,21 @@ declare namespace Moleculer {
 			sender: string | null;
 		}
 
-		type PacketType =
-			| PACKET_UNKNOWN
-			| PACKET_EVENT
-			| PACKET_DISCONNECT
-			| PACKET_DISCOVER
-			| PACKET_INFO
-			| PACKET_HEARTBEAT
-			| PACKET_REQUEST
-			| PACKET_PING
-			| PACKET_PONG
-			| PACKET_RESPONSE
-			| PACKET_GOSSIP_REQ
-			| PACKET_GOSSIP_RES
-			| PACKET_GOSSIP_HELLO;
-
 		interface Packet {
-			type: PacketType;
-
+			type:
+				| PACKET_UNKNOWN
+				| PACKET_EVENT
+				| PACKET_DISCONNECT
+				| PACKET_DISCOVER
+				| PACKET_INFO
+				| PACKET_HEARTBEAT
+				| PACKET_REQUEST
+				| PACKET_PING
+				| PACKET_PONG
+				| PACKET_RESPONSE
+				| PACKET_GOSSIP_REQ
+				| PACKET_GOSSIP_RES
+				| PACKET_GOSSIP_HELLO;
 			target?: string;
 			payload: PacketPayload;
 		}
@@ -1425,7 +1413,7 @@ declare namespace Moleculer {
 	interface RedisCacherOptions extends CacherOptions {
 		prefix?: string;
 		redis?: GenericObject;
-		redlock?: GenericObject;
+		redlock?: boolean | GenericObject;
 		monitor?: boolean;
 		pingInterval?: number;
 	}
@@ -1672,56 +1660,6 @@ declare namespace Moleculer {
 		}
 	}
 
-	/**
-	 * you can use multiple modifier with a dot
-	 * e.g. `black.bgRed.bold`
-	 */
-	type KleurColor = keyof Kleur | string;
-
-	namespace Middlewares {
-		namespace Debugging {
-			interface ActionLoggerOptions {
-				logger?: LoggerInstance;
-				logLevel?: LogLevels;
-				logParams?: boolean;
-				logResponse?: boolean;
-				logMeta?: boolean;
-				folder?: string | null;
-				extension?: string;
-				colors?: {
-					request?: KleurColor;
-					response?: KleurColor;
-					error?: KleurColor;
-				};
-				whitelist?: string[];
-			}
-			interface TransitLoggerOptions {
-				logger?: LoggerInstance;
-				logLevel?: LogLevels;
-				logPacketData?: boolean;
-				folder?: string | null;
-				extension?: string;
-				colors?: {
-					receive?: KleurColor;
-					send?: KleurColor;
-				};
-				packetFilter?: Packet.packetType[];
-			}
-
-			const ActionLogger = (options?: ActionLoggerOptions) => Middleware;
-			const TransitLogger = (options?: TransitLoggerOptions) => Middleware;
-		}
-		namespace Transmit {
-			interface CompressionOptions {
-				method?: "deflate" | "deflateRaw" | "gzip";
-				threshold?: number | string;
-			}
-			const Compression = (options?: CompressionOptions) => Middleware;
-			const Encryption = (password: string, algorithm: string, iv: string | Buffer) => Middleware;
-		}
-
-	}
-
 	interface TransitRequest {
 		action: string;
 		nodeID: string;
@@ -1764,11 +1702,13 @@ declare namespace Moleculer {
 		publish(packet: Packet): Promise<void>;
 	}
 
-	interface ActionCatalogListOptions {
+	interface ServiceListCatalogOptions {
 		onlyLocal?: boolean;
 		onlyAvailable?: boolean;
 		skipInternal?: boolean;
-		withEndpoints?: boolean;
+		withActions?: boolean;
+		withEvents?: boolean;
+		grouping?: boolean;
 	}
 
 	class ServiceRegistry {
@@ -1782,11 +1722,70 @@ declare namespace Moleculer {
 
 		nodes: any;
 		services: any;
-		actions: any;
+		actions: ActionCatalog;
 		events: any;
 
-		getServiceList(opts?: ActionCatalogListOptions): ServiceSchema[];
+		getServiceList<S = ServiceSettingSchema>(
+			opts?: ServiceListCatalogOptions
+		): ServiceSchema<S>[];
+		getActionList(opts?: ActionCatalogListOptions): ReturnType<ActionCatalog["list"]>;
 	}
+
+	abstract class Endpoint {
+		broker: ServiceBroker;
+
+		id: string;
+		node: GenericObject;
+
+		local: boolean;
+		state: boolean;
+	}
+
+	class ActionEndpoint extends Endpoint {
+		service: Service;
+		action: ActionSchema;
+	}
+
+	class EventEndpoint extends Endpoint {
+		service: Service;
+		event: EventSchema;
+	}
+
+	class EndpointList {
+		endpoints: (ActionEndpoint | EventEndpoint)[];
+	}
+
+	interface ActionCatalogListOptions {
+		onlyLocal?: boolean;
+		onlyAvailable?: boolean;
+		skipInternal?: boolean;
+		withEndpoints?: boolean;
+	}
+
+	interface ActionCatalogListResult {
+		name: string;
+		count: number;
+		hasLocal: boolean;
+		available: boolean;
+		action?: Omit<ActionSchema, "handler" | "remoteHandler" | "service">;
+		endpoints?: Pick<Endpoint, "id" | "state">[];
+	}
+
+	class ActionCatalog {
+		add(node: BrokerNode, service: ServiceItem, action: ActionSchema): EndpointList;
+
+		get(actionName: string): EndpointList | undefined;
+
+		isAvailable(actionName: string): boolean;
+
+		removeByService(service: ServiceItem): void;
+
+		remove(actionName: string, nodeID: string): void;
+
+		list(opts: ActionCatalogListOptions): ActionCatalogListResult[];
+	}
+
+	class ServiceItem {}
 
 	class AsyncStorage {
 		broker: ServiceBroker;
@@ -1805,6 +1804,17 @@ declare namespace Moleculer {
 	const CIRCUIT_CLOSE: string;
 	const CIRCUIT_HALF_OPEN: string;
 	const CIRCUIT_OPEN: string;
+
+	const MOLECULER_VERSION: string;
+	const PROTOCOL_VERSION: string;
+	const INTERNAL_MIDDLEWARES: string[];
+
+	const METRIC: {
+		TYPE_COUNTER: "counter";
+		TYPE_GAUGE: "gauge";
+		TYPE_HISTOGRAM: "histogram";
+		TYPE_INFO: "info";
+	};
 
 	namespace Utils {
 		function isFunction(func: unknown): func is Function;
@@ -1828,6 +1838,247 @@ declare namespace Moleculer {
 		function makeDirs(path: string): void;
 		function parseByteString(value: string): number;
 	}
+
+	/**
+	 * Parsed CLI flags
+	 */
+	interface RunnerFlags {
+
+		/**
+		 * Path to load configuration from a file
+		 */
+		config?: string;
+
+		/**
+		 * Start REPL mode
+		 */
+		repl?: boolean;
+
+		/**
+		 * Enable hot reload mode
+		 */
+		hot?: boolean;
+
+		/**
+		 * Silent mode. No logger
+		 */
+		silent?: boolean;
+
+		/**
+		 * Load .env file from current directory
+		 */
+		env?: boolean;
+
+		/**
+		 * Load .env files by glob pattern
+		 */
+		envfile?: string;
+
+		/**
+		 * Number of node instances to start in cluster mode
+		 */
+		instances?: number;
+
+		/**
+		 * File mask for loading services
+		 */
+		mask?: string;
+
+	}
+
+	/**
+	 * Moleculer Runner
+	 */
+	class Runner {
+		worker: Worker | null;
+		broker: ServiceBroker | null;
+
+		/**
+		 * Watch folders for hot reload
+		 */
+		watchFolders: string[];
+
+		/**
+		 * Parsed CLI flags
+		 */
+		flags: RunnerFlags | null;
+
+		/**
+		 * Loaded configuration file
+		 */
+		configFile: Partial<BrokerOptions>;
+
+		/**
+		 * Merged configuration
+		 */
+		config: Partial<BrokerOptions>;
+
+		/**
+		 * Process command line arguments
+		 */
+		processFlags(args: string[]): void;
+
+		/**
+		 * Load environment variables from '.env' file
+		 */
+		loadEnvFile(): void;
+
+		/**
+		 * Load configuration file
+		 *
+		 * Try to load a configuration file in order to:
+		 *
+		 *		- load file defined in MOLECULER_CONFIG env var
+		 * 		- try to load file which is defined in CLI option with --config
+		 * 		- try to load the `moleculer.config.js` file if exist in the cwd
+		 * 		- try to load the `moleculer.config.json` file if exist in the cwd
+		 */
+		loadConfigFile(): Promise<void>;
+
+		/**
+		 * Normalize a value from env variable
+		 */
+		normalizeEnvValue(value: string): string | number | boolean;
+
+		/**
+		 * Overwrite config values from environment variables
+		 */
+		overwriteFromEnv(obj: any, prefix?: string): any;
+
+		/**
+		 * Merge broker options from config file & env variables
+		 */
+		mergeOptions(): void;
+
+		/**
+		 * Check if a path is a directory
+		 */
+		isDirectory(path: string): boolean;
+
+		/**
+		 * Check if a path is a service file
+		 */
+		isServiceFile(path: string): boolean;
+
+		/**
+		 * Load services from files or directories
+		 */
+		loadServices(): void;
+
+		/**
+		 * Start cluster workers
+		 */
+		startWorkers(instances: number): void;
+
+		/**
+		 * Load service from NPM module
+		 */
+		loadNpmModule(name: string): Service;
+
+		/**
+		 * Start Moleculer broker
+		 */
+		startBroker(): Promise<ServiceBroker>;
+
+		/**
+		 * Restart broker
+		 */
+		restartBroker(): Promise<ServiceBroker>;
+
+		/**
+		 * Start runner
+		 */
+		start(args: string[]): Promise<void>;
+	}
+
+
+	/**
+	 * you can use multiple modifier with a dot
+	 * e.g. `black.bgRed.bold`
+	 */
+	type KleurColor = keyof Kleur | string;
+
+	type ActionLoggerOptions = {
+		logger?: LoggerInstance;
+		logLevel?: LogLevels;
+		logParams?: boolean;
+		logResponse?: boolean;
+		logMeta?: boolean;
+		folder?: string | null;
+		extension?: string;
+		colors?: {
+			request?: KleurColor;
+			response?: KleurColor;
+			error?: KleurColor;
+		};
+		whitelist?: Array<string>;
+	};
+	type TransitLoggerOptions = {
+		logger?: LoggerInstance;
+		logLevel?: LogLevels;
+		logPacketData?: boolean;
+		folder?: string | null;
+		extension?: string;
+		colors?: {
+			receive?: KleurColor;
+			send?: KleurColor;
+		};
+		packetFilter?: Array<Packets.packetType>;
+	};
+	/* @private */
+	interface MoleculerMiddlewares {
+		Transmit: {
+			Debugging: {
+				ActionLogger(options?: ActionLoggerOptions): Middleware;
+				TransitLogger(options?: TransitLoggerOptions): Middleware;
+			};
+			/**
+			 * Encrypts the Transporter payload
+			 * @param key The key to use for encryption
+			 * @param [algorithm] The algorithm to use for encryption. Default is aes-256-cbc
+			 * @param [iv] The initialization vector to use for encryption. Optional
+			 * @example // moleculer.config.js
+			 * const crypto = require("crypto");
+			 * const { Middlewares } = require("moleculer");
+			 * const initVector = crypto.randomBytes(16);
+			 *
+			 * module.exports = {
+			 *   middlewares: [
+			 *     Middlewares.Transmit.Encryption("secret-password", "aes-256-cbc", initVector) // "aes-256-cbc" is the default
+			 *   ]
+			 * };
+			 */
+			Encryption: (key: CipherKey, algorithm?: CipherCCMTypes|CipherOCBTypes|CipherGCMTypes|string, iv?: BinaryLike | null)=> Middleware,
+			Compression: (opts?: {
+				/**
+				 * @default deflate
+				 */
+				method?: 'gzip' | 'deflate' | 'deflateRaw'
+				/**
+				 * Compression middleware reduces the size of the messages that go through the transporter module.
+				 * This middleware uses built-in Node zlib lib.
+				 * Threshold should be a number of bytes or a string like 100kb, 4mb, etc. Accepted units are:
+				 * - kb, for kilobytes
+				 * - mb, for megabytes
+				 * - gb, for gigabytes
+				 * - tb, for terabytes
+				 * - pb, for petabytes
+				 * @default 1kb
+				 * @example // moleculer.config.js
+				 * const { Middlewares } = require("moleculer");
+				 *
+				 * // Create broker
+				 * module.exports = {
+				 *   middlewares: [
+				 *     Middlewares.Transmit.Compression("deflate") // or "deflateRaw" or "gzip"
+				 *   ]
+				 * };
+				 */
+				threshold?: number | string
+			}) => Middleware,
+		}
+	}
+	const Middlewares: MoleculerMiddlewares
 }
 
 export = Moleculer;

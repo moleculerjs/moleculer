@@ -5,6 +5,7 @@ const C = require("../../../src/constants");
 
 jest.mock("ioredis");
 const Redis = require("ioredis");
+const BaseLogger = require("../../../src/loggers/base");
 
 Redis.mockImplementation(() => {
 	let onCallbacks = {};
@@ -14,7 +15,7 @@ Redis.mockImplementation(() => {
 		subscribe: jest.fn(),
 		publish: jest.fn(),
 		quit: jest.fn(),
-		setex: jest.fn(),
+		set: jest.fn(),
 
 		onCallbacks
 	};
@@ -320,7 +321,6 @@ describe("Test RedisCacher set & get without prefix", () => {
 			prefix + key,
 			cacher.serializer.serialize(data1)
 		);
-		expect(cacher.client.setex).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call client.getBuffer with key & return with data1", () => {
@@ -439,16 +439,17 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 			cacher.logger[level].mockClear()
 		);
 
-		cacher.client.setex = jest.fn(() => Promise.resolve());
+		cacher.client.set = jest.fn(() => Promise.resolve());
 	});
 
-	it("should call client.setex with key & data", () => {
+	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
-		expect(cacher.client.setex).toHaveBeenCalledTimes(1);
-		expect(cacher.client.setex).toHaveBeenCalledWith(
+		expect(cacher.client.set).toHaveBeenCalledTimes(1);
+		expect(cacher.client.set).toHaveBeenCalledWith(
 			prefix + key,
-			60,
-			cacher.serializer.serialize(data1)
+			cacher.serializer.serialize(data1),
+			"EX",
+			60
 		);
 	});
 
@@ -646,79 +647,118 @@ describe("Test RedisCacher getWithTTL method", () => {
 	});
 });
 
-describe("Test RedisCacher lock method", () => {
-	const key = "abcd134";
-	let broker = new ServiceBroker({ logger: false });
-	let cacher = new RedisCacher({
-		ttl: 30,
-		lock: true
-	});
-	cacher.init(broker); // for empty logger
-	let unlock1, unlock2;
-	beforeEach(() => {
-		unlock1 = jest.fn(() => Promise.resolve());
-		unlock2 = jest.fn(() => Promise.resolve());
-		cacher.redlock.lock = jest.fn(() => {
-			return Promise.resolve({
-				unlock: unlock1
+describe("redlock enabled", () => {
+	describe("Test RedisCacher lock method", () => {
+		const key = "abcd134";
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new RedisCacher({
+			ttl: 30,
+			lock: true
+		});
+		cacher.init(broker); // for empty logger
+		let unlock1, unlock2;
+		beforeEach(() => {
+			unlock1 = jest.fn(() => Promise.resolve());
+			unlock2 = jest.fn(() => Promise.resolve());
+			cacher.redlock.lock = jest.fn(() => {
+				return Promise.resolve({
+					unlock: unlock1
+				});
+			});
+			cacher.redlockNonBlocking.lock = jest.fn(() => {
+				return Promise.resolve({
+					unlock: unlock2
+				});
 			});
 		});
-		cacher.redlockNonBlocking.lock = jest.fn(() => {
-			return Promise.resolve({
-				unlock: unlock2
+
+		it("should call redlock.lock when calling cacher.lock", () => {
+			return cacher.lock(key, 20).then(() => {
+				expect(cacher.redlock.lock).toHaveBeenCalledTimes(1);
+				expect(cacher.redlock.lock).toHaveBeenCalledWith(cacher.prefix + key + "-lock", 20);
 			});
 		});
-	});
 
-	it("should call redlock.lock when calling cacher.lock", () => {
-		return cacher.lock(key, 20).then(() => {
-			expect(cacher.redlock.lock).toHaveBeenCalledTimes(1);
-			expect(cacher.redlock.lock).toHaveBeenCalledWith(cacher.prefix + key + "-lock", 20);
-		});
-	});
-
-	it("should call redlock.unlock when calling unlock callback", () => {
-		return cacher.lock(key, 20).then(unlock => {
-			return unlock().then(() => {
-				expect(unlock1).toBeCalled();
+		it("should call redlock.unlock when calling unlock callback", () => {
+			return cacher.lock(key, 20).then(unlock => {
+				return unlock().then(() => {
+					expect(unlock1).toBeCalled();
+				});
 			});
 		});
-	});
 
-	it("should call redlock.lock when calling cacher.tryLock", () => {
-		return cacher.tryLock(key, 20).then(() => {
-			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledTimes(1);
-			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(
-				cacher.prefix + key + "-lock",
-				20
-			);
+		it("should call redlock.lock when calling cacher.tryLock", () => {
+			return cacher.tryLock(key, 20).then(() => {
+				expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledTimes(1);
+				expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(
+					cacher.prefix + key + "-lock",
+					20
+				);
+			});
+		});
+
+		it("should call redlock.unlock when calling unlock callback", () => {
+			const err = new Error("Already locked.");
+			cacher.redlockNonBlocking.lock = jest.fn(() => {
+				return Promise.reject(err);
+			});
+			return cacher.tryLock(key, 20).catch(e => {
+				expect(e).toBe(err);
+			});
+		});
+
+		it("should failed to acquire a lock when redlock client throw an error", () => {
+			return cacher.tryLock(key, 20);
 		});
 	});
 
-	it("should call redlock.unlock when calling unlock callback", () => {
-		const err = new Error("Already locked.");
-		cacher.redlockNonBlocking.lock = jest.fn(() => {
-			return Promise.reject(err);
+	describe("Test RedisCacher with opts.lock", () => {
+		it("should create redlock clients", () => {
+			let broker = new ServiceBroker({ logger: false });
+			let cacher = new RedisCacher({
+				ttl: 30
+			});
+			cacher.init(broker);
+			expect(cacher.redlock).toBeDefined();
+			expect(cacher.redlockNonBlocking).toBeDefined();
 		});
-		return cacher.tryLock(key, 20).catch(e => {
-			expect(e).toBe(err);
-		});
-	});
-
-	it("should failed to acquire a lock when redlock client throw an error", () => {
-		return cacher.tryLock(key, 20);
 	});
 });
 
-describe("Test RedisCacher with opts.lock", () => {
-	it("should create redlock clients", () => {
-		let broker = new ServiceBroker({ logger: false });
-		let cacher = new RedisCacher({
-			ttl: 30
-		});
-		cacher.init(broker);
-		expect(cacher.redlock).toBeDefined();
-		expect(cacher.redlockNonBlocking).toBeDefined();
+describe("redlock disabled", () => {
+	const errorMock = jest.fn();
+	class TestLogger extends BaseLogger {
+		getLogHandler() {
+			return (type, args) => {
+				if (type === "error") {
+					return errorMock(...args);
+				}
+			};
+		}
+	}
+	const logger = new TestLogger();
+
+	const broker = new ServiceBroker({ logger });
+	const cacher = new RedisCacher({ redlock: false });
+	cacher.init(broker);
+
+	afterEach(() => {
+		errorMock.mockClear();
+	});
+
+	it("should not add a redlock instance", () => {
+		expect(cacher.redlock).toBeNull();
+		expect(cacher.redlockNonBlocking).toBeNull();
+	});
+
+	it("should resolve but emit error on lock call", async () => {
+		await expect(cacher.lock()).resolves.toBeUndefined();
+		expect(errorMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("should resolve but emit error on tryLock call", async () => {
+		await expect(cacher.tryLock()).resolves.toBeUndefined();
+		expect(errorMock).toHaveBeenCalledTimes(1);
 	});
 });
 
