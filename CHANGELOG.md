@@ -1,5 +1,14 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.29...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.32...master)
+
+--------------------------------------------------
+<a name="0.14.32"></a>
+# [0.14.32](https://github.com/moleculerjs/moleculer/compare/v0.14.31...v0.14.32) (2023-11-12)
+
+## Changes
+- update peer dependency for mqtt to 5.0.2 [#1236](https://github.com/moleculerjs/moleculer/pull/1236)
+- update d.ts [#1245](https://github.com/moleculerjs/moleculer/pull/1245), [#1246](https://github.com/moleculerjs/moleculer/pull/1246), [#1248](https://github.com/moleculerjs/moleculer/pull/1248)
+- fix stream sending logic to avoid memory leak [#1243](https://github.com/moleculerjs/moleculer/pull/1243)  
 
 --------------------------------------------------
 <a name="0.14.31"></a>
