@@ -1334,21 +1334,23 @@ declare namespace Moleculer {
 			sender: string | null;
 		}
 
+		type PacketType =
+			| PACKET_UNKNOWN
+			| PACKET_EVENT
+			| PACKET_DISCONNECT
+			| PACKET_DISCOVER
+			| PACKET_INFO
+			| PACKET_HEARTBEAT
+			| PACKET_REQUEST
+			| PACKET_PING
+			| PACKET_PONG
+			| PACKET_RESPONSE
+			| PACKET_GOSSIP_REQ
+			| PACKET_GOSSIP_RES
+			| PACKET_GOSSIP_HELLO;
+
 		interface Packet {
-			type:
-				| PACKET_UNKNOWN
-				| PACKET_EVENT
-				| PACKET_DISCONNECT
-				| PACKET_DISCOVER
-				| PACKET_INFO
-				| PACKET_HEARTBEAT
-				| PACKET_REQUEST
-				| PACKET_PING
-				| PACKET_PONG
-				| PACKET_RESPONSE
-				| PACKET_GOSSIP_REQ
-				| PACKET_GOSSIP_RES
-				| PACKET_GOSSIP_HELLO;
+			type: PacketType
 			target?: string;
 			payload: PacketPayload;
 		}
@@ -2023,7 +2025,7 @@ declare namespace Moleculer {
 			receive?: KleurColor;
 			send?: KleurColor;
 		};
-		packetFilter?: Array<Packets.packetType>;
+		packetFilter?: Array<Packets.PacketType>;
 	};
 	/* @private */
 	interface MoleculerMiddlewares {
