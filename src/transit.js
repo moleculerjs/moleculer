@@ -231,10 +231,9 @@ class Transit {
 
 		return this.Promise.resolve()
 			.then(() => {
-				if (this.tx.connected) {
-					return this.discoverer.localNodeDisconnected().then(() => this.tx.disconnect());
-				}
+				return this.tx.connected && this.discoverer.localNodeDisconnected();
 			})
+			.then(() => this.tx.disconnect())
 			.then(() => (this.disconnecting = false));
 	}
 
