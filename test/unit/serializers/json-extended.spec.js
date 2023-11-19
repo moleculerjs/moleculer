@@ -10,10 +10,44 @@ describe("Test JSONExtSerializer constructor", () => {
 		expect(serializer.serialize).toBeDefined();
 		expect(serializer.deserialize).toBeDefined();
 	});
+
+	it("should create with options", () => {
+		let serializer = new JSONExtSerializer({
+			customs: [
+				{
+					prefix: "AB"
+				}
+			]
+		});
+		expect(serializer).toBeDefined();
+		expect(serializer.opts).toEqual({ customs: [{ prefix: "AB" }] });
+		expect(serializer.hasCustomTypes).toBe(true);
+		expect(serializer.serialize).toBeDefined();
+		expect(serializer.deserialize).toBeDefined();
+	});
 });
 
+class MyClass {
+	constructor(a, b) {
+		this.a = a;
+		this.b = b;
+	}
+}
+
 describe("Test JSONExtSerializer", () => {
-	let serializer = new JSONExtSerializer();
+	let serializer = new JSONExtSerializer({
+		customs: [
+			{
+				prefix: "AB",
+				check: v => v instanceof MyClass,
+				serialize: v => v.a + "|" + v.b,
+				deserialize: v => {
+					const [a, b] = v.split("|");
+					return new MyClass(parseInt(a), b);
+				}
+			}
+		]
+	});
 	serializer.init();
 
 	it("should serialize bigint data", () => {
@@ -121,6 +155,22 @@ describe("Test JSONExtSerializer", () => {
 		const res = serializer.deserialize(s);
 		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
+	});
+
+	it("should serialize custom class", () => {
+		const re = /^[a-z|A-Z]+$/i;
+		const obj = {
+			clazz: new MyClass(5, "John")
+		};
+
+		const s = serializer.serialize(obj);
+		expect(s.toString()).toBe(`{"clazz":"[[AB]]5|John"}`);
+
+		const res = serializer.deserialize(s);
+		expect(res).not.toBe(obj);
+		expect(res.clazz).toBeInstanceOf(MyClass);
+		expect(res.clazz.a).toBe(5);
+		expect(res.clazz.b).toBe("John");
 	});
 
 	it("should serialize the event packet", () => {

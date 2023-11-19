@@ -32,6 +32,8 @@ class JSONExtSerializer extends BaseSerializer {
 		super();
 
 		this.opts = opts || {};
+
+		this.hasCustomTypes = this.opts?.customs?.length > 0;
 	}
 
 	/**
@@ -59,6 +61,12 @@ class JSONExtSerializer extends BaseSerializer {
 			return PREFIX_REGEXP + v.flags + "|" + v.source;
 		} else if (Buffer.isBuffer(v)) {
 			return PREFIX_BUFFER + v.toString("base64");
+		} else if (this.hasCustomTypes) {
+			for (const custom of this.opts.customs) {
+				if (custom.check(v, key, obj)) {
+					return "[[" + custom.prefix + "]]" + custom.serialize(v, key, obj);
+				}
+			}
 		}
 		return value;
 	}
@@ -87,6 +95,18 @@ class JSONExtSerializer extends BaseSerializer {
 					const flags = p.shift();
 					// eslint-disable-next-line security/detect-non-literal-regexp
 					return new RegExp(p.join("|"), flags);
+				}
+				default: {
+					if (this.hasCustomTypes) {
+						for (const custom of this.opts.customs) {
+							if (value.startsWith("[[" + custom.prefix + "]]")) {
+								return custom.deserialize(
+									value.slice(custom.prefix.length + 4),
+									key
+								);
+							}
+						}
+					}
 				}
 			}
 		}
