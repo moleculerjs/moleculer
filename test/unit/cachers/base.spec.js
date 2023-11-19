@@ -17,6 +17,7 @@ describe("Test BaseCacher", () => {
 		expect(cacher.clean).toBeDefined();
 		expect(cacher.getCacheKey).toBeDefined();
 		expect(cacher.middleware).toBeDefined();
+		expect(cacher.missingResponse).toBeUndefined();
 	});
 
 	it("check constructor with empty opts", () => {

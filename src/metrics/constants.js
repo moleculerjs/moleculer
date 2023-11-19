@@ -54,19 +54,6 @@ module.exports = {
 
 	PROCESS_VERSIONS_NODE: "process.versions.node",
 
-	// --- EVENT LOOP METRICS ---
-
-	PROCESS_EVENTLOOP_LAG_MIN: "process.eventloop.lag.min", // msec
-	PROCESS_EVENTLOOP_LAG_AVG: "process.eventloop.lag.avg", // msec
-	PROCESS_EVENTLOOP_LAG_MAX: "process.eventloop.lag.max", // msec
-	PROCESS_EVENTLOOP_LAG_COUNT: "process.eventloop.lag.count",
-
-	// --- GARBAGE COLLECTOR METRICS ---
-
-	PROCESS_GC_TIME: "process.gc.time", // nanoseconds
-	PROCESS_GC_TOTAL_TIME: "process.gc.total.time", // milliseconds
-	PROCESS_GC_EXECUTED_TOTAL: "process.gc.executed.total",
-
 	// --- OS METRICS ---
 
 	OS_MEMORY_FREE: "os.memory.free", // bytes

@@ -131,10 +131,10 @@
     "recursive-watch": "^1.1.4"
   },
   "peerDependencies": {
-    "amqplib": "^0.8.0",
+    "amqplib": "^0.10.0",
     "bunyan": "^1.0.0",
     "cbor-x": "^1.2.0",
-    "dd-trace": "^0.33.0 || ^0.34.0 || ^0.35.0 || ^0.36.0 || >=1.0.0 <1.6.0",
+    "dd-trace": "^4.15.0",
     "debug": "^4.0.0",
     "etcd3": "^1.0.0",
     "ioredis": "^5.0.0",
