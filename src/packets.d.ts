@@ -46,5 +46,5 @@ export declare class Packet {
 
 	payload: PacketPayload;
 
-	constructor(type: string, target: string, payload?: any);
+	constructor(type: string, target?: string|null, payload?: any);
 }

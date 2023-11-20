@@ -26,6 +26,7 @@ import type BrokerNode = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
+import type { Stream } from "stream";
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -92,7 +93,7 @@ declare namespace ServiceBroker {
 
 		ServiceFactory?: typeof Service;
 		ContextFactory?: typeof Context;
-		Promise?: PromiseConstructorLike;
+		Promise?: PromiseConstructor;
 
 		created?: BrokerSyncLifecycleHandler;
 		started?: BrokerAsyncLifecycleHandler;
@@ -229,6 +230,7 @@ declare namespace ServiceBroker {
 		paramsCloning?: boolean;
 		caller?: string;
 		headers?: Record<string, any>;
+		stream?: Stream;
 	}
 
 	export interface MCallCallingOptions extends CallingOptions {
@@ -255,7 +257,7 @@ declare class ServiceBroker {
 
 	static defaultOptions: ServiceBroker.ServiceBrokerOptions;
 
-	static Promise: PromiseConstructorLike;
+	static Promise: PromiseConstructor;
 
 	MOLECULER_VERSION: string;
 
@@ -263,7 +265,7 @@ declare class ServiceBroker {
 
 	options: ServiceBroker.ServiceBrokerOptions;
 
-	Promise: PromiseConstructorLike;
+	Promise: PromiseConstructor;
 
 	ServiceFactory: typeof Service;
 

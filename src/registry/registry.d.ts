@@ -4,7 +4,10 @@ import BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
 import type { BrokerRegistryOptions } from "../service-broker";
+import ServiceCatalog = require("./service-catalog");
 import ActionCatalog = require("./action-catalog");
+import NodeCatalog = require("./node-catalog");
+import EventCatalog = require("./event-catalog");
 
 declare namespace ServiceRegistry {}
 
@@ -22,6 +25,12 @@ declare class ServiceRegistry {
 	actions: ActionCatalog;
 	events: any;
 
-	getServiceList(opts?: ActionCatalogListOptions): ReturnType<ActionCatalog["list"]>;
+	getServiceList(opts?: ActionCatalogListOptions): Promise<ReturnType<ServiceCatalog["list"]>>;
+
+	getNodeList(opts?: ActionCatalogListOptions): Promise<ReturnType<NodeCatalog["list"]>>;
+
+	getActionList(opts?: ActionCatalogListOptions): Promise<ReturnType<ActionCatalog["list"]>>;
+
+	getEventList(opts?: ActionCatalogListOptions): Promise<ReturnType<EventCatalog["list"]>>;
 }
 export = ServiceRegistry;

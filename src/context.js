@@ -33,7 +33,7 @@ function mergeMeta(ctx, newMeta) {
 /**
  * Context class for action calls
  *
- * @class Context
+ * @type import("./context").Context
  */
 class Context {
 	/**

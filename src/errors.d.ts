@@ -96,7 +96,7 @@ export declare class Regenerator {
 
 	restore(plainError: PlainMoleculerError, payload: Record<string, any>): Error;
 
-	extractPlainError(err: Error): PlainMoleculerError;
+	extractPlainError(err: Error, payload?: Record<string, any>): PlainMoleculerError;
 
 	restoreCustomError(
 		plainError: PlainMoleculerError,

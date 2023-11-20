@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -83,7 +83,7 @@ class MoleculerRetryableError extends MoleculerError {
 	 * @param {String?} message
 	 * @param {Number?} code
 	 * @param {String?} type
-	 * @param {any} data
+	 * @param {any?} data
 	 *
 	 * @memberof MoleculerRetryableError
 	 */

@@ -1,6 +1,7 @@
+// @ts-check
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,6 +16,13 @@ const { METRIC } = require("./metrics");
 const C = require("./constants");
 
 /**
+ * @typedef {import("./service-broker")} ServiceBroker
+ * @typedef {import("./transporters/base")} Transporter
+ * @typedef {import("stream").Stream} Stream
+ * @typedef {import("./context")} Context
+ */
+
+/**
  * Transit class
  *
  * @class Transit
@@ -23,8 +31,8 @@ class Transit {
 	/**
 	 * Create an instance of Transit.
 	 *
-	 * @param {ServiceBroker} Broker instance
-	 * @param {Transporter} Transporter instance
+	 * @param {ServiceBroker} broker
+	 * @param {Transporter} transporter
 	 * @param {Object?} opts
 	 *
 	 * @memberof Transit
@@ -87,14 +95,14 @@ class Transit {
 				type: METRIC.TYPE_GAUGE,
 				description: "Transit is ready"
 			})
-			.set(0);
+			?.set(0);
 		this.metrics
 			.register({
 				name: METRIC.MOLECULER_TRANSIT_CONNECTED,
 				type: METRIC.TYPE_GAUGE,
 				description: "Transit is connected"
 			})
-			.set(0);
+			?.set(0);
 
 		this.metrics.register({
 			name: METRIC.MOLECULER_TRANSIT_PONG_TIME,
@@ -151,7 +159,7 @@ class Transit {
 
 				if (this.__connectResolve) {
 					this.isReady = true;
-					this.__connectResolve();
+					this.__connectResolve(null);
 					this.__connectResolve = null;
 				}
 
@@ -298,8 +306,8 @@ class Transit {
 	/**
 	 * Message handler for incoming packets
 	 *
-	 * @param {Array} topic
-	 * @param {String} msg
+	 * @param {string} cmd
+	 * @param {Packet} packet
 	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else `false`
 	 *
 	 * @memberof Transit
@@ -534,7 +542,7 @@ class Transit {
 	 * Handle incoming request stream.
 	 *
 	 * @param {Object} payload
-	 * @returns {Stream}
+	 * @returns {Stream|false|null}
 	 */
 	_handleIncomingRequestStream(payload) {
 		let stream = this.pendingReqStreams.get(payload.id);
@@ -640,7 +648,7 @@ class Transit {
 	 * @param {Object} payload
 	 */
 	_createErrFromPayload(error, payload) {
-		return this.errorRegenerator.restore(error, payload);
+		return this.errorRegenerator?.restore(error, payload);
 	}
 
 	/**
@@ -790,7 +798,7 @@ class Transit {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 *
-	 * @param {<Context>} ctx Context of request
+	 * @param {Context} ctx Context of request
 	 * @returns {Promise}
 	 *
 	 * @memberof Transit
@@ -814,7 +822,7 @@ class Transit {
 	/**
 	 * Send a remote request
 	 *
-	 * @param {<Context>} ctx      Context of request
+	 * @param {Context} ctx      Context of request
 	 * @param {Function} resolve   Resolve of Promise
 	 * @param {Function} reject    Reject of Promise
 	 *
@@ -837,7 +845,7 @@ class Transit {
 
 		const payload = {
 			id: ctx.id,
-			action: ctx.action.name,
+			action: ctx.action?.name,
 			params: ctx.params,
 			meta: ctx.meta,
 			headers: ctx.headers,
@@ -863,11 +871,11 @@ class Transit {
 
 		const nodeName = ctx.nodeID ? `'${ctx.nodeID}'` : "someone";
 		const requestID = ctx.requestID ? "with requestID '" + ctx.requestID + "' " : "";
-		this.logger.debug(`=> Send '${ctx.action.name}' request ${requestID}to ${nodeName} node.`);
+		this.logger.debug(`=> Send '${ctx.action?.name}' request ${requestID}to ${nodeName} node.`);
 
 		const publishCatch = /* istanbul ignore next */ err => {
 			this.logger.error(
-				`Unable to send '${ctx.action.name}' request ${requestID}to ${nodeName} node.`,
+				`Unable to send '${ctx.action?.name}' request ${requestID}to ${nodeName} node.`,
 				err
 			);
 
@@ -991,7 +999,7 @@ class Transit {
 			);
 		else
 			this.logger.debug(
-				`=> Send '${ctx.eventName}' event ${requestID}to '${groups.join(", ")}' group(s).`
+				`=> Send '${ctx.eventName}' event ${requestID}to '${groups?.join(", ")}' group(s).`
 			);
 
 		return this.publish(
@@ -1078,7 +1086,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_createPayloadErrorField(err, payload) {
-		return this.errorRegenerator.extractPlainError(err, payload);
+		return this.errorRegenerator?.extractPlainError(err, payload);
 	}
 
 	/**
@@ -1089,7 +1097,7 @@ class Transit {
 	 * @param {Object} meta
 	 * @param {Object} headers
 	 * @param {any} data
-	 * @param {Error} err
+	 * @param {Error?} err
 	 *
 	 * @memberof Transit
 	 */
@@ -1387,7 +1395,7 @@ class Transit {
 	/**
 	 * Publish via transporter
 	 *
-	 * @param {Packet} Packet
+	 * @param {Packet} packet
 	 *
 	 * @memberof Transit
 	 */

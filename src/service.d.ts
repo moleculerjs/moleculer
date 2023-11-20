@@ -213,7 +213,7 @@ declare class Service<S = Service.ServiceSettingSchema> implements Service.Servi
 	broker: ServiceBroker;
 	logger: Logger;
 	actions: Service.ServiceActions;
-	Promise: PromiseConstructorLike;
+	Promise: PromiseConstructor;
 
 	_init(): void;
 	_start(): Promise<void>;

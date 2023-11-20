@@ -3,6 +3,8 @@ import type { Packet } from "../packets";
 
 declare abstract class BaseTransporter {
 	hasBuiltInBalancer: boolean;
+	connected: boolean;
+	opts: Record<string, any>;
 
 	constructor(opts?: Record<string, any>);
 

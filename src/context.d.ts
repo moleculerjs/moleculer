@@ -93,7 +93,7 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	cachedResult: boolean;
 
-	constructor(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint);
+	constructor(broker: ServiceBroker, endpoint?: ActionEndpoint|EventEndpoint);
 
 	setEndpoint(endpoint: ActionEndpoint|EventEndpoint): void;
 
