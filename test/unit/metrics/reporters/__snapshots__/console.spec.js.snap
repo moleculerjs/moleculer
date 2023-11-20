@@ -32,7 +32,7 @@ exports[`Test ConsoleReporter class Test print method with onlyChanges should no
   "  {}: nodejs ",
   "",
   "moleculer.node.versions.protocol (info)",
-  "  {}: 4 ",
+  "  {}: 5 ",
   "",
   "moleculer.broker.namespace (info)",
   "  {}: <empty string> ",

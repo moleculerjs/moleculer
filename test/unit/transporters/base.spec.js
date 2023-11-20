@@ -573,7 +573,7 @@ describe("Test BaseTransporter", () => {
 			expect(transporter.serialize(packet)).toBe("serialized");
 			expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
 			expect(broker.serializer.serialize).toHaveBeenCalledWith(
-				{ sender: "server1", ver: "4" },
+				{ sender: "server1", ver: "5" },
 				P.PACKET_EVENT
 			);
 		});

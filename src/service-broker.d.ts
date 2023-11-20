@@ -249,7 +249,7 @@ declare namespace ServiceBroker {
 declare class ServiceBroker {
 	static MOLECULER_VERSION: string;
 
-	static PROTOCOL_VERSION: "4";
+	static PROTOCOL_VERSION: "5";
 
 	static INTERNAL_MIDDLEWARES: string[];
 
@@ -259,7 +259,7 @@ declare class ServiceBroker {
 
 	MOLECULER_VERSION: string;
 
-	PROTOCOL_VERSION: "4";
+	PROTOCOL_VERSION: "5";
 
 	options: ServiceBroker.ServiceBrokerOptions;
 

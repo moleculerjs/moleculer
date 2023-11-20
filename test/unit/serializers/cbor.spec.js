@@ -18,7 +18,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet (with UTC)", () => {
 		const now = new Date().toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -43,7 +43,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet (date time ends with 000Z with UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z").toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -68,7 +68,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet (date time ends with 001Z with UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z").toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -93,7 +93,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet (date time ends with 000Z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -118,7 +118,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet (date time ends with 001Z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z");
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -143,7 +143,7 @@ describe("Test CborSerializer", () => {
 	it("should serialize the event packet with flaky date time string", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",

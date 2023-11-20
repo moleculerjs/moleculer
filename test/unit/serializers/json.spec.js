@@ -17,7 +17,7 @@ describe("Test JSONSerializer", () => {
 
 	it("should serialize the event packet", () => {
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",

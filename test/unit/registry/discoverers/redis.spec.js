@@ -403,7 +403,7 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 			instanceID: "1234567890",
 			sender: "node-99",
 			seq: 1,
-			ver: "4"
+			ver: "5"
 		});
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
@@ -443,7 +443,7 @@ describe("Test RedisDiscoverer 'sendHeartbeat' method", () => {
 			instanceID: "1234567890",
 			sender: "node-99",
 			seq: 1,
-			ver: "4"
+			ver: "5"
 		});
 		expect(fakePipeline.exec).toBeCalledTimes(1);
 
@@ -811,7 +811,7 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
 			a: 5,
 			sender: "node-99",
-			ver: "4"
+			ver: "5"
 		});
 
 		expect(discoverer.lastInfoSeq).toBe(1);
@@ -832,7 +832,7 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
 			a: 5,
 			sender: "node-99",
-			ver: "4"
+			ver: "5"
 		});
 
 		expect(discoverer.lastInfoSeq).toBe(1);
@@ -855,7 +855,7 @@ describe("Test RedisDiscoverer 'sendLocalNodeInfo' method", () => {
 		expect(discoverer.client.setex).toBeCalledWith("MOL-DSCVR-INFO:node-99", 1800, {
 			a: 5,
 			sender: "node-99",
-			ver: "4"
+			ver: "5"
 		});
 
 		expect(broker.transit.tx.makeBalancedSubscriptions).toBeCalledTimes(1);

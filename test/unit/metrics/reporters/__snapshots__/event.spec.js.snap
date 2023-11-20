@@ -196,7 +196,7 @@ exports[`Test EventReporter class Test sendEvent method with onlyChanges should 
         "key": "",
         "labels": {},
         "timestamp": 12345678000,
-        "value": "4",
+        "value": "5",
       },
     ],
   },

@@ -18,7 +18,7 @@ describe("Test NotePackSerializer", () => {
 	it("should serialize the event packet with UTC date string", () => {
 		const now = new Date().toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -43,7 +43,7 @@ describe("Test NotePackSerializer", () => {
 	it("should serialize the event packet (date ends with 000z using UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z").toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -68,7 +68,7 @@ describe("Test NotePackSerializer", () => {
 	it("should serialize the event packet (date ends with 001z using UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z").toUTCString();
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -93,7 +93,7 @@ describe("Test NotePackSerializer", () => {
 	it("should serialize the event packet (date ends with 000z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.000Z");
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
@@ -118,7 +118,7 @@ describe("Test NotePackSerializer", () => {
 	it("should serialize the event packet (date ends with 001z without UTC)", () => {
 		const now = new Date("2022-11-06T22:59:47.001Z");
 		const obj = {
-			ver: "4",
+			ver: "5",
 			sender: "node-100",
 			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",

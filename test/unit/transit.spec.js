@@ -338,7 +338,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.fatal if nodeID is same but instanceID is different", async () => {
 		broker.fatal = jest.fn();
 		await transit.messageHandler("INFO", {
-			payload: { ver: "4", sender: "node1", instanceID: "abcdef" }
+			payload: { ver: "5", sender: "node1", instanceID: "abcdef" }
 		});
 		expect(broker.fatal).toHaveBeenCalledTimes(1);
 	});
@@ -346,7 +346,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should skip own packets", async () => {
 		broker.fatal = jest.fn();
 		const res = await transit.messageHandler("INFO", {
-			payload: { ver: "4", sender: "node1", instanceID: broker.instanceID }
+			payload: { ver: "5", sender: "node1", instanceID: broker.instanceID }
 		});
 		expect(res).toBe(false);
 		expect(broker.fatal).toHaveBeenCalledTimes(0);
@@ -356,7 +356,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.requestHandler = jest.fn();
 
 		let payload = {
-			ver: "4",
+			ver: "5",
 			sender: "remote",
 			action: "posts.find",
 			id: "123",
@@ -379,7 +379,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.requestHandler = jest.fn();
 
 		let payload = {
-			ver: "4",
+			ver: "5",
 			sender: broker.nodeID,
 			action: "posts.find",
 			id: "123",
@@ -401,7 +401,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call responseHandler if topic is 'RES' ", async () => {
 		transit.responseHandler = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", id: "12345" };
+		let payload = { ver: "5", sender: "remote", id: "12345" };
 		await transit.messageHandler("RES", { payload });
 
 		expect(transit.responseHandler).toHaveBeenCalledTimes(1);
@@ -411,7 +411,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call responseHandler if topic is 'RES' && sender is itself", async () => {
 		transit.responseHandler = jest.fn();
 
-		let payload = { ver: "4", sender: broker.nodeID, id: "12345" };
+		let payload = { ver: "5", sender: broker.nodeID, id: "12345" };
 		await transit.messageHandler("RES", { payload });
 
 		expect(transit.responseHandler).toHaveBeenCalledTimes(1);
@@ -421,7 +421,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call eventHandler if topic is 'EVENT' ", async () => {
 		transit.eventHandler = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", event: "user.created", data: "John Doe" };
+		let payload = { ver: "5", sender: "remote", event: "user.created", data: "John Doe" };
 		await transit.messageHandler("EVENT", { payload });
 
 		expect(transit.eventHandler).toHaveBeenCalledTimes(1);
@@ -431,7 +431,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call eventHandler if topic is 'EVENT' && sender is itself", async () => {
 		transit.eventHandler = jest.fn();
 
-		let payload = { ver: "4", sender: broker.nodeID, event: "user.created", data: "John Doe" };
+		let payload = { ver: "5", sender: broker.nodeID, event: "user.created", data: "John Doe" };
 		await transit.messageHandler("EVENT", { payload });
 
 		expect(transit.eventHandler).toHaveBeenCalledTimes(1);
@@ -442,7 +442,7 @@ describe("Test Transit.messageHandler", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 		transit.discoverer.sendLocalNodeInfo = jest.fn();
 
-		let payload = { ver: "4", sender: "remote" };
+		let payload = { ver: "5", sender: "remote" };
 		await transit.messageHandler("DISCOVER", { payload });
 		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.discoverer.sendLocalNodeInfo).toHaveBeenCalledWith("remote");
@@ -451,7 +451,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", async () => {
 		transit.discoverer.processRemoteNodeInfo = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", services: [] };
+		let payload = { ver: "5", sender: "remote", services: [] };
 		await transit.messageHandler("INFO", { payload });
 
 		expect(transit.discoverer.processRemoteNodeInfo).toHaveBeenCalledTimes(1);
@@ -461,7 +461,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.disconnected if topic is 'DISCONNECT' ", async () => {
 		transit.discoverer.remoteNodeDisconnected = jest.fn();
 
-		let payload = { ver: "4", sender: "remote" };
+		let payload = { ver: "5", sender: "remote" };
 		await transit.messageHandler("DISCONNECT", { payload });
 
 		expect(transit.discoverer.remoteNodeDisconnected).toHaveBeenCalledTimes(1);
@@ -471,7 +471,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodeHeartbeat if topic is 'HEARTBEAT' ", async () => {
 		transit.discoverer.heartbeatReceived = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", cpu: 100 };
+		let payload = { ver: "5", sender: "remote", cpu: 100 };
 		await transit.messageHandler("HEARTBEAT", { payload });
 
 		expect(transit.discoverer.heartbeatReceived).toHaveBeenCalledTimes(1);
@@ -481,7 +481,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", async () => {
 		transit.sendPong = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", time: 1234567 };
+		let payload = { ver: "5", sender: "remote", time: 1234567 };
 		await transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(1);
@@ -491,7 +491,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", async () => {
 		transit.processPong = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", time: 1234567, arrived: 7654321 };
+		let payload = { ver: "5", sender: "remote", time: 1234567, arrived: 7654321 };
 		await transit.messageHandler("PONG", { payload });
 
 		expect(transit.processPong).toHaveBeenCalledTimes(1);
@@ -501,7 +501,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should skip processing if sender is itself", async () => {
 		transit.sendPong = jest.fn();
 
-		let payload = { ver: "4", sender: broker.nodeID, time: 1234567 };
+		let payload = { ver: "5", sender: broker.nodeID, time: 1234567 };
 		await transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(0);
@@ -861,7 +861,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 	broker.started = true;
 
 	describe("Test with non-stream data", () => {
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should return false", () => {
 			const pass = transit._handleIncomingRequestStream(
@@ -885,7 +885,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with sequential chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(
@@ -930,7 +930,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with sequential chunks & error", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "123" };
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
@@ -980,7 +980,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with random order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(
@@ -1045,7 +1045,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with reverse order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123R" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "123R" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(
@@ -1110,7 +1110,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
+		const payload = { ver: "5", sender: "remote", action: "posts.import", id: "124" };
 
 		it("should create new stream", () => {
 			expect(
@@ -1219,7 +1219,7 @@ describe("Test Transit.responseHandler", () => {
 
 	it("should not call resolve or reject if pending req is not exists", () => {
 		let req = { resolve: jest.fn(), reject: jest.fn() };
-		let payload = { ver: "4", sender: "remote", id };
+		let payload = { ver: "5", sender: "remote", id };
 
 		transit.responseHandler(payload);
 		expect(req.resolve).toHaveBeenCalledTimes(0);
@@ -1239,7 +1239,7 @@ describe("Test Transit.responseHandler", () => {
 		transit.pendingRequests.set(id, req);
 
 		let payload = {
-			ver: "4",
+			ver: "5",
 			sender: "remote",
 			id,
 			success: true,
@@ -1272,7 +1272,7 @@ describe("Test Transit.responseHandler", () => {
 		transit.pendingRequests.set(id, req);
 
 		let payload = {
-			ver: "4",
+			ver: "5",
 			sender: "remote",
 			id,
 			success: false,
@@ -1319,7 +1319,7 @@ describe("Test Transit.responseHandler", () => {
 		transit.pendingRequests.set(id, req);
 
 		let payload = {
-			ver: "4",
+			ver: "5",
 			sender: "remote",
 			id,
 			success: false,
@@ -1363,7 +1363,7 @@ describe("Test Transit.responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "4", sender: "remote", id, success: true, stream: true, seq: 5 };
+		let payload = { ver: "5", sender: "remote", id, success: true, stream: true, seq: 5 };
 		transit.responseHandler(payload);
 
 		expect(transit._handleIncomingResponseStream).toHaveBeenCalledTimes(1);
@@ -1385,7 +1385,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 	broker.started = true;
 
 	describe("Test with non-stream data", () => {
-		const payload = { ver: "4", sender: "remote", id: "123" };
+		const payload = { ver: "5", sender: "remote", id: "123" };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1418,7 +1418,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", id: "124", success: true };
+		const payload = { ver: "5", sender: "remote", id: "124", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1479,7 +1479,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks & error", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", id: "125", success: true };
+		const payload = { ver: "5", sender: "remote", id: "125", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1543,7 +1543,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with random order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", id: "126", success: true };
+		const payload = { ver: "5", sender: "remote", id: "126", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1628,7 +1628,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with reverse order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", id: "126R", success: true };
+		const payload = { ver: "5", sender: "remote", id: "126R", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1713,7 +1713,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
-		const payload = { ver: "4", sender: "remote", id: "127", success: true };
+		const payload = { ver: "5", sender: "remote", id: "127", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },

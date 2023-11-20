@@ -25,7 +25,7 @@ exports[`Test CSVReporter class Test flush method should call broker emit with c
     [
       12345678000,
       "moleculer.node.versions.protocol",
-      "4",
+      "5",
     ],
   ],
   [

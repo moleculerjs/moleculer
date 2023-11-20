@@ -259,7 +259,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 			cpu: null,
 			sender: "node-99",
 			seq: 1,
-			ver: "4",
+			ver: "5",
 			instanceID: "1234567890"
 		});
 		expect(fakeLease.on).toBeCalledTimes(1);
@@ -304,7 +304,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 			cpu: null,
 			sender: "node-99",
 			seq: 1,
-			ver: "4",
+			ver: "5",
 			instanceID: "1234567890"
 		});
 		expect(fakeLease.on).toBeCalledTimes(0);
@@ -354,7 +354,7 @@ describe("Test Etcd3Discoverer 'sendHeartbeat' method", () => {
 			cpu: null,
 			sender: "node-99",
 			seq: 2,
-			ver: "4",
+			ver: "5",
 			instanceID: "1234567890"
 		});
 		expect(fakeLease2.on).toBeCalledTimes(1);
@@ -706,7 +706,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease.put).toBeCalledTimes(1);
 		expect(fakeLease.put).toBeCalledWith("moleculer/discovery/info/node-99");
 		expect(fakeLease.value).toBeCalledTimes(1);
-		expect(fakeLease.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
+		expect(fakeLease.value).toBeCalledWith({ sender: "node-99", ver: "5", a: 5 });
 		expect(fakeLease.on).toBeCalledTimes(1);
 
 		expect(discoverer.lastInfoSeq).toBe(1);
@@ -726,7 +726,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease.put).toBeCalledTimes(1);
 		expect(fakeLease.put).toBeCalledWith("moleculer/discovery/info/node-99");
 		expect(fakeLease.value).toBeCalledTimes(1);
-		expect(fakeLease.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
+		expect(fakeLease.value).toBeCalledWith({ sender: "node-99", ver: "5", a: 5 });
 		expect(fakeLease.on).toBeCalledTimes(0);
 
 		expect(discoverer.lastInfoSeq).toBe(1);
@@ -755,7 +755,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease2.put).toBeCalledTimes(1);
 		expect(fakeLease2.put).toBeCalledWith("moleculer/discovery/info/node-99");
 		expect(fakeLease2.value).toBeCalledTimes(1);
-		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
+		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "5", a: 5 });
 
 		expect(discoverer.lastInfoSeq).toBe(2);
 		expect(discoverer.beat).toBeCalledTimes(1);
@@ -788,7 +788,7 @@ describe("Test Etcd3Discoverer 'sendLocalNodeInfo' method", () => {
 		expect(fakeLease2.put).toBeCalledTimes(1);
 		expect(fakeLease2.put).toBeCalledWith("moleculer/discovery/info/node-99");
 		expect(fakeLease2.value).toBeCalledTimes(1);
-		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "4", a: 5 });
+		expect(fakeLease2.value).toBeCalledWith({ sender: "node-99", ver: "5", a: 5 });
 
 		expect(discoverer.lastInfoSeq).toBe(3);
 		expect(discoverer.beat).toBeCalledTimes(1);
