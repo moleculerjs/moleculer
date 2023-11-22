@@ -33,7 +33,8 @@ function mergeMeta(ctx, newMeta) {
 /**
  * Context class for action calls
  *
- * @type import("./context").Context
+ * @typedef {import("./context")} ContextInterface
+ * @implements {ContextInterface}
  */
 class Context {
 	/**

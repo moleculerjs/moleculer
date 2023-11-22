@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * moleculer
  * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
@@ -37,9 +38,9 @@ class TimeoutError extends ExtendableError {}
 /**
  * Circular replacing of unsafe properties in object
  *
- * @param {Object=} options List of options to change circularReplacer behaviour
- * @param {number=} options.maxSafeObjectSize Maximum size of objects for safe object converting
- * @return {function(...[*]=)}
+ * @param {object} options List of options to change circularReplacer behaviour
+ * @param {number?} [options.maxSafeObjectSize = Infinity] Maximum size of objects for safe object converting
+ * @return {(key: string, value: any) => any}
  */
 function circularReplacer(options = { maxSafeObjectSize: Infinity }) {
 	const seen = new WeakSet();
@@ -172,7 +173,7 @@ const utils = {
 		const interfaces = os.networkInterfaces();
 		for (let iface in interfaces) {
 			for (let i in interfaces[iface]) {
-				const f = interfaces[iface][i];
+				const f = interfaces[iface]?.[i];
 				if (f.family === "IPv4") {
 					if (f.internal) {
 						ilist.push(f.address);
@@ -200,8 +201,7 @@ const utils = {
 	/**
 	 * Polyfill a Promise library with missing Bluebird features.
 	 *
-	 *
-	 * @param {PromiseClass} P
+	 * @param {typeof Promise} P
 	 */
 	polyfillPromise(P) {
 		if (!utils.isFunction(P.method)) {
@@ -381,8 +381,8 @@ const utils = {
 	 * Remove circular references & Functions from the JS object
 	 *
 	 * @param {Object|Array} obj
-	 * @param {Object=} options List of options to change circularReplacer behaviour
-	 * @param {number=} options.maxSafeObjectSize List of options to change circularReplacer behaviour
+	 * @param {object} options List of options to change circularReplacer behaviour
+	 * @param {number?} [options.maxSafeObjectSize = Infinity] Maximum size of objects for safe object converting
 	 * @returns {Object|Array}
 	 */
 	safetyObject(obj, options) {
@@ -392,7 +392,7 @@ const utils = {
 	/**
 	 * Sets a variable on an object based on its dot path.
 	 *
-	 * @param {Object} obj
+	 * @param {Record<string,any>} obj
 	 * @param {String} path
 	 * @param {*} value
 	 * @returns {Object}
@@ -400,7 +400,7 @@ const utils = {
 	dotSet(obj, path, value) {
 		const parts = path.split(".");
 		const part = parts.shift();
-		if (parts.length > 0) {
+		if (part && parts.length > 0) {
 			if (!Object.prototype.hasOwnProperty.call(obj, part)) {
 				obj[part] = {};
 			} else if (obj[part] == null) {
@@ -436,7 +436,7 @@ const utils = {
 	 * Credits: https://github.com/visionmedia/bytes.js
 	 *
 	 * @param {String} v
-	 * @returns {Number}
+	 * @returns {Number|null}
 	 */
 	parseByteString(v) {
 		if (typeof v === "number" && !isNaN(v)) {
@@ -471,7 +471,7 @@ const utils = {
 	 * Get the name of constructor of an object.
 	 *
 	 * @param {Object} obj
-	 * @returns {String}
+	 * @returns {String|undefined}
 	 */
 	getConstructorName(obj) {
 		if (obj == null) return undefined;
