@@ -8,6 +8,7 @@ import ServiceCatalog = require("./service-catalog");
 import ActionCatalog = require("./action-catalog");
 import NodeCatalog = require("./node-catalog");
 import EventCatalog = require("./event-catalog");
+import Node = require("./node");
 
 declare namespace ServiceRegistry {}
 
@@ -32,5 +33,10 @@ declare class ServiceRegistry {
 	getActionList(opts?: ActionCatalogListOptions): Promise<ReturnType<ActionCatalog["list"]>>;
 
 	getEventList(opts?: ActionCatalogListOptions): Promise<ReturnType<EventCatalog["list"]>>;
+
+	updateMetrics(): void;
+
+	registerServices(node: Node, serviceList: Record<string, any>[]): void;
+	unregisterServicesByNode(nodeID: string): void;
 }
 export = ServiceRegistry;

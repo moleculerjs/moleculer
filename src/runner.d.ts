@@ -1,6 +1,7 @@
 import ServiceBroker = require("./service-broker");
 import Service = require("./service");
 import type { ServiceBrokerOptions} from "./service-broker";
+import { Worker } from "cluster";
 
 declare namespace Runner {
 	/**

@@ -13,6 +13,16 @@ const EndpointList = require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./registry")} Registry
+ * @typedef {import("../service")} ServiceItem
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("../context")} Context
+ * @typedef {import("./node")} Node
+ */
+
+/**
  * Catalog for events
  *
  * @class EventCatalog
@@ -153,11 +163,7 @@ class EventCatalog {
 	/**
 	 * Call local service handlers
 	 *
-	 * @param {String} eventName
-	 * @param {any} payload
-	 * @param {Array<String>?} groupNames
-	 * @param {String} nodeID
-	 * @param {boolean} broadcast
+	 * @param {Context} ctx
 	 * @returns {Promise<any>}
 	 *
 	 * @memberof EventCatalog
@@ -196,6 +202,7 @@ class EventCatalog {
 
 		return this.broker.Promise.allSettled(promises).then(results => {
 			const err = results.find(r => r.status == "rejected");
+			// @ts-ignore
 			if (err) return this.broker.Promise.reject(err.reason);
 			return true;
 		});
@@ -204,7 +211,7 @@ class EventCatalog {
 	/**
 	 * Call local event handler and handles unhandled promise rejections.
 	 *
-	 * @param {Context} ctx
+	 * @param {any} ctx
 	 *
 	 * @memberof EventCatalog
 	 */
@@ -240,7 +247,12 @@ class EventCatalog {
 	/**
 	 * Get a filtered list of events
 	 *
-	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} opts
+	 * @param {Boolean} [opts.onlyLocal = false]
+	 * @param {Boolean} [opts.onlyAvailable = false]
+	 * @param {Boolean} [opts.skipInternal = false]
+	 * @param {Boolean} [opts.withEndpoints = false]
+	 *
 	 * @returns {Array}
 	 *
 	 * @memberof EventCatalog

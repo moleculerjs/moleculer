@@ -11,5 +11,8 @@ export {
 	RandomStrategy as Random,
 	CpuUsageStrategy as CpuUsage,
 	LatencyStrategy as Latency,
-	ShardStrategy as Shard
+	ShardStrategy as Shard,
 };
+
+export declare function resolve(opts: Record<string, any>|string): BaseStrategy;
+export declare function register(name: string, value: BaseStrategy): void;

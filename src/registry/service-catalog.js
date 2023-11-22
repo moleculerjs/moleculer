@@ -11,6 +11,14 @@ const ServiceItem = require("./service-item");
 const { removeFromArray } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./registry")} Registry
+ * @typedef {import("./node")} Node
+ * @typedef {import("../service-broker")} ServiceBroker
+ */
+
+/**
  * Catalog for services
  *
  * @class ServiceCatalog
@@ -75,7 +83,13 @@ class ServiceCatalog {
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false}
+	 * @param {Object} opts
+	 * @param {Boolean} [opts.onlyLocal = false]
+	 * @param {Boolean} [opts.onlyAvailable = false]
+	 * @param {Boolean} [opts.skipInternal = false]
+	 * @param {Boolean} [opts.withActions = false]
+	 * @param {Boolean} [opts.withEvents = false]
+	 * @param {Boolean} [opts.grouping = false]
 	 * @returns {Array}
 	 *
 	 * @memberof Registry

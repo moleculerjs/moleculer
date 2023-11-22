@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,13 @@ const _ = require("lodash");
 const os = require("os");
 const Node = require("./node");
 const { getIpList } = require("../utils");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./registry")} Registry
+ * @typedef {import("../service-broker")} ServiceBroker
+ */
 
 /**
  * Catalog for nodes
@@ -202,7 +209,9 @@ class NodeCatalog {
 	/**
 	 * Get a node list
 	 *
-	 * @param {Object} {onlyAvailable = false, withServices = false}
+	 * @param {Object} opts
+	 * @param {Boolean} [opts.onlyAvailable = false]
+	 * @param {Boolean} [opts.withServices = false]
 	 * @returns
 	 * @memberof NodeCatalog
 	 */

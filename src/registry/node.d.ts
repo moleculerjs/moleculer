@@ -22,6 +22,8 @@ declare class BrokerNode {
 	seq: number;
 	offlineSince: number | null;
 
+	constructor(id: string);
+
 	heartbeat(payload: Record<string, any>): void;
 	disconnected(): void;
 }
