@@ -33,19 +33,9 @@ const { Tracer } = require("./tracing");
 const C = require("./constants");
 
 /**
- * @typedef {Object} CallingOptions Calling options
- * @property {number?} timeout
- * @property {number?} retries
- * @property {Function?} fallbackResponse
- * @property {string?} nodeID
- * @property {object?} meta
- * @property {object?} parentSpan
- * @property {Context?} parentCtx
- * @property {string?} requestID
- * @property {boolean?} tracking
- * @property {boolean?} paramsCloning
- * @property {string?} caller
- * @property {Stream?} stream
+ * Import types
+ *
+ * @typedef {import("./service-broker").CallingOptions} CallingOptions Calling options
  */
 
 /**
@@ -134,8 +124,7 @@ const defaultOptions = {
 
 	middlewares: null,
 
-	replCommands: null,
-	replDelimiter: null,
+	replOptions: null,
 
 	metadata: {},
 
@@ -633,12 +622,7 @@ class ServiceBroker {
 		}
 
 		if (repl) {
-			let opts = null;
-			const delimiter = this.options.replDelimiter;
-			const customCommands = this.options.replCommands;
-			delimiter && (opts = { delimiter });
-			customCommands && (opts = { ...opts, customCommands });
-			return repl(this, opts);
+			return repl(this, this.options.replOptions);
 		}
 	}
 

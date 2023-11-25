@@ -52,6 +52,45 @@ module.exports = {
 };
 ```
 
+## New REPL options
+
+In order to the REPL options can be more extensible, a new `replOptions` broker option is introduces. You can use it instead of the old `replCommands` and `replDelimiter` broker options.
+
+**Old REPL options**
+```js
+// moleculer.config.js
+module.exports = {
+    replDelimiter: "mol # ",
+    replCommands: [
+		{
+			command: "hello <name>",			
+			action(broker, args) {
+				// ...
+			}
+		}
+	]
+}
+```
+
+**New REPL options**
+```js
+// moleculer.config.js
+module.exports = {
+    replOptions: {
+        delimiter: "mol # ",
+        customCommands: [
+            {
+                command: "hello <name>",			
+                action(broker, args) {
+                    // ...
+                }
+            }
+        ]
+    }
+}
+```
+> Please note, you should rename the `replCommands` property to `customCommands`, as well.
+
 ## Action streaming
 
 The built-in `Stream` sending has been rewritten. Now it accepts `params` besides the `Stream` instance.
