@@ -28,6 +28,7 @@ import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
 import type { ServiceDependency } from "./service";
 import type { Stream } from "stream";
+import { ReplOptions } from "repl";
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -87,8 +88,7 @@ declare namespace ServiceBroker {
 
 		middlewares?: (Middleware | string)[];
 
-		replCommands?: Record<string, any>[] | null;
-		replDelimiter?: string;
+		replOptions?: ReplOptions | null;
 
 		metadata?: Record<string, any>;
 
@@ -107,6 +107,11 @@ declare namespace ServiceBroker {
 		skipProcessEventRegistration?: boolean;
 
 		maxSafeObjectSize?: number;
+	}
+
+	export interface ReplOptions {
+		customCommands?: Record<string, any>[] | null;
+		delimiter?: string;
 	}
 
 	export interface BrokerRegistryOptions {
