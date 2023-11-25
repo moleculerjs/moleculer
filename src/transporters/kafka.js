@@ -51,8 +51,8 @@ class KafkaTransporter extends Transporter {
 				brokers: Array.isArray(opts.brokers)
 					? opts.brokers
 					: opts.brokers
-					? [opts.brokers]
-					: null,
+					  ? [opts.brokers]
+					  : null,
 				logLevel: 1,
 				logCreator:
 					logLevel =>
