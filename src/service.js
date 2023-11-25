@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -45,16 +45,16 @@ function isNewSignature(args) {
 /**
  * Service class
  *
- * @class Service
+ * @typedef {import("./service")} ServiceClass
+ * @implements {ServiceClass}
  */
 class Service {
 	/**
 	 * Creates an instance of Service by schema.
 	 *
 	 * @param {ServiceBroker} 	broker	broker of service
-	 * @param {ServiceSchema}	schema	schema of service
+	 * @param {Partial<ServiceSchema>}	schema	schema of service
 	 *
-	 * @memberof Service
 	 */
 	constructor(broker, schema) {
 		if (!isObject(broker)) throw new ServiceSchemaError("Must set a ServiceBroker instance!");
@@ -249,7 +249,7 @@ class Service {
 	/**
 	 * Return a service settings without protected properties.
 	 *
-	 * @param {Object?} settings
+	 * @param {Record<string, any>?} settings
 	 */
 	_getPublicSettings(settings) {
 		if (settings && Array.isArray(settings.$secureSettings)) {
@@ -263,7 +263,6 @@ class Service {
 	 * Initialize service. It called `created` handler in schema
 	 *
 	 * @private
-	 * @memberof Service
 	 */
 	_init() {
 		this.logger.debug(`Service '${this.fullName}' is creating...`);
@@ -326,7 +325,6 @@ class Service {
 	 *
 	 * @returns {Promise}
 	 * @private
-	 * @memberof Service
 	 */
 	_stop() {
 		this.logger.debug(`Service '${this.fullName}' is stopping...`);
@@ -361,7 +359,6 @@ class Service {
 	 * @returns {Object}
 	 *
 	 * @private
-	 * @memberof Service
 	 */
 	_createAction(actionDef, name) {
 		let action;
@@ -445,7 +442,6 @@ class Service {
 	 * @returns {Record<string, any>}
 	 *
 	 * @private
-	 * @memberof Service
 	 */
 	_createEvent(eventDef, name) {
 		let event;
@@ -539,7 +535,6 @@ class Service {
 	 * Getter of current Context.
 	 * @returns {Context?}
 	 *
-	 * @memberof Service
 	 *
 	get currentContext() {
 		return this.broker.getCurrentContext();
@@ -548,7 +543,6 @@ class Service {
 	/**
 	 * Setter of current Context
 	 *
-	 * @memberof Service
 	 *
 	set currentContext(ctx) {
 		this.broker.setCurrentContext(ctx);
@@ -561,7 +555,6 @@ class Service {
 	 * @param {number?} timeout Timeout in milliseconds
 	 * @param {number?} interval Check interval in milliseconds
 	 * @returns {Promise}
-	 * @memberof Service
 	 */
 	waitForServices(serviceNames, timeout, interval) {
 		return this.broker.waitForServices(serviceNames, timeout, interval, this.logger);
@@ -573,7 +566,6 @@ class Service {
 	 * @param {Partial<ServiceSchema>} schema
 	 * @returns {Partial<ServiceSchema>}
 	 *
-	 * @memberof Service
 	 */
 	applyMixins(schema) {
 		if (schema.mixins) {
@@ -602,7 +594,6 @@ class Service {
 	 * @param {Partial<ServiceSchema>} svcSchema 		Service schema
 	 * @returns {Partial<ServiceSchema>} Mixed schema
 	 *
-	 * @memberof Service
 	 */
 	mergeSchemas(mixinSchema, svcSchema) {
 		const res = _.cloneDeep(mixinSchema);

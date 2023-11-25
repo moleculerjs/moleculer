@@ -197,10 +197,10 @@ declare namespace Service {
 	}
 }
 
-declare class Service<S = Service.ServiceSettingSchema> implements Service.ServiceSchema<S> {
-	constructor(broker: ServiceBroker, schema?: Service.ServiceSchema<S>);
+declare class Service<S = Service.ServiceSettingSchema> {
+	constructor(broker: ServiceBroker, schema?: Partial<Service.ServiceSchema<S>>);
 
-	protected parseServiceSchema(schema: Service.ServiceSchema<S>): void;
+	parseServiceSchema(schema: Partial<Service.ServiceSchema<S>>): void;
 
 	name: string;
 	fullName: string;
@@ -249,7 +249,7 @@ declare class Service<S = Service.ServiceSettingSchema> implements Service.Servi
 	 *
 	 * @param schema Schema containing the mixins to merge
 	 */
-	applyMixins(schema: Service.ServiceSchema): Service.ServiceSchema;
+	applyMixins(schema: Partial<Service.ServiceSchema>): Partial<Service.ServiceSchema>;
 
 	/**
 	 * Merge two Service schema
@@ -258,9 +258,9 @@ declare class Service<S = Service.ServiceSettingSchema> implements Service.Servi
 	 * @param svcSchema Service schema
 	 */
 	mergeSchemas(
-		mixinSchema: Service.ServiceSchema,
-		svcSchema: Service.ServiceSchema
-	): Service.ServiceSchema;
+		mixinSchema: Partial<Service.ServiceSchema>,
+		svcSchema: Partial<Service.ServiceSchema>
+	): Partial<Service.ServiceSchema>;
 
 	/**
 	 * Merge `settings` property in schema

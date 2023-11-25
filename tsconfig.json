@@ -10,7 +10,9 @@
 		"moduleResolution": "node",
 		"noEmit": true,
 		"lib": ["ES2022"],
+		"typeRoots": ["types/**/*.d.ts"],
+		"types": ["node"]
 	},
-	"include": ["**.js", "types/**/*.ts", "src/service.js"],
+	"include": ["**.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js"]
 }
