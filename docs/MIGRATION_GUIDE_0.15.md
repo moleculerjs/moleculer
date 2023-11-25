@@ -12,6 +12,41 @@ This documentation leads you how you can migrate your project to be compatible w
 >}
 >```
 
+## Legacy event handler is removed
+
+The legacy event handler signature (`user.created(payload, sender, eventName)`) is removed. You should use the new `Context` based signature which was introduced in version 0.14.
+
+**Legacy event handler**
+
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(payload, sender, eventName) {
+            // ...
+        }
+    }
+};
+```
+
+**Supported event handler**
+
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(ctx) {
+            console.log("Payload:", ctx.params);
+            console.log("Sender:", ctx.nodeID);
+            console.log("We have also metadata:", ctx.meta);
+            console.log("The called event name:", ctx.eventName);
+
+            // ...
+        }
+    }
+};
+```
+
 ## New action streaming
 
 The built-in `Stream` sending has been rewritten. Now it accepts `params` besides the `Stream` instance.

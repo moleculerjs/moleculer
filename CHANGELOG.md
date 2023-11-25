@@ -17,6 +17,41 @@ The reason is desribed in this issue: https://github.com/moleculerjs/moleculer/i
 
 If you use one of those, you should change it to one of these schemaless serializers: MsgPack, Notepack.io, JSON, JSONExt, CBOR
 
+## Legacy event handler is removed
+
+The legacy event handler signature (`user.created(payload, sender, eventName)`) is removed. You should use the new `Context` based signature which was introduced in version 0.14.
+
+**Legacy event handler**
+
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(payload, sender, eventName) {
+            // ...
+        }
+    }
+};
+```
+
+**Supported event handler**
+
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(ctx) {
+            console.log("Payload:", ctx.params);
+            console.log("Sender:", ctx.nodeID);
+            console.log("We have also metadata:", ctx.meta);
+            console.log("The called event name:", ctx.eventName);
+
+            // ...
+        }
+    }
+};
+```
+
 ## Action streaming
 
 The built-in `Stream` sending has been rewritten. Now it accepts `params` besides the `Stream` instance.

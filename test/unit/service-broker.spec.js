@@ -44,9 +44,6 @@ jest.mock("../../src/utils", () => ({
 	polyfillPromise(p) {
 		return polyfillPromise(p);
 	},
-	functionArguments() {
-		return ["ctx"];
-	},
 	deprecate() {},
 	uniq(arr) {
 		return [...new Set(arr)];

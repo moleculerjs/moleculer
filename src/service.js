@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const { ServiceSchemaError, MoleculerError } = require("./errors");
-const { isObject, isFunction, flatten, functionArguments, uniq } = require("./utils");
+const { isObject, isFunction, flatten, uniq } = require("./utils");
 
 /**
  * Import types
@@ -36,10 +36,6 @@ function wrapToHandler(o) {
  */
 function wrapToArray(o) {
 	return Array.isArray(o) ? o : [o];
-}
-
-function isNewSignature(args) {
-	return args.length > 0 && ["ctx", "context"].indexOf(args[0].toLowerCase()) !== -1;
 }
 
 /**
@@ -468,15 +464,10 @@ class Service {
 		// New: handler(ctx)
 		let handler;
 		if (isFunction(event.handler)) {
-			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
-			// @ts-ignore
-			handler.__newSignature = event.context === true || isNewSignature(args);
 		} else if (Array.isArray(event.handler)) {
 			handler = event.handler.map(h => {
-				const args = functionArguments(h);
 				h = this.Promise.method(h);
-				h.__newSignature = event.context === true || isNewSignature(args);
 				return h;
 			});
 		}
@@ -488,22 +479,12 @@ class Service {
 		if (isFunction(handler)) {
 			// Call single handler
 			event.handler = function (ctx) {
-				return handler.apply(
-					self,
-					handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]
-				);
+				return handler.call(self, ctx);
 			};
 		} else if (Array.isArray(handler)) {
 			// Call multiple handler
 			event.handler = function (ctx) {
-				return self.Promise.all(
-					handler.map(fn =>
-						fn.apply(
-							self,
-							fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]
-						)
-					)
-				);
+				return self.Promise.all(handler.map(fn => fn.call(self, ctx)));
 			};
 		}
 
