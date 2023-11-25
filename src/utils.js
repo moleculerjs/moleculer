@@ -146,7 +146,7 @@ const utils = {
 	},
 
 	removeFromArray(arr, item) {
-		if (!arr || arr.length == 0) return arr;
+		if (!arr || arr.length === 0) return arr;
 		const idx = arr.indexOf(item);
 		if (idx !== -1) arr.splice(idx, 1);
 
@@ -330,7 +330,7 @@ const utils = {
 			}
 
 			// Accept simple text, without point character (*)
-			if (len == 1 && firstStarPosition == 0) {
+			if (len == 1 && firstStarPosition === 0) {
 				return text.indexOf(".") == -1;
 			}
 

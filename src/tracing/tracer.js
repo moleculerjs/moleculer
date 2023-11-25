@@ -170,7 +170,7 @@ class Tracer {
 			return this.rateLimiter.check();
 		}
 
-		if (this.opts.sampling.rate == 0) return false;
+		if (this.opts.sampling.rate === 0) return false;
 
 		if (this.opts.sampling.rate == 1) return true;
 

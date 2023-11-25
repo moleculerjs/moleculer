@@ -92,7 +92,7 @@ class DatadogReporter extends BaseReporter {
 	flush() {
 		const series = this.generateDatadogSeries();
 
-		if (series.length == 0) return;
+		if (series.length === 0) return;
 
 		return fetch(
 			`${this.opts.baseUrl}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`,
@@ -152,7 +152,7 @@ class DatadogReporter extends BaseReporter {
 			*/
 
 			const snapshot = metric.snapshot();
-			if (snapshot.length == 0) return;
+			if (snapshot.length === 0) return;
 
 			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
@@ -301,7 +301,7 @@ class DatadogReporter extends BaseReporter {
 	labelsToTags(itemLabels) {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {});
 		const keys = Object.keys(labels);
-		if (keys.length == 0) return [];
+		if (keys.length === 0) return [];
 
 		return keys.map(
 			key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`

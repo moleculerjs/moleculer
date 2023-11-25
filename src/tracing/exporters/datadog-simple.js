@@ -73,7 +73,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @memberof DatadogTraceExporter
 	 */
 	flush() {
-		if (this.queue.length == 0) return;
+		if (this.queue.length === 0) return;
 
 		const data = this.generateDatadogTracingData();
 		this.queue.length = 0;

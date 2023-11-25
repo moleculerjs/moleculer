@@ -259,7 +259,7 @@ class MoleculerRunner {
 							level
 								.split("_")
 								.map((value, index) => {
-									if (index == 0) {
+									if (index === 0) {
 										return value;
 									} else {
 										return value[0].toUpperCase() + value.substring(1);
@@ -404,7 +404,7 @@ class MoleculerRunner {
 								this.watchFolders.push(svcPath);
 							}
 							files = globSync(svcPath + "/" + fileMask, { absolute: true });
-							if (files.length == 0)
+							if (files.length === 0)
 								return this.broker.logger.warn(
 									kleur
 										.yellow()
@@ -419,7 +419,7 @@ class MoleculerRunner {
 						} else {
 							// Load with glob
 							files = globSync(p, { cwd: svcDir, absolute: true });
-							if (files.length == 0)
+							if (files.length === 0)
 								this.broker.logger.warn(
 									kleur
 										.yellow()

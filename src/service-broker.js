@@ -1058,7 +1058,7 @@ class ServiceBroker {
 			)
 		);
 
-		if (serviceNames.length == 0) return this.Promise.resolve({ services: [], statuses: [] });
+		if (serviceNames.length === 0) return this.Promise.resolve({ services: [], statuses: [] });
 
 		logger.info(
 			`Waiting for service(s) '${serviceNames
@@ -1553,12 +1553,12 @@ class ServiceBroker {
 				// Disabled balancer case
 				let groups = opts.groups;
 
-				if (!groups || groups.length == 0) {
+				if (!groups || groups.length === 0) {
 					// Apply to all groups
 					groups = this.getEventGroups(eventName);
 				}
 
-				if (groups.length == 0) return; // Return here because balancer disabled, so we can't call the local services.
+				if (groups.length === 0) return; // Return here because balancer disabled, so we can't call the local services.
 
 				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
 
@@ -1686,7 +1686,7 @@ class ServiceBroker {
 						pongs[pong.nodeID] = pong;
 						processing.delete(pong.nodeID);
 
-						if (processing.size == 0) {
+						if (processing.size === 0) {
 							clearTimeout(timer);
 							this.localBus.off("$node.pong", handler);
 							resolve(pongs);

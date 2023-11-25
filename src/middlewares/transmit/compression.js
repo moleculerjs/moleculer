@@ -81,7 +81,7 @@ module.exports = function CompressionMiddleware(opts) {
 		transporterReceive(next) {
 			return (cmd, data, s) => {
 				const isCompressed = data.readInt8(0);
-				if (isCompressed == 0) {
+				if (isCompressed === 0) {
 					logger.debug(
 						`Packet '${cmd}' is small and not compressed. Size: ${data.length}`
 					);

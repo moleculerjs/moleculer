@@ -62,7 +62,7 @@ class ConsoleReporter extends BaseReporter {
 	 */
 	labelsToStr(labels) {
 		const keys = Object.keys(labels);
-		if (keys.length == 0) return kleur.gray("{}");
+		if (keys.length === 0) return kleur.gray("{}");
 
 		return (
 			kleur.gray("{") +
@@ -91,7 +91,7 @@ class ConsoleReporter extends BaseReporter {
 
 		if (this.opts.onlyChanges) list = list.filter(metric => this.lastChanges.has(metric.name));
 
-		if (list.length == 0) return;
+		if (list.length === 0) return;
 
 		this.log(
 			kleur.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`)
@@ -103,7 +103,7 @@ class ConsoleReporter extends BaseReporter {
 					" " +
 					kleur.gray("(" + metric.type + ")")
 			);
-			if (metric.values.size == 0) {
+			if (metric.values.size === 0) {
 				this.log(kleur.gray("  <no values>"));
 			} else {
 				const unit = metric.unit

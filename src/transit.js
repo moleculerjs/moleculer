@@ -748,7 +748,7 @@ class Transit {
 		// the next stream chunk received
 		stream.$prevSeq = packet.seq;
 
-		if (stream && packet.seq == 0) {
+		if (stream && packet.seq === 0) {
 			req.resolve(stream);
 		}
 

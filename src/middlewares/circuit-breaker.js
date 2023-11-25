@@ -34,7 +34,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 
 		logger.debug("Reset circuit-breaker endpoint states...");
 		store.forEach((item, key) => {
-			if (item.count == 0) {
+			if (item.count === 0) {
 				logger.debug(`Remove '${key}' endpoint state because it is not used`);
 				store.delete(key);
 				return;

@@ -66,7 +66,7 @@ class EventReporter extends BaseReporter {
 
 		if (this.opts.onlyChanges) list = list.filter(metric => this.lastChanges.has(metric.name));
 
-		if (list.length == 0) return;
+		if (list.length === 0) return;
 
 		if (this.opts.broadcast) {
 			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) broadcast events.`);

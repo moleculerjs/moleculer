@@ -176,7 +176,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		info.nodeList = info.nodeList.filter(id => id !== node.id);
 
-		if (info.nodeList.length == 0) {
+		if (info.nodeList.length === 0) {
 			// only remove the host if the last node disconnected
 			this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
 			this.hostMap.delete(node.hostname);

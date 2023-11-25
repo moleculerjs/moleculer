@@ -216,7 +216,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 		// Collect the online node keys.
 		return this.Promise.resolve()
 			.then(() => {
-				if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck == 0) {
+				if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck === 0) {
 					// Full check
 					//this.logger.debug("Full check", this.idx);
 					this.idx = 0;

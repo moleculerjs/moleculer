@@ -129,7 +129,7 @@ class LoggerFactory {
 				if (hasNewLogEntryMiddleware)
 					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
-				if (logHandlers.length == 0) return;
+				if (logHandlers.length === 0) return;
 
 				for (let i = 0; i < logHandlers.length; i++) logHandlers[i](type, args);
 			};
@@ -139,7 +139,7 @@ class LoggerFactory {
 			if (broker.middlewares)
 				broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
-			if (logHandlers.length == 0) return;
+			if (logHandlers.length === 0) return;
 
 			logHandlers.forEach(fn => fn(type, args));
 		};*/

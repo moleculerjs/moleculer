@@ -12,8 +12,6 @@
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"${fileBasenameNoExtension}"
-				//"client",
-				//"client2"
 			],
 		},
 		{

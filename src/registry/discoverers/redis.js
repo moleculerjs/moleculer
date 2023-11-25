@@ -278,11 +278,11 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 			stream.on("error", err => reject(err));
 			stream.on("end", () => {
-				if (scannedKeys.length == 0) return resolve();
+				if (scannedKeys.length === 0) return resolve();
 
 				this.Promise.resolve()
 					.then(() => {
-						if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck == 0) {
+						if (this.opts.fullCheck && ++this.idx % this.opts.fullCheck === 0) {
 							// Full check
 							//this.logger.debug("Full check", this.idx);
 							this.idx = 0;

@@ -179,7 +179,7 @@ class PrometheusReporter extends BaseReporter {
 			const metricType = metric.type;
 
 			const snapshot = metric.snapshot();
-			if (snapshot.length == 0) return;
+			if (snapshot.length === 0) return;
 
 			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
@@ -285,7 +285,7 @@ class PrometheusReporter extends BaseReporter {
 			extraLabels || {}
 		);
 		const keys = Object.keys(labels);
-		if (keys.length == 0) return "";
+		if (keys.length === 0) return "";
 
 		return (
 			"{" +

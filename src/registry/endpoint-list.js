@@ -134,7 +134,7 @@ class EndpointList {
 		}
 
 		const epList = this.endpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0) return null;
+		if (epList.length === 0) return null;
 
 		return this.select(epList, ctx);
 	}
@@ -162,7 +162,7 @@ class EndpointList {
 		}
 
 		const epList = this.localEndpoints.filter(ep => ep.isAvailable);
-		if (epList.length == 0) return null;
+		if (epList.length === 0) return null;
 
 		return this.select(epList, ctx);
 	}

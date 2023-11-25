@@ -159,7 +159,7 @@ module.exports = function HotReloadMiddleware(broker) {
 						if (watchItem.services.indexOf(svc.fullName) !== -1) needToReload.add(svc);
 					});
 
-					if (needToReload.size == 0) {
+					if (needToReload.size === 0) {
 						// It means, it's a crashed reloaded service, so we
 						// didn't find it in the loaded services because
 						// the previous hot-reload failed. We should load it
@@ -171,7 +171,7 @@ module.exports = function HotReloadMiddleware(broker) {
 			});
 		});
 
-		if (projectFiles.size == 0) broker.logger.debug(kleur.grey("  No files."));
+		if (projectFiles.size === 0) broker.logger.debug(kleur.grey("  No files."));
 	}
 
 	const debouncedWatchProjectFiles = _.debounce(watchProjectFiles, 2000);

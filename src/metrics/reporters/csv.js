@@ -77,7 +77,7 @@ class CSVReporter extends BaseReporter {
 		if (labels == null) return "";
 
 		const keys = Object.keys(labels);
-		if (keys.length == 0) return "";
+		if (keys.length === 0) return "";
 
 		return keys
 			.map(key => `${this.formatLabelName(key)}=${labels[key]}`)
@@ -123,7 +123,7 @@ class CSVReporter extends BaseReporter {
 			excludes: this.opts.excludes
 		});
 
-		if (list.length == 0) return;
+		if (list.length === 0) return;
 
 		this.logger.debug("Write metrics values to CSV files...");
 

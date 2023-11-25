@@ -53,7 +53,7 @@ class StatsDReporter extends BaseReporter {
 	flush() {
 		const series = this.generateStatsDSeries();
 
-		if (series.length == 0) return;
+		if (series.length === 0) return;
 
 		this.sendChunks(series);
 	}
@@ -202,7 +202,7 @@ class StatsDReporter extends BaseReporter {
 	labelsToTags(itemLabels) {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {});
 		const keys = Object.keys(labels);
-		if (keys.length == 0) return "";
+		if (keys.length === 0) return "";
 
 		return keys
 			.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`)

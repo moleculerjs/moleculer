@@ -21,7 +21,7 @@ module.exports = function bulkheadMiddleware(broker) {
 			// Call the next request from the queue
 			const callNext = function callNext() {
 				/* istanbul ignore next */
-				if (queue.length == 0) return;
+				if (queue.length === 0) return;
 
 				/* istanbul ignore next */
 				if (currentInFlight >= opts.concurrency) return;
@@ -149,7 +149,7 @@ module.exports = function bulkheadMiddleware(broker) {
 			// Call the next request from the queue
 			const callNext = function callNext() {
 				/* istanbul ignore next */
-				if (queue.length == 0) return;
+				if (queue.length === 0) return;
 
 				/* istanbul ignore next */
 				if (currentInFlight >= opts.concurrency) return;

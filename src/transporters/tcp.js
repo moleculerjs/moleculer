@@ -184,7 +184,7 @@ class TcpTransporter extends Transporter {
 
 	loadUrls() {
 		if (!this.opts.urls) return this.Promise.resolve();
-		if (Array.isArray(this.opts.urls) && this.opts.urls.length == 0)
+		if (Array.isArray(this.opts.urls) && this.opts.urls.length === 0)
 			return this.Promise.resolve();
 
 		return this.Promise.resolve(this.opts.urls)
@@ -443,10 +443,10 @@ class TcpTransporter extends Transporter {
 		});
 
 		/* istanbul ignore next */
-		if (Object.keys(packet.offline).length == 0) delete packet.offline;
+		if (Object.keys(packet.offline).length === 0) delete packet.offline;
 
 		/* istanbul ignore next */
-		if (Object.keys(packet.online).length == 0) delete packet.online;
+		if (Object.keys(packet.online).length === 0) delete packet.online;
 
 		if (onlineList.length > 0) {
 			// Send gossip message to a live endpoint
@@ -471,7 +471,7 @@ class TcpTransporter extends Transporter {
 	 * @param {Array} endpoints
 	 */
 	sendGossipToRandomEndpoint(data, endpoints) {
-		if (endpoints.length == 0) return;
+		if (endpoints.length === 0) return;
 
 		const ep =
 			endpoints.length == 1
@@ -580,9 +580,9 @@ class TcpTransporter extends Transporter {
 			});
 
 			// Remove empty keys
-			if (Object.keys(response.offline).length == 0) delete response.offline;
+			if (Object.keys(response.offline).length === 0) delete response.offline;
 
-			if (Object.keys(response.online).length == 0) delete response.online;
+			if (Object.keys(response.online).length === 0) delete response.online;
 
 			if (response.online || response.offline) {
 				let sender = this.nodes.get(payload.sender);

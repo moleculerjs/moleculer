@@ -169,7 +169,7 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	discover() {
-		if (this.servers.length == 0) return;
+		if (this.servers.length === 0) return;
 
 		this.counter++;
 
