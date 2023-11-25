@@ -4,8 +4,10 @@ import BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
 import type { BrokerRegistryOptions } from "../service-broker";
+import type { ActionSchema } from "../service";
 import ServiceCatalog = require("./service-catalog");
 import ActionCatalog = require("./action-catalog");
+import ActionEndpoint = require("./endpoint-action");
 import NodeCatalog = require("./node-catalog");
 import EventCatalog = require("./event-catalog");
 import Node = require("./node");
@@ -21,10 +23,10 @@ declare class ServiceRegistry {
 
 	StrategyFactory: BaseStrategy;
 
-	nodes: any;
-	services: any;
+	nodes: NodeCatalog;
+	services: ServiceCatalog;
 	actions: ActionCatalog;
-	events: any;
+	events: EventCatalog;
 
 	getServiceList(opts?: ActionCatalogListOptions): Promise<ReturnType<ServiceCatalog["list"]>>;
 
@@ -38,5 +40,7 @@ declare class ServiceRegistry {
 
 	registerServices(node: Node, serviceList: Record<string, any>[]): void;
 	unregisterServicesByNode(nodeID: string): void;
+
+	createPrivateActionEndpoint(action: ActionSchema): ActionEndpoint;
 }
 export = ServiceRegistry;

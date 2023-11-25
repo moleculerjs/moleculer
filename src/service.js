@@ -11,6 +11,15 @@ const { ServiceSchemaError, MoleculerError } = require("./errors");
 const { isObject, isFunction, flatten, functionArguments, uniq } = require("./utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./service-broker")} ServiceBroker
+ * @typedef {import("./service").ServiceSchema} ServiceSchema
+ * @typedef {import("./service").ServiceDependency} ServiceDependency
+ * @typedef {import("./registry/endpoint-event")} EventEndpoint
+ */
+
+/**
  * Wrap a handler Function to an object with a `handler` property.
  *
  * @param {Function|Object} o
@@ -43,7 +52,7 @@ class Service {
 	 * Creates an instance of Service by schema.
 	 *
 	 * @param {ServiceBroker} 	broker	broker of service
-	 * @param {Object} 			schema	schema of service
+	 * @param {ServiceSchema}	schema	schema of service
 	 *
 	 * @memberof Service
 	 */
@@ -59,7 +68,7 @@ class Service {
 	/**
 	 * Parse Service schema & register as local service
 	 *
-	 * @param {Object} schema of Service
+	 * @param {Partial<ServiceSchema>} schema of Service
 	 */
 	parseServiceSchema(schema) {
 		if (!isObject(schema))
@@ -205,9 +214,15 @@ class Service {
 						// Reused context (in case of retry)
 						ctx = opts.ctx;
 					} else {
+						/** @type {EventEndpoint} */
 						const ep = {
 							id: this.broker.nodeID,
-							event: innerEvent
+							event: innerEvent,
+							broker: this.broker,
+							service: null,
+							node: null,
+							local: true,
+							state: true
 						};
 						ctx = this.broker.ContextFactory.create(
 							this.broker,
@@ -268,9 +283,8 @@ class Service {
 	/**
 	 * Start service
 	 *
-	 * @returns {Promise}
 	 * @private
-	 * @memberof Service
+	 * @returns {Promise}
 	 */
 	_start() {
 		this.logger.debug(`Service '${this.fullName}' is starting...`);
@@ -389,9 +403,9 @@ class Service {
 	/**
 	 * Create an internal service method.
 	 *
-	 * @param {Object|Function} methodDef
+	 * @param {Record<string, any>|Function} methodDef
 	 * @param {String} name
-	 * @returns {Object}
+	 * @returns {Record<string, any>}
 	 */
 	_createMethod(methodDef, name) {
 		let method;
@@ -426,9 +440,9 @@ class Service {
 	/**
 	 * Create an event subscription for broker
 	 *
-	 * @param {Object|Function} eventDef
+	 * @param {Record<string, any>|Function} eventDef
 	 * @param {String} name
-	 * @returns {Object}
+	 * @returns {Record<string, any>}
 	 *
 	 * @private
 	 * @memberof Service
@@ -460,6 +474,7 @@ class Service {
 		if (isFunction(event.handler)) {
 			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
+			// @ts-ignore
 			handler.__newSignature = event.context === true || isNewSignature(args);
 		} else if (Array.isArray(event.handler)) {
 			handler = event.handler.map(h => {
@@ -504,7 +519,7 @@ class Service {
 	 *
 	 * @param {String} eventName
 	 * @param {any?} params
-	 * @param {Object?} opts
+	 * @param {Record<string, any>?} opts
 	 */
 	emitLocalEventHandler(eventName, params, opts) {
 		if (!this.events[eventName])
@@ -542,9 +557,9 @@ class Service {
 	/**
 	 * Wait for other services
 	 *
-	 * @param {String|Array<String>} serviceNames
-	 * @param {Number} timeout Timeout in milliseconds
-	 * @param {Number} interval Check interval in milliseconds
+	 * @param {string | ServiceDependency | (string | ServiceDependency)[]} serviceNames
+	 * @param {number?} timeout Timeout in milliseconds
+	 * @param {number?} interval Check interval in milliseconds
 	 * @returns {Promise}
 	 * @memberof Service
 	 */
@@ -555,8 +570,8 @@ class Service {
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
 	 *
-	 * @param {Schema} schema
-	 * @returns {Schema}
+	 * @param {Partial<ServiceSchema>} schema
+	 * @returns {Partial<ServiceSchema>}
 	 *
 	 * @memberof Service
 	 */
@@ -583,9 +598,9 @@ class Service {
 	/**
 	 * Merge two Service schema
 	 *
-	 * @param {Object} mixinSchema		Mixin schema
-	 * @param {Object} svcSchema 		Service schema
-	 * @returns {Object} Mixed schema
+	 * @param {Partial<ServiceSchema>} mixinSchema		Mixin schema
+	 * @param {Partial<ServiceSchema>} svcSchema 		Service schema
+	 * @returns {Partial<ServiceSchema>} Mixed schema
 	 *
 	 * @memberof Service
 	 */

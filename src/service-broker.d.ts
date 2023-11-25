@@ -26,6 +26,7 @@ import type BrokerNode = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
+import type { ServiceDependency } from "./service";
 import type { Stream } from "stream";
 
 declare namespace ServiceBroker {
@@ -132,11 +133,6 @@ declare namespace ServiceBroker {
 
 	export interface PongResponses {
 		[name: string]: PongResponse;
-	}
-
-	export interface ServiceSearchObj {
-		name: string;
-		version?: string | number;
 	}
 
 	export interface HotReloadOptions {
@@ -323,10 +319,10 @@ declare class ServiceBroker {
 	callMiddlewareHookSync(
 		name: string,
 		args: any[],
-		opts: MiddlewareCallHandlerOptions
+		opts?: MiddlewareCallHandlerOptions
 	): Promise<void>;
 
-	callMiddlewareHook(name: string, args: any[], opts: MiddlewareCallHandlerOptions): void;
+	callMiddlewareHook(name: string, args: any[], opts?: MiddlewareCallHandlerOptions): void;
 
 	isMetricsEnabled(): boolean;
 
@@ -342,12 +338,12 @@ declare class ServiceBroker {
 
 	createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 
-	destroyService(service: Service | string | ServiceBroker.ServiceSearchObj): Promise<void>;
+	destroyService(service: Service | string | ServiceDependency): Promise<void>;
 
-	getLocalService(name: string | ServiceBroker.ServiceSearchObj): Service;
+	getLocalService(name: string | ServiceDependency): Service;
 
 	waitForServices(
-		serviceNames: string | string[] | ServiceBroker.ServiceSearchObj[],
+		serviceNames: string | ServiceDependency | (string | ServiceDependency)[],
 		timeout?: number,
 		interval?: number,
 		logger?: Logger

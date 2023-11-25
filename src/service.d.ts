@@ -207,7 +207,7 @@ declare class Service<S = Service.ServiceSettingSchema> implements Service.Servi
 	version?: string | number;
 	settings: S;
 	metadata: Record<string, any>;
-	dependencies: string | Service.ServiceDependency | (string | Service.ServiceDependency)[];
+	dependencies?: string | Service.ServiceDependency | (string | Service.ServiceDependency)[];
 	schema: Service.ServiceSchema<S>;
 	originalSchema: Service.ServiceSchema<S>;
 	broker: ServiceBroker;
@@ -237,7 +237,7 @@ declare class Service<S = Service.ServiceSettingSchema> implements Service.Servi
 	 * @param interval The time we will wait before once again checking if the service(s) are available (In milliseconds)
 	 */
 	waitForServices(
-		serviceNames: string | string[] | Service.ServiceDependency[],
+		serviceNames: string | Service.ServiceDependency | (string | Service.ServiceDependency)[],
 		timeout?: number,
 		interval?: number
 	): Promise<Service.WaitForServicesResult>;

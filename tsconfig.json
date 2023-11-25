@@ -11,6 +11,6 @@
 		"noEmit": true,
 		"lib": ["ES2022"],
 	},
-	"include": ["**.js"],
+	"include": ["**.js", "types/**/*.ts", "src/service.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js"]
 }
