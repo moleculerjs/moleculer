@@ -1,10 +1,24 @@
+/*
+ * moleculer
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
 const BaseSerializer = require("./base");
+
 /**
- * JSON serializer for Moleculer
+ * Import types
  *
- * @class JSONSerializer
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./notepack")} NotepackSerializerClass
+ */
+
+/**
+ * Notepack serializer for Moleculer
+ *
+ * @implements {NotepackSerializerClass}
  */
 class NotepackSerializer extends BaseSerializer {
 	/**
@@ -33,7 +47,6 @@ class NotepackSerializer extends BaseSerializer {
 	 * Serializer a JS object to Buffer
 	 *
 	 * @param {Object} obj
-	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
 	 * @memberof Serializer
@@ -45,8 +58,7 @@ class NotepackSerializer extends BaseSerializer {
 	/**
 	 * Deserialize Buffer to JS object
 	 *
-	 * @param {Buffer} buf
-	 * @param {String} type of packet
+	 * @param {Buffer|string} buf
 	 * @returns {Object}
 	 *
 	 * @memberof Serializer

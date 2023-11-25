@@ -1,17 +1,26 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
+
+/* eslint-disable no-unused-vars */
 
 "use strict";
 
 const P = require("../packets");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./base")} SerializerBaseClass
+ */
+
+/**
  * Abstract serializer class
  *
- * @class Serializer
+ * @implements {SerializerBaseClass}
  */
 class Serializer {
 	/**
@@ -19,12 +28,12 @@ class Serializer {
 	 *
 	 * @memberof Serializer
 	 */
-	constructor() {}
+	constructor(/*opts*/) {}
 
 	/**
 	 * Initialize Serializer
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof Serializer
 	 */
@@ -39,12 +48,12 @@ class Serializer {
 	 * Serializer a JS object to Buffer
 	 *
 	 * @param {Object} obj
-	 * @param {String?} type of packet
+	 * @param {String?} type
 	 * @returns {Buffer}
 	 *
 	 * @memberof Serializer
 	 */
-	serialize(/*obj, type*/) {
+	serialize(obj, type) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -53,12 +62,12 @@ class Serializer {
 	 * Deserialize Buffer to JS object
 	 *
 	 * @param {Buffer} buf
-	 * @param {String?} type of packet
-	 * @returns {Object}
+	 * @param {String?} type
+	 * @returns {any}
 	 *
 	 * @memberof Serializer
 	 */
-	deserialize(/*buf, type*/) {
+	deserialize(buf, type) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -67,8 +76,8 @@ class Serializer {
 	 * Serialize custom fields (stringify)
 	 *
 	 * @param {String} type
-	 * @param {Packet} obj
-	 * @returns {Packet}
+	 * @param {Object} obj
+	 * @returns {Object}
 	 * @memberof Serializer
 	 */
 	serializeCustomFields(type, obj) {
@@ -114,8 +123,8 @@ class Serializer {
 	 * Deserialize custom fields
 	 *
 	 * @param {String} type
-	 * @param {Packet} obj
-	 * @returns {Packet}
+	 * @param {Object} obj
+	 * @returns {Object}
 	 * @memberof Serializer
 	 */
 	deserializeCustomFields(type, obj) {
@@ -157,6 +166,13 @@ class Serializer {
 		return obj;
 	}
 
+	/**
+	 * Write the field type and convert to the object field
+	 *
+	 * @param {Object} obj
+	 * @param {string} field
+	 * @param {string} fieldType
+	 */
 	convertDataToTransport(obj, field, fieldType) {
 		if (obj[field] === undefined) {
 			obj[fieldType] = P.DATATYPE_UNDEFINED;
@@ -171,6 +187,13 @@ class Serializer {
 		}
 	}
 
+	/**
+	 * Read the field type and convert the object field
+	 *
+	 * @param {Object} obj
+	 * @param {string} field
+	 * @param {string} fieldType
+	 */
 	convertDataFromTransport(obj, field, fieldType) {
 		const type = obj[fieldType];
 		switch (type) {

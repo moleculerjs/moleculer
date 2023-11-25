@@ -18,21 +18,33 @@ const PREFIX_BUFFER = "[[BF]]";
 const PREFIX_REGEXP = "[[RE]]";
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./json-extended")} JSONExtSerializerClass
+ * @typedef {import("./json-extended").JSONExtSerializerOptions} JSONExtSerializerOptions
+ * @typedef {import("./json-extended").JSONExtSerializerOptionsCustomType} JSONExtSerializerOptionsCustomType
+ */
+
+/**
  * JSON Extended serializer for Moleculer
  *
- * @class JSONExtSerializer
+ * @implements {JSONExtSerializerClass}
  */
 class JSONExtSerializer extends BaseSerializer {
 	/**
 	 * Creates an instance of JSONExtSerializer.
 	 *
+	 * @param {JSONExtSerializerOptions} opts
 	 * @memberof JSONExtSerializer
 	 */
 	constructor(opts) {
 		super();
 
+		/** @type {JSONExtSerializerOptions} */
 		this.opts = opts || {};
 
+		/** @type {boolean} */
 		this.hasCustomTypes = this.opts?.customs?.length > 0;
 	}
 
@@ -117,7 +129,6 @@ class JSONExtSerializer extends BaseSerializer {
 	 * Serializer a JS object to Buffer
 	 *
 	 * @param {Object} obj
-	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
 	 * @memberof Serializer
@@ -134,8 +145,7 @@ class JSONExtSerializer extends BaseSerializer {
 	/**
 	 * Deserialize Buffer to JS object
 	 *
-	 * @param {Buffer} buf
-	 * @param {String} type of packet
+	 * @param {any} buf
 	 * @returns {Object}
 	 *
 	 * @memberof Serializer

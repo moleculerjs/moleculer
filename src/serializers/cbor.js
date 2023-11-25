@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,11 +10,19 @@ const BaseSerializer = require("./base");
 const _ = require("lodash");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./cbor")} CborSerializerClass
+ * @typedef {import("./cbor").CborSerializerOptions} CborSerializerOptions
+ */
+
+/**
  * CBOR serializer for Moleculer
  *
  * https://github.com/kriszyp/cbor-x
  *
- * @class CborSerializer
+ * @implements {CborSerializerClass}
  */
 class CborSerializer extends BaseSerializer {
 	/**
@@ -23,12 +31,13 @@ class CborSerializer extends BaseSerializer {
 	 * Available options:
 	 * 	https://github.com/kriszyp/cbor-x#options
 	 *
-	 * @param {Object} opts
+	 * @param {CborSerializerOptions} opts
 	 *
 	 * @memberof Serializer
 	 */
 	constructor(opts) {
 		super(opts);
+		/** @type {CborSerializerOptions} */
 		this.opts = _.defaultsDeep(opts, { useRecords: false, useTag259ForMaps: false });
 	}
 
@@ -58,7 +67,7 @@ class CborSerializer extends BaseSerializer {
 	/**
 	 * Serializer a JS object to Buffer
 	 *
-	 * @param {Object} obj
+	 * @param {any} obj
 	 * @returns {Buffer}
 	 *
 	 * @memberof Serializer
@@ -71,8 +80,8 @@ class CborSerializer extends BaseSerializer {
 	/**
 	 * Deserialize Buffer to JS object
 	 *
-	 * @param {Buffer} str
-	 * @returns {Object}
+	 * @param {Buffer} buf
+	 * @returns {any}
 	 *
 	 * @memberof Serializer
 	 */
