@@ -59,8 +59,6 @@ class DatadogReporter extends BaseReporter {
 	init(registry) {
 		super.init(registry);
 
-		fetch.Promise = this.broker.Promise;
-
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 			this.timer.unref();

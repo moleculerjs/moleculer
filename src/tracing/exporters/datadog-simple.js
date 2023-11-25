@@ -42,8 +42,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	init(tracer) {
 		super.init(tracer);
 
-		fetch.Promise = this.broker.Promise;
-
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 			this.timer.unref();
