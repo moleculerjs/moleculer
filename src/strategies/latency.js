@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 "use strict";
@@ -9,6 +9,16 @@ const _ = require("lodash");
 
 const { random } = require("lodash");
 const BaseStrategy = require("./base");
+
+/**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("../registry")} Registry
+ * @typedef {import("../registry/endpoint")} Endpoint
+ * @typedef {import("./latency")} LatencyStrategyClass
+ * @typedef {import("./latency").LatencyStrategyOptions} LatencyStrategyOptions
+ */
 
 /**
  * Lowest latency invocation strategy
@@ -32,12 +42,20 @@ const BaseStrategy = require("./base");
  * 	}
  * });
  *
- * @class LatencyStrategy
+ * @implements {LatencyStrategyClass}
  */
 class LatencyStrategy extends BaseStrategy {
+	/**
+	 * Creates an instance of CborSerializer.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {LatencyStrategyOptions} opts
+	 */
 	constructor(registry, broker, opts) {
 		super(registry, broker, opts);
 
+		/** @type {LatencyStrategyOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			sampleCount: 5,
 			lowLatency: 10,
@@ -194,11 +212,12 @@ class LatencyStrategy extends BaseStrategy {
 	}
 
 	/**
-	 * Select an endpoint by network latency
+	 * Select an endpoint.
 	 *
-	 * @param {Array<Endpoint>} list
+	 * @param {Endpoint[]} list
+	 *
 	 * @returns {Endpoint}
-	 * @memberof LatencyStrategy
+	 * @memberof BaseStrategy
 	 */
 	select(list) {
 		let minEp = null;

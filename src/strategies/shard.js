@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,16 +13,35 @@ const { LRUCache } = require("lru-cache");
 const { isFunction, randomInt } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("../context")} Context
+ * @typedef {import("../registry")} Registry
+ * @typedef {import("../registry/endpoint")} Endpoint
+ * @typedef {import("./shard")} ShardStrategyClass
+ * @typedef {import("./shard").ShardStrategyOptions} ShardStrategyOptions
+ */
+
+/**
  * Sharding invocation strategy
  *
  * Using consistent-hashing. More info: https://www.toptal.com/big-data/consistent-hashing
  *
- * @class ShardStrategy
+ * @implements {ShardStrategyClass}
  */
 class ShardStrategy extends BaseStrategy {
+	/**
+	 * Creates an instance of CborSerializer.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {ShardStrategyOptions} opts
+	 */
 	constructor(registry, broker, opts) {
 		super(registry, broker, opts);
 
+		/** @type {ShardStrategyOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			shardKey: null,
 			vnodes: 10,
@@ -30,6 +49,7 @@ class ShardStrategy extends BaseStrategy {
 			cacheSize: 1000
 		});
 
+		/** @type {LRUCache<string>} */
 		this.cache = new LRUCache({
 			max: this.opts.cacheSize
 		});
@@ -82,7 +102,7 @@ class ShardStrategy extends BaseStrategy {
 	/**
 	 * Get nodeID by a hashed numeric key.
 	 *
-	 * @param {Number} key
+	 * @param {string} key
 	 * @returns {String}
 	 * @memberof ShardStrategy
 	 */

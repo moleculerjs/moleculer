@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -29,8 +29,8 @@ function getByName(name) {
 /**
  * Resolve strategy by name
  *
- * @param {object|string} opt
- * @returns {Strategy}
+ * @param {Record<string, any>|string} opt
+ * @returns {any}
  * @memberof ServiceBroker
  */
 function resolve(opt) {

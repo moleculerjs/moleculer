@@ -40,7 +40,7 @@ declare class Transit {
 	discoverNodes(): Promise<void>;
 	discoverNode(nodeID: string): Promise<void>;
 	sendNodeInfo(info: BrokerNode, nodeID?: string): Promise<void | void[]>;
-	sendPing(nodeID: string, id?: string): Promise<void>;
+	sendPing(nodeID?: string, id?: string): Promise<void>;
 	sendPong(payload: Record<string, any>): Promise<void>;
 	processPong(payload: Record<string, any>): void;
 	sendHeartbeat(localNode: BrokerNode): Promise<void>;

@@ -6,6 +6,10 @@ import type Endpoint = require("../registry/endpoint");
 declare abstract class BaseStrategy {
 	constructor(registry: Registry, broker: ServiceBroker, opts?: object);
 
-	select(list: any[], ctx?: Context): Endpoint;
+	registry: Registry;
+    broker: ServiceBroker;
+	// opts: Record<string, any>;
+
+	abstract select(list: Endpoint[], ctx?: Context): Endpoint;
 }
 export = BaseStrategy;
