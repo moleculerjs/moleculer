@@ -42,27 +42,29 @@ const broker = new ServiceBroker({
 		}
 	},
 	//heartbeatInterval: 10,
-	replCommands: [
-		{
-			command: "scale <count>",
-			alias: "s",
-			description: "Scaling up/down nodes",
-			options: [
-				{ option: "-k, --kill", description: "Kill nodes" }
-				//{ option: "--nodeID <nodeID>", description: "NodeID" }
-			],
-			types: {
-				//number: ["service"]
-			},
-			action(broker, args) {
-				console.log(args);
-				return broker.call("nodes.scale", {
-					count: Number(args.count != null ? args.count : 0),
-					kill: args.kill
-				});
+	replOptions: {
+		customCommands: [
+			{
+				command: "scale <count>",
+				alias: "s",
+				description: "Scaling up/down nodes",
+				options: [
+					{ option: "-k, --kill", description: "Kill nodes" }
+					//{ option: "--nodeID <nodeID>", description: "NodeID" }
+				],
+				types: {
+					//number: ["service"]
+				},
+				action(broker, args) {
+					console.log(args);
+					return broker.call("nodes.scale", {
+						count: Number(args.count != null ? args.count : 0),
+						kill: args.kill
+					});
+				}
 			}
-		}
-	]
+		]
+	}
 });
 
 broker.loadService(path.join(__dirname, "node-controller.service.js"));
