@@ -1,12 +1,11 @@
 import type BaseValidator = require("./base");
 
+import type {ValidatorConstructorOptions} from "fastest-validator";
+
 declare namespace FastestValidator {
 	export type ValidatorNames = "Fastest";
 
-	export interface FastestValidatorOptions extends BaseValidator.ValidatorOptions {
-		useNewCustomCheckerFunction?: string;
-		[key: string]: any;
-	}
+	export interface FastestValidatorOptions extends ValidatorConstructorOptions, BaseValidator.ValidatorOptions {}
 }
 
 declare class FastestValidator extends BaseValidator {
