@@ -16,6 +16,7 @@ const { isObject, isFunction, isDate } = require("../utils");
 /**
  * Import types
  *
+ * @typedef {import("../service-broker")} ServiceBroker
  * @typedef {import("../context")} Context
  * @typedef {import("./base").CacherOptions} CacherOptions
  * @typedef {import("./base")} CacherBaseClass
@@ -50,7 +51,7 @@ class Cacher {
 	/**
 	 * Initialize cacher
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof Cacher
 	 */

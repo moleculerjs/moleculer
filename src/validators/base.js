@@ -1,41 +1,75 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
+
+/* eslint-disable no-unused-vars */
 
 "use strict";
 
 const { ValidationError } = require("../errors");
 const _ = require("lodash");
 
+/**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("../context")} Context
+ * @typedef {import("./base")} BaseValidatorClass
+ * @typedef {import("./base").ValidatorOptions} ValidatorOptions
+ * @typedef {import("./base").CheckerFunction} CheckerFunction
+ */
+
+/**
+ * Abstract validator class
+ *
+ * @implements {BaseValidatorClass}
+ */
 class BaseValidator {
+	/**
+	 * Creates an instance of Validator.
+	 *
+	 * @param {ValidatorOptions} opts
+	 *
+	 * @memberof Cacher
+	 */
 	constructor(opts) {
+		/** @type {ValidatorOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			paramName: "params"
 		});
 	}
 
+	/**
+	 * Initialize cacher
+	 *
+	 * @param {ServiceBroker} broker
+	 *
+	 * @memberof Cacher
+	 */
 	init(broker) {
 		this.broker = broker;
 	}
 
 	/**
 	 * Compile a validation schema to a checker function.
-	 * @param {any} schema
-	 * @returns {Function}
+	 *
+	 * @param {Record<string, any>} schema
+	 * @returns {CheckerFunction}
 	 */
-	compile(/*schema*/) {
+	compile(schema) {
 		throw new Error("Abstract method");
 	}
 
 	/**
 	 * Validate params againt the schema
-	 * @param {any} params
-	 * @param {any} schema
+	 *
+	 * @param {Record<string, any>} params
+	 * @param {Record<string, any>} schema
 	 * @returns {boolean}
 	 */
-	validate(/*params, schema*/) {
+	validate(params, schema) {
 		throw new Error("Abstract method");
 	}
 
@@ -43,15 +77,17 @@ class BaseValidator {
 	 * Convert the specific validation schema to
 	 * the Moleculer (fastest-validator) validation schema format.
 	 *
-	 * @param {any} schema
+	 * @param {Record<string, any>} schema
 	 * @returns {Object}
 	 */
-	convertSchemaToMoleculer(/*schema*/) {
+	convertSchemaToMoleculer(schema) {
 		throw new Error("Abstract method");
 	}
 
 	/**
 	 * Register validator as a middleware
+	 *
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof BaseValidator
 	 */

@@ -5,21 +5,27 @@ declare namespace BaseValidator {
 	export type ValidatorNames = "Fastest";
 
 	export interface ValidatorOptions {
-		type: string;
-		options?: Record<string, any>;
+		paramName?: string;
 	}
+
+	export type CheckerFunction = Function & { async: boolean };
 }
+
 declare abstract class BaseValidator {
-	constructor();
+	constructor(opts: BaseValidator.ValidatorOptions);
+
+	broker: ServiceBroker;
+	opts: BaseValidator.ValidatorOptions;
 
 	init(broker: ServiceBroker): void;
 
-	compile(schema: Record<string, any>): Function;
+	abstract compile(schema: Record<string, any>): BaseValidator.CheckerFunction;
 
-	validate(params: Record<string, any>, schema: Record<string, any>): boolean;
+	abstract validate(params: Record<string, any>, schema: Record<string, any>): boolean;
 
-	middleware(): (handler: ActionHandler, action: ActionSchema) => any;
+	abstract convertSchemaToMoleculer(schema: any): Record<string, any>;
 
-	convertSchemaToMoleculer(schema: any): Record<string, any>;
+	middleware(broker: ServiceBroker);
+
 }
 export = BaseValidator;

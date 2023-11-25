@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -25,8 +25,8 @@ function getByName(name) {
 /**
  * Resolve validator by name
  *
- * @param {object|string} opt
- * @returns {Validator}
+ * @param {Record<string,any>|string} opt
+ * @returns {any}
  * @memberof ServiceBroker
  */
 function resolve(opt) {
@@ -49,6 +49,12 @@ function resolve(opt) {
 	return new Validators.Fastest();
 }
 
+/**
+ * Register a custom validator
+ *
+ * @param {string} name
+ * @param {any} value
+ */
 function register(name, value) {
 	Validators[name] = value;
 }

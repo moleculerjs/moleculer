@@ -30,7 +30,7 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Creates an instance of MemoryCacher.
 	 *
-	 * @param {MemoryCacherOptions} opts
+	 * @param {MemoryCacherOptions?} opts
 	 *
 	 * @memberof MemoryCacher
 	 */
