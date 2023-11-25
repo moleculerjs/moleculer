@@ -178,8 +178,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			if (item.children.length > 0) {
 				item.children.forEach((spanID, idx) => {
 					const span = this.spans[spanID];
-					span.first = idx == 0;
-					span.last = idx == item.children.length - 1;
+					span.first = idx === 0;
+					span.last = idx === item.children.length - 1;
 					check(span, item.level + 1, [].concat(item.parents, [item]));
 				});
 			}
@@ -250,8 +250,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		if (spanItem.children.length > 0)
 			spanItem.children.forEach((spanID, idx) =>
 				this.printSpanTime(this.spans[spanID], mainItem, level + 1, spanItem, {
-					first: idx == 0,
-					last: idx == spanItem.children.length - 1
+					first: idx === 0,
+					last: idx === spanItem.children.length - 1
 				})
 			);
 	}

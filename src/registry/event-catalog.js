@@ -178,7 +178,7 @@ class EventCatalog {
 			if (!utils.match(ctx.eventName, list.name)) return;
 			if (
 				ctx.eventGroups == null ||
-				ctx.eventGroups.length == 0 ||
+				ctx.eventGroups.length === 0 ||
 				ctx.eventGroups.indexOf(list.group) !== -1
 			) {
 				if (isBroadcast) {

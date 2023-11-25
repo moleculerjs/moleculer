@@ -172,7 +172,7 @@ class Tracer {
 
 		if (this.opts.sampling.rate === 0) return false;
 
-		if (this.opts.sampling.rate == 1) return true;
+		if (this.opts.sampling.rate === 1) return true;
 
 		if (++this.sampleCounter * this.opts.sampling.rate >= 1.0) {
 			this.sampleCounter = 0;

@@ -639,7 +639,7 @@ class Transit {
 			}
 		}
 
-		return stream && payload.seq == 0 ? stream : null;
+		return stream && payload.seq === 0 ? stream : null;
 	}
 
 	/**

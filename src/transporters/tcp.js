@@ -219,7 +219,7 @@ class TcpTransporter extends Transporter {
 						if (s.startsWith("tcp://")) s = s.replace("tcp://", "");
 
 						const p = s.split("/");
-						if (p.length != 2) {
+						if (p.length !== 2) {
 							this.logger.warn("Invalid endpoint URL. Missing nodeID. URL:", s);
 							return;
 						}
