@@ -11,3 +11,6 @@ benchmark/results
 .prettierrc.js
 .prettierrc
 logs/
+
+generated-types/
+dist/

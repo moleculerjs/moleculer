@@ -144,11 +144,11 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryCacher
 	 */
-	del(keys) {
+	del(key) {
 		this.metrics.increment(METRIC.MOLECULER_CACHER_DEL_TOTAL);
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_DEL_TIME);
 
-		keys = Array.isArray(keys) ? keys : [keys];
+		const keys = Array.isArray(key) ? key : [key];
 		keys.forEach(key => {
 			this.cache.delete(key);
 			this.logger.debug(`REMOVE ${key}`);

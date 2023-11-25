@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -27,8 +27,8 @@ function getByName(name) {
 /**
  * Resolve cacher by name
  *
- * @param {object|string} opt
- * @returns {Cacher}
+ * @param {Record<string,any>|string|boolean} opt
+ * @returns {any}
  */
 function resolve(opt) {
 	if (isObject(opt) && isInheritedClass(opt, Cachers.Base)) {

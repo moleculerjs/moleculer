@@ -4,13 +4,13 @@
 		"strict": false,
 		"checkJs": true,
 		"declaration": true,
-		"declarationDir": "types",
+		"declarationDir": "generated-types",
 		"outDir": "dist",
 		"target": "ES2022",
 		"moduleResolution": "node",
-		"noEmit": true,
+		"noEmit": false,
 		"lib": ["ES2022"]
 	},
-	"include": ["types/extends.d.ts", "src//utils.js"],
+	"include": ["types/extends.d.ts", "src/**/*.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js"]
 }

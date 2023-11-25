@@ -4,6 +4,8 @@
  * MIT Licensed
  */
 
+/* eslint-disable no-unused-vars */
+
 "use strict";
 
 const _ = require("lodash");
@@ -12,9 +14,17 @@ const { METRIC } = require("../metrics");
 const { isObject, isFunction, isDate } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../context")} Context
+ * @typedef {import("./base").CacherOptions} CacherOptions
+ * @typedef {import("./base")} CacherBaseClass
+ */
+
+/**
  * Abstract cacher class
  *
- * @class Cacher
+ * @implements {CacherBaseClass}
  */
 class Cacher {
 	/**
@@ -25,11 +35,11 @@ class Cacher {
 	 * @memberof Cacher
 	 */
 	constructor(opts) {
+		/** @type {CacherOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
 			maxParamsLength: null,
-			/** @type {any}  Return with this if the key is missing in the cache */
 			missingResponse: undefined
 		});
 
@@ -142,9 +152,10 @@ class Cacher {
 	 *
 	 * @param {any} key
 	 *
+	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
-	get(/*key*/) {
+	get(key) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -153,10 +164,10 @@ class Cacher {
 	 * Get a cached content and ttl by key
 	 *
 	 * @param {any} key
-	 *
+	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
-	getWithTTL(/*key*/) {
+	getWithTTL(key) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -168,9 +179,10 @@ class Cacher {
 	 * @param {any} data
 	 * @param {Number?} ttl
 	 *
+	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
-	set(/*key, data, ttl*/) {
+	set(key, data, ttl) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -180,21 +192,51 @@ class Cacher {
 	 *
 	 * @param {string|Array<string>} key
 	 *
+	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
-	del(/*key*/) {
+	del(key) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
 
 	/**
 	 * Clean cache. Remove every key by match
-	 * @param {string|Array<string>} match string. Default is "**"
+	 * /@param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *
+	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
 	clean(/*match = "**"*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented method!");
+	}
+
+	/**
+	 * Try to acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {number?} ttl
+	 *
+	 * @returns {Promise<any>}
+	 * @memberof Cacher
+	 */
+	tryLock(key, ttl) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented method!");
+	}
+
+	/**
+	 * Acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {number?} ttl
+	 *
+	 * @returns {Promise<any>}
+	 * @memberof Cacher
+	 */
+	lock(key, ttl) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -309,7 +351,7 @@ class Cacher {
 	 *
 	 * @param {Object} action
 	 * @param {Object} opts
-	 * @param {Context} context
+	 * @param {Context} ctx
 	 * @returns {String}
 	 */
 	getCacheKey(action, opts, ctx) {

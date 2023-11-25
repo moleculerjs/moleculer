@@ -1,3 +1,5 @@
+import type Context = require("../context");
+import type { Logger } from "../logger-factory";
 import type ServiceBroker = require("../service-broker");
 
 declare namespace Cacher {
@@ -21,31 +23,38 @@ declare abstract class Cacher {
 	opts: Cacher.CacherOptions;
 
 	connected: boolean | null;
+	broker: ServiceBroker;
+	metrics: any;
+	logger: Logger;
+	prefix?: string;
 
 	constructor(opts?: Cacher.CacherOptions);
 
 	init(broker: ServiceBroker): void;
 
-	close(): Promise<unknown>;
+	abstract close(): Promise<unknown>;
 
-	get(key: string): Promise<Record<string, unknown> | null>;
+	abstract get(key: string): Promise<Record<string, unknown> | null>;
 
-	getWithTTL(key: string): Promise<Record<string, unknown> | null>;
+	abstract getWithTTL(key: string): Promise<Record<string, unknown> | null>;
 
-	set(key: string, data: any, ttl?: number): Promise<unknown>;
+	abstract set(key: string, data: any, ttl?: number): Promise<unknown>;
 
-	del(key: string | string[]): Promise<unknown>;
+	abstract del(key: string | string[]): Promise<unknown>;
 
-	clean(match?: string | string[]): Promise<unknown>;
+	abstract clean(match?: string | string[]): Promise<unknown>;
 
-	getCacheKey(actionName: string, params: object, meta: object, keys: string[] | null): string;
+	getCacheKey(action: string, opts: object, ctx: Context): string;
 
-	defaultKeygen(
-		actionName: string,
-		params: object | null,
-		meta: object | null,
-		keys: string[] | null
-	): string;
+	defaultKeygen(action: string, opts: object, ctx: Context): string;
+
+	middleware();
+
+	middlewareWithLock(ctx: Context, cacheKey: string, handler: Function, opts: any): Promise<any>;
+
+	middlewareWithoutLock(ctx: Context, cacheKey: string, handler: Function, opts: any): Promise<any>;
+
+	getCacheKeys(): Promise<Array<any>>;
 
 	abstract tryLock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 

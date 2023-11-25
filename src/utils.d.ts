@@ -24,6 +24,10 @@ export declare function isPromise<T>(promise: unknown): promise is Promise<T>;
 
 export declare function polyfillPromise(P: typeof Promise): void;
 
+export declare function promiseAllControl(promises: any[], settled?: boolean, promise?: any): Promise<{
+    [p: string]: PromiseSettledResult<any>;
+}> | Promise<unknown[]>;
+
 export declare function clearRequireCache(filename: string): void;
 
 export declare function match(text: string, pattern: string): boolean;
@@ -39,3 +43,11 @@ export declare function makeDirs(path: string): void;
 export declare function parseByteString(value: string): number;
 
 export declare function uniq(arr: Array<String|Number>): Array<String|Number>;
+
+export declare function getConstructorName(obj: any): string;
+
+export declare function isInheritedClass(instance: object, baseClass: object): boolean;
+
+export declare function random(a?: number, b?: number): number;
+
+export declare function randomInt(a?: number, b?: number): number;
