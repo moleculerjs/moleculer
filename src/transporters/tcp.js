@@ -474,7 +474,7 @@ class TcpTransporter extends Transporter {
 		if (endpoints.length === 0) return;
 
 		const ep =
-			endpoints.length == 1
+			endpoints.length === 1
 				? endpoints[0]
 				: endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
@@ -641,9 +641,9 @@ class TcpTransporter extends Transporter {
 
 					let info, cpu, cpuSeq;
 
-					if (row.length == 1) info = row[0];
-					else if (row.length == 2) [cpuSeq, cpu] = row;
-					else if (row.length == 3) [info, cpuSeq, cpu] = row;
+					if (row.length === 1) info = row[0];
+					else if (row.length === 2) [cpuSeq, cpu] = row;
+					else if (row.length === 3) [info, cpuSeq, cpu] = row;
 
 					let node = this.nodes.get(nodeID);
 					if (info && (!node || node.seq < info.seq)) {

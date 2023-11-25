@@ -211,7 +211,7 @@ class UdpServer extends EventEmitter {
 
 		try {
 			const parts = msg.split("|");
-			if (parts.length != 3) {
+			if (parts.length !== 3) {
 				this.logger.debug("Malformed UDP packet received", msg);
 				return;
 			}
