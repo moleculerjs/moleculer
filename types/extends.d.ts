@@ -1,3 +1,6 @@
+import { ExtendableError } from "../src/errors";
+import type Context = require("../src/context");
+
 interface Promise<T> {
 	delay<T>(ms: number): Promise<T>;
 	method(fn: Function): Function;

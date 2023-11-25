@@ -8,21 +8,21 @@ module.exports = NativeService;
 
 class MyService extends NativeService {
 	// Service name
-	static name = "my-service";
+	name = "my-service";
 	// Service version
-	static version = 1;
+	version = 1;
 	// Service dependencies
-	static dependencies = ["posts", "users"];
+	dependencies = ["posts", "users"];
 	// Service settings
-	static settings = {
+	settings = {
 		foo: "bar"
 	};
 	// Service metadata
-	static metadata = {
+	metadata = {
 		a: 5
 	};
 	// Action Hook
-	static hooks = {
+	hooks = {
 		before: {
 			create: ["validate"]
 		},
@@ -34,26 +34,32 @@ class MyService extends NativeService {
 	// --- ACTIONS ---
 
 	// Action definition
-	static actionCreateUser = {
+	actionCreateUser = {
 		name: "createUser",
 		visibility: "published",
 		params: {
 			username: "string",
 			password: "string"
 		},
-		handler: "createUser" // The name of action handler method, can be omitted if the same as `name`
+		handler: "createUser", // The name of action handler method, can be omitted if the same as `name`
+		asyncCtx: true // The handler method will be called with `ctx.params` as first argument. If you need the `ctx` you can get is from AsyncStorage
 	};
-
 	// Action handler
-	async createUser(ctx) {
-		await this.#myMethod(ctx.params);
-		return ctx.params.user;
+	async createUser(params) {
+		await this.myMethod(params);
+		return params.user;
+	}
+
+	// Minimal Action definition, the `name` and handler function name are came from property name without "action" prefix.
+	actionListUsers = {};
+	async listUsers(ctx) {
+		return this.adapter.find();
 	}
 
 	// --- EVENTS ---
 
 	// Event definition
-	static eventUserCreated = {
+	eventUserCreated = {
 		name: "user.created",
 		group: "user",
 		handler: "userCreated" // The name of event handler method, can be omitted if the same as `name`
@@ -61,11 +67,11 @@ class MyService extends NativeService {
 
 	// Event handler
 	userCreated(ctx) {
-		this.#myMethod();
+		this.myMethod();
 	}
 
 	// Methods
-	#myMethod(params) {
+	myMethod(params) {
 		this.broker.info("Params:", params);
 	}
 
