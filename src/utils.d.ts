@@ -39,7 +39,3 @@ export declare function makeDirs(path: string): void;
 export declare function parseByteString(value: string): number;
 
 export declare function uniq(arr: Array<String|Number>): Array<String|Number>;
-
-export declare function functionArguments(function_: Function): Array<String>;
-
-

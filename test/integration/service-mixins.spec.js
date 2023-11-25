@@ -633,12 +633,11 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.carbon).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"carbon",
-			expect.any(broker.ContextFactory)
-		);
+		expect(mainSchema.events.carbon).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		const ctx = mainSchema.events.carbon.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("carbon");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 
 	it("should call 'hydrogen' event handlers", () => {
@@ -646,20 +645,18 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"hydrogen",
-			expect.any(broker.ContextFactory)
-		);
+		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		let ctx = mixin1L1.events.hydrogen.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("hydrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"hydrogen",
-			expect.any(broker.ContextFactory)
-		);
+		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		ctx = mixin2L1.events.hydrogen.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("hydrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 
 	it("should call 'nitrogen' event handlers without group", () => {
@@ -668,19 +665,19 @@ describe("Test Service mixins", () => {
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"nitrogen",
 			expect.any(broker.ContextFactory)
 		);
+		let ctx = mixin1L1.events.nitrogen.handler.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("nitrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 
 		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"nitrogen",
-			expect.any(broker.ContextFactory)
-		);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		ctx = mainSchema.events.nitrogen.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("nitrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 
 	it("should call 'nitrogen' event handlers with group", () => {
@@ -692,19 +689,19 @@ describe("Test Service mixins", () => {
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"nitrogen",
 			expect.any(broker.ContextFactory)
 		);
+		let ctx = mixin1L1.events.nitrogen.handler.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("nitrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 
 		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(
-			payload,
-			broker.nodeID,
-			"nitrogen",
-			expect.any(broker.ContextFactory)
-		);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		ctx = mainSchema.events.nitrogen.mock.calls[0][0];
+		expect(ctx.params).toEqual(payload);
+		expect(ctx.eventName).toBe("nitrogen");
+		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 
 	it("should call 'nitrogen' event handlers with wrong group", () => {

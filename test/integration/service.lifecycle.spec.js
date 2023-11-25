@@ -40,12 +40,11 @@ describe("Test Service handlers", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith(
-			{ id: 1, name: "John" },
-			"node-1",
-			"user.created",
-			expect.any(broker.ContextFactory)
-		);
+		expect(eventHandler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		const ctx = eventHandler.mock.calls[0][0];
+		expect(ctx.params).toEqual({ id: 1, name: "John" });
+		expect(ctx.eventName).toBe("user.created");
+		expect(ctx.nodeID).toBe("node-1");
 	});
 
 	it("should call stop handler", () => {
@@ -92,12 +91,11 @@ describe("Test Service handlers after broker.start", () => {
 	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith(
-			{ id: 1, name: "John" },
-			"node-1",
-			"user.created",
-			expect.any(broker.ContextFactory)
-		);
+		expect(eventHandler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
+		const ctx = eventHandler.mock.calls[0][0];
+		expect(ctx.params).toEqual({ id: 1, name: "John" });
+		expect(ctx.eventName).toBe("user.created");
+		expect(ctx.nodeID).toBe("node-1");
 	});
 
 	it("should call stop handler", () => {

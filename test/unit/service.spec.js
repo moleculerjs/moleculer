@@ -1101,35 +1101,7 @@ describe("Test Service class", () => {
 			return res.handler({}).then(res => expect(res).toEqual(["Hello1", "Hello2"]));
 		});
 
-		it("should call handler with legacy arguments", () => {
-			const handler = function (payload, nodeID, eventName, ctx) {
-				expect(this).toBe(svc);
-				return { payload, nodeID, eventName, ctx };
-			};
-
-			const res = svc._createEvent(
-				{
-					handler
-				},
-				"user.updated"
-			);
-
-			expect.assertions(5);
-
-			const ctx = {
-				params: { a: 5 },
-				nodeID: "node-100",
-				eventName: "user.removed"
-			};
-			return res.handler(ctx).then(res => {
-				expect(res.payload).toEqual({ a: 5 });
-				expect(res.nodeID).toEqual("node-100");
-				expect(res.eventName).toEqual("user.removed");
-				expect(res.ctx).toBe(ctx);
-			});
-		});
-
-		it("should call handler with context", () => {
+		it("should call handlers", () => {
 			const handler = function (ctx) {
 				expect(this).toBe(svc);
 				return { ctx };
@@ -1163,9 +1135,9 @@ describe("Test Service class", () => {
 				return { ctx };
 			};
 
-			const handler2 = function (payload, nodeID, eventName, ctx) {
+			const handler2 = function (ctx) {
 				expect(this).toBe(svc);
-				return { payload, nodeID, eventName, ctx };
+				return { ctx };
 			};
 
 			const res = svc._createEvent(
@@ -1183,14 +1155,7 @@ describe("Test Service class", () => {
 				eventName: "user.removed"
 			};
 			return res.handler(ctx).then(([res1, res2]) => {
-				expect(res1.payload).toBeUndefined();
-				expect(res1.nodeID).toBeUndefined();
-				expect(res1.eventName).toBeUndefined();
 				expect(res1.ctx).toBe(ctx);
-
-				expect(res2.payload).toEqual({ a: 5 });
-				expect(res2.nodeID).toEqual("node-100");
-				expect(res2.eventName).toEqual("user.removed");
 				expect(res2.ctx).toBe(ctx);
 			});
 		});
