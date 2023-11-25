@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
-const { ExtendableError } = require("./errors");
+const { TimeoutError } = require("./errors");
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -32,8 +32,6 @@ const byteMultipliers = {
 };
 // eslint-disable-next-line security/detect-unsafe-regex
 const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
-
-class TimeoutError extends ExtendableError {}
 
 /**
  * Circular replacing of unsafe properties in object
@@ -221,7 +219,7 @@ const utils = {
 		if (!utils.isFunction(P.delay)) {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/timers.js#L15
 			P.delay = function (ms) {
-				return new P(resolve => setTimeout(resolve, +ms));
+				return new P(resolve => setTimeout(() => resolve(null), +ms));
 			};
 			P.prototype.delay = function (ms) {
 				return this.then(res => P.delay(ms).then(() => res));
@@ -230,12 +228,10 @@ const utils = {
 		}
 
 		if (!utils.isFunction(P.prototype.timeout)) {
-			P.TimeoutError = TimeoutError;
-
 			P.prototype.timeout = function (ms, message) {
 				let timer;
 				const timeout = new P((resolve, reject) => {
-					timer = setTimeout(() => reject(new P.TimeoutError(message)), +ms);
+					timer = setTimeout(() => reject(new TimeoutError(message)), +ms);
 				});
 
 				return P.race([timeout, this])

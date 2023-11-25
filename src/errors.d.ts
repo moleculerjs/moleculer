@@ -6,7 +6,11 @@ export declare class ExtendableError extends Error {
 	name: string;
 
 	stack: string;
+
+	constructor(message: string);
 }
+
+export declare class TimeoutError extends ExtendableError {}
 
 export declare class MoleculerError extends ExtendableError {
 	code: number;

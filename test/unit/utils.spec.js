@@ -1,5 +1,6 @@
 const utils = require("../../src/utils");
 const { protectReject } = require("./utils");
+const { TimeoutError } = require("../../src/errors");
 const lolex = require("@sinonjs/fake-timers");
 
 describe("Test utils.isObject", () => {
@@ -536,9 +537,7 @@ describe("Test utils.polyfillPromise", () => {
 		expect(Promise.delay).toBeUndefined();
 		expect(Promise.prototype.delay).toBeUndefined();
 		expect(Promise.prototype.timeout).toBeUndefined();
-		expect(Promise.TimeoutError).toBeUndefined();
-		//expect(Promise.map).toBeUndefined();
-		//expect(Promise.mapSeries).toBeUndefined();
+		expect(Promise.mapSeries).toBeUndefined();
 	});
 
 	it("should exists polyfilled methods", () => {
@@ -548,9 +547,7 @@ describe("Test utils.polyfillPromise", () => {
 		expect(Promise.delay).toBeDefined();
 		expect(Promise.prototype.delay).toBeDefined();
 		expect(Promise.prototype.timeout).toBeDefined();
-		expect(Promise.TimeoutError).toBeDefined();
-		//expect(Promise.map).toBeDefined();
-		//expect(Promise.mapSeries).toBeDefined();
+		expect(Promise.mapSeries).toBeDefined();
 	});
 
 	describe("Test Promise.method", () => {
@@ -669,7 +666,7 @@ describe("Test utils.polyfillPromise", () => {
 			//clock.tick(1700);
 
 			return p.then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(Promise.TimeoutError);
+				expect(err).toBeInstanceOf(TimeoutError);
 			});
 		});
 
@@ -682,7 +679,7 @@ describe("Test utils.polyfillPromise", () => {
 			//clock.tick(2500);
 
 			return p.then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(Promise.TimeoutError);
+				expect(err).toBeInstanceOf(TimeoutError);
 			});
 		});
 	});

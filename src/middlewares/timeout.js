@@ -1,12 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const { RequestTimeoutError } = require("../errors");
+const { TimeoutError, RequestTimeoutError } = require("../errors");
 const { METRIC } = require("../metrics");
 
 module.exports = function (broker) {
@@ -31,7 +31,7 @@ module.exports = function (broker) {
 			const p = handler(ctx);
 			if (ctx.options.timeout > 0 && p.timeout) {
 				return p.timeout(ctx.options.timeout).catch(err => {
-					if (err instanceof broker.Promise.TimeoutError) {
+					if (err instanceof TimeoutError) {
 						const nodeID = ctx.nodeID;
 						this.logger.warn(`Request '${actionName}' is timed out.`, {
 							requestID: ctx.requestID,

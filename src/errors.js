@@ -44,6 +44,8 @@ class ExtendableError extends Error {
 	}
 }
 
+class TimeoutError extends ExtendableError {}
+
 /**
  * Custom Moleculer Error class
  *
@@ -635,6 +637,7 @@ function resolveRegenerator(opt) {
 
 module.exports = {
 	ExtendableError,
+	TimeoutError,
 
 	MoleculerError,
 	MoleculerRetryableError,
