@@ -13,3 +13,6 @@ export {
 	NotepackSerializer as Notepack,
 	CborSerializer as CBOR
 };
+
+export declare function resolve(opt: Record<string,any>|string|boolean): Serializer;
+export declare function register(name: string, value: Serializer): void;

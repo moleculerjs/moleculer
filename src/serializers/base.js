@@ -39,7 +39,7 @@ class Serializer {
 	 * Serializer a JS object to Buffer
 	 *
 	 * @param {Object} obj
-	 * @param {String} type of packet
+	 * @param {String?} type of packet
 	 * @returns {Buffer}
 	 *
 	 * @memberof Serializer
@@ -53,7 +53,7 @@ class Serializer {
 	 * Deserialize Buffer to JS object
 	 *
 	 * @param {Buffer} buf
-	 * @param {String} type of packet
+	 * @param {String?} type of packet
 	 * @returns {Object}
 	 *
 	 * @memberof Serializer

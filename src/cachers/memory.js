@@ -14,15 +14,23 @@ const { METRIC } = require("../metrics");
 const Lock = require("../lock");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./memory")} MemoryCacherClass
+ * @typedef {import("./memory").MemoryCacherOptions} MemoryCacherOptions
+ */
+
+/**
  * Cacher factory for memory cache
  *
- * @class MemoryCacher
+ * @implements {MemoryCacherClass}
  */
 class MemoryCacher extends BaseCacher {
 	/**
 	 * Creates an instance of MemoryCacher.
 	 *
-	 * @param {object} opts
+	 * @param {MemoryCacherOptions} opts
 	 *
 	 * @memberof MemoryCacher
 	 */
@@ -47,7 +55,7 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Initialize cacher
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof MemoryCacher
 	 */

@@ -13,16 +13,25 @@ const { LRUCache } = require("lru-cache");
 const { METRIC } = require("../metrics");
 
 const Lock = require("../lock");
+
+/**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./memory-lru")} MemoryLRUCacherClass
+ * @typedef {import("./memory-lru").MemoryLRUCacherOptions} MemoryLRUCacherOptions
+ */
+
 /**
  * Cacher factory for memory cache
  *
- * @class MemoryLRUCacher
+ * @implements {MemoryLRUCacherClass}
  */
 class MemoryLRUCacher extends BaseCacher {
 	/**
 	 * Creates an instance of MemoryLRUCacher.
 	 *
-	 * @param {object} opts
+	 * @param {MemoryLRUCacherOptions} opts
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
@@ -52,7 +61,7 @@ class MemoryLRUCacher extends BaseCacher {
 	/**
 	 * Initialize cacher
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 *
 	 * @memberof MemoryLRUCacher
 	 */

@@ -15,15 +15,23 @@ const Serializers = require("../serializers");
 const C = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./redis")} RedisCacherClass
+ * @typedef {import("./redis").RedisCacherOptions} RedisCacherOptions
+ */
+
+/**
  * Cacher factory for Redis
  *
- * @class RedisCacher
+ * @implements {RedisCacherClass}
  */
 class RedisCacher extends BaseCacher {
 	/**
 	 * Creates an instance of RedisCacher.
 	 *
-	 * @param {object} opts
+	 * @param {RedisCacherOptions} opts
 	 *
 	 * @memberof RedisCacher
 	 */
