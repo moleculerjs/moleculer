@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -19,20 +19,30 @@ const { isObject } = require("../utils");
 */
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./datadog").DatadogLoggerOptions} DatadogLoggerOptions
+ * @typedef {import("./datadog")} DatadogLoggerClass
+ */
+
+/**
  * Datadog logger for Moleculer
  *
  * @class DatadogLogger
- * @extends {BaseLogger}
+ * @implements {DatadogLoggerClass}
  */
 class DatadogLogger extends BaseLogger {
 	/**
 	 * Creates an instance of DatadogLogger.
-	 * @param {Object} opts
+	 * @param {DatadogLoggerOptions} opts
 	 * @memberof DatadogLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {DatadogLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			url: "https://http-intake.logs.datadoghq.com/api/v2/logs/",
 			apiKey: process.env.DATADOG_API_KEY,
@@ -91,7 +101,7 @@ class DatadogLogger extends BaseLogger {
 	/**
 	 * Generate a new log handler.
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;

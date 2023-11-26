@@ -8,7 +8,7 @@
 		"outDir": "dist",
 		"target": "ES2022",
 		"moduleResolution": "node",
-		"noEmit": false,
+		"noEmit": true,
 		"lib": ["ES2022"]
 	},
 	"include": ["types/extends.d.ts", "src/**/*.js"],

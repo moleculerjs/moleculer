@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,22 +11,32 @@ const _ = require("lodash");
 const { isFunction } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./log4js").Log4jsLoggerOptions} Log4jsLoggerOptions
+ * @typedef {import("./log4js")} Log4jsLoggerClass
+ */
+
+/**
  * Log4js logger for Moleculer
  *
  * https://github.com/log4js-node/log4js-node
  *
  * @class Log4jsLogger
- * @extends {BaseLogger}
+ * @implements {Log4jsLoggerClass}
  */
 class Log4jsLogger extends BaseLogger {
 	/**
 	 * Creates an instance of Log4jsLogger.
-	 * @param {Object} opts
+	 * @param {Log4jsLoggerOptions} opts
 	 * @memberof Log4jsLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {Log4jsLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {});
 	}
 

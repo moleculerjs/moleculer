@@ -1,8 +1,10 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
+
+/* eslint-disable no-unused-vars */
 
 "use strict";
 
@@ -12,18 +14,28 @@ const { match, isObject, isString } = require("../utils");
 const LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./base").LoggerOptions} LoggerOptions
+ * @typedef {import("./base")} BaseLoggerClass
+ */
+
+/**
  * Logger base class.
  *
- * @class BaseLogger
+ * @implements {BaseLoggerClass}
  */
 class BaseLogger {
 	/**
 	 * Creates an instance of BaseLogger.
 	 *
-	 * @param {Object} opts
+	 * @param {LoggerOptions} opts
 	 * @memberof BaseLogger
 	 */
 	constructor(opts) {
+		/** @type {LoggerOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			level: "info",
 			createLogger: null
@@ -70,7 +82,11 @@ class BaseLogger {
 		return null;
 	}
 
-	getLogHandler(/*bindings*/) {
+	/**
+	 *
+	 * @param {LoggerBindings?} bindings
+	 */
+	getLogHandler(bindings) {
 		return null;
 	}
 }

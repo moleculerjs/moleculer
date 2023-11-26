@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -37,9 +37,8 @@ function getByName(name) {
 /**
  * Resolve reporter by name
  *
- * @param {object|string} opt
- * @returns {Reporter}
- * @memberof ServiceBroker
+ * @param {Record<string, any> | string} opt
+ * @returns {any}
  */
 function resolve(opt) {
 	if (isObject(opt) && isInheritedClass(opt, Loggers.Base)) {

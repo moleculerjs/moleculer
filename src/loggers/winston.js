@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,22 +11,32 @@ const _ = require("lodash");
 const { isFunction } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./winston").WinstonLoggerOptions} WinstonLoggerOptions
+ * @typedef {import("./winston")} WinstonLoggerClass
+ */
+
+/**
  * Winston logger for Moleculer
  *
  * https://github.com/winstonjs/winston
  *
  * @class WinstonLogger
- * @extends {BaseLogger}
+ * @implements {WinstonLoggerClass}
  */
 class WinstonLogger extends BaseLogger {
 	/**
 	 * Creates an instance of WinstonLogger.
-	 * @param {Object} opts
+	 * @param {WinstonLoggerOptions} opts
 	 * @memberof WinstonLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {WinstonLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			winston: {
 				level: "silly"
@@ -56,7 +66,7 @@ class WinstonLogger extends BaseLogger {
 
 	/**
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;

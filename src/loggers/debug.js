@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,22 +11,32 @@ const _ = require("lodash");
 const { isFunction } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./debug").DebugLoggerOptions} DebugLoggerOptions
+ * @typedef {import("./debug")} DebugLoggerClass
+ */
+
+/**
  * Debug logger for Moleculer
  *
  * https://github.com/visionmedia/debug
  *
  * @class DebugLogger
- * @extends {BaseLogger}
+ * @implements {DebugLoggerClass}
  */
 class DebugLogger extends BaseLogger {
 	/**
 	 * Creates an instance of DebugLogger.
-	 * @param {Object} opts
+	 * @param {DebugLoggerOptions} opts
 	 * @memberof DebugLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {DebugLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {});
 	}
 
@@ -52,7 +62,7 @@ class DebugLogger extends BaseLogger {
 
 	/**
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getLogHandler(bindings) {
 		const mod = bindings ? bindings.mod : null;

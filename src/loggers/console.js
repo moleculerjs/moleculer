@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -12,15 +12,24 @@ const FormattedLogger = require("./formatted");
 const kleur = require("kleur");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./console").ConsoleLoggerOptions} ConsoleLoggerOptions
+ * @typedef {import("./console")} ConsoleLoggerClass
+ */
+
+/**
  * Console logger for Moleculer
  *
  * @class ConsoleLogger
- * @extends {FormattedLogger}
+ * @implements {ConsoleLoggerClass}
  */
 class ConsoleLogger extends FormattedLogger {
 	/**
 	 * Creates an instance of ConsoleLogger.
-	 * @param {Object} opts
+	 * @param {ConsoleLoggerOptions} opts
 	 * @memberof ConsoleLogger
 	 */
 	constructor(opts) {
@@ -29,6 +38,11 @@ class ConsoleLogger extends FormattedLogger {
 		this.maxPrefixLength = 0;
 	}
 
+	/**
+	 * Initialize logger.
+	 *
+	 * @param {LoggerFactory} loggerFactory
+	 */
 	init(loggerFactory) {
 		super.init(loggerFactory);
 
@@ -37,7 +51,7 @@ class ConsoleLogger extends FormattedLogger {
 
 	/**
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getLogHandler(bindings) {
 		const level = bindings ? this.getLogLevel(bindings.mod) : null;

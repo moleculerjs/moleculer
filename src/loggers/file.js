@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -18,20 +18,33 @@ const { makeDirs } = require("../utils");
 const appendFile = util.promisify(fs.appendFile);
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./file").FileLoggerOptions} FileLoggerOptions
+ * @typedef {import("./file")} FileLoggerClass
+ */
+
+/**
  * File logger for Moleculer
  *
  * @class FileLogger
- * @extends {FormattedLogger}
+ * @implements {FileLoggerClass}
  */
 class FileLogger extends FormattedLogger {
 	/**
 	 * Creates an instance of FileLogger.
-	 * @param {Object} opts
+	 * @param {FileLoggerOptions} opts
 	 * @memberof FileLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/**
+		 * @type {FileLoggerOptions}
+		 * @override
+		 */
 		this.opts = _.defaultsDeep(this.opts, {
 			folder: "./logs",
 			filename: "moleculer-{date}.log",
@@ -83,44 +96,6 @@ class FileLogger extends FormattedLogger {
 	}
 
 	/**
-	 * Get formatter based on options
-	 *
-	getFormatter() {
-		this.padLevels = FormattedLogger.LEVELS.reduce((a, level) => {
-			a[level] = _.padEnd(level.toUpperCase(), 5);
-			return a;
-		}, {});
-
-		if (isFunction(this.opts.formatter))
-			return this.opts.formatter;
-
-		if (this.opts.formatter == "json")
-			return row => JSON.stringify(row);
-
-		if (isString(this.opts.formatter)) {
-			let format = this.opts.formatter;
-			if (this.opts.formatter == "full")
-				format = "[{timestamp}] {level} {nodeID}/{mod}: {msg}";
-			else if (this.opts.formatter == "simple")
-				format = "{level} - {msg}";
-			else if (this.opts.formatter == "short")
-				format = "[{time}] {level} {mod}: {msg}";
-
-			return row => {
-				const timestamp = new Date(row.ts).toISOString();
-				return this.render(format, {
-					...row,
-					timestamp,
-					time: timestamp.substring(11),
-
-					level: this.padLevels[row.level],
-					mod: row && row.mod ? row.mod.toUpperCase() : ""
-				});
-			};
-		}
-	}*/
-
-	/**
 	 * Get the current filename.
 	 */
 	getFilename() {
@@ -139,32 +114,9 @@ class FileLogger extends FormattedLogger {
 	}
 
 	/**
-	 * Generate a new log handler.
-	 *
-	 * @param {object} bindings
-	 *
-	_getLogHandler(bindings) {
-		let level = bindings ? this.getLogLevel(bindings.mod) : null;
-		if (!level)
-			return null;
-
-		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
-		const printArgs = args => args.map(p => (isObject(p) || Array.isArray(p)) ? this.objectPrinter(p) : p);
-
-		return (type, args) => {
-			const typeIdx = FormattedLogger.LEVELS.indexOf(type);
-			if (typeIdx > levelIdx) return;
-
-			const msg = printArgs(args).join(" ").replace(/\u001b\[.*?m/g, ""); // eslint-disable-line no-control-regex
-			this.queue.push({ ts: Date.now(), level: type, msg, ...bindings });
-			if (!this.opts.interval) this.flush();
-		};
-	}*/
-
-	/**
 	 * Get a log handler.
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getLogHandler(bindings) {
 		const level = bindings ? this.getLogLevel(bindings.mod) : null;
@@ -213,25 +165,6 @@ class FileLogger extends FormattedLogger {
 
 		return Promise.resolve();
 	}
-
-	/*writeRow(row) {
-		this.fs.write(this.renderRow(row) + this.opts.eol);
-	}
-
-	changeFile(newFilename) {
-		if (this.fs) {
-			this.fs.close();
-		}
-
-		// Flags: https://nodejs.org/dist/latest-v10.x/docs/api/fs.html#fs_file_system_flags
-		this.fs = fs.createWriteStream(newFilename, { flags: "a" });
-		this.currentFilename = newFilename;
-
-		this.fs.on("error", err => console.error(err));
-		this.fs.on("close", () => console.warn("File closed"));
-		this.fs.on("finish", () => console.warn("File finished"));
-	}
-	*/
 }
 
 module.exports = FileLogger;

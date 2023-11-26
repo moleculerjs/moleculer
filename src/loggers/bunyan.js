@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,22 +11,32 @@ const _ = require("lodash");
 const { isFunction } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./bunyan").BunyanLoggerOptions} BunyanLoggerOptions
+ * @typedef {import("./bunyan")} BunyanLoggerClass
+ */
+
+/**
  * Bunyan logger for Moleculer
  *
  * https://github.com/trentm/node-bunyan
  *
  * @class BunyanLogger
- * @extends {BaseLogger}
+ * @implements {BunyanLoggerClass}
  */
 class BunyanLogger extends BaseLogger {
 	/**
 	 * Creates an instance of BunyanLogger.
-	 * @param {Object} opts
+	 * @param {BunyanLoggerOptions} opts
 	 * @memberof BunyanLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {BunyanLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			bunyan: {
 				name: "moleculer"
@@ -56,7 +66,7 @@ class BunyanLogger extends BaseLogger {
 
 	/**
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings?} bindings
 	 */
 	getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;

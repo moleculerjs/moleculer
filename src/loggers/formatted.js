@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,6 +13,15 @@ const _ = require("lodash");
 const kleur = require("kleur");
 const util = require("util");
 const { isObject, isFunction } = require("../utils");
+
+/**
+ * Import types
+ *
+ * @typedef {import("../logger-factory")} LoggerFactory
+ * @typedef {import("../logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./formatted").FormattedLoggerOptions} FormattedLoggerOptions
+ * @typedef {import("./formatted")} FormattedLoggerClass
+ */
 
 function getColor(type) {
 	switch (type) {
@@ -35,17 +44,18 @@ function getColor(type) {
  * Formatted abstract logger for Moleculer
  *
  * @class FormattedLogger
- * @extends {BaseLogger}
+ * @implements {FormattedLoggerClass}
  */
 class FormattedLogger extends BaseLogger {
 	/**
 	 * Creates an instance of FormattedLogger.
-	 * @param {Object} opts
+	 * @param {FormattedLoggerOptions} opts
 	 * @memberof FormattedLogger
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {FormattedLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			colors: true,
 			moduleColors: false,
@@ -124,7 +134,7 @@ class FormattedLogger extends BaseLogger {
 
 	/**
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 */
 	getFormatter(bindings) {
 		const formatter = this.opts.formatter;
@@ -220,7 +230,7 @@ class FormattedLogger extends BaseLogger {
 	/**
 	 * Interpolate a text.
 	 *
-	 * @param {Strimg} str
+	 * @param {String} str
 	 * @param {Object} obj
 	 * @returns {String}
 	 */
