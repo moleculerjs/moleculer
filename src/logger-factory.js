@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -14,13 +14,24 @@ const noop = () => {};
 const cwd = process.cwd();
 
 /**
+ * Import types
+ *
+ * @typedef {import("./service-broker")} ServiceBroker
+ * @typedef {import("./logger-factory")} LoggerFactoryClass
+ * @typedef {import("./logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./loggers/base")} BaseLogger
+ */
+
+/**
  * Log factory class.
  *
- * @class LoggerFactory
+ * @implements {LoggerFactoryClass}
  */
 class LoggerFactory {
 	/**
 	 * Constructor of LoggerFactory
+	 *
+	 * @param {ServiceBroker} broker
 	 */
 	constructor(broker) {
 		this.broker = broker;
@@ -105,8 +116,8 @@ class LoggerFactory {
 	/**
 	 * Get a logger for a module (service, transporter, cacher, context...etc)
 	 *
-	 * @param {Object} bindings
-	 * @returns {ModuleLogger}
+	 * @param {LoggerBindings} bindings
+	 * @returns {BaseLogger}
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -154,7 +165,7 @@ class LoggerFactory {
 	/**
 	 * Create a key from bindings for logger caching.
 	 *
-	 * @param {object} bindings
+	 * @param {LoggerBindings} bindings
 	 * @returns {String}
 	 */
 	getBindingsKey(bindings) {

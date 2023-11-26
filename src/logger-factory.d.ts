@@ -1,5 +1,5 @@
 import type ServiceBroker = require("./service-broker");
-import type { LEVELS, Base as BaseLogger } from "./loggers";
+import type { LogLevels, Base as BaseLogger } from "./loggers";
 
 declare namespace LoggerFactory {
 	export interface LoggerBindings {
@@ -16,7 +16,7 @@ declare namespace LoggerFactory {
 	}
 
 	export type Logger = {
-		[level in LEVELS]: (...args: any[]) => void;
+		[level in LogLevels]: (...args: any[]) => void;
 	};
 }
 
@@ -25,7 +25,7 @@ declare class LoggerFactory {
 
 	constructor(broker: ServiceBroker);
 
-	init(opts: LoggerFactory.LoggerConfig | LoggerFactory.LoggerConfig[]): void;
+	init(opts: null | boolean | LoggerFactory.LoggerConfig | LoggerFactory.LoggerConfig[]): void;
 
 	stop(): void;
 

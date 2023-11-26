@@ -20,12 +20,14 @@ const C = require("./constants");
  * @typedef {import("./transporters/base")} Transporter
  * @typedef {import("stream").Stream} Stream
  * @typedef {import("./context")} Context
+ * @typedef {import("./transit")} TransitClass
  */
 
 /**
  * Transit class
  *
  * @class Transit
+ * @implements {TransitClass}
  */
 class Transit {
 	/**

@@ -16,8 +16,8 @@ expectType<Cachers.MemoryLRU>(memoryLRUBroker.cacher as Cachers.MemoryLRU);
 // redis cacher tests
 expectType<Cachers.Redis>(new Cachers.Redis());
 expectAssignable<Cachers.Base>(new Cachers.Redis());
-expectType<string | null>(new Cachers.Redis().prefix);
-expectType<string | null>(new Cachers.Redis({ prefix: "foo" }).prefix);
+expectType<string | undefined>(new Cachers.Redis().prefix);
+expectType<string | undefined>(new Cachers.Redis({ prefix: "foo" }).prefix);
 const redisBroker = new ServiceBroker({ cacher: new Cachers.Redis() });
 expectType<Cachers.Redis>(redisBroker.cacher as Cachers.Redis);
 
@@ -28,6 +28,24 @@ expectType<any>(new Cachers.Redis().client);
 
 // custom cacher tests
 class CustomCacher extends Cachers.Base {
+	close(): Promise<unknown> {
+		throw new Error("Method not implemented.");
+	}
+	get(key: string): Promise<Record<string, unknown> | null> {
+		throw new Error("Method not implemented.");
+	}
+	getWithTTL(key: string): Promise<Record<string, unknown> | null> {
+		throw new Error("Method not implemented.");
+	}
+	set(key: string, data: any, ttl?: number | undefined): Promise<unknown> {
+		throw new Error("Method not implemented.");
+	}
+	del(key: string | string[]): Promise<unknown> {
+		throw new Error("Method not implemented.");
+	}
+	clean(match?: string | string[] | undefined): Promise<unknown> {
+		throw new Error("Method not implemented.");
+	}
 	async lock() {
 		return async () => {};
 	}

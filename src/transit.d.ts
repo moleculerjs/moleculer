@@ -3,6 +3,8 @@ import Context = require("./context");
 import BrokerNode = require("./registry/node");
 import type { Packet } from "./packets";
 import type { Logger } from "./logger-factory";
+import ServiceBroker = require("./service-broker");
+import Transporter = require("./transporters/base");
 
 declare namespace Transit {
 	export interface TransitRequest {
@@ -16,18 +18,26 @@ declare namespace Transit {
 }
 
 declare class Transit {
-	pendingRequests: Map<string, Transit.TransitRequest>;
-	nodeID: string;
+	broker: ServiceBroker;
+	tx: BaseTransporter;
+	promise: PromiseConstructor;
 	logger: Logger;
+	nodeID: string;
+	instanceID: string;
+	opts: any;
+	pendingRequests: Map<string, Transit.TransitRequest>;
+	pendingReqStreams: Map<string, any>;
+	pendingResStreams: Map<string, any>;
 	connected: boolean;
 	disconnecting: boolean;
 	isReady: boolean;
-	tx: BaseTransporter;
+
+	constructor(broker: ServiceBroker, transporter: Transporter, opts: any | null);
 
 	afterConnect(wasReconnect: boolean): Promise<void>;
 	connect(): Promise<void>;
-	disconnect(): Promise<void>;
-	ready(): Promise<void>;
+	disconnect(): Promise<any>;
+	ready(): void;
 	sendDisconnectPacket(): Promise<void>;
 	makeSubscriptions(): Promise<void[]>;
 	messageHandler(cmd: string, msg: Record<string, any>): boolean | Promise<void> | undefined;

@@ -25,5 +25,7 @@ export {
 	LEVELS
 };
 
+export type { LogLevels } from "./base";
+
 export declare function resolve(opt: Record<string, any> | string): Logger;
 export declare function register(name: string, value: Logger): void;

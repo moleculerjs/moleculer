@@ -2,12 +2,12 @@ import LoggerFactory = require("../logger-factory");
 import ServiceBroker = require("../service-broker");
 
 declare namespace BaseLogger {
-	export type LEVELS = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+	export type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
-	export type LogHandler = (level: LEVELS, args: unknown[]) => void;
+	export type LogHandler = (level: LogLevels, args: unknown[]) => void;
 
 	export interface LoggerOptions {
-		level?: LEVELS;
+		level?: LogLevels;
 		createLogger?: Function
 	}
 }
@@ -24,7 +24,7 @@ declare abstract class BaseLogger {
 
 	stop(): void;
 
-	getLogLevel(mod: string): BaseLogger.LEVELS | null;
+	getLogLevels(mod: string): BaseLogger.LogLevels | null;
 
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 
