@@ -4,10 +4,10 @@ const utils = require("../../../src/utils");
 utils.makeDirs = jest.fn();
 
 jest.mock("path");
-jest.mock("fs");
+jest.mock("fs/promises");
 
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs/promises");
 
 path.join = jest.fn((...args) => args.join("/"));
 path.resolve = jest.fn((...args) => args.join("/"));
@@ -278,7 +278,7 @@ describe("Test File logger class", () => {
 			expect(fs.appendFile).toHaveBeenCalledTimes(0);
 		});
 
-		it("should render rows and call appendFile", () => {
+		it("should render rows and call appendFile", async () => {
 			logger = new FileLogger({ level: "trace", eol: "\n" });
 			logger.init(loggerFactory);
 
@@ -287,15 +287,14 @@ describe("Test File logger class", () => {
 			logHandler("error", ["message", { a: 5 }]);
 
 			logger.formatter = jest.fn(() => "rendered");
-			fs.appendFile.mockClear();
+			fs.appendFile = jest.fn(() => Promise.resolve());
 
-			logger.flush();
+			await logger.flush();
 
 			expect(fs.appendFile).toHaveBeenCalledTimes(1);
 			expect(fs.appendFile).toHaveBeenCalledWith(
 				"./logs/moleculer-1970-01-01.log",
-				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }\n[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }\n",
-				expect.any(Function)
+				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }\n[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }\n"
 			);
 		});
 

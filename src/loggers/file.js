@@ -9,7 +9,7 @@
 const FormattedLogger = require("./formatted");
 const _ = require("lodash");
 
-const fs = require("fs").promises;
+const fs = require("fs/promises");
 const path = require("path");
 const os = require("os");
 const { makeDirs } = require("../utils");
