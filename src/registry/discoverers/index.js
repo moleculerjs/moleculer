@@ -38,7 +38,8 @@ function resolve(opt) {
 		let DiscovererClass = getByName(opt);
 		if (DiscovererClass) return new DiscovererClass();
 
-		if (opt.startsWith("redis://")) return new Discoverers.Redis(opt);
+		if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
+			return new Discoverers.Redis(opt);
 
 		if (opt.startsWith("etcd3://")) return new Discoverers.Etcd3(opt);
 
