@@ -9,13 +9,10 @@
 const FormattedLogger = require("./formatted");
 const _ = require("lodash");
 
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 const os = require("os");
-const util = require("util");
 const { makeDirs } = require("../utils");
-
-const appendFile = util.promisify(fs.appendFile);
 
 /**
  * Import types
@@ -41,10 +38,7 @@ class FileLogger extends FormattedLogger {
 	constructor(opts) {
 		super(opts);
 
-		/**
-		 * @type {FileLoggerOptions}
-		 * @override
-		 */
+		/** @type {FileLoggerOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			folder: "./logs",
 			filename: "moleculer-{date}.log",
@@ -157,7 +151,7 @@ class FileLogger extends FormattedLogger {
 
 			const buf = rows.join(this.opts.eol) + this.opts.eol;
 
-			return appendFile(filename, buf).catch(err => {
+			return fs.appendFile(filename, buf).catch(err => {
 				/* istanbul ignore next */
 				console.debug("Unable to write log file:", filename, err); // eslint-disable-line no-console
 			});

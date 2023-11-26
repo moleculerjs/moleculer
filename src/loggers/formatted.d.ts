@@ -5,7 +5,7 @@ import type { LoggerOptions } from "./base";
 
 declare namespace FormattedLogger {
 
-	export type FormatterFunction = (obj: any) => string;
+	export type FormatterFunction = (type: string, args: any[]) => string[];
 
 	export interface FormattedLoggerOptions extends LoggerOptions {
 		colors?: boolean,
@@ -19,10 +19,12 @@ declare namespace FormattedLogger {
 declare class FormattedLogger extends BaseLogger {
 	constructor(opts?: FormattedLogger.FormattedLoggerOptions);
 
-	opts: FormattedLogger.FormattedLoggerOptions;
+	// opts: FormattedLogger.FormattedLoggerOptions;
 
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
+	getFormatter(bindings: LoggerFactory.LoggerBindings) : FormattedLogger.FormatterFunction;
+	render(str: string, obj: Record<string, any>): string;
 }
 
 export = FormattedLogger;

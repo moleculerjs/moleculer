@@ -431,7 +431,7 @@ const utils = {
 	 * Parse a byte string to number of bytes. E.g "1kb" -> 1024
 	 * Credits: https://github.com/visionmedia/bytes.js
 	 *
-	 * @param {String} v
+	 * @param {String|number} v
 	 * @returns {Number|null}
 	 */
 	parseByteString(v) {

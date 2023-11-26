@@ -15,6 +15,7 @@ const { promisify } = require("util");
  * This is a transmission compression middleware. It supports
  * the `deflate`, `deflateRaw` & `gzip` compression methods.
  *
+ * @param {object} opts
  * @param {String?} opts.method
  * @param {String|Number} opts.threshold
  */

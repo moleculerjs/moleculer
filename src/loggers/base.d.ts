@@ -18,13 +18,13 @@ declare abstract class BaseLogger {
     loggerFactory: LoggerFactory;
     broker: ServiceBroker;
 
-	opts: BaseLogger.LoggerOptions
+	// opts: BaseLogger.LoggerOptions
 
 	init(loggerFactory: LoggerFactory): void;
 
 	stop(): void;
 
-	getLogLevels(mod: string): BaseLogger.LogLevels | null;
+	getLogLevel(mod: string): BaseLogger.LogLevels | null;
 
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 

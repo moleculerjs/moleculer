@@ -40,7 +40,7 @@ export declare function dotSet<T extends object>(obj: T, path: string, value: un
 
 export declare function makeDirs(path: string): void;
 
-export declare function parseByteString(value: string): number;
+export declare function parseByteString(value: string|number): number;
 
 export declare function uniq(arr: Array<String|Number>): Array<String|Number>;
 

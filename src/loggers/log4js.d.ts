@@ -2,11 +2,12 @@ import LoggerFactory = require("../logger-factory");
 
 import BaseLogger = require("./base");
 import type { LoggerOptions } from "./base";
+import type { Configuration } from "log4js";
 
 declare namespace Log4jsLogger {
 
 	export interface Log4jsLoggerOptions extends LoggerOptions {
-		log4js?: Record<string, any>
+		log4js?: Configuration
 	}
 }
 
