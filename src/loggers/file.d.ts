@@ -1,4 +1,3 @@
-import { override } from "joi";
 import LoggerFactory = require("../logger-factory");
 
 import type { LogHandler } from "./base";
@@ -15,11 +14,7 @@ declare namespace FileLogger {
 	}
 }
 
-declare class FileLogger extends FormattedLogger {
-	constructor(opts?: FileLogger.FileLoggerOptions);
-
-	opts: FileLogger.FileLoggerOptions;
-
+declare class FileLogger extends FormattedLogger<FileLogger.FileLoggerOptions> {
 	stop(): void;
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): LogHandler | null;

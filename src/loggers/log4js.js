@@ -26,6 +26,7 @@ const { isFunction } = require("../utils");
  *
  * @class Log4jsLogger
  * @implements {Log4jsLoggerClass}
+ * @extends {BaseLogger<Log4jsLoggerOptions>}
  */
 class Log4jsLogger extends BaseLogger {
 	/**

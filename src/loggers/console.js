@@ -25,6 +25,7 @@ const kleur = require("kleur");
  *
  * @class ConsoleLogger
  * @implements {ConsoleLoggerClass}
+ * @extends {FormattedLogger<ConsoleLoggerOptions>}
  */
 class ConsoleLogger extends FormattedLogger {
 	/**

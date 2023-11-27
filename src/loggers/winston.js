@@ -26,6 +26,7 @@ const { isFunction } = require("../utils");
  *
  * @class WinstonLogger
  * @implements {WinstonLoggerClass}
+ * @extends {BaseLogger<WinstonLoggerOptions>}
  */
 class WinstonLogger extends BaseLogger {
 	/**

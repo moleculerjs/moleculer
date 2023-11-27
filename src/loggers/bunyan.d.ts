@@ -12,11 +12,7 @@ declare namespace BunyanLogger {
 	}
 }
 
-declare class BunyanLogger extends BaseLogger {
-	constructor(opts?: BunyanLogger.BunyanLoggerOptions);
-
-	opts: BunyanLogger.BunyanLoggerOptions;
-
+declare class BunyanLogger extends BaseLogger<BunyanLogger.BunyanLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

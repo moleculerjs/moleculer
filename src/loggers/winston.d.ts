@@ -13,11 +13,7 @@ declare namespace WinstonLogger {
 	}
 }
 
-declare class WinstonLogger extends BaseLogger {
-	constructor(opts?: WinstonLogger.WinstonLoggerOptions);
-
-	opts: WinstonLogger.WinstonLoggerOptions;
-
+declare class WinstonLogger extends BaseLogger<WinstonLogger.WinstonLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

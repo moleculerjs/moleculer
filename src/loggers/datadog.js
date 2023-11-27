@@ -32,6 +32,7 @@ const { isObject } = require("../utils");
  *
  * @class DatadogLogger
  * @implements {DatadogLoggerClass}
+ * @extends {BaseLogger<DatadogLoggerOptions>}
  */
 class DatadogLogger extends BaseLogger {
 	/**

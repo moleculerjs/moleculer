@@ -28,6 +28,7 @@ const { makeDirs } = require("../utils");
  *
  * @class FileLogger
  * @implements {FileLoggerClass}
+ * @extends {FormattedLogger<FileLoggerOptions>}
  */
 class FileLogger extends FormattedLogger {
 	/**

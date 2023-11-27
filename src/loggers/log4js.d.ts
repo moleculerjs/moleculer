@@ -11,11 +11,7 @@ declare namespace Log4jsLogger {
 	}
 }
 
-declare class Log4jsLogger extends BaseLogger {
-	constructor(opts?: Log4jsLogger.Log4jsLoggerOptions);
-
-	opts: Log4jsLogger.Log4jsLoggerOptions;
-
+declare class Log4jsLogger extends BaseLogger<Log4jsLogger.Log4jsLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

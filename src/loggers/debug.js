@@ -26,6 +26,7 @@ const { isFunction } = require("../utils");
  *
  * @class DebugLogger
  * @implements {DebugLoggerClass}
+ * @extends {BaseLogger<DebugLoggerOptions>}
  */
 class DebugLogger extends BaseLogger {
 	/**

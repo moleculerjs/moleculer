@@ -13,11 +13,7 @@ declare namespace PinoLogger {
 	}
 }
 
-declare class PinoLogger extends BaseLogger {
-	constructor(opts?: PinoLogger.PinoLoggerOptions);
-
-	opts: PinoLogger.PinoLoggerOptions;
-
+declare class PinoLogger extends BaseLogger<PinoLogger.PinoLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

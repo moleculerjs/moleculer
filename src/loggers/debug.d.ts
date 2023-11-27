@@ -8,11 +8,7 @@ declare namespace DebugLogger {
 	export interface DebugLoggerOptions extends LoggerOptions {}
 }
 
-declare class DebugLogger extends BaseLogger {
-	constructor(opts?: DebugLogger.DebugLoggerOptions);
-
-	opts: DebugLogger.DebugLoggerOptions;
-
+declare class DebugLogger extends BaseLogger<DebugLogger.DebugLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

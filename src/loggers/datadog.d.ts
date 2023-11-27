@@ -17,11 +17,7 @@ declare namespace DatadogLogger {
 	}
 }
 
-declare class DatadogLogger extends BaseLogger {
-	constructor(opts?: DatadogLogger.DatadogLoggerOptions);
-
-	opts: DatadogLogger.DatadogLoggerOptions;
-
+declare class DatadogLogger extends BaseLogger<DatadogLogger.DatadogLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 }

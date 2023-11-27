@@ -16,11 +16,7 @@ declare namespace FormattedLogger {
 	}
 }
 
-declare class FormattedLogger extends BaseLogger {
-	constructor(opts?: FormattedLogger.FormattedLoggerOptions);
-
-	// opts: FormattedLogger.FormattedLoggerOptions;
-
+declare class FormattedLogger<T extends FormattedLogger.FormattedLoggerOptions> extends BaseLogger<T> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): BaseLogger.LogHandler | null;
 	getFormatter(bindings: LoggerFactory.LoggerBindings) : FormattedLogger.FormatterFunction;

@@ -45,6 +45,7 @@ function getColor(type) {
  *
  * @class FormattedLogger
  * @implements {FormattedLoggerClass}
+ * @extends {BaseLogger<FormattedLoggerOptions>}
  */
 class FormattedLogger extends BaseLogger {
 	/**

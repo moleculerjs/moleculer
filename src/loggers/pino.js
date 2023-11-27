@@ -26,6 +26,7 @@ const { isFunction } = require("../utils");
  *
  * @class PinoLogger
  * @implements {PinoLoggerClass}
+ * @extends {BaseLogger<PinoLoggerOptions>}
  */
 class PinoLogger extends BaseLogger {
 	/**

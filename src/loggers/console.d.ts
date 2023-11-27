@@ -9,11 +9,7 @@ declare namespace ConsoleLogger {
 	export interface ConsoleLoggerOptions extends FormattedLoggerOptions {}
 }
 
-declare class ConsoleLogger extends FormattedLogger {
-	constructor(opts?: ConsoleLogger.ConsoleLoggerOptions);
-
-	opts: ConsoleLogger.ConsoleLoggerOptions;
-
+declare class ConsoleLogger extends FormattedLogger<ConsoleLogger.ConsoleLoggerOptions> {
 	init(loggerFactory: LoggerFactory): void;
 	getLogHandler(bindings: LoggerFactory.LoggerBindings): LogHandler | null;
 }
