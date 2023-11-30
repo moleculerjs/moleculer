@@ -1,4 +1,3 @@
-// @ts-check
 /*
  * moleculer
  * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)

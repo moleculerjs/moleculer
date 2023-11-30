@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,6 +13,10 @@ const { removeFromArray } = require("../utils");
 /**
  * Import types
  *
+ * @typedef {import("./service-catalog")} ServiceCatalogClass
+ * @typedef {import("./service-catalog").ServiceCatalogListOptions} ServiceCatalogListOptions
+ * @typedef {import("./service-catalog").ServiceCatalogListResult} ServiceCatalogListResult
+ * @typedef {import("./service-catalog").ServiceCatalogLocalNodeServicesResult} ServiceCatalogLocalNodeServicesResult
  * @typedef {import("./registry")} Registry
  * @typedef {import("./node")} Node
  * @typedef {import("../service-broker")} ServiceBroker
@@ -22,6 +26,7 @@ const { removeFromArray } = require("../utils");
  * Catalog for services
  *
  * @class ServiceCatalog
+ * @implements {ServiceCatalogClass}
  */
 class ServiceCatalog {
 	/**
@@ -61,7 +66,7 @@ class ServiceCatalog {
 	 *
 	 * @param {String} fullName
 	 * @param {String} nodeID
-	 * @returns
+	 * @returns {Boolean}
 	 * @memberof ServiceCatalog
 	 */
 	has(fullName, nodeID) {
@@ -73,7 +78,7 @@ class ServiceCatalog {
 	 *
 	 * @param {String} fullName
 	 * @param {String} nodeID
-	 * @returns
+	 * @returns {ServiceItem}
 	 * @memberof ServiceCatalog
 	 */
 	get(fullName, nodeID) {
@@ -83,14 +88,8 @@ class ServiceCatalog {
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} opts
-	 * @param {Boolean} [opts.onlyLocal = false]
-	 * @param {Boolean} [opts.onlyAvailable = false]
-	 * @param {Boolean} [opts.skipInternal = false]
-	 * @param {Boolean} [opts.withActions = false]
-	 * @param {Boolean} [opts.withEvents = false]
-	 * @param {Boolean} [opts.grouping = false]
-	 * @returns {Array}
+	 * @param {ServiceCatalogListOptions} opts
+	 * @returns {ServiceCatalogListResult[]}
 	 *
 	 * @memberof Registry
 	 */
@@ -169,7 +168,7 @@ class ServiceCatalog {
 	/**
 	 * Get local service list for INFO packet
 	 *
-	 * @returns {Object}
+	 * @returns {ServiceCatalogLocalNodeServicesResult[]}
 	 * @memberof ServiceCatalog
 	 */
 	getLocalNodeServices() {

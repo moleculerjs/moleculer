@@ -1,5 +1,6 @@
 import Context = require("./context");
 import ServiceBroker = require("./service-broker");
+import Strategy = require("./strategies/base");
 import type { MoleculerError } from "./errors";
 import type { Logger } from "./logger-factory";
 import type { CacherKeygen } from "./cachers/base";
@@ -111,6 +112,8 @@ declare namespace Service {
 		retryPolicy?: RetryPolicyOptions;
 		fallback?: string | FallbackHandler;
 		hooks?: ActionHooks;
+		strategy?: string| typeof Strategy;
+		strategyOptions?: Record<string, any>;
 
 		[key: string]: any;
 	}
@@ -172,7 +175,11 @@ declare namespace Service {
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;
+		strategy?: string| typeof Strategy;
+		strategyOptions?: Record<string, any>;
 		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
+
+		[key: string]: any;
 	}
 
 	export type ServiceEvents<S = ServiceSettingSchema> = {

@@ -14,5 +14,5 @@ export {
 	ShardStrategy as Shard,
 };
 
-export declare function resolve(opts: Record<string, any>|string): BaseStrategy;
+export declare function resolve(opts: Record<string, any>|string): typeof BaseStrategy;
 export declare function register(name: string, value: BaseStrategy): void;

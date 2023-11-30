@@ -1003,7 +1003,6 @@ class ServiceBroker {
 	 * 	getLocalService({ name: "posts", version: 2 });
 	 *
 	 * @param {String|ServiceSearchObj} name
-	 * @param {String|Number?} version
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker

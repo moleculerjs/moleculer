@@ -1,22 +1,32 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 /**
+ * Import types
+ *
+ * @typedef {import("./service-item")} ServiceItemClass
+ * @typedef {import("./node")} Node
+ * @typedef {import("../service").ActionSchema} ActionSchema
+ * @typedef {import("../service").ServiceEvent} ServiceEvent
+ */
+
+/**
  * Service class
  *
  * @class ServiceItem
+ * @implements {ServiceItemClass}
  */
 class ServiceItem {
 	/**
 	 * Creates an instance of ServiceItem.
 	 *
 	 * @param {Node} node
-	 * @param {Object} service
+	 * @param {object} service
 	 * @param {Boolean} local
 	 * @memberof ServiceItem
 	 */
@@ -49,7 +59,7 @@ class ServiceItem {
 	/**
 	 * Update service properties
 	 *
-	 * @param {any} svc
+	 * @param {object} svc
 	 * @memberof ServiceItem
 	 */
 	update(svc) {
@@ -62,7 +72,7 @@ class ServiceItem {
 	/**
 	 * Add action to service
 	 *
-	 * @param {any} action
+	 * @param {ActionSchema} action
 	 * @memberof ServiceItem
 	 */
 	addAction(action) {
@@ -72,7 +82,7 @@ class ServiceItem {
 	/**
 	 * Add event to service
 	 *
-	 * @param {any} event
+	 * @param {ServiceEvent} event
 	 * @memberof ServiceItem
 	 */
 	addEvent(event) {

@@ -39,10 +39,10 @@ declare class EventCatalog {
 	registry: Registry;
     broker: ServiceBroker;
 	events: EndpointList[];
-	StrategyFactory: Strategy;
+	StrategyFactory: typeof Strategy;
 	EndpointFactory: typeof EventEndpoint;
 
-	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: Strategy);
+	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
 	add(node: BrokerNode, service: ServiceItem, event: ServiceEvent): EndpointList;
 
