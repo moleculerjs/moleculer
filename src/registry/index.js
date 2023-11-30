@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -9,5 +9,3 @@
 const Registry = require("./registry");
 
 module.exports = Registry;
-
-module.exports.Endpoint = require("./endpoint");

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -12,9 +12,23 @@ const EndpointList = require("./endpoint-list");
 const ActionEndpoint = require("./endpoint-action");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./action-catalog")} ActionCatalogClass
+ * @typedef {import("./action-catalog").ActionCatalogListOptions} ActionCatalogListOptions
+ * @typedef {import("./action-catalog").ActionCatalogListResult} ActionCatalogListResult
+ * @typedef {import("./registry")} Registry
+ * @typedef {import("./node")} Node
+ * @typedef {import("./service-item")} ServiceItem
+ * @typedef {import("../service").ActionSchema} ActionSchema
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("../strategies/base")} BaseStrategy
+ */
+/**
  * Catalog class to store service actions
  *
  * @class ActionCatalog
+ * @implements {ActionCatalogClass}
  */
 class ActionCatalog {
 	/**
@@ -22,7 +36,7 @@ class ActionCatalog {
 	 *
 	 * @param {Registry} registry
 	 * @param {ServiceBroker} broker
-	 * @param {Strategy} StrategyFactory
+	 * @param {BaseStrategy} StrategyFactory
 	 * @memberof ActionCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
@@ -41,7 +55,8 @@ class ActionCatalog {
 	 *
 	 * @param {Node} node
 	 * @param {ServiceItem} service
-	 * @param {Action} action
+	 * @param {ActionSchema} action
+	 * @returns {EndpointList}
 	 * @memberof ActionCatalog
 	 */
 	add(node, service, action) {
@@ -74,7 +89,7 @@ class ActionCatalog {
 	/**
 	 * Get action by name
 	 *
-	 * @param {String} actionName
+	 * @param {string} actionName
 	 * @returns
 	 * @memberof ActionCatalog
 	 */
@@ -85,8 +100,8 @@ class ActionCatalog {
 	/**
 	 * Check the action is available (there is live endpoint)
 	 *
-	 * @param {String} actionName
-	 * @returns {Boolean}
+	 * @param {string} actionName
+	 * @returns {boolean}
 	 * @memberof ActionCatalog
 	 */
 	isAvailable(actionName) {
@@ -111,8 +126,8 @@ class ActionCatalog {
 	/**
 	 * Remove action by name & nodeID
 	 *
-	 * @param {String} actionName
-	 * @param {String} nodeID
+	 * @param {string} actionName
+	 * @param {string} nodeID
 	 * @memberof ActionCatalog
 	 */
 	remove(actionName, nodeID) {
@@ -123,8 +138,8 @@ class ActionCatalog {
 	/**
 	 * Get a filtered list of actions
 	 *
-	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
-	 * @returns {Array}
+	 * @param {ActionCatalogListOptions} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
+	 * @returns {Array<ActionCatalogListResult>}
 	 *
 	 * @memberof ActionCatalog
 	 */

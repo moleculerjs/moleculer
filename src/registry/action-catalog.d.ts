@@ -4,6 +4,11 @@ import EndpointList = require("./endpoint-list");
 import BrokerNode = require("./node");
 import ServiceItem = require("./service-item");
 
+import ServiceBroker = require("../service-broker");
+import Registry = require("./registry");
+import Strategy = require("../strategies/base");
+import ActionEndpoint = require("./endpoint-action");
+
 declare namespace ActionCatalog {
 	export interface ActionCatalogListOptions {
 		onlyLocal?: boolean;
@@ -12,17 +17,31 @@ declare namespace ActionCatalog {
 		withEndpoints?: boolean;
 	}
 
+	interface ActionEndpointList {
+		nodeID: string,
+		state: boolean,
+		available: boolean,
+	}
+
 	export interface ActionCatalogListResult {
 		name: string;
 		count: number;
 		hasLocal: boolean;
 		available: boolean;
 		action?: Omit<ActionSchema, "handler" | "remoteHandler" | "service">;
-		endpoints?: Pick<Endpoint, "id" | "state">[];
+		endpoints?: ActionEndpointList[];
 	}
 }
 
 declare class ActionCatalog {
+	registry: Registry;
+    broker: ServiceBroker;
+	actions: Map<string, any>;
+	StrategyFactory: Strategy;
+	EndpointFactory: typeof ActionEndpoint;
+
+	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: Strategy);
+
 	add(node: BrokerNode, service: ServiceItem, action: ActionSchema): EndpointList;
 
 	get(actionName: string): EndpointList | undefined;

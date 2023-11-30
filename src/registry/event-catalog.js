@@ -15,17 +15,23 @@ const EventEndpoint = require("./endpoint-event");
 /**
  * Import types
  *
+ * @typedef {import("./event-catalog")} EventCatalogClass
+ * @typedef {import("./event-catalog").EventCatalogListOptions} EventCatalogListOptions
+ * @typedef {import("./event-catalog").EventCatalogListResult} EventCatalogListResult
  * @typedef {import("./registry")} Registry
  * @typedef {import("../service")} ServiceItem
  * @typedef {import("../service-broker")} ServiceBroker
  * @typedef {import("../context")} Context
  * @typedef {import("./node")} Node
+ * @typedef {import("../strategies/base")} BaseStrategy
+ * @typedef {import("../service").ServiceEvent} ServiceEvent
  */
 
 /**
  * Catalog for events
  *
  * @class EventCatalog
+ * @implements {EventCatalogClass}
  */
 class EventCatalog {
 	/**
@@ -33,7 +39,7 @@ class EventCatalog {
 	 *
 	 * @param {Registry} registry
 	 * @param {ServiceBroker} broker
-	 * @param {any} StrategyFactory
+	 * @param {BaseStrategy} StrategyFactory
 	 * @memberof EventCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
@@ -52,8 +58,8 @@ class EventCatalog {
 	 *
 	 * @param {Node} node
 	 * @param {ServiceItem} service
-	 * @param {any} event
-	 * @returns
+	 * @param {ServiceEvent} event
+	 * @returns {EndpointList}
 	 * @memberof EventCatalog
 	 */
 	add(node, service, event) {
@@ -90,7 +96,7 @@ class EventCatalog {
 	 *
 	 * @param {String} eventName
 	 * @param {String} groupName
-	 * @returns
+	 * @returns {EndpointList}
 	 * @memberof EventCatalog
 	 */
 	get(eventName, groupName) {
@@ -103,7 +109,7 @@ class EventCatalog {
 	 * @param {String} eventName
 	 * @param {String|Array?} groups
 	 * @param {Context} ctx
-	 * @returns
+	 * @returns {[EventEndpoint, string][]}
 	 * @memberof EventCatalog
 	 */
 	getBalancedEndpoints(eventName, groups, ctx) {
@@ -125,7 +131,7 @@ class EventCatalog {
 	 * Get all groups for event
 	 *
 	 * @param {String} eventName
-	 * @returns Array<String>
+	 * @returns {Array<String>}
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
@@ -139,7 +145,7 @@ class EventCatalog {
 	 *
 	 * @param {String} eventName
 	 * @param {Array<String>?} groupNames
-	 * @returns
+	 * @returns {EventEndpoint[]}
 	 * @memberof EventCatalog
 	 */
 	getAllEndpoints(eventName, groupNames) {
@@ -211,7 +217,7 @@ class EventCatalog {
 	/**
 	 * Call local event handler and handles unhandled promise rejections.
 	 *
-	 * @param {any} ctx
+	 * @param {Context} ctx
 	 *
 	 * @memberof EventCatalog
 	 */
@@ -247,13 +253,8 @@ class EventCatalog {
 	/**
 	 * Get a filtered list of events
 	 *
-	 * @param {Object} opts
-	 * @param {Boolean} [opts.onlyLocal = false]
-	 * @param {Boolean} [opts.onlyAvailable = false]
-	 * @param {Boolean} [opts.skipInternal = false]
-	 * @param {Boolean} [opts.withEndpoints = false]
-	 *
-	 * @returns {Array}
+	 * @param {EventCatalogListOptions} opts
+	 * @returns {EventCatalogListResult[]}
 	 *
 	 * @memberof EventCatalog
 	 */

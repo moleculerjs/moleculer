@@ -1,3 +1,5 @@
+import type { NodeRawInfo } from "./registry";
+
 declare class BrokerNode {
 	id: string;
 	instanceID: string | null;
@@ -6,15 +8,15 @@ declare class BrokerNode {
 	lastHeartbeatTime: number;
 	config: Record<string, any>;
 	client: Record<string, any>;
-	metadata: Record<string, any>;
+	metadata: Record<string, any> | null;
 
-	ipList: string[];
+	ipList: string[] | null;
 	port: number | null;
 	hostname: string | null;
 	udpAddress: string | null;
 
-	rawInfo: Record<string, any>;
-	services: [Record<string, any>];
+	rawInfo: Record<string, any> | null;
+	services: Record<string, any>[];
 
 	cpu: number | null;
 	cpuSeq: number | null;
@@ -24,7 +26,10 @@ declare class BrokerNode {
 
 	constructor(id: string);
 
+	update(payload: NodeRawInfo, isReconnected: boolean): boolean;
+	updateLocalInfo(cpuUsage: Function): Promise<any>;
+
 	heartbeat(payload: Record<string, any>): void;
-	disconnected(): void;
+	disconnected(isUnexpected?: boolean): void;
 }
 export = BrokerNode;

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -9,10 +9,22 @@
 const Endpoint = require("./endpoint");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./registry")} Registry
+ * @typedef {import("../service-broker")} ServiceBroker
+ * @typedef {import("./endpoint-action")} ActionEndpointClass
+ * @typedef {import("./node")} Node
+ * @typedef {import("../service")} Service
+ * @typedef {import("../service").ActionSchema} ActionSchema
+ */
+
+/**
  * Endpoint class for actions
  *
  * @class ActionEndpoint
  * @extends {Endpoint}
+ * @implements {ActionEndpointClass}
  */
 class ActionEndpoint extends Endpoint {
 	/**
@@ -20,8 +32,8 @@ class ActionEndpoint extends Endpoint {
 	 * @param {Registry} registry
 	 * @param {ServiceBroker} broker
 	 * @param {Node} node
-	 * @param {ServiceItem} service
-	 * @param {any} action
+	 * @param {Service} service
+	 * @param {ActionSchema} action
 	 * @memberof ActionEndpoint
 	 */
 	constructor(registry, broker, node, service, action) {
@@ -36,7 +48,7 @@ class ActionEndpoint extends Endpoint {
 	/**
 	 * Update properties
 	 *
-	 * @param {any} action
+	 * @param {ActionSchema} action
 	 * @memberof ActionEndpoint
 	 */
 	update(action) {
