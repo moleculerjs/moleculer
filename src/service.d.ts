@@ -18,6 +18,11 @@ declare namespace Service {
 		this: Service<S>
 	) => void | Promise<void>;
 
+	export interface ServiceSearchObj {
+		name?: string;
+		version?: string | number;
+	}
+
 	export interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;

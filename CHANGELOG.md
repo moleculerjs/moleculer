@@ -204,6 +204,9 @@ You can see example about migration here: https://github.com/icebob/fastest-vali
 
 The previously used huge one-file `index.d.ts` file has been rewritten and separated to multiple `d.ts` files, all are placed besides the source file. It may causes breaking changes in Typescript projects.
 
+## Other breaking changes
+
+- `ServiceBroker.Promise` is removed. Use `broker.Promise` or `this.Promise` inside a `Service`.
 
 # New features
 

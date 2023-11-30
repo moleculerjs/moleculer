@@ -29,6 +29,7 @@ import type Service = require("./service");
 import type { ServiceDependency } from "./service";
 import type { Stream } from "stream";
 import { ReplOptions } from "repl";
+import { LoggerOptions } from "./loggers/base";
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -38,7 +39,7 @@ declare namespace ServiceBroker {
 		namespace?: string | null;
 		nodeID?: string | null;
 
-		logger?: BaseLogger | LoggerConfig | LoggerConfig[] | boolean | null;
+		logger?: BaseLogger<LoggerOptions> | LoggerConfig | LoggerConfig[] | boolean | null;
 		logLevel?: LogLevels | LogLevelConfig | null;
 
 		transporter?: BaseTransporter | string | Record<string, any> | null;
@@ -118,6 +119,7 @@ declare namespace ServiceBroker {
 		strategy?: Function | string;
 		strategyOptions?: Record<string, any>;
 		preferLocal?: boolean;
+		stopDelay?: number;
 		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
 	}
 
@@ -232,6 +234,7 @@ declare namespace ServiceBroker {
 		caller?: string;
 		headers?: Record<string, any>;
 		stream?: Stream;
+		ctx?: Context;
 	}
 
 	export interface MCallCallingOptions extends CallingOptions {
@@ -252,17 +255,15 @@ declare namespace ServiceBroker {
 declare class ServiceBroker {
 	static MOLECULER_VERSION: string;
 
-	static PROTOCOL_VERSION: "5";
+	static PROTOCOL_VERSION: string;
 
 	static INTERNAL_MIDDLEWARES: string[];
 
 	static defaultOptions: ServiceBroker.ServiceBrokerOptions;
 
-	static Promise: PromiseConstructor;
-
 	MOLECULER_VERSION: string;
 
-	PROTOCOL_VERSION: "5";
+	PROTOCOL_VERSION: string;
 
 	options: ServiceBroker.ServiceBrokerOptions;
 
@@ -286,7 +287,7 @@ declare class ServiceBroker {
 
 	localBus: EventEmitter2;
 
-	scope: AsyncStorage;
+	// scope: AsyncStorage;
 
 	metrics: MetricRegistry;
 
@@ -315,7 +316,7 @@ declare class ServiceBroker {
 	errorHandler(err: Error, info: Record<string, any>): void;
 
 	wrapMethod(
-		method: string,
+		name: string,
 		handler: ActionHandler,
 		bindTo?: any,
 		opts?: MiddlewareCallHandlerOptions
@@ -376,26 +377,16 @@ declare class ServiceBroker {
 		opts?: ServiceBroker.MCallCallingOptions
 	): Promise<TReturn[]>;
 
-	emit<TData>(eventName: string, data: TData, opts: Record<string, any>): Promise<void>;
-	emit<TData>(eventName: string, data: TData, groups: string[]): Promise<void>;
-	emit<TData>(eventName: string, data: TData, groups: string): Promise<void>;
-	emit<TData>(eventName: string, data: TData): Promise<void>;
+	emit<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;
 
-	broadcast<TData>(eventName: string, data: TData, opts: Record<string, any>): Promise<void>;
-	broadcast<TData>(eventName: string, data: TData, groups: string[]): Promise<void>;
-	broadcast<TData>(eventName: string, data: TData, groups: string): Promise<void>;
-	broadcast<TData>(eventName: string, data: TData): Promise<void>;
+	broadcast<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
-	broadcastLocal<TData>(eventName: string, data: TData, opts: Record<string, any>): Promise<void>;
-	broadcastLocal<TData>(eventName: string, data: TData, groups: string[]): Promise<void>;
-	broadcastLocal<TData>(eventName: string, data: TData, groups: string): Promise<void>;
-	broadcastLocal<TData>(eventName: string, data: TData): Promise<void>;
+	broadcastLocal<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	broadcastLocal(eventName: string): Promise<void>;
 
-	ping(): Promise<ServiceBroker.PongResponses>;
-	ping(nodeID: string | string[], timeout?: number): Promise<ServiceBroker.PongResponse>;
+	ping(nodeID?: string | string[], timeout?: number): Promise<ServiceBroker.PongResponse>;
 
 	getHealthStatus(): ServiceBroker.NodeHealthStatus;
 
@@ -407,7 +398,7 @@ declare class ServiceBroker {
 
 	hasEventListener(eventName: string): boolean;
 
-	getEventListener(eventName: string): EventEndpoint[];
+	getEventListeners(eventName: string): EventEndpoint[];
 
 	getConstructorName(obj: any): string;
 

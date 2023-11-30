@@ -9,7 +9,8 @@
 		"target": "ES2022",
 		"moduleResolution": "node",
 		"noEmit": true,
-		"lib": ["ES2022"]
+		"lib": ["ES2022"],
+		"resolveJsonModule": true
 	},
 	"include": ["types/extends.d.ts", "src/**/*.js"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js"]

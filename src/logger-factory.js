@@ -19,6 +19,7 @@ const cwd = process.cwd();
  * @typedef {import("./service-broker")} ServiceBroker
  * @typedef {import("./logger-factory")} LoggerFactoryClass
  * @typedef {import("./logger-factory").LoggerBindings} LoggerBindings
+ * @typedef {import("./logger-factory").Logger} Logger
  * @typedef {import("./loggers/base")} BaseLogger
  */
 
@@ -117,7 +118,7 @@ class LoggerFactory {
 	 * Get a logger for a module (service, transporter, cacher, context...etc)
 	 *
 	 * @param {LoggerBindings} bindings
-	 * @returns {BaseLogger}
+	 * @returns {Logger}
 	 *
 	 * @memberof ServiceBroker
 	 */

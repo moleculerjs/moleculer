@@ -35,11 +35,21 @@ const C = require("./constants");
 /**
  * Import types
  *
- * @typedef {import("./service-broker").CallingOptions} CallingOptions Calling options
+ * @typedef {import("./context")} Context
+ * @typedef {import("./registry/endpoint")} Endpoint
+ * @typedef {import("./service")} Service
+ * @typedef {import("./service").ServiceSearchObj} ServiceSearchObj
+ * @typedef {import("./service-broker")} ServiceBrokerClass
+ * @typedef {import("./service-broker").ServiceBrokerOptions} ServiceBrokerOptions
+ * @typedef {import("./service-broker").CallingOptions} CallingOptions
+ * @typedef {import("./service-broker").NodeHealthStatus} NodeHealthStatus
+ * @typedef {import("./logger-factory").Logger} Logger
  */
 
 /**
  * Default broker options
+ *
+ * @type {ServiceBrokerOptions}
  */
 const defaultOptions = {
 	namespace: "",
@@ -165,6 +175,7 @@ const INTERNAL_MIDDLEWARES = [
  * Service broker class
  *
  * @class ServiceBroker
+ * @implements {ServiceBrokerClass}
  */
 class ServiceBroker {
 	/**
@@ -186,7 +197,6 @@ class ServiceBroker {
 				this.Promise = Promise;
 			}
 			utils.polyfillPromise(this.Promise);
-			ServiceBroker.Promise = this.Promise;
 
 			// Broker started flag
 			this.started = false;
@@ -645,7 +655,7 @@ class ServiceBroker {
 	/**
 	 * Wrap a method with middlewares
 	 *
-	 * @param {string} method
+	 * @param {string} name
 	 * @param {Function} handler
 	 * @param {any} bindTo
 	 * @param {Object} opts
@@ -660,7 +670,7 @@ class ServiceBroker {
 	/**
 	 * Call a handler asynchronously in all middlewares
 	 *
-	 * @param {String} method
+	 * @param {String} name
 	 * @param {Array<any>} args
 	 * @param {Object} opts
 	 * @returns {Promise}
@@ -674,7 +684,7 @@ class ServiceBroker {
 	/**
 	 * Call a handler synchronously in all middlewares
 	 *
-	 * @param {String} method
+	 * @param {String} name
 	 * @param {Array<any>} args
 	 * @param {Object} opts
 	 * @returns
@@ -709,8 +719,8 @@ class ServiceBroker {
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
 	 * @param {String} mod	Name of module
-	 * @param {Object} props	Module properties (service name, version, ...etc
-	 * @returns {ModuleLogger}
+	 * @param {Record<string, any>?} props	Module properties (service name, version, ...etc
+	 * @returns {Logger}
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -768,8 +778,8 @@ class ServiceBroker {
 	/**
 	 * Load a service from file
 	 *
-	 * @param {string} 		Path of service
-	 * @returns	{Service}	Loaded service
+	 * @param {string} filePath
+	 * @returns	{Service}
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -892,7 +902,7 @@ class ServiceBroker {
 	/**
 	 * Destroy a local service
 	 *
-	 * @param {Service|string|object} service
+	 * @param {Service|string|ServiceSearchObj} service
 	 * @returns Promise<void>
 	 * @memberof ServiceBroker
 	 */
@@ -1333,7 +1343,7 @@ class ServiceBroker {
 	 *
 	 * @param {Array<Object>|Object} def Calling definitions.
 	 * @param {Object} opts Calling options for each call.
-	 * @returns {Promise<Array<Object>|Object>|PromiseSettledResult}
+	 * @returns {Promise<Array<Object>|Object>|PromiseSettledResult<any>}
 	 *
 	 * @example
 	 * Call `mcall` with an array:
@@ -1579,7 +1589,7 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any?} payload
-	 * @param {Object?} groups
+	 * @param {Object?} opts
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
@@ -1690,7 +1700,7 @@ class ServiceBroker {
 	/**
 	 * Get local node health status
 	 *
-	 * @returns {Promise}
+	 * @returns {NodeHealthStatus}
 	 * @memberof ServiceBroker
 	 */
 	getHealthStatus() {
