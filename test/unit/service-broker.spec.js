@@ -86,7 +86,14 @@ const {
 
 jest.spyOn(Registry.prototype, "init");
 
+/**
+ * Import types
+ *
+ * @typedef {import("../src/service-broker")} ServiceBroker
+ */
+
 describe("Test ServiceBroker constructor", () => {
+	/** @type {ServiceBroker} */
 	let broker;
 
 	afterEach(async () => {

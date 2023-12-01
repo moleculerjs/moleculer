@@ -1,4 +1,35 @@
+import Registry = require("../registry");
 import BaseDiscoverer = require("./base");
 
-declare class Etcd3Discoverer extends BaseDiscoverer {}
+
+declare namespace Etcd3Discoverer {
+	export interface Etcd3DiscovererOptions extends BaseDiscoverer.DiscovererOptions {
+		etcd?: any;
+		serializer?: string;
+		fullCheck?: number|null;
+	}
+}
+
+declare class Etcd3Discoverer extends BaseDiscoverer {
+	opts: Etcd3Discoverer.Etcd3DiscovererOptions;
+	idx: number;
+	client: any;
+
+	lastInfoSeq: number;
+	lastBeatSeq: number;
+
+	leaseBeat: any;
+	leaseInfo: any;
+
+	constructor(opts?: Etcd3Discoverer.Etcd3DiscovererOptions);
+	init(registry: Registry): void;
+	stop(): Promise<void>;
+	registerMoleculerMetrics(): void;
+	sendHeartbeat(): Promise<void>;
+	collectOnlineNodes(): Promise<void>;
+	discoverNode(nodeID: string): Promise<void>;
+	discoverAllNodes(): Promise<void>;
+	sendLocalNodeInfo(nodeID?: string): Promise<void>;
+	localNodeDisconnected(): Promise<void>;
+}
 export = Etcd3Discoverer;

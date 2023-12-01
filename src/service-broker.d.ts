@@ -22,7 +22,7 @@ import type { Base as BaseTransporter } from "./transporters";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
 import type Context = require("./context");
 import type MiddlewareHandler = require("./middleware");
-import type BrokerNode = require("./registry/node");
+import type Node = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
@@ -390,7 +390,7 @@ declare class ServiceBroker {
 
 	getHealthStatus(): ServiceBroker.NodeHealthStatus;
 
-	getLocalNodeInfo(): BrokerNode;
+	getLocalNodeInfo(): Node;
 
 	getCpuUsage(): Promise<any>;
 

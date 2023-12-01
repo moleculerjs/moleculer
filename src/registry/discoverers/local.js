@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -9,14 +9,23 @@
 const BaseDiscoverer = require("./base");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./local")} LocalDiscovererClass
+ * @typedef {import("./local").LocalDiscovererOptions} LocalDiscovererOptions
+ */
+
+/**
  * Local (built-in) Discoverer class
  *
  * @class Discoverer
+ * @implements {LocalDiscovererClass}
  */
 class LocalDiscoverer extends BaseDiscoverer {
 	/**
 	 * Creates an instance of Discoverer.
 	 *
+	 * @param {LocalDiscovererOptions?} opts
 	 * @memberof LocalDiscoverer
 	 */
 	constructor(opts) {
@@ -55,7 +64,7 @@ class LocalDiscoverer extends BaseDiscoverer {
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
-	 * @param {String} nodeID
+	 * @param {String?} nodeID
 	 */
 	sendLocalNodeInfo(nodeID) {
 		if (!this.transit) return this.Promise.resolve();

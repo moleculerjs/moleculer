@@ -1,17 +1,27 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
+
+/* eslint-disable no-unused-vars */
 
 "use strict";
 
 const _ = require("lodash");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./base")} BaseDiscovererClass
+ * @typedef {import("../registry")} ServiceRegistry
+ */
+
+/**
  * Abstract Discoverer class
  *
  * @class BaseDiscoverer
+ * @implements {BaseDiscovererClass}
  */
 class BaseDiscoverer {
 	/**
@@ -251,7 +261,7 @@ class BaseDiscoverer {
 	 *
 	 * @param {String} nodeID
 	 */
-	discoverNode() {
+	discoverNode(nodeID) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
@@ -267,9 +277,9 @@ class BaseDiscoverer {
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
-	 * @param {String} nodeID
+	 * @param {String?} nodeID
 	 */
-	sendLocalNodeInfo() {
+	sendLocalNodeInfo(nodeID) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}

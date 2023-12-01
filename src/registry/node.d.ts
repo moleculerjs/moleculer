@@ -1,6 +1,6 @@
 import type { NodeRawInfo } from "./registry";
 
-declare class BrokerNode {
+declare class Node {
 	id: string;
 	instanceID: string | null;
 	available: boolean;
@@ -32,4 +32,4 @@ declare class BrokerNode {
 	heartbeat(payload: Record<string, any>): void;
 	disconnected(isUnexpected?: boolean): void;
 }
-export = BrokerNode;
+export = Node;

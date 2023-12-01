@@ -31,7 +31,6 @@ function getByName(name) {
  *
  * @param {Record<string, any>|string} opt
  * @returns {any}
- * @memberof ServiceBroker
  */
 function resolve(opt) {
 	if (Object.prototype.isPrototypeOf.call(Strategies.Base, opt)) {

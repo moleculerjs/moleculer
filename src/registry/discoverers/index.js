@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -27,9 +27,8 @@ function getByName(name) {
 /**
  * Resolve discoverer by name
  *
- * @param {object|string} opt
- * @returns {Discoverer}
- * @memberof ServiceBroker
+ * @param {Record<string, any>|string} opt
+ * @returns {any}
  */
 function resolve(opt) {
 	if (isObject(opt) && isInheritedClass(opt, Discoverers.Base)) {
@@ -38,7 +37,8 @@ function resolve(opt) {
 		let DiscovererClass = getByName(opt);
 		if (DiscovererClass) return new DiscovererClass();
 
-		if (opt.startsWith("redis://")) return new Discoverers.Redis(opt);
+		if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
+			return new Discoverers.Redis(opt);
 
 		if (opt.startsWith("etcd3://")) return new Discoverers.Etcd3(opt);
 

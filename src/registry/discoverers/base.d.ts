@@ -1,11 +1,14 @@
+import ServiceBroker = require("../../service-broker");
 import Transit = require("../../transit");
 import Registry = require("../registry");
 import Node = require("../node");
+import type { Logger } from "../../logger-factory";
 
 declare namespace BaseDiscoverer {
 	export interface DiscovererOptions extends Record<string, any> {
 		heartbeatInterval?: number;
 		heartbeatTimeout?: number;
+
 		disableHeartbeatChecks?: boolean;
 		disableOfflineNodeRemoving?: boolean;
 		cleanOfflineNodesTimeout?: number;
@@ -18,21 +21,26 @@ declare namespace BaseDiscoverer {
 }
 
 declare abstract class BaseDiscoverer {
-	constructor(opts?: BaseDiscoverer.DiscovererOptions);
 
+	broker: ServiceBroker;
+	registry: Registry;
+	Promise: PromiseConstructor;
 	transit?: Transit;
+	logger: Logger;
 
 	localNode?: Node;
 
 	heartbeatTimer: NodeJS.Timeout;
-
 	checkNodesTimer: NodeJS.Timeout;
-
 	offlineTimer: NodeJS.Timeout;
+
+	constructor(opts?: BaseDiscoverer.DiscovererOptions);
 
 	init(registry: Registry): void;
 
 	stop(): Promise<void>;
+
+	registerMoleculerMetrics(): void;
 
 	startHeartbeatTimers(): void;
 
@@ -52,13 +60,13 @@ declare abstract class BaseDiscoverer {
 
 	sendHeartbeat(): Promise<void>;
 
-	discoverNode(nodeID: string): Promise<Node | void>;
+	abstract discoverNode(nodeID: string): Promise<Node | void>;
 
-	discoverAllNodes(): Promise<Node[] | void>;
+	abstract discoverAllNodes(): Promise<Node[] | void>;
 
 	localNodeReady(): Promise<void>;
 
-	sendLocalNodeInfo(nodeID: string): Promise<void>;
+	abstract sendLocalNodeInfo(nodeID?: string): Promise<void | void[]>;
 
 	localNodeDisconnected(): Promise<void>;
 

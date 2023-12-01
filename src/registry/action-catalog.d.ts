@@ -1,7 +1,7 @@
 import type { ActionSchema } from "../service";
 import Endpoint = require("./endpoint");
 import EndpointList = require("./endpoint-list");
-import BrokerNode = require("./node");
+import Node = require("./node");
 import ServiceItem = require("./service-item");
 
 import ServiceBroker = require("../service-broker");
@@ -42,7 +42,7 @@ declare class ActionCatalog {
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: Strategy);
 
-	add(node: BrokerNode, service: ServiceItem, action: ActionSchema): EndpointList;
+	add(node: Node, service: ServiceItem, action: ActionSchema): EndpointList;
 
 	get(actionName: string): EndpointList | undefined;
 

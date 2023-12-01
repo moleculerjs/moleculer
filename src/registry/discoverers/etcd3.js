@@ -18,9 +18,17 @@ const C = require("../../constants");
 let ETCD3;
 
 /**
+ * Import types
+ *
+ * @typedef {import("./etcd3")} Etcd3DiscovererClass
+ * @typedef {import("./etcd3").Etcd3DiscovererOptions} Etcd3DiscovererOptions
+ */
+
+/**
  * etcd3-based Discoverer class
  *
  * @class Etcd3Discoverer
+ * @implements {Etcd3DiscovererClass}
  */
 class Etcd3Discoverer extends BaseDiscoverer {
 	/**
@@ -29,6 +37,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 * TODO:
 	 * 	- the etcd3 lib has no reconnection logic
 	 *
+	 * @param {Etcd3DiscovererOptions|string} opts
 	 * @memberof Etcd3Discoverer
 	 */
 	constructor(opts) {
@@ -309,7 +318,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
-	 * @param {String} nodeID
+	 * @param {String?} nodeID
 	 */
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -373,7 +373,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
-	 * @param {String} nodeID
+	 * @param {String?} nodeID
 	 */
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();

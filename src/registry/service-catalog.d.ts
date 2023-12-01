@@ -1,7 +1,7 @@
 import type { ActionSchema } from "../service";
 import type { ServiceEvent, ServiceDependency } from "../service";
 
-import BrokerNode = require("./node");
+import Node = require("./node");
 import ServiceItem = require("./service-item");
 
 import ServiceBroker = require("../service-broker");
@@ -53,7 +53,7 @@ declare class ServiceCatalog {
 
 	constructor(registry: Registry, broker: ServiceBroker);
 
-	add(node: BrokerNode, service: ServiceItem, local: boolean): ServiceItem;
+	add(node: Node, service: ServiceItem, local: boolean): ServiceItem;
 
 	has(fullName: string, nodeID: string): boolean;
     get(fullName: string, nodeID: string): ServiceItem;

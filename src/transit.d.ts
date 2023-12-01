@@ -1,6 +1,6 @@
 import BaseTransporter = require("./transporters/base");
 import Context = require("./context");
-import BrokerNode = require("./registry/node");
+import Node = require("./registry/node");
 import type { Packet } from "./packets";
 import type { Logger } from "./logger-factory";
 import ServiceBroker = require("./service-broker");
@@ -49,11 +49,11 @@ declare class Transit {
 	sendResponse(nodeID: string, id: string, data: Record<string, any>): Promise<void>;
 	discoverNodes(): Promise<void>;
 	discoverNode(nodeID: string): Promise<void>;
-	sendNodeInfo(info: BrokerNode, nodeID?: string): Promise<void | void[]>;
+	sendNodeInfo(info: Node, nodeID?: string): Promise<void | void[]>;
 	sendPing(nodeID?: string, id?: string): Promise<void>;
 	sendPong(payload: Record<string, any>): Promise<void>;
 	processPong(payload: Record<string, any>): void;
-	sendHeartbeat(localNode: BrokerNode): Promise<void>;
+	sendHeartbeat(localNode: Node): Promise<void>;
 	subscribe(topic: string, nodeID: string): Promise<void>;
 	publish(packet: Packet): Promise<void>;
 }
