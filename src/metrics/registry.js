@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -17,7 +17,21 @@ const METRIC_NAME_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_:.]*$/;
 const METRIC_LABEL_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 
 /**
+ * Import types
+ *
+ * @typedef {import("./registry")} MetricRegistryClass
+ * @typedef {import("./registry").MetricListOptions} MetricListOptions
+ * @typedef {import("./types/base")} BaseMetric
+ * @typedef {import("./types/base").BaseMetricOptions} BaseMetricOptions
+ *
+ * @typedef {import("../service-broker")} ServiceBroker
+ */
+
+/**
  * Metric Registry class
+ *
+ * @class MetricRegistry
+ * @implements {MetricRegistryClass}
  */
 class MetricRegistry {
 	/**
@@ -120,7 +134,7 @@ class MetricRegistry {
 	/**
 	 * Register a new metric.
 	 *
-	 * @param {Object} opts
+	 * @param {BaseMetricOptions} opts
 	 * @returns {BaseMetric}
 	 * @memberof MetricRegistry
 	 */
@@ -180,7 +194,7 @@ class MetricRegistry {
 	 *
 	 * @param {String} name
 	 * @param {Object?} labels
-	 * @param {number} [value=1]
+	 * @param {number?} [value=1]
 	 * @param {Number?} timestamp
 	 * @returns
 	 * @memberof MetricRegistry
@@ -221,7 +235,7 @@ class MetricRegistry {
 	 * Set a metric value.
 	 *
 	 * @param {String} name
-	 * @param {*} value
+	 * @param {any} value
 	 * @param {Object?} labels
 	 * @param {Number?} timestamp
 	 * @returns
@@ -298,7 +312,7 @@ class MetricRegistry {
 	 * @param {String} name
 	 * @param {Object?} labels
 	 * @param {Number?} timestamp
-	 * @returns {Function} `end`˙function.
+	 * @returns {() => number} `end`˙function.
 	 * @memberof MetricRegistry
 	 */
 	timer(name, labels, timestamp) {
@@ -348,14 +362,10 @@ class MetricRegistry {
 	/**
 	 * List all registered metrics with labels & values.
 	 *
-	 * @param {Object?} opts
-	 * @param {String|Array<String>|null} opts.types
-	 * @param {String|Array<String>|null} opts.includes
-	 * @param {String|Array<String>|null} opts.excludes
+	 * @param {MetricListOptions?} opts
 	 */
-	list(opts) {
+	list(opts = {}) {
 		const res = [];
-		opts = opts || {};
 
 		const types =
 			opts.types != null ? (isString(opts.types) ? [opts.types] : opts.types) : null;

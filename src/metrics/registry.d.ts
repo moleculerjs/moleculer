@@ -7,9 +7,9 @@ import MetricBaseReporter = require("./reporters/base");
 
 declare namespace MetricRegistry {
 	export interface MetricListOptions {
-		type: string | string[];
-		includes: string | string[];
-		excludes: string | string[];
+		types?: string | string[];
+		includes?: string | string[];
+		excludes?: string | string[];
 	}
 
 	export interface MetricsReporterOptions {
@@ -31,15 +31,20 @@ declare namespace MetricRegistry {
 }
 
 declare class MetricRegistry {
+	opts: MetricRegistry.MetricRegistryOptions;
 	broker: ServiceBroker;
 	logger: Logger;
+
 	dirty: boolean;
 	store: Map<string, BaseMetric>;
+
 	reporter: MetricBaseReporter[];
+	collectTimer?: NodeJS.Timeout;
 
 	constructor(broker: ServiceBroker, opts?: MetricRegistry.MetricRegistryOptions);
 	init(broker: ServiceBroker): void;
-	stop(): void;
+	stop(): Promise<void>;
+
 	isEnabled(): boolean;
 	register(opts: BaseMetricOptions): BaseMetric | null;
 
@@ -64,5 +69,7 @@ declare class MetricRegistry {
 	): void;
 
 	list(opts?: MetricRegistry.MetricListOptions): BaseMetricPOJO[];
+
+	pluralizeUnit(unit: string): string;
 }
 export = MetricRegistry;
