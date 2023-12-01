@@ -19,18 +19,29 @@ const C = require("../../constants");
 let Redis;
 
 /**
+ * Import types
+ *
+ * @typedef {import("./redis")} RedisDiscovererClass
+ * @typedef {import("./redis").RedisDiscovererOptions} RedisDiscovererOptions
+ */
+
+/**
  * Redis-based Discoverer class
  *
  * @class RedisDiscoverer
+ * @implements {RedisDiscovererClass}
  */
 class RedisDiscoverer extends BaseDiscoverer {
 	/**
 	 * Creates an instance of Discoverer.
 	 *
+	 * @param {string|RedisDiscovererOptions?} opts
 	 * @memberof RedisDiscoverer
 	 */
 	constructor(opts) {
-		if (typeof opts === "string") opts = { redis: opts };
+		if (typeof opts === "string") {
+			opts = { redis: opts };
+		}
 
 		super(opts);
 
@@ -111,7 +122,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 			this.logger.info("Redis Discoverer client connected.");
 			if (this.reconnecting) {
 				this.reconnecting = false;
-				this.sendLocalNodeInfo();
+				this.sendLocalNodeInfo(null);
 			}
 		});
 

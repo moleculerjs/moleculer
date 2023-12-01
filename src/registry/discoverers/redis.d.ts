@@ -8,7 +8,7 @@ declare namespace RedisDiscoverer {
 		serializer?: string;
 		fullCheck?: number|null;
 		scanLength?: number;
-		monitor: boolean;
+		monitor?: boolean;
 	}
 }
 
@@ -24,7 +24,7 @@ declare class RedisDiscoverer extends BaseDiscoverer {
 
 	reconnecting: boolean;
 
-	constructor(opts?: RedisDiscoverer.RedisDiscovererOptions);
+	constructor(opts?: string|RedisDiscoverer.RedisDiscovererOptions);
 	init(registry: Registry): void;
 	stop(): Promise<void>;
 	registerMoleculerMetrics(): void;
