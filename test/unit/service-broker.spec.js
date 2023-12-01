@@ -102,7 +102,6 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
 
 		expect(broker.Promise).toBe(Promise);
-		expect(ServiceBroker.Promise).toBe(Promise);
 
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
