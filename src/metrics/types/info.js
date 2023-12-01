@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,15 +11,25 @@ const BaseMetric = require("./base");
 const METRIC = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./info")} InfoMetricClass
+ * @typedef {import("./info").InfoMetricSnapshot} InfoMetricSnapshot
+ * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ */
+
+/**
  * Information metric.
  *
  * @class InfoMetric
  * @extends {BaseMetric}
+ * @implements {InfoMetricClass}
  */
 class InfoMetric extends BaseMetric {
 	/**
 	 * Creates an instance of InfoMetric.
-	 * @param {Object} opts
+	 * @param {BaseMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof InfoMetric
 	 */
@@ -31,7 +41,7 @@ class InfoMetric extends BaseMetric {
 	/**
 	 * Set value.
 	 *
-	 * @param {*} value
+	 * @param {any} value
 	 * @param {Object?} labels
 	 * @param {Number?} timestamp
 	 * @returns
@@ -88,7 +98,7 @@ class InfoMetric extends BaseMetric {
 	/**
 	 * Generate a snapshot.
 	 *
-	 * @returns {Array<Object>}
+	 * @returns {Array<InfoMetricSnapshot>}
 	 * @memberof InfoMetric
 	 */
 	generateSnapshot() {

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,6 +15,12 @@ const Types = {
 	Histogram: require("./histogram"),
 	Info: require("./info")
 };
+
+/**
+ * Import types
+ *
+ * @typedef {import("./base")} BaseMetric
+ */
 
 /**
  * Get MetricType class by name.
@@ -34,7 +40,7 @@ function getByName(name) {
  * Resolve metric type by name
  *
  * @param {string} type
- * @returns {BaseMetric}
+ * @returns {any}
  * @memberof ServiceBroker
  */
 function resolve(type) {
@@ -44,6 +50,11 @@ function resolve(type) {
 	return TypeClass;
 }
 
+/**
+ * Register a custom metric types
+ * @param {string} name
+ * @param {BaseMetric} value
+ */
 function register(name, value) {
 	Types[name] = value;
 }

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -12,15 +12,25 @@ const METRIC = require("../constants");
 const MetricRate = require("../rates");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./gauge")} GaugeMetricClass
+ * @typedef {import("./gauge").GaugeMetricSnapshot} GaugeMetricSnapshot
+ * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ */
+
+/**
  * Gauge metric class.
  *
  * @class GaugeMetric
  * @extends {BaseMetric}
+ * @implements {GaugeMetricClass}
  */
 class GaugeMetric extends BaseMetric {
 	/**
 	 * Creates an instance of GaugeMetric.
-	 * @param {Object} opts
+	 * @param {BaseMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof GaugeMetric
 	 */
@@ -105,7 +115,7 @@ class GaugeMetric extends BaseMetric {
 	/**
 	 * Reset item by labels.
 	 *
-	 * @param {Object} labels
+	 * @param {Object?} labels
 	 * @param {Number?} timestamp
 	 * @returns
 	 * @memberof GaugeMetric
@@ -131,7 +141,7 @@ class GaugeMetric extends BaseMetric {
 	/**
 	 * Generate a snapshot.
 	 *
-	 * @returns {Array<Object>}
+	 * @returns {Array<GaugeMetricSnapshot>}
 	 * @memberof GaugeMetric
 	 */
 	generateSnapshot() {

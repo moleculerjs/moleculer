@@ -22,20 +22,16 @@ declare namespace BaseMetric {
 }
 
 declare abstract class BaseMetric<TValue = unknown> {
+	registry: MetricRegistry;
+
 	type: string;
-
 	name: string;
-
 	description?: string;
-
 	labelNames: string[];
-
 	unit?: string;
-
 	aggregator: string;
 
 	lastSnapshot: Record<string, any> | null;
-
 	dirty: boolean;
 
 	values: Map<string, Record<string, any>>;
@@ -48,9 +44,9 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	get(labels?: Record<string, any>): Record<string, any> | null;
 
-	reset(labels?: Record<string, any>, timestamp?: number): Record<string, any> | null;
+	abstract reset(labels?: Record<string, any>, timestamp?: number): void;
 
-	resetAll(timestamp?: number): Record<string, any> | null;
+	abstract resetAll(timestamp?: number): void;
 
 	clear(): void;
 
@@ -60,7 +56,7 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	abstract generateSnapshot(): TValue[];
 
-	changed(value: any | null, labels?: Record<string, any>, timestamp?: number): void;
+	changed(value?: any | null, labels?: Record<string, any>, timestamp?: number): void;
 
 	toObject(): BaseMetric.BaseMetricPOJO<TValue>;
 }

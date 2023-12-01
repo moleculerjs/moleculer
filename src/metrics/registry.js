@@ -23,6 +23,7 @@ const METRIC_LABEL_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
  * @typedef {import("./registry").MetricListOptions} MetricListOptions
  * @typedef {import("./types/base")} BaseMetric
  * @typedef {import("./types/base").BaseMetricOptions} BaseMetricOptions
+ * @typedef {import("./types/gauge")} GaugeMetric
  *
  * @typedef {import("../service-broker")} ServiceBroker
  */
@@ -202,6 +203,7 @@ class MetricRegistry {
 	increment(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled) return null;
 
+		/** @type {GaugeMetric} */
 		const item = this.getMetric(name);
 		if (!isFunction(item.increment))
 			throw new Error(
@@ -224,6 +226,7 @@ class MetricRegistry {
 	decrement(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled) return null;
 
+		/** @type {GaugeMetric} */
 		const item = this.getMetric(name);
 		if (!isFunction(item.decrement))
 			throw new Error("Invalid metric type. Decrementing works only with gauge metric type.");

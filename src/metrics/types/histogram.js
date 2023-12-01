@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -18,15 +18,25 @@ const setProp = (o, k, v) => {
 };
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./histogram")} HistogramMetricClass
+ * @typedef {import("./histogram").HistogramMetricSnapshot} HistogramMetricSnapshot
+ * @typedef {import("./histogram").HistogramMetricOptions} HistogramMetricOptions
+ */
+
+/**
  * Histogram metric class.
  *
  * @class HistogramMetric
  * @extends {BaseMetric}
+ * @implements {HistogramMetricClass}
  */
 class HistogramMetric extends BaseMetric {
 	/**
 	 * Creates an instance of HistogramMetric.
-	 * @param {Object} opts
+	 * @param {HistogramMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof HistogramMetric
 	 */
@@ -84,9 +94,12 @@ class HistogramMetric extends BaseMetric {
 		const hash = this.hashingLabels(labels);
 		let item = this.values.get(hash);
 		if (!item) {
-			item = this.resetItem({
-				labels: _.pick(labels, this.labelNames)
-			});
+			item = this.resetItem(
+				{
+					labels: _.pick(labels, this.labelNames)
+				},
+				null
+			);
 
 			if (this.rate) item.rate = new MetricRate(this, item, 1);
 

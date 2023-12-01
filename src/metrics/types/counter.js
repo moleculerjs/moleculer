@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,15 +10,24 @@ const GaugeMetric = require("./gauge");
 const METRIC = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./counter")} CounterMetricClass
+ * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ */
+
+/**
  * Counter metric class.
  *
  * @class CounterMetric
  * @extends {GaugeMetric}
+ * @implements {CounterMetricClass}
  */
 class CounterMetric extends GaugeMetric {
 	/**
 	 * Creates an instance of CounterMetric.
-	 * @param {Object} opts
+	 * @param {BaseMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof CounterMetric
 	 */

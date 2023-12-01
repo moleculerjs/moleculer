@@ -11,3 +11,6 @@ export {
 	HistogramMetric as Histogram,
 	InfoMetric as Info
 };
+
+export declare function resolve(opt: Record<string,any>|string|boolean): typeof BaseMetric;
+export declare function register(name: string, value: BaseMetric): void;

@@ -1,21 +1,32 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
+/* eslint-disable no-unused-vars */
+
 "use strict";
+
+/**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./base")} BaseMetricClass
+ * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ */
 
 /**
  * Abstract Base Metric class.
  *
  * @class BaseMetric
+ * @implements {BaseMetricClass}
  */
 class BaseMetric {
 	/**
 	 * Creates an instance of BaseMetric.
 	 *
-	 * @param {Object} opts
+	 * @param {BaseMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof BaseMetric
 	 */
@@ -67,9 +78,12 @@ class BaseMetric {
 	/**
 	 * Reset item by labels
 	 *
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 *
 	 * @memberof BaseMetric
 	 */
-	reset(/*labels, timestamp*/) {
+	reset(labels, timestamp) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
@@ -77,9 +91,10 @@ class BaseMetric {
 	/**
 	 * Reset all items
 	 *
+	 * @param {Number?} timestamp
 	 * @memberof BaseMetric
 	 */
-	resetAll(/*timestamp*/) {
+	resetAll(timestamp) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
@@ -91,7 +106,7 @@ class BaseMetric {
 	 */
 	clear() {
 		this.values = new Map();
-		this.changed();
+		this.changed(null, null, null);
 	}
 
 	/**
@@ -119,7 +134,7 @@ class BaseMetric {
 	/**
 	 * Get a snapshot.
 	 *
-	 * @returns {Object}
+	 * @returns {Object|null}
 	 * @memberof BaseMetric
 	 */
 	snapshot() {
@@ -134,6 +149,7 @@ class BaseMetric {
 	/**
 	 * Generate a snapshot.
 	 *
+	 * @returns {Array}
 	 * @memberof BaseMetric
 	 */
 	generateSnapshot() {
@@ -143,8 +159,8 @@ class BaseMetric {
 
 	/**
 	 * Metric has been changed.
-	 * @param {any} value
-	 * @param {Object} labels
+	 * @param {any?} value
+	 * @param {Object?} labels
 	 * @param {Number?} timestamp
 	 */
 	changed(value, labels, timestamp) {
