@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,20 +13,31 @@ const METRIC = require("../constants");
 const { isFunction } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./console").ConsoleReporterOptions} ConsoleReporterOptions
+ * @typedef {import("./console")} ConsoleReporterClass
+ * @typedef {import("../types/base")} BaseMetric
+ */
+
+/**
  * Console reporter for Moleculer Metrics
  *
  * @class ConsoleReporter
  * @extends {BaseReporter}
+ * @implements {ConsoleReporterClass}
  */
 class ConsoleReporter extends BaseReporter {
 	/**
 	 * Creates an instance of ConsoleReporter.
-	 * @param {Object} opts
+	 * @param {ConsoleReporterOptions?} opts
 	 * @memberof ConsoleReporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {ConsoleReporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			interval: 5,
 			logger: null,
@@ -209,9 +220,6 @@ class ConsoleReporter extends BaseReporter {
 	 * Some metric has been changed.
 	 *
 	 * @param {BaseMetric} metric
-	 * @param {any} value
-	 * @param {Object} labels
-	 * @param {Number?} timestamp
 	 *
 	 * @memberof BaseReporter
 	 */

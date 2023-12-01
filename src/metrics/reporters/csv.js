@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,21 +15,34 @@ const METRIC = require("../constants");
 
 const MODE_METRIC = "metric";
 const MODE_LABEL = "label";
+
+/**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./csv").CSVReporterOptions} CSVReporterOptions
+ * @typedef {import("./csv")} CSVReporterClass
+ * @typedef {import("../types/base").BaseMetricPOJO} BaseMetricPOJO
+ * @typedef {import("../types/base")} BaseMetric
+ */
+
 /**
  * Event reporter for Moleculer Metrics
  *
  * @class CSVReporter
  * @extends {BaseReporter}
+ * @implements {CSVReporterClass}
  */
 class CSVReporter extends BaseReporter {
 	/**
 	 * Creates an instance of CSVReporter.
-	 * @param {Object} opts
+	 * @param {CSVReporterOptions} opts
 	 * @memberof CSVReporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {CSVReporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			folder: "./reports/metrics",
 			delimiter: ",",
@@ -88,7 +101,7 @@ class CSVReporter extends BaseReporter {
 
 	/**
 	 * Get filename for metric
-	 * @param {*} metric
+	 * @param {BaseMetricPOJO} metric
 	 * @param {*} item
 	 */
 	getFilename(metric, item) {
@@ -204,6 +217,7 @@ class CSVReporter extends BaseReporter {
 	/**
 	 * Write a row in CSV file
 	 * @param {String} filename
+	 * @param {Array<String>} headers
 	 * @param {Array<String>} fields
 	 */
 	writeRow(filename, headers, fields) {
@@ -231,7 +245,6 @@ class CSVReporter extends BaseReporter {
 	 * @param {BaseMetric} metric
 	 * @param {any} value
 	 * @param {Object} labels
-	 * @param {Number?} timestamp
 	 *
 	 * @memberof BaseReporter
 	 */

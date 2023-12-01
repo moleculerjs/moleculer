@@ -15,6 +15,19 @@ const METRIC = require("../constants");
 const { isFunction } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./prometheus").PrometheusReporterOptions} PrometheusReporterOptions
+ * @typedef {import("./prometheus")} PrometheusReporterClass
+ * @typedef {import("../types/base").BaseMetricPOJO} BaseMetricPOJO
+ * @typedef {import("../types/base")} BaseMetric
+ * @typedef {import("http").Server} Server
+ * @typedef {import("http").IncomingMessage} IncomingMessage
+ * @typedef {import("http").ServerResponse} ServerResponse
+ */
+
+/**
  * Prometheus reporter for Moleculer.
  *
  * 		https://prometheus.io/
@@ -36,17 +49,22 @@ const { isFunction } = require("../../utils");
  *
  * Grafana dashboard: http://<docker-ip>:3000
  *
+ * @class DatadogReporter
+ * @extends {BaseReporter}
+ * @implements {PrometheusReporterClass}
  */
 class PrometheusReporter extends BaseReporter {
 	/**
 	 * Constructor of PrometheusReporters
-	 * @param {Object} opts
+	 * @param {PrometheusReporterOptions} opts
 	 * @memberof PrometheusReporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {PrometheusReporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
+			host: null,
 			port: 3030,
 			path: "/metrics",
 			defaultLabels: registry => ({
@@ -133,7 +151,7 @@ class PrometheusReporter extends BaseReporter {
 					zlib.gzip(content, (err, buffer) => {
 						/* istanbul ignore next */
 						if (err) {
-							this.logger("Unable to compress response: " + err.message);
+							this.logger.error("Unable to compress response: " + err.message);
 							res.writeHead(500);
 							res.end(err.message);
 						} else {

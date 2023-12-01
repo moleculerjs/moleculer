@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -16,20 +16,34 @@ const { isFunction } = require("../../utils");
 const BASE_URL = "https://api.datadoghq.com/api/";
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./datadog").DatadogReporterOptions} DatadogReporterOptions
+ * @typedef {import("./datadog")} DatadogReporterClass
+ * @typedef {import("../types/base").BaseMetricPOJO} BaseMetricPOJO
+ * @typedef {import("../types/base")} BaseMetric
+ */
+
+/**
  * Datadog reporter for Moleculer.
  *
  * 		https://www.datadoghq.com/
  *
+ * @class DatadogReporter
+ * @extends {BaseReporter}
+ * @implements {DatadogReporterClass}
  */
 class DatadogReporter extends BaseReporter {
 	/**
 	 * Constructor of DatadogReporters
-	 * @param {Object} opts
+	 * @param {DatadogReporterOptions} opts
 	 * @memberof DatadogReporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {DatadogReporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			host: os.hostname(),
 			baseUrl: BASE_URL,
@@ -306,6 +320,11 @@ class DatadogReporter extends BaseReporter {
 		);
 	}
 
+	/**
+	 *
+	 * @param {number?} time
+	 * @returns
+	 */
 	posixTimestamp(time) {
 		return time != null ? Math.floor(time / 1000) : undefined;
 	}

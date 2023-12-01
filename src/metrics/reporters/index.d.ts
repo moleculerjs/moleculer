@@ -15,3 +15,6 @@ export {
 	PrometheusReporter as Prometheus,
 	StatsDReporter as StatsD
 };
+
+export declare function resolve(opt: Record<string,any>|string|boolean): MetricBaseReporter;
+export declare function register(name: string, value: MetricBaseReporter): void;

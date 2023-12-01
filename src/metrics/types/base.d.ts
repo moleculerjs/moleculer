@@ -11,17 +11,17 @@ declare namespace BaseMetric {
 		[key: string]: unknown;
 	}
 
-	export interface BaseMetricPOJO<TValue = unknown> {
+	export interface BaseMetricPOJO {
 		type: string;
 		name: string;
 		description?: string;
 		labelNames: string[];
 		unit?: string;
-		values: TValue[];
+		values: Map<string, Record<string, any>>;
 	}
 }
 
-declare abstract class BaseMetric<TValue = unknown> {
+declare abstract class BaseMetric<TValue extends Record<string, any>> {
 	registry: MetricRegistry;
 
 	type: string;
@@ -58,6 +58,6 @@ declare abstract class BaseMetric<TValue = unknown> {
 
 	changed(value?: any | null, labels?: Record<string, any>, timestamp?: number): void;
 
-	toObject(): BaseMetric.BaseMetricPOJO<TValue>;
+	toObject(): BaseMetric.BaseMetricPOJO;
 }
 export = BaseMetric;

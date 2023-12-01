@@ -1,25 +1,37 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
+/* eslint-disable no-unused-vars */
+
 const _ = require("lodash");
 const { match, isString } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../registry")} MetricRegistry
+ * @typedef {import("./base").MetricReporterOptions} MetricReporterOptions
+ * @typedef {import("./base")} MetricBaseReporterClass
+ * @typedef {import("../types/base")} BaseMetric
+ */
+
+/**
  * Metric reporter base class.
  *
- * @class BaseReporter
+ * @class MetricBaseReporter
+ * @implements {MetricBaseReporterClass}
  */
-class BaseReporter {
+class MetricBaseReporter {
 	/**
 	 * Creates an instance of BaseReporter.
 	 *
-	 * @param {Object} opts
-	 * @memberof BaseReporter
+	 * @param {MetricReporterOptions?} opts
+	 * @memberof MetricBaseReporter
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
@@ -34,7 +46,6 @@ class BaseReporter {
 		});
 
 		if (isString(this.opts.includes)) this.opts.includes = [this.opts.includes];
-
 		if (isString(this.opts.excludes)) this.opts.excludes = [this.opts.excludes];
 	}
 
@@ -42,7 +53,7 @@ class BaseReporter {
 	 * Initialize reporter
 	 *
 	 * @param {MetricRegistry} registry
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
 	init(registry) {
 		this.registry = registry;
@@ -53,7 +64,7 @@ class BaseReporter {
 	/**
 	 * Stop reporter
 	 *
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
 	stop() {
 		return Promise.resolve();
@@ -64,7 +75,7 @@ class BaseReporter {
 	 *
 	 * @param {String} name
 	 * @returns {boolean}
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
 	matchMetricName(name) {
 		if (Array.isArray(this.opts.includes)) {
@@ -83,7 +94,7 @@ class BaseReporter {
 	 *
 	 * @param {String} name
 	 * @returns {String}
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
 	formatMetricName(name) {
 		name =
@@ -99,7 +110,7 @@ class BaseReporter {
 	 *
 	 * @param {String} name
 	 * @returns {String}
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
 	formatLabelName(name) {
 		if (this.opts.labelNameFormatter) return this.opts.labelNameFormatter(name);
@@ -114,11 +125,11 @@ class BaseReporter {
 	 * @param {Object} labels
 	 * @param {Number?} timestamp
 	 *
-	 * @memberof BaseReporter
+	 * @memberof MetricBaseReporter
 	 */
-	metricChanged(/*metric, value, labels, timestamp*/) {
+	metricChanged(metric, value, labels, timestamp) {
 		// Not implemented. Abstract method
 	}
 }
 
-module.exports = BaseReporter;
+module.exports = MetricBaseReporter;
