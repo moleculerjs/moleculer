@@ -5,6 +5,7 @@ import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
 import type { BrokerRegistryOptions } from "../service-broker";
 import type { ActionSchema, ServiceEvent } from "../service";
+import ServiceItem = require("./service-item");
 import ServiceCatalog = require("./service-catalog");
 import ActionCatalog = require("./action-catalog");
 import ActionEndpoint = require("./endpoint-action");
@@ -56,7 +57,7 @@ declare class ServiceRegistry {
 
 	checkActionVisibility(action: ActionSchema, node: Node): boolean;
 
-	registerActions(node: Node, service: Service, actions: Record<string, ActionSchema>): void;
+	registerActions(node: Node, service: ServiceItem, actions: Record<string, ActionSchema>): void;
 
 	createPrivateActionEndpoint(action: ActionSchema): ActionEndpoint;
 
@@ -70,7 +71,7 @@ declare class ServiceRegistry {
 	unregisterServicesByNode(nodeID: string): void;
 	unregisterAction(node: Node, actionName: string): void;
 
-	registerEvents(node: Node, service: Service, events: Record<string, ServiceEvent>): void;
+	registerEvents(node: Node, service: ServiceItem, events: Record<string, ServiceEvent>): void;
 	unregisterEvent(node: Node, eventName: string): void;
 
 	regenerateLocalRawInfo(incSeq: boolean, isStopping?: boolean): ServiceRegistry.NodeRawInfo;
@@ -79,10 +80,10 @@ declare class ServiceRegistry {
 	getNodeInfo(nodeID: string): ServiceRegistry.NodeRawInfo;
 	processNodeInfo(payload: any): any;
 
-	getNodeList(opts?: ActionCatalogListOptions): Promise<ReturnType<NodeCatalog["list"]>>;
-	getServiceList(opts?: ActionCatalogListOptions): Promise<ReturnType<ServiceCatalog["list"]>>;
-	getActionList(opts?: ActionCatalogListOptions): Promise<ReturnType<ActionCatalog["list"]>>;
-	getEventList(opts?: ActionCatalogListOptions): Promise<ReturnType<EventCatalog["list"]>>;
+	getNodeList(opts?: ActionCatalogListOptions): ReturnType<NodeCatalog["list"]>;
+	getServiceList(opts?: ActionCatalogListOptions): ReturnType<ServiceCatalog["list"]>;
+	getActionList(opts?: ActionCatalogListOptions): ReturnType<ActionCatalog["list"]>;
+	getEventList(opts?: ActionCatalogListOptions): ReturnType<EventCatalog["list"]>;
 
 	getNodeRawList(): Array<ServiceRegistry.NodeRawInfo>;
 }

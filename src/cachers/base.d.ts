@@ -15,7 +15,7 @@ declare namespace Cacher {
 		keygen?: CacherKeygen;
 		maxParamsLength?: number;
 		missingResponse?: any;
-		[key: string]: any;
+		// [key: string]: any;
 	}
 }
 

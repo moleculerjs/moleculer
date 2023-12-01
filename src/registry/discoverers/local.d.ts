@@ -7,8 +7,6 @@ declare namespace LocalDiscoverer {
 }
 
 declare class LocalDiscoverer extends BaseDiscoverer {
-	opts: LocalDiscoverer.LocalDiscovererOptions;
-
 	constructor(opts?: LocalDiscoverer.LocalDiscovererOptions);
 	init(registry: Registry): void;
 	discoverNode(nodeID: string): Promise<void>;

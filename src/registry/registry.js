@@ -23,6 +23,7 @@ const { METRIC } = require("../metrics");
  *
  * @typedef {import("../context")} Context
  * @typedef {import("../service")} Service
+ * @typedef {import("./service-item")} ServiceItem
  * @typedef {import("../service").ServiceAction} ServiceAction
  * @typedef {import("../service").ActionSchema} ActionSchema
  * @typedef {import("../service").ServiceEvent} ServiceEvent
@@ -310,7 +311,7 @@ class Registry {
 	 * Register service actions
 	 *
 	 * @param {Node} node
-	 * @param {Service} service
+	 * @param {ServiceItem} service
 	 * @param {Record<string, ActionSchema>} actions
 	 * @memberof Registry
 	 */
@@ -438,7 +439,7 @@ class Registry {
 	 * Register service events
 	 *
 	 * @param {Node} node
-	 * @param {Service} service
+	 * @param {ServiceItem} service
 	 * @param {Record<string, ServiceEvent>} events
 	 * @memberof Registry
 	 */
@@ -471,7 +472,7 @@ class Registry {
 	 * Generate local raw info for INFO packet
 	 *
 	 * @param {boolean} incSeq
-	 * @param {boolean?} isStopping
+	 * @param {boolean=} isStopping
 	 *
 	 * @returns {NodeRawInfo}
 	 * @memberof Registry

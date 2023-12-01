@@ -92,7 +92,7 @@ export declare class InvalidPacketDataError extends MoleculerError {
 interface PlainMoleculerError extends MoleculerError {
 	nodeID?: string;
 
-	[key: string]: any;
+	// [key: string]: any;
 }
 
 export declare class Regenerator {

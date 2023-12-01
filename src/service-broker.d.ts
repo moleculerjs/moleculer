@@ -401,8 +401,6 @@ declare class ServiceBroker {
 	getEventListeners(eventName: string): EventEndpoint[];
 
 	getConstructorName(obj: any): string;
-
-	[key: string]: any;
 }
 
 export = ServiceBroker;

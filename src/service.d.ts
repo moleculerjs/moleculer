@@ -66,7 +66,7 @@ declare namespace Service {
 
 	export type ActionVisibility = "published" | "public" | "protected" | "private";
 
-	export type ActionParamSchema = { [key: string]: any };
+	// export type ActionParamSchema = { [key: string]: any };
 	export type ActionParamTypes =
 		| "any"
 		| "array"
@@ -83,8 +83,8 @@ declare namespace Service {
 		| "url"
 		| "uuid"
 		| boolean
-		| string
-		| ActionParamSchema;
+		| string;
+		// | ActionParamSchema;
 	export type ActionParams = { [key: string]: ActionParamTypes };
 
 	export type ActionCacheEnabledFunc = (ctx: Context<any, any>) => boolean;
@@ -115,7 +115,7 @@ declare namespace Service {
 		strategy?: string| typeof Strategy;
 		strategyOptions?: Record<string, any>;
 
-		[key: string]: any;
+		// [key: string]: any;
 	}
 
 	export type ActionHandler<T = any> = (ctx: Context<any, any>) => Promise<T> | T;
@@ -179,7 +179,7 @@ declare namespace Service {
 		strategyOptions?: Record<string, any>;
 		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
 
-		[key: string]: any;
+		// [key: string]: any;
 	}
 
 	export type ServiceEvents<S = ServiceSettingSchema> = {
@@ -254,7 +254,7 @@ declare class Service<S = Service.ServiceSettingSchema> {
 		interval?: number
 	): Promise<Service.WaitForServicesResult>;
 
-	[key: string]: any;
+	// [key: string]: any;
 
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema

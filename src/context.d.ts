@@ -20,7 +20,7 @@ declare namespace Context {
 		handler?: ActionHandler;
 		context?: boolean;
 
-		[key: string]: any;
+		// [key: string]: any;
 	}
 
 	export interface ContextParentSpan {

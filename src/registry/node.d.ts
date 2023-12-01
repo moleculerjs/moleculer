@@ -15,7 +15,7 @@ declare class Node {
 	hostname: string | null;
 	udpAddress: string | null;
 
-	rawInfo: Record<string, any> | null;
+	rawInfo: NodeRawInfo | null;
 	services: Record<string, any>[];
 
 	cpu: number | null;
