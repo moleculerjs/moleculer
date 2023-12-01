@@ -48,7 +48,7 @@ class ServiceItem {
 	 * Check the service equals params
 	 *
 	 * @param {String} fullName
-	 * @param {String} nodeID
+	 * @param {String=} nodeID
 	 * @returns
 	 * @memberof ServiceItem
 	 */

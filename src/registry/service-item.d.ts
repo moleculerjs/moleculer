@@ -17,7 +17,7 @@ declare class ServiceItem {
 
 	constructor(node: Node, service: Record<string, any>, local: boolean);
 
-	equals(fullName: string, nodeID: string): boolean;
+	equals(fullName: string, nodeID?: string): boolean;
 
 	update(svc: Record<string, any>): void;
 

@@ -33,6 +33,8 @@ describe("Test StatsDReporter class", () => {
 				host: "localhost",
 				port: 8125,
 
+				types: null,
+
 				maxPayloadSize: 1300
 			});
 		});
@@ -49,6 +51,8 @@ describe("Test StatsDReporter class", () => {
 				host: "localhost",
 				port: 8888,
 
+				types: null,
+
 				maxPayloadSize: 600
 			});
 
@@ -62,6 +66,8 @@ describe("Test StatsDReporter class", () => {
 
 				host: "localhost",
 				port: 8888,
+
+				types: null,
 
 				maxPayloadSize: 600
 			});

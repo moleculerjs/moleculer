@@ -506,7 +506,7 @@ class Registry {
 	/**
 	 * Generate local node info for INFO packets
 	 *
-	 * @param {boolean?} force
+	 * @param {boolean=} force
 	 * @returns {NodeRawInfo}
 	 * @memberof Registry
 	 */

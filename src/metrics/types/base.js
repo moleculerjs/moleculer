@@ -106,7 +106,7 @@ class BaseMetric {
 	 */
 	clear() {
 		this.values = new Map();
-		this.changed(null, null, null);
+		this.changed();
 	}
 
 	/**
@@ -159,9 +159,9 @@ class BaseMetric {
 
 	/**
 	 * Metric has been changed.
-	 * @param {any?} value
-	 * @param {Object?} labels
-	 * @param {Number?} timestamp
+	 * @param {any=} value
+	 * @param {Object=} labels
+	 * @param {Number=} timestamp
 	 */
 	changed(value, labels, timestamp) {
 		this.setDirty();

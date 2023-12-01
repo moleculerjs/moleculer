@@ -277,7 +277,7 @@ class BaseDiscoverer {
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
-	 * @param {String?} nodeID
+	 * @param {String=} nodeID
 	 */
 	sendLocalNodeInfo(nodeID) {
 		/* istanbul ignore next */
