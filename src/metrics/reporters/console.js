@@ -31,6 +31,7 @@ const { isFunction } = require("../../utils");
 class ConsoleReporter extends BaseReporter {
 	/**
 	 * Creates an instance of ConsoleReporter.
+	 *
 	 * @param {ConsoleReporterOptions?} opts
 	 * @memberof ConsoleReporter
 	 */
@@ -52,6 +53,7 @@ class ConsoleReporter extends BaseReporter {
 
 	/**
 	 * Initialize reporter
+	 *
 	 * @param {MetricRegistry} registry
 	 * @memberof ConsoleReporter
 	 */

@@ -96,14 +96,15 @@ class PrometheusReporter extends BaseReporter {
 			if (err) {
 				/* istanbul ignore next */
 				return this.registry.broker.fatal(
+					err.message,
 					new MoleculerError("Prometheus metric reporter listening error: " + err.message)
 				);
 			}
 
+			/** @type import("net").AddressInfo */
+			const addr = this.server.address();
 			this.logger.info(
-				`Prometheus metric reporter listening on http://${this.server.address().address}:${
-					this.server.address().port
-				}${this.opts.path} address.`
+				`Prometheus metric reporter listening on http://${addr.address}:${addr.port}${this.opts.path} address.`
 			);
 		});
 		this.defaultLabels = isFunction(this.opts.defaultLabels)

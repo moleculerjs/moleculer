@@ -11,17 +11,17 @@ declare namespace BaseMetric {
 		[key: string]: unknown;
 	}
 
-	export interface BaseMetricPOJO {
+	export interface BaseMetricPOJO<TSnapshot extends Record<string, any>> {
 		type: string;
 		name: string;
 		description?: string;
 		labelNames: string[];
 		unit?: string;
-		values: Map<string, Record<string, any>>;
+		values: Map<string, TSnapshot>;
 	}
 }
 
-declare abstract class BaseMetric<TValue extends Record<string, any>> {
+declare abstract class BaseMetric<TSnapshot extends Record<string, any>> {
 	registry: MetricRegistry;
 
 	type: string;
@@ -52,12 +52,12 @@ declare abstract class BaseMetric<TValue extends Record<string, any>> {
 
 	hashingLabels(labels?: Record<string, any>): string;
 
-	snapshot(): TValue[];
+	snapshot(): TSnapshot[];
 
-	abstract generateSnapshot(): TValue[];
+	abstract generateSnapshot(): TSnapshot[];
 
 	changed(value?: any | null, labels?: Record<string, any>, timestamp?: number): void;
 
-	toObject(): BaseMetric.BaseMetricPOJO;
+	toObject(): BaseMetric.BaseMetricPOJO<TSnapshot>;
 }
 export = BaseMetric;

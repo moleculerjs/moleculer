@@ -36,7 +36,7 @@ declare abstract class MetricBaseReporter {
 	formatLabelName(name: string): string;
 
 	metricChanged(
-		metric: BaseMetric,
+		metric: BaseMetric<any>,
 		value: any,
 		labels?: Record<string, any>,
 		timestamp?: number

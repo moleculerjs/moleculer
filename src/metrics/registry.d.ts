@@ -36,7 +36,7 @@ declare class MetricRegistry {
 	logger: Logger;
 
 	dirty: boolean;
-	store: Map<string, BaseMetric>;
+	store: Map<string, BaseMetric<any>>;
 
 	reporter: MetricBaseReporter[];
 	collectTimer?: NodeJS.Timeout;
@@ -46,10 +46,10 @@ declare class MetricRegistry {
 	stop(): Promise<void>;
 
 	isEnabled(): boolean;
-	register(opts: BaseMetricOptions): BaseMetric | null;
+	register(opts: BaseMetricOptions): BaseMetric<any> | null;
 
 	hasMetric(name: string): boolean;
-	getMetric(name: string): BaseMetric;
+	getMetric(name: string): BaseMetric<any>;
 
 	increment(name: string, labels?: Record<string, any>, value?: number, timestamp?: number): void;
 	decrement(name: string, labels?: Record<string, any>, value?: number, timestamp?: number): void;
@@ -62,13 +62,13 @@ declare class MetricRegistry {
 	timer(name: string, labels?: Record<string, any>, timestamp?: number): () => number;
 
 	changed(
-		metric: BaseMetric,
+		metric: BaseMetric<any>,
 		value: any | null,
 		labels?: Record<string, any>,
 		timestamp?: number
 	): void;
 
-	list(opts?: MetricRegistry.MetricListOptions): BaseMetricPOJO[];
+	list(opts?: MetricRegistry.MetricListOptions): BaseMetricPOJO<any>[];
 
 	pluralizeUnit(unit: string): string;
 }

@@ -25,7 +25,7 @@ const broker = new ServiceBroker({
 					includes: ["moleculer.event.received.*", "os.memory.*"]
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},
+			}
 			/*{
 				type: "Event",
 				options: {
@@ -63,12 +63,12 @@ const broker = new ServiceBroker({
 					includes: "moleculer.**",
 				}
 			},*/
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					includes: "moleculer.**"
 				}
-			}
+			}*/
 		]
 		//defaultQuantiles: [0.1, 0.5, 0.9]
 	}
