@@ -8,19 +8,30 @@ const { humanize, isFunction } = require("../../utils");
 const BaseTraceExporter = require("./base");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./console")} ConsoleTraceExporterClass
+ * @typedef {import("./console").ConsoleTraceExporterOptions} ConsoleTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ */
+
+/**
  * Console Trace Exporter only for debugging
  *
  * @class ConsoleTraceExporter
+ * @implements {ConsoleTraceExporterClass}
  */
 class ConsoleTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of ConsoleTraceExporter.
-	 * @param {Object?} opts
+	 * @param {ConsoleTraceExporterOptions?} opts
 	 * @memberof ConsoleTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {ConsoleTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			logger: null,
 			colors: true,
@@ -211,8 +222,9 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	/**
 	 * Print a span row
 	 *
-	 * @param {Object} span
-	 * @param {Object} main
+	 * @param {Object} spanItem
+	 * @param {Object} mainItem
+	 * @param {number} level
 	 */
 	printSpanTime(spanItem, mainItem, level) {
 		const span = spanItem.span;
@@ -248,11 +260,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
 
 		if (spanItem.children.length > 0)
-			spanItem.children.forEach((spanID, idx) =>
-				this.printSpanTime(this.spans[spanID], mainItem, level + 1, spanItem, {
-					first: idx === 0,
-					last: idx === spanItem.children.length - 1
-				})
+			spanItem.children.forEach(spanID =>
+				this.printSpanTime(this.spans[spanID], mainItem, level + 1)
 			);
 	}
 
@@ -295,7 +304,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		this.drawHorizonalLine();
 
-		this.printSpanTime(main, main, 1, null, {});
+		this.printSpanTime(main, main, 1);
 
 		this.drawTableBottom();
 	}

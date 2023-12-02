@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,16 @@ const _ = require("lodash");
 const BaseTraceExporter = require("./base");
 const { isFunction } = require("../../utils");
 
+/**
+ * Import types
+ *
+ * @typedef {import("./jaeger")} JaegerTraceExporterClass
+ * @typedef {import("./jaeger").JaegerTraceExporterOptions} JaegerTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ * @typedef {import("../span").SpanLogEntry} SpanLogEntry
+ */
+
 let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTTPSender;
 
 /**
@@ -18,16 +28,18 @@ let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTT
  * http://jaeger.readthedocs.io/en/latest/getting_started/#all-in-one-docker-image
  *
  * @class JaegerTraceExporter
+ * @implements {JaegerTraceExporterClass}
  */
 class JaegerTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of JaegerTraceExporter.
-	 * @param {Object?} opts
+	 * @param {JaegerTraceExporterOptions?} opts
 	 * @memberof JaegerTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {JaegerTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String?} HTTP Reporter endpoint - is set, HTTP Reporter will be used. */
 			endpoint: null,
@@ -41,7 +53,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 				/** @type {String?} Sampler type */
 				type: "Const",
 
-				/** @type: {Object?} Sampler specific options. */
+				/** @type {Object?} Sampler specific options. */
 				options: {}
 			},
 
@@ -124,6 +136,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	/**
 	 * Get sampler instance for Tracer
 	 *
+	 * @param {string} serviceName
 	 */
 	getSampler(serviceName) {
 		if (isFunction(this.opts.sampler)) return this.opts.sampler;
@@ -156,7 +169,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	/**
 	 * Get a tracer instance by service name
 	 *
-	 * @param {any} serviceName
+	 * @param {string} serviceName
 	 * @returns {Jaeger.Tracer}
 	 */
 	getTracer(serviceName) {
@@ -251,8 +264,8 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	/**
 	 * Add logs to span
 	 *
-	 * @param {Object} span
-	 * @param {Array} logs
+	 * @param {any} span
+	 * @param {SpanLogEntry[]} logs
 	 */
 	addLogs(span, logs) {
 		if (Array.isArray(logs)) {
@@ -271,10 +284,10 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	/**
 	 * Add tags to span
 	 *
-	 * @param {Object} span
+	 * @param {any} span
 	 * @param {String} key
 	 * @param {any} value
-	 * @param {String?} prefix
+	 * @param {String=} prefix
 	 */
 	addTags(span, key, value, prefix) {
 		const name = prefix ? `${prefix}.${key}` : key;
@@ -289,7 +302,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * Convert Trace/Span ID to Jaeger format
 	 *
 	 * @param {String} id
-	 * @returns {String}
+	 * @returns {Buffer}
 	 */
 	convertID(id) {
 		if (id) return Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex");

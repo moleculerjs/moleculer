@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -14,14 +14,26 @@ const Span = require("./span");
 const { isFunction } = require("../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./tracer")} TracerClass
+ * @typedef {import("./tracer").TracerOptions} TracerOptions
+ *
+ * @typedef {import("./span").SpanOptions} SpanOptions
+ * @typedef {import("../service-broker")} ServiceBroker
+ */
+
+/**
  * Moleculer Tracer class
+ * @class Tracer
+ * @implements {TracerClass}
  */
 class Tracer {
 	/**
 	 * Creates an instance of Tracer.
 	 *
 	 * @param {ServiceBroker} broker
-	 * @param {Object} opts
+	 * @param {boolean|TracerOptions} opts
 	 * @memberof Tracer
 	 */
 	constructor(broker, opts) {
@@ -186,7 +198,7 @@ class Tracer {
 	 * Start a new Span.
 	 *
 	 * @param {String} name
-	 * @param {Object?} opts
+	 * @param {SpanOptions?} opts
 	 * @returns {Span}
 	 *
 	 * @memberof Tracer

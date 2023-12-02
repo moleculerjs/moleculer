@@ -1,3 +1,9 @@
+/*
+ * moleculer
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
 const perf = require("perf_hooks").performance;
@@ -11,16 +17,25 @@ function defProp(instance, propName, value, readOnly = false) {
 }
 
 /**
+ * Import types
+ *
+ * @typedef {import("./tracer")} Tracer
+ * @typedef {import("./span")} SpanClass
+ * @typedef {import("./span").SpanOptions} SpanOptions
+ */
+
+/**
  * Trace Span class
  *
  * @class Span
+ * @implements {SpanClass}
  */
 class Span {
 	/**
 	 * Creates an instance of Span.
 	 * @param {Tracer} tracer
 	 * @param {String} name
-	 * @param {Object?} opts
+	 * @param {SpanOptions?} opts
 	 *
 	 * @memberof Span
 	 */
@@ -73,7 +88,7 @@ class Span {
 	/**
 	 * Start span.
 	 *
-	 * @param {Number?} time
+	 * @param {Number=} time
 	 * @returns {Span}
 	 * @memberof Span
 	 */
@@ -152,7 +167,7 @@ class Span {
 	/**
 	 * Finish span.
 	 *
-	 * @param {Number?} time
+	 * @param {Number=} time
 	 * @returns {Span}
 	 * @memberof Span
 	 */
@@ -187,7 +202,7 @@ class Span {
 	 * Start a child span.
 	 *
 	 * @param {String} name
-	 * @param {Object?} opts
+	 * @param {SpanOptions?} opts
 	 * @returns {Span} Child span
 	 * @memberof Span
 	 */

@@ -5,6 +5,14 @@ const BaseTraceExporter = require("./base");
 const { isObject, isFunction } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ * @typedef {import("../../context")} Context
+ */
+
+/**
  * Event Trace Exporter. It sends same trace events as in Moleculer <= v0.13.
  *
  * @class EventLegacyTraceExporter

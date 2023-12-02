@@ -1,11 +1,18 @@
 import ServiceBroker = require("../service-broker");
 import Context = require("../context");
 import Span = require("./span");
+import RateLimiter = require("./rate-limiter");
 import BaseTraceExporter = require("./exporters/base");
 import type { Logger } from "../logger-factory";
-import type { TracerExporterOptions } from "./exporters/base";
 
 declare namespace Tracer {
+	export type TracerDefaultTagsFunction = (tracer: Tracer) => Record<string, any>;
+
+	export interface TracerExporterOptions {
+		type: string;
+		options?: BaseTraceExporter.BaseTraceExporterOptions;
+	}
+
 	export type TracingActionTagsFunc = (ctx: Context, response?: any) => Record<string, any>;
 	export type TracingActionTags =
 		| TracingActionTagsFunc
@@ -54,19 +61,29 @@ declare class Tracer {
 
 	logger: Logger;
 
-	opts: Record<string, any>;
+	opts: Tracer.TracerOptions;
 
 	exporter: BaseTraceExporter[];
 
+	rateLimiter?: RateLimiter;
+
+	sampleCounter: number;
+
+	init(): void;
+	stop(): void;
 	isEnabled(): boolean;
 
 	shouldSample(span: Span): boolean;
 
-	startSpan(name: string, opts?: Record<string, any>): Span;
+	startSpan(name: string, opts?: Span.SpanOptions): Span;
+
+	invokeExporter(method: string, args: any[]): void;
 
 	getCurrentTraceID(): string | null;
-
 	getActiveSpanID(): string | null;
+
+	spanStarted(span: Span): void;
+	spanFinished(span: Span): void;
 }
 
 export = Tracer;

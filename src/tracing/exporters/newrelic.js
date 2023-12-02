@@ -1,8 +1,23 @@
+/*
+ * moleculer
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
 const _ = require("lodash");
 const BaseTraceExporter = require("./base");
 const { isFunction } = require("../../utils");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./newrelic")} NewRelicTraceExporterClass
+ * @typedef {import("./newrelic").NewRelicTraceExporterOptions} NewRelicTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ */
 
 /**
  * Trace Exporter for NewRelic using Zipkin data.
@@ -11,16 +26,18 @@ const { isFunction } = require("../../utils");
  * API v2: https://zipkin.io/zipkin-api/#/
  *
  * @class NewRelicTraceExporter
+ * @implements {NewRelicTraceExporterClass}
  */
 class NewRelicTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of NewRelicTraceExporter.
-	 * @param {Object?} opts
+	 * @param {NewRelicTraceExporterOptions?} opts
 	 * @memberof NewRelicTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {NewRelicTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String} Base URL for NewRelic server. */
 			baseURL: process.env.NEW_RELIC_TRACE_API_URL || "https://trace-api.newrelic.com",
@@ -133,7 +150,7 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 	/**
 	 * Generate tracing data for NewRelic
 	 *
-	 * @returns {Array<Object>}
+	 * @returns {Record<string, any>[]}
 	 * @memberof NewRelicTraceExporter
 	 */
 	generateTracingData() {

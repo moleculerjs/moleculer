@@ -5,6 +5,16 @@ const BaseTraceExporter = require("./base");
 const asyncHooks = require("async_hooks");
 const { isFunction } = require("../../utils");
 
+/**
+ * Import types
+ *
+ * @typedef {import("./datadog")} DatadogTraceExporterClass
+ * @typedef {import("./datadog").DatadogTraceExporterOptions} DatadogTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ * @typedef {import("../span").SpanLogEntry} SpanLogEntry
+ */
+
 let DatadogSpanContext;
 let DatadogID;
 
@@ -12,16 +22,18 @@ let DatadogID;
  * Datadog Trace Exporter with 'dd-trace'.
  *
  * @class DatadogTraceExporter
+ * @implements {DatadogTraceExporterClass}
  */
 class DatadogTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of DatadogTraceExporter.
-	 * @param {Object?} opts
+	 * @param {DatadogTraceExporterOptions?} opts
 	 * @memberof DatadogTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {DatadogTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
 			env: process.env.DD_ENVIRONMENT || null,
@@ -203,7 +215,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	/**
 	 * Activate the current span inside `dd-trace` library.
 	 *
-	 * @param {DatadogSpan} span
+	 * @param {Span} span
 	 * @param {Promise} promise
 	 * @returns {Promise}
 	 *
@@ -246,7 +258,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @param {Object} span
 	 * @param {String} key
 	 * @param {any} value
-	 * @param {String?} prefix
+	 * @param {String=} prefix
 	 */
 	addTags(span, key, value, prefix) {
 		const name = prefix ? `${prefix}.${key}` : key;
@@ -261,7 +273,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * Add logs to span
 	 *
 	 * @param {Object} span
-	 * @param {Array} logs
+	 * @param {SpanLogEntry[]} logs
 	 */
 	addLogs(span, logs) {
 		if (Array.isArray(logs)) {

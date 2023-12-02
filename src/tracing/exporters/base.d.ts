@@ -1,27 +1,30 @@
 import type { Logger } from "../../logger-factory";
 import type Span = require("../span");
 import type Tracer = require("../tracer");
+import type ServiceBroker = require("../../service-broker");
 
 declare namespace BaseTraceExporter {
-	export interface TracerExporterOptions {
-		type: string;
-		options?: Record<string, any>;
+	export interface BaseTraceExporterOptions {
+		safetyTags?: boolean;
+		logger?: Logger;
 	}
 }
 
 declare abstract class BaseTraceExporter {
-	opts: Record<string, any>;
+	// opts: BaseTraceExporter.BaseTraceExporterOptions;
 
 	tracer: Tracer;
-
+	broker: ServiceBroker;
 	logger: Logger;
+	Promise: PromiseConstructor;
 
-	constructor(opts: Record<string, any>);
+	constructor(opts: BaseTraceExporter.BaseTraceExporterOptions);
 
 	init(tracer: Tracer): void;
 
-	spanStarted(span: Span): void;
+	stop(): void;
 
+	spanStarted(span: Span): void;
 	spanFinished(span: Span): void;
 
 	flattenTags(

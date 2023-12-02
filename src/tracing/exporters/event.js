@@ -1,3 +1,9 @@
+/*
+ * moleculer
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
 const _ = require("lodash");
@@ -5,21 +11,31 @@ const BaseTraceExporter = require("./base");
 const { isFunction } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./event")} EventTraceExporterClass
+ * @typedef {import("./event").EventTraceExporterOptions} EventTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ */
+
+/**
  * Event Trace Exporter.
  *
  * @class EventTraceExporter
+ * @implements {EventTraceExporterClass}
  */
 class EventTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of EventTraceExporter.
-	 * @param {Object?} opts
+	 * @param {EventTraceExporterOptions?} opts
 	 * @memberof EventTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {EventTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
-			/** @type {String} Base URL for Zipkin server. */
 			eventName: "$tracing.spans",
 
 			sendStartSpan: false,
@@ -29,12 +45,10 @@ class EventTraceExporter extends BaseTraceExporter {
 
 			groups: null,
 
-			/** @type {Number} Batch send time interval. */
 			interval: 5,
 
 			spanConverter: null,
 
-			/** @type {Object?} Default span tags */
 			defaultTags: null
 		});
 
@@ -124,7 +138,7 @@ class EventTraceExporter extends BaseTraceExporter {
 	/**
 	 * Generate tracing data with custom converter
 	 *
-	 * @returns {Array<Object>}
+	 * @returns {Record<string, any>[]}
 	 * @memberof EventTraceExporter
 	 */
 	generateTracingData() {

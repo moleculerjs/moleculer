@@ -17,3 +17,6 @@ export {
 	ZipkinTraceExporter as Zipkin,
 	NewRelicTraceExporter as NewRelic
 };
+
+export declare function resolve(opt: Record<string,any>|string): BaseTraceExporter;
+export declare function register(name: string, value: BaseTraceExporter): void;

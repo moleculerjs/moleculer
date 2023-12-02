@@ -9,7 +9,6 @@ export {
 	MemoryLRUCacher as MemoryLRU,
 	RedisCacher as Redis
 };
-export type { RedisCacherOptions } from "./redis";
 
 export declare function resolve(opt: Record<string,any>|string|boolean): Cacher;
 export declare function register(name: string, value: Cacher): void;

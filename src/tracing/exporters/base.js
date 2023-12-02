@@ -1,20 +1,33 @@
 "use strict";
 
+/* eslint-disable no-unused-vars */
+
 const _ = require("lodash");
 const { isObject, safetyObject } = require("../../utils");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./base")} BaseTraceExporterClass
+ * @typedef {import("./base").BaseTraceExporterOptions} BaseTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ */
 
 /**
  * Abstract Trace Exporter
  *
  * @class BaseTraceExporter
+ * @implements {BaseTraceExporterClass}
  */
 class BaseTraceExporter {
 	/**
 	 * Creates an instance of BaseTraceExporter.
-	 * @param {Object?} opts
+	 * @param {BaseTraceExporterOptions?} opts
 	 * @memberof BaseTraceExporter
 	 */
 	constructor(opts) {
+		/** @type {BaseTraceExporterOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			safetyTags: false
 		});
@@ -47,7 +60,7 @@ class BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	spanStarted(/*span*/) {
+	spanStarted(span) {
 		// Not implemented
 	}
 
@@ -57,7 +70,7 @@ class BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	spanFinished(/*span*/) {
+	spanFinished(span) {
 		// Not implemented
 	}
 
@@ -80,10 +93,10 @@ class BaseTraceExporter {
 	 *  }
 	 *  ```
 	 *
-	 * @param {Object} obj
+	 * @param {Record<string, any>} obj
 	 * @param {boolean} [convertToString=false]
 	 * @param {string} [path=""]
-	 * @returns {Object}
+	 * @returns {Record<string, any>}
 	 * @memberof BaseTraceExporter
 	 */
 	flattenTags(obj, convertToString = false, path = "") {
@@ -110,7 +123,7 @@ class BaseTraceExporter {
 	 * Convert Error to POJO.
 	 *
 	 * @param {Error} err
-	 * @returns {Object}
+	 * @returns {Record<string, any>}
 	 * @memberof BaseTraceExporter
 	 */
 	errorToObject(err) {

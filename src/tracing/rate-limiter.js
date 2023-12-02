@@ -9,15 +9,24 @@
 const _ = require("lodash");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./rate-limiter")} RateLimiterClass
+ * @typedef {import("./rate-limiter").RateLimiterOptions} RateLimiterOptions
+ */
+
+/**
  * Rate Limiter class for Tracing.
  *
  * Inspired by
  * 	https://github.com/jaegertracing/jaeger-client-node/blob/master/src/rate_limiter.js
  *
  * @class RateLimiter
+ * @implements {RateLimiterClass}
  */
 class RateLimiter {
 	constructor(opts) {
+		/** @type {RateLimiterOptions} */
 		this.opts = _.defaultsDeep(opts, {
 			tracesPerSecond: 1
 		});

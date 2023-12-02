@@ -5,28 +5,36 @@ const BaseTraceExporter = require("./base");
 const { isFunction } = require("../../utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./zipkin")} ZipkinTraceExporterClass
+ * @typedef {import("./zipkin").ZipkinTraceExporterOptions} ZipkinTraceExporterOptions
+ * @typedef {import("../tracer")} Tracer
+ * @typedef {import("../span")} Span
+ */
+
+/**
  * Trace Exporter for Zipkin.
  *
  * API v2: https://zipkin.io/zipkin-api/#/
  * API v1: https://zipkin.io/pages/data_model.html
  *
  * @class ZipkinTraceExporter
+ * @implements {ZipkinTraceExporterClass}
  */
 class ZipkinTraceExporter extends BaseTraceExporter {
 	/**
 	 * Creates an instance of ZipkinTraceExporter.
-	 * @param {Object?} opts
+	 * @param {ZipkinTraceExporterOptions?} opts
 	 * @memberof ZipkinTraceExporter
 	 */
 	constructor(opts) {
 		super(opts);
 
+		/** @type {ZipkinTraceExporterOptions} */
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String} Base URL for Zipkin server. */
 			baseURL: process.env.ZIPKIN_URL || "http://localhost:9411",
-
-			/** @type {String} Zipkin REST API version. */
-			//version: "v2",
 
 			/** @type {Number} Batch send time interval in seconds. */
 			interval: 5,
@@ -133,7 +141,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	/**
 	 * Generate tracing data for Zipkin
 	 *
-	 * @returns {Array<Object>}
+	 * @returns {Record<string, any>[]}
 	 * @memberof ZipkinTraceExporter
 	 */
 	generateTracingData() {
@@ -144,7 +152,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	 * Create Zipkin v2 payload from metric event
 	 *
 	 * @param {Span} span
-	 * @returns {Object}
+	 * @returns {Record<string, any>}
 	 */
 	makePayload(span) {
 		const serviceName = span.service ? span.service.fullName : null;
