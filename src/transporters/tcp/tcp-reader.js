@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,10 +11,18 @@ const EventEmitter = require("events");
 const Parser = require("./parser");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./tcp-reader")} TcpReaderClass
+ * @typedef {import("net").Socket} Socket
+ */
+
+/**
  * TCP Reader for TcpTransporter
  *
  * @class TcpReader
  * @extends {EventEmitter}
+ * @implements {TcpReaderClass}
  */
 class TcpReader extends EventEmitter {
 	/**
@@ -52,11 +60,7 @@ class TcpReader extends EventEmitter {
 				if (reject) reject(err);
 			});
 
-			let h = this.opts.port;
-
-			// Node >= 8.x support exclusive port mapping for clustering
-			if (process.versions.node.split(".")[0] >= 8)
-				h = { port: this.opts.port, exclusive: true };
+			const h = { port: this.opts.port, exclusive: true };
 
 			// Listening
 			server.listen(h, () => {
@@ -99,12 +103,12 @@ class TcpReader extends EventEmitter {
 
 		parser.on("error", err => {
 			this.logger.warn("Packet parser error!", err);
-			this.closeSocket(socket, err);
+			this.closeSocket(socket);
 		});
 
 		socket.on("error", err => {
 			this.logger.debug(`TCP client '${address}' error!`, err);
-			this.closeSocket(socket, err);
+			this.closeSocket(socket);
 		});
 
 		socket.on("close", hadError => {

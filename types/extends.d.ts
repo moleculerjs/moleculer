@@ -13,3 +13,16 @@ declare global {
 		mapSeries<T>(arr: Array<any>, fn: Function): Promise<T>;
 	}
 }
+
+declare module "net" {
+	interface Socket {
+		nodeID: string;
+		lastUsed: number;
+	}
+}
+declare module "dgram" {
+
+	interface Socket {
+		destinations: string[];
+	}
+}

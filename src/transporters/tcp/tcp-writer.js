@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -8,6 +8,13 @@
 
 const net = require("net");
 const EventEmitter = require("events");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./tcp-writer")} TcpWriterClass
+ * @typedef {import("net").Socket} Socket
+ */
 
 const { MoleculerError } = require("../../errors");
 const {
@@ -23,6 +30,7 @@ const HEADER_SIZE = 6;
  *
  * @class TcpWriter
  * @extends {EventEmitter}
+ * @implements {TcpWriterClass}
  */
 class TcpWriter extends EventEmitter {
 	/**

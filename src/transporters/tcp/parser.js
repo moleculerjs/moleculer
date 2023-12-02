@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,13 +10,22 @@ const Writable = require("stream").Writable;
 const { resolvePacketType } = require("./constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./parser")} ParserClass
+ */
+
+/**
  * TCP packet parser
+ * @class Parser
+ * @extends {Writable}
+ * @implements {ParserClass}
  */
 class Parser extends Writable {
 	/**
 	 * Create an instance of Parser
 	 *
-	 * @param {*} options
+	 * @param {Record<string, any>} options
 	 */
 	constructor(options, maxPacketSize) {
 		super(options);

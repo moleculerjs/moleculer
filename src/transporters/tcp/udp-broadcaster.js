@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,10 +13,17 @@ const ipaddr = require("ipaddr.js");
 const { randomInt } = require("../../../src/utils");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./udp-broadcaster")} UdpBroadcasterClass
+ */
+
+/**
  * UDP Discovery Server for TcpTransporter
  *
  * @class UdpServer
  * @extends {EventEmitter}
+ * @implements {UdpBroadcasterClass}
  */
 class UdpServer extends EventEmitter {
 	/**
@@ -99,8 +106,8 @@ class UdpServer extends EventEmitter {
 	 *
 	 * @param {String?} host
 	 * @param {Number?} port
-	 * @param {String?} multicastAddress
-	 * @param {Number?} ttl
+	 * @param {String=} multicastAddress
+	 * @param {Number=} ttl
 	 */
 	startServer(host, port, multicastAddress, ttl) {
 		return new this.Promise(resolve => {
@@ -120,7 +127,10 @@ class UdpServer extends EventEmitter {
 				host = host || "0.0.0.0";
 				port = port || 4445;
 
-				server.bind({ port, host, exclusive: true }, () => {
+				/** @type {import("dgram").BindOptions} */
+				const bindOptions = { port, address: host, exclusive: true };
+
+				server.bind(bindOptions, () => {
 					try {
 						if (multicastAddress) {
 							this.logger.info(
@@ -201,7 +211,7 @@ class UdpServer extends EventEmitter {
 	 * Incoming message handler
 	 *
 	 * @param {Buffer} data
-	 * @param {anyObject} rinfo
+	 * @param {Record<string, any>} rinfo
 	 * @returns
 	 * @memberof UdpServer
 	 */
