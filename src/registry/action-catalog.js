@@ -138,7 +138,7 @@ class ActionCatalog {
 	/**
 	 * Get a filtered list of actions
 	 *
-	 * @param {ActionCatalogListOptions} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
+	 * @param {ActionCatalogListOptions} opts
 	 * @returns {Array<ActionCatalogListResult>}
 	 *
 	 * @memberof ActionCatalog

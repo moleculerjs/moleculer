@@ -207,10 +207,9 @@ class TcpTransporter extends Transporter {
 					this.logger.debug(`Load nodes list from file '${fName}'...`);
 					let content = fs.readFileSync(fName);
 					if (content && content.length > 0) {
-						content = content.toString().trim();
-						if (content.startsWith("{") || content.startsWith("["))
-							return JSON.parse(content);
-						else return content.split("\n").map(s => s.trim());
+						const str = content.toString().trim();
+						if (str.startsWith("{") || str.startsWith("[")) return JSON.parse(str);
+						else return str.split("\n").map(s => s.trim());
 					}
 				}
 

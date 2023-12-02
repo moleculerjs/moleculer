@@ -19,7 +19,7 @@ const EventEndpoint = require("./endpoint-event");
  * @typedef {import("./event-catalog").EventCatalogListOptions} EventCatalogListOptions
  * @typedef {import("./event-catalog").EventCatalogListResult} EventCatalogListResult
  * @typedef {import("./registry")} Registry
- * @typedef {import("../service")} ServiceItem
+ * @typedef {import("./service-item")} ServiceItem
  * @typedef {import("../service-broker")} ServiceBroker
  * @typedef {import("../context")} Context
  * @typedef {import("./node")} Node
@@ -48,6 +48,7 @@ class EventCatalog {
 		this.logger = registry.logger;
 		this.StrategyFactory = StrategyFactory;
 
+		/** @type EndpointList[] */
 		this.events = [];
 
 		this.EndpointFactory = EventEndpoint;
