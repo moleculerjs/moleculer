@@ -89,9 +89,8 @@ export declare class InvalidPacketDataError extends MoleculerError {
 	constructor(data: any);
 }
 
-interface PlainMoleculerError extends MoleculerError {
+export interface PlainMoleculerError extends MoleculerError {
 	nodeID?: string;
-
 	// [key: string]: any;
 }
 
@@ -100,10 +99,14 @@ export declare class Regenerator {
 
 	restore(plainError: PlainMoleculerError, payload: Record<string, any>): Error;
 
-	extractPlainError(err: Error, payload?: Record<string, any>): PlainMoleculerError;
+	extractPlainError(err: Record<string, any>, payload?: Record<string, any>): PlainMoleculerError;
 
 	restoreCustomError(
 		plainError: PlainMoleculerError,
 		payload: Record<string, any>
-	): Error | undefined;
+	): Error;
+
+	_createDefaultError(plainError: PlainMoleculerError): Error;
+	_restoreExternalFields(plainError: PlainMoleculerError, err: PlainMoleculerError, payload: Record<string, any>): void;
+	_restoreStack(plainError: PlainMoleculerError, err: Error): void;
 }
