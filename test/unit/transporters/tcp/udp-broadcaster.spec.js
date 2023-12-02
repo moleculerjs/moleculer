@@ -75,7 +75,7 @@ describe("Test UdpServer.startServer", () => {
 
 				expect(server.bind).toHaveBeenCalledTimes(1);
 				expect(server.bind).toHaveBeenCalledWith(
-					{ exclusive: true, host: "127.0.0.1", port: 4567 },
+					{ exclusive: true, address: "127.0.0.1", port: 4567 },
 					expect.any(Function)
 				);
 
@@ -109,7 +109,7 @@ describe("Test UdpServer.startServer", () => {
 
 				expect(server.bind).toHaveBeenCalledTimes(1);
 				expect(server.bind).toHaveBeenCalledWith(
-					{ exclusive: true, host: "10.0.0.4", port: 4567 },
+					{ exclusive: true, address: "10.0.0.4", port: 4567 },
 					expect.any(Function)
 				);
 

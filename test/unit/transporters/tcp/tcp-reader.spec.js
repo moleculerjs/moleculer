@@ -181,7 +181,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		socket.parser.__callbacks.error(parserErr);
 
 		expect(reader.closeSocket).toHaveBeenCalledTimes(1);
-		expect(reader.closeSocket).toHaveBeenCalledWith(socket, parserErr);
+		expect(reader.closeSocket).toHaveBeenCalledWith(socket);
 	});
 
 	it("should call closeSocket on socket error", () => {
@@ -193,7 +193,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		socket.__callbacks.error(socketErr);
 
 		expect(reader.closeSocket).toHaveBeenCalledTimes(1);
-		expect(reader.closeSocket).toHaveBeenCalledWith(socket, socketErr);
+		expect(reader.closeSocket).toHaveBeenCalledWith(socket);
 	});
 
 	it("should call closeSocket on socket close", () => {

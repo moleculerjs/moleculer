@@ -204,8 +204,6 @@ class Cacher {
 	/**
 	 * Clean cache. Remove every key by match
 	 * /@param {string|Array<string>} match string. Default is "**"
-	 * @returns {Promise}
-	 *
 	 * @returns {Promise<any>}
 	 * @memberof Cacher
 	 */
