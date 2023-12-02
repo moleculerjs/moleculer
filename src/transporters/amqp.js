@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,13 @@ const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
 const C = require("../constants");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./amqp")} AmqpTransporterClass
+ * @typedef {import("./amqp").AmqpTransporterOptions} AmqpTransporterOptions
+ */
 
 const {
 	PACKET_REQUEST,
@@ -40,7 +47,7 @@ class AmqpTransporter extends Transporter {
 	/**
 	 * Creates an instance of AmqpTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {string|AmqpTransporterOptions?} opts
 	 *
 	 * @memberof AmqpTransporter
 	 */
@@ -268,10 +275,12 @@ class AmqpTransporter extends Transporter {
 	 * Get assertQueue options by packet type.
 	 *
 	 * @param {String} packetType
+	 * @param {boolean=} balancedQueue
 	 *
 	 * @memberof AmqpTransporter
 	 */
 	_getQueueOptions(packetType, balancedQueue) {
+		/** @type {Record<string, any>} */
 		let packetOptions;
 		switch (packetType) {
 			// Requests and responses don't expire.
@@ -320,7 +329,8 @@ class AmqpTransporter extends Transporter {
 	 * Build a function to handle requests.
 	 *
 	 * @param {String} cmd
-	 * @param {Boolean} needAck
+	 * @param {Boolean=} needAck
+	 * @returns {Function}
 	 *
 	 * @memberof AmqpTransporter
 	 */

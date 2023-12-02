@@ -33,9 +33,8 @@ export type PacketType =
 	| typeof PACKET_GOSSIP_RES
 	| typeof PACKET_GOSSIP_HELLO;
 
-type PROTOCOL_VERSION = "5";
 export interface PacketPayload {
-	ver: PROTOCOL_VERSION;
+	ver: string;
 	sender: string | null;
 }
 

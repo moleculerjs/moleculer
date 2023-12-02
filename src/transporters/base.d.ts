@@ -1,10 +1,18 @@
 import type Transit = require("../transit");
 import type { Packet } from "../packets";
+import ServiceBroker = require("../service-broker");
+import { Logger } from "../logger-factory";
 
 declare abstract class BaseTransporter {
-	hasBuiltInBalancer: boolean;
-	connected: boolean;
 	opts: Record<string, any>;
+	connected: boolean;
+	hasBuiltInBalancer: boolean;
+	transit: Transit;
+	broker: ServiceBroker;
+	logger: Logger;
+
+	nodeID: string;
+	prefix: string;
 
 	constructor(opts?: Record<string, any>);
 
@@ -14,42 +22,33 @@ declare abstract class BaseTransporter {
 		afterConnect: (wasReconnect: boolean) => void
 	): void;
 
-	connect(): Promise<any>;
+	abstract connect(): Promise<any>;
 
-	disconnect(): Promise<any>;
+	abstract disconnect(): Promise<any>;
 
 	onConnected(wasReconnect?: boolean): Promise<any>;
 
 	makeSubscriptions(topics: Array<Record<string, any>>): Promise<void>;
+	makeBalancedSubscriptions(): Promise<void>;
 
-	subscribe(cmd: string, nodeID?: string): Promise<void>;
-
-	subscribeBalancedRequest(action: string): Promise<void>;
-
-	subscribeBalancedEvent(event: string, group: string): Promise<void>;
-
-	unsubscribeFromBalancedCommands(): Promise<void>;
-
-	incomingMessage(cmd: string, msg: Buffer): Promise<void>;
-
+	incomingMessage(cmd: string, msg?: Buffer): Promise<void>;
 	receive(cmd: string, data: Buffer): Promise<void>;
 
+	abstract subscribe(cmd: string, nodeID?: string): Promise<void>;
+	abstract subscribeBalancedRequest(action: string): Promise<void>;
+	abstract subscribeBalancedEvent(event: string, group: string): Promise<void>;
+	unsubscribeFromBalancedCommands(): Promise<void>;
+
 	prepublish(packet: Packet): Promise<void>;
-
 	publish(packet: Packet): Promise<void>;
-
 	publishBalancedEvent(packet: Packet, group: string): Promise<void>;
-
 	publishBalancedRequest(packet: Packet): Promise<void>;
-
-	send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
+	abstract send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
 
 	getTopicName(cmd: string, nodeID?: string): string;
 
-	makeBalancedSubscriptions(): Promise<void>;
-
 	serialize(packet: Packet): Buffer;
-
-	deserialize(type: string, data: Buffer): Packet;
+	deserialize(type: string, buf: Buffer): Packet;
 }
+
 export = BaseTransporter;

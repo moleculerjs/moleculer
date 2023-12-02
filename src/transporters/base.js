@@ -4,6 +4,8 @@
  * MIT Licensed
  */
 
+/* eslint-disable no-unused-vars */
+
 "use strict";
 
 const _ = require("lodash");
@@ -12,15 +14,24 @@ const { flatten } = require("../utils");
 const { BrokerDisconnectedError } = require("../errors");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./base")} BaseTransporterClass
+ * @typedef {import("../transit")} Transit
+ * @typedef {import("../packets").Packet} Packet
+ */
+
+/**
  * Base Transporter class
  *
  * @class BaseTransporter
+ * @implements {BaseTransporterClass}
  */
 class BaseTransporter {
 	/**
 	 * Creates an instance of BaseTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {Record<string,any>?} opts
 	 *
 	 * @memberof BaseTransporter
 	 */
@@ -56,6 +67,7 @@ class BaseTransporter {
 	/**
 	 * Connect to the transporter server
 	 *
+	 * @returns {Promise}
 	 * @memberof BaseTransporter
 	 */
 	connect() {
@@ -66,7 +78,7 @@ class BaseTransporter {
 	/**
 	 * Event handler for connected.
 	 *
-	 * @param {any} wasReconnect
+	 * @param {boolean?} wasReconnect
 	 * @returns {Promise}
 	 *
 	 * @memberof BaseTransporter
@@ -83,6 +95,7 @@ class BaseTransporter {
 	/**
 	 * Disconnect from the transporter server
 	 *
+	 * @returns {Promise}
 	 * @memberof BaseTransporter
 	 */
 	disconnect() {
@@ -94,6 +107,7 @@ class BaseTransporter {
 	 * Subscribe to all topics
 	 *
 	 * @param {Array<Object>} topics
+	 * @returns {Promise}
 	 *
 	 * @memberof BaseTransporter
 	 */
@@ -107,8 +121,8 @@ class BaseTransporter {
 	 * Process incoming messages
 	 *
 	 * @param {String} cmd
-	 * @param {Buffer} msg
-	 * @returns
+	 * @param {Buffer=} msg
+	 * @returns {Promise}
 	 * @memberof BaseTransporter
 	 */
 	incomingMessage(cmd, msg) {
@@ -124,8 +138,10 @@ class BaseTransporter {
 
 	/**
 	 * Received data. It's a wrapper for middlewares.
+	 *
 	 * @param {String} cmd
 	 * @param {Buffer} data
+	 * @returns {Promise}
 	 */
 	receive(cmd, data) {
 		return this.incomingMessage(cmd, data);
@@ -136,10 +152,11 @@ class BaseTransporter {
 	 *
 	 * @param {String} cmd
 	 * @param {String} nodeID
+	 * @returns {Promise}
 	 *
 	 * @memberof BaseTransporter
 	 */
-	subscribe(/*cmd, nodeID*/) {
+	subscribe(cmd, nodeID) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -148,9 +165,11 @@ class BaseTransporter {
 	 * Subscribe to balanced action commands
 	 *
 	 * @param {String} action
+	 * @returns {Promise}
+	 *
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedRequest(/*action*/) {
+	subscribeBalancedRequest(action) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -160,9 +179,11 @@ class BaseTransporter {
 	 *
 	 * @param {String} event
 	 * @param {String} group
+	 * @returns {Promise}
+	 *
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedEvent(/*event, group*/) {
+	subscribeBalancedEvent(event, group) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -170,6 +191,7 @@ class BaseTransporter {
 	/**
 	 * Unsubscribe all balanced request and event commands
 	 *
+	 * @returns {Promise}
 	 * @memberof BaseTransporter
 	 */
 	unsubscribeFromBalancedCommands() {
@@ -232,15 +254,15 @@ class BaseTransporter {
 	 *
 	 * @returns {Promise}
 	 */
-	send(/*topic, data, meta*/) {
+	send(topic, data, meta) {
 		throw new Error("Not implemented!");
 	}
 
 	/**
 	 * Get topic name from command & target nodeID
 	 *
-	 * @param {any} cmd
-	 * @param {any} nodeID
+	 * @param {string} cmd
+	 * @param {string=} nodeID
 	 *
 	 * @memberof BaseTransporter
 	 */
@@ -251,7 +273,8 @@ class BaseTransporter {
 	/**
 	 * Initialize queues for REQUEST & EVENT packets.
 	 *
-	 * @memberof AmqpTransporter
+	 * @returns {Promise}
+	 * @memberof BaseTransporter
 	 */
 	makeBalancedSubscriptions() {
 		if (!this.hasBuiltInBalancer) return this.broker.Promise.resolve();
@@ -281,7 +304,7 @@ class BaseTransporter {
 						);
 					}
 
-					return this.broker.Promise.all(_.compact(flatten(p, true)));
+					return this.broker.Promise.all(_.compact(flatten(p)));
 				})
 			);
 		});
@@ -299,7 +322,9 @@ class BaseTransporter {
 		if (!this.connected) {
 			// For packets that are triggered intentionally by users, throw a retryable error.
 			if ([P.PACKET_REQUEST, P.PACKET_EVENT, P.PACKET_PING].includes(packet.type)) {
-				return this.broker.Promise.reject(new BrokerDisconnectedError());
+				return this.broker.Promise.reject(
+					new BrokerDisconnectedError("Broker is disconnected!")
+				);
 			}
 
 			// For internal packets like INFO and HEARTBEATS, skip sending and don't throw
@@ -339,7 +364,7 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Buffer}
 	 *
-	 * @memberof Transit
+	 * @memberof BaseTransporter
 	 */
 	serialize(packet) {
 		packet.payload.ver = this.broker.PROTOCOL_VERSION;
@@ -354,7 +379,7 @@ class BaseTransporter {
 	 * @param {Buffer} buf
 	 * @returns {Packet}
 	 *
-	 * @memberof Transit
+	 * @memberof BaseTransporter
 	 */
 	deserialize(type, buf) {
 		if (buf == null) return null;
