@@ -12,16 +12,24 @@ const { BrokerOptionsError } = require("../errors");
 const C = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./redis")} RedisTransporterClass
+ * @typedef {import("./redis").RedisTransporterOptions} RedisTransporterOptions
+ */
+
+/**
  * Transporter for Redis
  *
  * @class RedisTransporter
  * @extends {Transporter}
+ * @implements {RedisTransporterClass}
  */
 class RedisTransporter extends Transporter {
 	/**
 	 * Creates an instance of RedisTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {RedisTransporterOptions} opts
 	 *
 	 * @memberof RedisTransporter
 	 */
@@ -119,6 +127,8 @@ class RedisTransporter extends Transporter {
 			this.clientPub.disconnect();
 			this.clientPub = null;
 		}
+
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -135,11 +145,32 @@ class RedisTransporter extends Transporter {
 	}
 
 	/**
+	 * Subscribe to balanced action commands
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedRequest() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedEvent() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Send data buffer.
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
-	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */
@@ -155,7 +186,7 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Return redis or redis.cluster client
 	 *
-	 * @param {any} opts
+	 * @param {string|RedisTransporterOptions} opts
 	 *
 	 * @memberof RedisTransporter
 	 */

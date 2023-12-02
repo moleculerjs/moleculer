@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -10,6 +10,14 @@ const url = require("url");
 const Transporter = require("./base");
 const { isPromise } = require("../utils");
 const C = require("../constants");
+
+/**
+ * Import types
+ *
+ * @typedef {import("./amqp10")} Amqp10TransporterClass
+ * @typedef {import("./amqp10").Amqp10TransporterOptions} Amqp10TransporterOptions
+ * @typedef {import("../packets").Packet} Packet
+ */
 
 const {
 	PACKET_REQUEST,
@@ -37,12 +45,13 @@ const {
  *
  * @class Amqp10Transporter
  * @extends {Transporter}
+ * @implements {Amqp10TransporterClass}
  */
 class Amqp10Transporter extends Transporter {
 	/**
 	 * Creates an instance of Amqp10Transporter.
 	 *
-	 * @param {any} opts
+	 * @param {Amqp10TransporterOptions} opts
 	 *
 	 * @memberof Amqp10Transporter
 	 */
@@ -81,7 +90,7 @@ class Amqp10Transporter extends Transporter {
 		this.session = null;
 	}
 
-	_getQueueOptions(packetType /*, balancedQueue*/) {
+	_getQueueOptions(packetType) {
 		let packetOptions = {};
 		switch (packetType) {
 			// Requests and responses don't expire.
@@ -147,7 +156,8 @@ class Amqp10Transporter extends Transporter {
 	 * Build a function to handle requests.
 	 *
 	 * @param {String} cmd
-	 * @param {Boolean} needAck
+	 * @param {Boolean=} needAck
+	 * @returns {(msg: any) => Promise<void>}
 	 *
 	 * @memberof Amqp10Transporter
 	 */
@@ -512,7 +522,7 @@ class Amqp10Transporter extends Transporter {
 		const message = Object.assign(
 			{ body: data },
 			this.opts.messageOptions,
-			this._getMessageOptions(PACKET_EVENT, true)
+			this._getMessageOptions(PACKET_EVENT)
 		);
 		const awaitableSenderOptions = {
 			target: {
@@ -559,7 +569,7 @@ class Amqp10Transporter extends Transporter {
 		const message = Object.assign(
 			{ body: data },
 			this.opts.messageOptions,
-			this._getMessageOptions(PACKET_REQUEST, true)
+			this._getMessageOptions(PACKET_REQUEST)
 		);
 		const awaitableSenderOptions = {
 			target: {

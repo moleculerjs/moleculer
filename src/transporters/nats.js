@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,18 +11,26 @@ const { PACKET_REQUEST, PACKET_EVENT } = require("../packets");
 const C = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./nats")} NatsTransporterClass
+ * @typedef {import("./nats").NatsTransporterOptions} NatsTransporterOptions
+ */
+
+/**
  * Transporter for NATS
  *
  * More info: http://nats.io/
  *
  * @class NatsTransporter
  * @extends {Transporter}
+ * @implements {NatsTransporterClass}
  */
 class NatsTransporter extends Transporter {
 	/**
 	 * Creates an instance of NatsTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {string|NatsTransporterOptions} opts
 	 *
 	 * @memberof NatsTransporter
 	 */
@@ -152,6 +160,7 @@ class NatsTransporter extends Transporter {
 	 * Subscribe to balanced action commands
 	 *
 	 * @param {String} action
+	 * @returns {Promise<void>}
 	 * @memberof NatsTransporter
 	 */
 	subscribeBalancedRequest(action) {
@@ -164,6 +173,8 @@ class NatsTransporter extends Transporter {
 				callback: (err, msg) => this.receive(PACKET_REQUEST, Buffer.from(msg.data))
 			})
 		);
+
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -171,6 +182,7 @@ class NatsTransporter extends Transporter {
 	 *
 	 * @param {String} event
 	 * @param {String} group
+	 * @returns {Promise<void>}
 	 * @memberof NatsTransporter
 	 */
 	subscribeBalancedEvent(event, group) {
@@ -182,6 +194,8 @@ class NatsTransporter extends Transporter {
 				callback: (err, msg) => this.receive(PACKET_EVENT, Buffer.from(msg.data))
 			})
 		);
+
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -201,7 +215,6 @@ class NatsTransporter extends Transporter {
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
-	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */

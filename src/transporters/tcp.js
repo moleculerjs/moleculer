@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -22,6 +22,16 @@ const TcpReader = require("./tcp/tcp-reader");
 const TcpWriter = require("./tcp/tcp-writer");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./tcp")} TcpTransporterClass
+ * @typedef {import("./tcp").TcpTransporterOptions} TcpTransporterOptions
+ * @typedef {import("../transit")} Transit
+ * @typedef {import("../packets").Packet} Packet
+ * @typedef {import("net").Socket} Socket
+ */
+
+/**
  * TCP Transporter with optional UDP discovery ("zero configuration") module.
  *
  * TCP Transporter uses fault tolerant and peer-to-peer <b>Gossip Protocol</b>
@@ -33,12 +43,13 @@ const TcpWriter = require("./tcp/tcp-writer");
  *
  * @class TcpTransporter
  * @extends {Transporter}
+ * @implements {TcpTransporterClass}
  */
 class TcpTransporter extends Transporter {
 	/**
 	 * Creates an instance of TcpTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {TcpTransporterOptions} opts
 	 *
 	 * @memberof TcpTransporter
 	 */
@@ -47,7 +58,9 @@ class TcpTransporter extends Transporter {
 
 		super(opts);
 
+		/** @type {TcpTransporterOptions} */
 		this.opts = Object.assign(
+			/** @type {TcpTransporterOptions} */
 			{
 				// UDP discovery options
 				udpDiscovery: true,
@@ -89,8 +102,8 @@ class TcpTransporter extends Transporter {
 	 * Init transporter
 	 *
 	 * @param {Transit} transit
-	 * @param {Function} messageHandler
-	 * @param {Function} afterConnect
+	 * @param {(cmd: string, msg: string) => void} messageHandler
+	 * @param {(wasReconnect: boolean) => void} afterConnect
 	 *
 	 * @memberof BaseTransporter
 	 */
@@ -256,7 +269,7 @@ class TcpTransporter extends Transporter {
 	 * Process incoming packets
 	 *
 	 * @param {String} type
-	 * @param {Object} message
+	 * @param {Buffer} message
 	 * @param {Socket} socket
 	 */
 	onIncomingMessage(type, message, socket) {
@@ -266,8 +279,10 @@ class TcpTransporter extends Transporter {
 	/**
 	 * Received data. It's a wrapper for middlewares.
 	 *
-	 * @param {String} cmd
-	 * @param {Buffer} data
+	 * @param {String} type
+	 * @param {Buffer} message
+	 * @param {Socket} socket
+	 * @returns {void | Promise<void>}
 	 */
 	receive(type, message, socket) {
 		switch (type) {
@@ -313,6 +328,7 @@ class TcpTransporter extends Transporter {
 	 * @param {String} id - NodeID
 	 * @param {String} address
 	 * @param {Number} port
+	 * @returns {Node}
 	 */
 	addOfflineNode(id, address, port) {
 		const node = new Node(id);
@@ -333,7 +349,7 @@ class TcpTransporter extends Transporter {
 	 * Wrapper for TCP writer
 	 *
 	 * @param {String} nodeID
-	 * @returns
+	 * @returns {Node}
 	 * @memberof TcpTransporter
 	 */
 	getNode(nodeID) {
@@ -363,6 +379,7 @@ class TcpTransporter extends Transporter {
 	 * Send a Gossip Hello to the remote node
 	 *
 	 * @param {String} nodeID
+	 * @returns {Promise}
 	 */
 	sendHello(nodeID) {
 		const node = this.getNode(nodeID);
@@ -469,7 +486,7 @@ class TcpTransporter extends Transporter {
 	 * Send a Gossip request packet to a random endpoint
 	 *
 	 * @param {Object} data
-	 * @param {Array} endpoints
+	 * @param {Array<Node>} endpoints
 	 */
 	sendGossipToRandomEndpoint(data, endpoints) {
 		if (endpoints.length === 0) return;
@@ -706,10 +723,13 @@ class TcpTransporter extends Transporter {
 		if (this.writer) this.writer.close();
 
 		if (this.udpServer) this.udpServer.close();
+
+		return this.Promise.resolve();
 	}
 
 	/**
 	 * Get local node info instance
+	 * @returns {Node}
 	 */
 	getLocalNodeInfo() {
 		return this.nodes.localNode;
@@ -719,6 +739,7 @@ class TcpTransporter extends Transporter {
 	 * Get a node info instance by nodeID
 	 *
 	 * @param {String} nodeID
+	 * @returns {Node}
 	 */
 	getNodeInfo(nodeID) {
 		return this.nodes.get(nodeID);
@@ -726,13 +747,8 @@ class TcpTransporter extends Transporter {
 
 	/**
 	 * Subscribe to a command
-	 *
-	 * @param {String} cmd
-	 * @param {String} nodeID
-	 *
-	 * @memberof TcpTransporter
 	 */
-	subscribe(/*cmd, nodeID*/) {
+	subscribe() {
 		/* istanbul ignore next */
 		return this.Promise.resolve();
 	}
@@ -762,6 +778,28 @@ class TcpTransporter extends Transporter {
 
 		const data = this.serialize(packet);
 		return this.send(packet.type, data, { packet });
+	}
+
+	/**
+	 * Subscribe to balanced action commands
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedRequest() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedEvent() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
 	}
 
 	/**

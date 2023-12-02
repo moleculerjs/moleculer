@@ -42,6 +42,7 @@ const {
  *
  * @class AmqpTransporter
  * @extends {Transporter}
+ * @implements {AmqpTransporterClass}
  */
 class AmqpTransporter extends Transporter {
 	/**
@@ -330,7 +331,7 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @param {String} cmd
 	 * @param {Boolean=} needAck
-	 * @returns {Function}
+	 * @returns {(msg: any) => Promise<void>}
 	 *
 	 * @memberof AmqpTransporter
 	 */

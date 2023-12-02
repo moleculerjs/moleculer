@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,16 +11,24 @@ const { isObject } = require("lodash");
 const C = require("../constants");
 
 /**
+ * Import types
+ *
+ * @typedef {import("./mqtt")} MqttTransporterClass
+ * @typedef {import("./mqtt").MqttTransporterOptions} MqttTransporterOptions
+ */
+
+/**
  * Transporter for MQTT
  *
  * @class MqttTransporter
  * @extends {Transporter}
+ * @implements {MqttTransporterClass}
  */
 class MqttTransporter extends Transporter {
 	/**
 	 * Creates an instance of MqttTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {MqttTransporterOptions} opts
 	 *
 	 * @memberof MqttTransporter
 	 */
@@ -156,11 +164,32 @@ class MqttTransporter extends Transporter {
 	}
 
 	/**
+	 * Subscribe to balanced action commands
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedRequest() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 */
+	subscribeBalancedEvent() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
 	 * Send data buffer.
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
-	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */

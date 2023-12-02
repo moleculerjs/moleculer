@@ -10,6 +10,13 @@ const { defaultsDeep } = require("lodash");
 const Transporter = require("./base");
 const C = require("../constants");
 
+/**
+ * Import types
+ *
+ * @typedef {import("./kafka")} KafkaTransporterClass
+ * @typedef {import("./kafka").KafkaTransporterOptions} KafkaTransporterOptions
+ */
+
 const toMoleculerLogLevel = level => {
 	switch (level) {
 		case 0:
@@ -29,12 +36,13 @@ const toMoleculerLogLevel = level => {
  *
  * @class KafkaTransporter
  * @extends {Transporter}
+ * @implements {KafkaTransporterClass}
  */
 class KafkaTransporter extends Transporter {
 	/**
 	 * Creates an instance of KafkaTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {string|KafkaTransporterOptions?} opts
 	 *
 	 * @memberof KafkaTransporter
 	 */
@@ -261,6 +269,45 @@ class KafkaTransporter extends Transporter {
 
 			throw err;
 		}
+	}
+
+	/**
+	 * Subscribe to a command
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 *
+	 * @memberof BaseTransporter
+	 */
+	subscribe() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced action commands
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 *
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedRequest() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 * Not implemented.
+	 *
+	 * @returns {Promise}
+	 *
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedEvent() {
+		/* istanbul ignore next */
+		return this.broker.Promise.resolve();
 	}
 }
 

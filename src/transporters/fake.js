@@ -1,14 +1,19 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const Transporter = require("./base");
-
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
+
+/**
+ * Import types
+ *
+ * @typedef {import("./fake")} FakeTransporterClass
+ */
 
 // Put to global to transfer messages between brokers in the same process
 global.bus = new EventEmitter2({
@@ -21,12 +26,13 @@ global.bus = new EventEmitter2({
  *
  * @class FakeTransporter
  * @extends {Transporter}
+ * @implements {FakeTransporterClass}
  */
 class FakeTransporter extends Transporter {
 	/**
 	 * Creates an instance of FakeTransporter.
 	 *
-	 * @param {any} opts
+	 * @param {Record<string, any>} opts
 	 *
 	 * @memberof FakeTransporter
 	 */
@@ -82,21 +88,18 @@ class FakeTransporter extends Transporter {
 	/**
 	 * Subscribe to balanced action commands
 	 *
-	 * @param {String} action
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedRequest(/*action*/) {
+	subscribeBalancedRequest() {
 		return this.broker.Promise.resolve();
 	}
 
 	/**
 	 * Subscribe to balanced event command
 	 *
-	 * @param {String} event
-	 * @param {String} group
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedEvent(/*event, group*/) {
+	subscribeBalancedEvent() {
 		return this.broker.Promise.resolve();
 	}
 
@@ -105,7 +108,6 @@ class FakeTransporter extends Transporter {
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
-	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */

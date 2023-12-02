@@ -15,6 +15,7 @@ import EndpointList = require("./endpoint-list");
 import Endpoint = require("./endpoint");
 import Node = require("./node");
 import Service = require("../service");
+import BaseDiscoverer = require("./discoverers/base");
 
 declare namespace ServiceRegistry {
 	export interface NodeRawInfo {
@@ -38,6 +39,8 @@ declare class ServiceRegistry {
 	opts: BrokerRegistryOptions;
 
 	StrategyFactory: BaseStrategy;
+
+	discoverer: BaseDiscoverer;
 
 	nodes: NodeCatalog;
 	services: ServiceCatalog;
