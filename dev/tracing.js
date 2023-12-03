@@ -49,7 +49,7 @@ const broker = new ServiceBroker({
 				options: {
 					tracer
 				}
-			},
+			}
 			/*{
 				type: "Zipkin",
 				options: {
@@ -68,9 +68,6 @@ const broker = new ServiceBroker({
 				type: "Event",
 				options: {
 				}
-			}*/
-			/*{
-				type: "EventLegacy"
 			}*/
 		]
 	}

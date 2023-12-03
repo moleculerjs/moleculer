@@ -68,9 +68,6 @@ const broker = new ServiceBroker({
 				options: {
 				}
 			}*/
-			/*{
-				type: "EventLegacy"
-			}*/
 		]
 	}
 });
