@@ -27,8 +27,8 @@ function defProp(instance, propName, value, readOnly = false) {
 /**
  * Trace Span class
  *
- * @property {Tracer} tracer
  * @class Span
+ * @property {Tracer} tracer
  * @implements {SpanClass}
  */
 class Span {

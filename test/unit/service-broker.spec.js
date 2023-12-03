@@ -133,7 +133,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.registry).toBeInstanceOf(Registry);
 		expect(broker.registry.init).toBeCalledTimes(1);
-		expect(broker.registry.init).toBeCalledWith(broker);
+		expect(broker.registry.init).toBeCalledWith();
 
 		expect(broker.middlewares).toBeInstanceOf(MiddlewareHandler);
 
@@ -247,7 +247,8 @@ describe("Test ServiceBroker constructor", () => {
 			registry: {
 				strategy: Strategies.Random,
 				preferLocal: false,
-				stopDelay: 100
+				stopDelay: 100,
+				discoverer: "Local"
 			},
 
 			circuitBreaker: {
@@ -3940,7 +3941,7 @@ describe("Test broker getHealthStatus", () => {
 		broker.getHealthStatus();
 
 		expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
-		expect(H.getHealthStatus).toHaveBeenCalledWith(broker);
+		expect(H.getHealthStatus).toHaveBeenCalledWith();
 	});
 });
 

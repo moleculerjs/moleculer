@@ -413,6 +413,7 @@ class TcpTransporter extends Transporter {
 	processGossipHello(msg, socket) {
 		try {
 			const packet = this.deserialize(P.PACKET_GOSSIP_HELLO, msg);
+			/** @type {Record<string, any>} */
 			const payload = packet.payload;
 			const nodeID = payload.sender;
 
@@ -522,6 +523,7 @@ class TcpTransporter extends Transporter {
 
 		try {
 			const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
+			/** @type {Record<string, any>} */
 			const payload = packet.payload;
 
 			if (this.GOSSIP_DEBUG)
@@ -639,6 +641,7 @@ class TcpTransporter extends Transporter {
 	processGossipResponse(msg) {
 		try {
 			const packet = this.deserialize(P.PACKET_GOSSIP_RES, msg);
+			/** @type {Record<string, any>} */
 			const payload = packet.payload;
 
 			if (this.GOSSIP_DEBUG)

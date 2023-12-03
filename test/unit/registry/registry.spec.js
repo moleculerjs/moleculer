@@ -20,7 +20,8 @@ describe("Test Registry constructor", () => {
 		expect(registry.opts).toEqual({
 			preferLocal: true,
 			stopDelay: 100,
-			strategy: "RoundRobin"
+			strategy: "RoundRobin",
+			discoverer: "Local"
 		});
 		expect(registry.StrategyFactory).toBe(Strategies.RoundRobin);
 		expect(registry.discoverer).toBeInstanceOf(Discoverers.Local);
@@ -44,7 +45,8 @@ describe("Test Registry constructor", () => {
 		expect(registry.opts).toEqual({
 			preferLocal: false,
 			stopDelay: 100,
-			strategy: "Random"
+			strategy: "Random",
+			discoverer: "Local"
 		});
 		expect(registry.StrategyFactory).toBe(Strategies.Random);
 	});
