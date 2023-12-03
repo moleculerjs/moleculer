@@ -47,6 +47,10 @@ module.exports = {
 };
 ```
 
+## EventLegacy tracing export is removed
+
+The `EventLegacy` tracing exporter is removed. Use the `Event` tracing exporter instead.
+
 ## New REPL options
 
 In order to the REPL options can be more extensible, a new `replOptions` broker option is introduces. You can use it instead of the old `replCommands` and `replDelimiter` broker options.

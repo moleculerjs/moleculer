@@ -17,6 +17,10 @@ The reason is desribed in this issue: https://github.com/moleculerjs/moleculer/i
 
 If you use one of those, you should change it to one of these schemaless serializers: MsgPack, Notepack.io, JSON, JSONExt, CBOR
 
+## EventLegacy tracing export is removed
+
+The `EventLegacy` tracing exporter is removed. Use the `Event` tracing exporter instead.
+
 ## Legacy event handler is removed
 
 The legacy event handler signature (`user.created(payload, sender, eventName)`) is removed. You should use the new `Context` based signature which was introduced in version 0.14.

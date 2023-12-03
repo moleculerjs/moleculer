@@ -45,18 +45,6 @@ describe("Test TracingExporters resolver", () => {
 		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
 	});
 
-	it("should resolve EventLegacy tracing exporter from string", () => {
-		let reporter = TracingExporters.resolve("EventLegacy");
-		expect(reporter).toBeInstanceOf(TracingExporters.EventLegacy);
-	});
-
-	it("should resolve EventLegacy tracing exporter from obj", () => {
-		let options = { interval: 2000 };
-		let reporter = TracingExporters.resolve({ type: "EventLegacy", options });
-		expect(reporter).toBeInstanceOf(TracingExporters.EventLegacy);
-		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
-	});
-
 	it("should resolve Jaeger tracing exporter from string", () => {
 		let reporter = TracingExporters.resolve("Jaeger");
 		expect(reporter).toBeInstanceOf(TracingExporters.Jaeger);

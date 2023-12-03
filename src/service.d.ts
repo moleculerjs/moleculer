@@ -159,13 +159,6 @@ declare namespace Service {
 		error?: ServiceHooksError;
 	}
 
-	export type ServiceEventLegacyHandler = (
-		payload: any,
-		sender: string,
-		eventName: string,
-		ctx: Context
-	) => void | Promise<void>;
-
 	export type ServiceEventHandler = (ctx: Context) => void | Promise<void>;
 
 	export interface ServiceEvent {
@@ -177,13 +170,13 @@ declare namespace Service {
 		throttle?: number;
 		strategy?: string| typeof Strategy;
 		strategyOptions?: Record<string, any>;
-		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
+		handler?: ServiceEventHandler;
 
 		// [key: string]: any;
 	}
 
 	export type ServiceEvents<S = ServiceSettingSchema> = {
-		[key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent;
+		[key: string]: ServiceEventHandler | ServiceEvent;
 	} & ThisType<Service<S>>;
 
 	export interface WaitForServicesResult {

@@ -15,7 +15,6 @@ const Exporters = {
 	Datadog: require("./datadog"),
 	//DatadogSimple: require("./datadog-simple"),
 	Event: require("./event"),
-	EventLegacy: require("./event-legacy"),
 	Jaeger: require("./jaeger"),
 	Zipkin: require("./zipkin"),
 	NewRelic: require("./newrelic")
