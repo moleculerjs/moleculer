@@ -124,17 +124,18 @@ class UdpServer extends EventEmitter {
 					resolve();
 				});
 
-				host = host || "0.0.0.0";
 				port = port || 4445;
 
 				/** @type {import("dgram").BindOptions} */
-				const bindOptions = { port, host, exclusive: true };
+				const bindOptions = { port, address: host, exclusive: true };
 
 				server.bind(bindOptions, () => {
 					try {
 						if (multicastAddress) {
 							this.logger.info(
-								`UDP Multicast Server is listening on ${host}:${port}. Membership: ${multicastAddress}`
+								`UDP Multicast Server is listening on ${
+									host || "0.0.0.0"
+								}:${port}. Membership: ${multicastAddress}`
 							);
 							server.setMulticastInterface(host);
 							server.addMembership(multicastAddress, host);
