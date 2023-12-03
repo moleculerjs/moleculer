@@ -278,21 +278,21 @@ class TcpTransporter extends Transporter {
 	/**
 	 * Received data. It's a wrapper for middlewares.
 	 *
-	 * @param {String} type
-	 * @param {Buffer} message
+	 * @param {String} cmd
+	 * @param {Buffer} data
 	 * @param {Socket} socket
 	 * @returns {void | Promise<void>}
 	 */
-	receive(type, message, socket) {
-		switch (type) {
+	receive(cmd, data, socket) {
+		switch (cmd) {
 			case P.PACKET_GOSSIP_HELLO:
-				return this.processGossipHello(message, socket);
+				return this.processGossipHello(data, socket);
 			case P.PACKET_GOSSIP_REQ:
-				return this.processGossipRequest(message);
+				return this.processGossipRequest(data);
 			case P.PACKET_GOSSIP_RES:
-				return this.processGossipResponse(message);
+				return this.processGossipResponse(data);
 			default:
-				return this.incomingMessage(type, message);
+				return this.incomingMessage(cmd, data);
 		}
 	}
 

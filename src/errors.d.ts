@@ -106,7 +106,7 @@ export declare class Regenerator {
 		payload: Record<string, any>
 	): Error;
 
-	_createDefaultError(plainError: PlainMoleculerError): Error;
-	_restoreExternalFields(plainError: PlainMoleculerError, err: PlainMoleculerError, payload: Record<string, any>): void;
-	_restoreStack(plainError: PlainMoleculerError, err: Error): void;
+	private _createDefaultError(plainError: PlainMoleculerError): Error;
+	private _restoreExternalFields(plainError: PlainMoleculerError, err: PlainMoleculerError, payload: Record<string, any>): void;
+	private _restoreStack(plainError: PlainMoleculerError, err: Error): void;
 }

@@ -2,6 +2,7 @@ import type Transit = require("../transit");
 import type { Packet } from "../packets";
 import ServiceBroker = require("../service-broker");
 import { Logger } from "../logger-factory";
+import type { Socket } from "net";
 
 declare abstract class BaseTransporter {
 	opts: Record<string, any>;
@@ -32,7 +33,7 @@ declare abstract class BaseTransporter {
 	makeBalancedSubscriptions(): Promise<void>;
 
 	incomingMessage(cmd: string, msg?: Buffer): Promise<void>;
-	receive(cmd: string, data: Buffer): Promise<void>;
+	receive(cmd: string, data: Buffer, socket?: Socket): Promise<void> | void;
 
 	abstract subscribe(cmd: string, nodeID?: string): Promise<void>;
 	abstract subscribeBalancedRequest(action: string): Promise<void>;

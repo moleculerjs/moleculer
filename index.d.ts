@@ -1,5 +1,3 @@
-import type { EventEmitter2 } from "eventemitter2";
-
 import ServiceBroker = require("./src/service-broker");
 export { ServiceBroker };
 export type { ServiceBrokerOptions, CallingOptions } from "./src/service-broker";
@@ -27,7 +25,6 @@ export type { LogLevels } from "./src/loggers";
 export type { Logger, LoggerConfig } from "./src/logger-factory";
 
 export * as Cachers from "./src/cachers";
-export type { RedisCacherOptions } from "./src/cachers";
 
 export * as Transporters from "./src/transporters";
 
@@ -55,6 +52,10 @@ export { Registry };
 
 import type Endpoint = require("./src/registry/endpoint");
 export type { Endpoint };
+import type ActionEndpoint = require("./src/registry/endpoint-action");
+export type { ActionEndpoint };
+import type EventEndpoint = require("./src/registry/endpoint-event");
+export type { EventEndpoint };
 
 export * as Discoverers from "./src/registry/discoverers";
 
@@ -77,5 +78,3 @@ export declare const INTERNAL_MIDDLEWARES: string[];
 
 export type { CallMiddlewareHandler, Middleware } from "./src/middleware";
 
-import type ActionEndpoint = require("./src/registry/endpoint-action");
-export type { ActionEndpoint };
