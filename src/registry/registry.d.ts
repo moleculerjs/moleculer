@@ -3,7 +3,7 @@ import type MetricRegistry = require("../metrics/registry");
 import type BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
-import type { ActionSchema, ServiceEvent } from "../service";
+import type { ActionSchema, EventSchema } from "../service";
 import type ServiceItem = require("./service-item");
 import type ServiceCatalog = require("./service-catalog");
 import type ActionCatalog = require("./action-catalog");
@@ -99,7 +99,7 @@ declare class ServiceRegistry {
 	unregisterServicesByNode(nodeID: string): void;
 	unregisterAction(node: Node, actionName: string): void;
 
-	registerEvents(node: Node, service: ServiceItem, events: Record<string, ServiceEvent>): void;
+	registerEvents(node: Node, service: ServiceItem, events: Record<string, EventSchema>): void;
 	unregisterEvent(node: Node, eventName: string): void;
 
 	regenerateLocalRawInfo(incSeq: boolean, isStopping?: boolean): ServiceRegistry.NodeRawInfo;

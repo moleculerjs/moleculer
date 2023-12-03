@@ -3,7 +3,7 @@ import EndpointList = require("./endpoint-list");
 import Node = require("./node");
 import ServiceItem = require("./service-item");
 
-import type { ServiceEvent} from "../service";
+import type { EventSchema } from "../service";
 
 import ServiceBroker = require("../service-broker");
 import Registry = require("./registry");
@@ -44,7 +44,7 @@ declare class EventCatalog {
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
-	add(node: Node, service: ServiceItem, event: ServiceEvent): EndpointList;
+	add(node: Node, service: ServiceItem, event: EventSchema ): EndpointList;
 
 	get(eventName: string, groupName: string ): EndpointList | null;
 

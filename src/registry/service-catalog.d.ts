@@ -1,5 +1,5 @@
 import type { ActionSchema } from "../service";
-import type { ServiceEvent, ServiceDependency } from "../service";
+import type { EventSchema, ServiceDependency } from "../service";
 
 import Node = require("./node");
 import ServiceItem = require("./service-item");
@@ -30,7 +30,7 @@ declare namespace ServiceCatalog {
 		nodeID?: string;
 
 		action?: Omit<ActionSchema, "handler" | "remoteHandler" | "service">;
-		events?: Omit<ServiceEvent, "handler" | "remoteHandler" | "service">;
+		events?: Omit<EventSchema, "handler" | "remoteHandler" | "service">;
 	}
 
 	export interface ServiceCatalogLocalNodeServicesResult {
@@ -42,7 +42,7 @@ declare namespace ServiceCatalog {
 		dependencies: string | ServiceDependency | (string | ServiceDependency)[];
 
 		action: Record<string, Omit<ActionSchema, "handler" | "remoteHandler" | "service">>;
-		events: Record<string, Omit<ServiceEvent, "handler" | "remoteHandler" | "service">>;
+		events: Record<string, Omit<EventSchema, "handler" | "remoteHandler" | "service">>;
 	}
 }
 

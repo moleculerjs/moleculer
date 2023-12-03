@@ -1,27 +1,14 @@
-import type { BulkheadOptions } from "./middlewares";
 import ActionEndpoint = require("./registry/endpoint-action");
 import EventEndpoint = require("./registry/endpoint-event");
 import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
 import Service = require("./service");
 import Span = require("./tracing/span");
-import type { ActionHandler, ActionParams, ActionSchema, TracingEventOptions } from "./service";
+import type { ActionSchema, EventSchema } from "./service";
 import type ServiceBroker = require("./service-broker");
 import { Stream } from "stream";
 import util = require("util");
 
 declare namespace Context {
-	export interface EventSchema {
-		name?: string;
-		group?: string;
-		params?: ActionParams;
-		service?: Service;
-		tracing?: boolean | TracingEventOptions;
-		bulkhead?: BulkheadOptions;
-		handler?: ActionHandler;
-		context?: boolean;
-
-		// [key: string]: any;
-	}
 
 	export interface ContextParentSpan {
 		id: string;
@@ -49,7 +36,7 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	action: ActionSchema | null;
 
-	event: Context.EventSchema | null;
+	event: EventSchema | null;
 
 	service: Service | null;
 
@@ -112,16 +99,10 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 	): Promise<Record<string, T>>;
 	mcall<T>(def: MCallDefinition[], opts?: MCallCallingOptions): Promise<T[]>;
 
-	emit<D>(eventName: string, data: D, opts: Record<string, any>): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	emit<D>(eventName: string, data: D, groups: string): Promise<void>;
-	emit<D>(eventName: string, data: D): Promise<void>;
+	emit<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;
 
-	broadcast<D>(eventName: string, data: D, opts: Record<string, any>): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string[]): Promise<void>;
-	broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
-	broadcast<D>(eventName: string, data: D): Promise<void>;
+	broadcast<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
 	copy(endpoint: ActionEndpoint|EventEndpoint): this;

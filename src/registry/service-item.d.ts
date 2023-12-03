@@ -1,7 +1,7 @@
 import Node = require("./node");
 
 import type { ActionSchema } from "../service";
-import type { ServiceEvent } from "../service";
+import type { EventSchema } from "../service";
 
 declare class ServiceItem {
 	node: Node;
@@ -13,7 +13,7 @@ declare class ServiceItem {
 
 	local: boolean;
 	actions: Record<string, ActionSchema>;
-	events: Record<string, ServiceEvent>;
+	events: Record<string, EventSchema>;
 
 	constructor(node: Node, service: Record<string, any>, local: boolean);
 
@@ -22,6 +22,6 @@ declare class ServiceItem {
 	update(svc: Record<string, any>): void;
 
 	addAction(action: ActionSchema): void;
-    addEvent(event: ServiceEvent): void;
+    addEvent(event: EventSchema): void;
 }
 export = ServiceItem;

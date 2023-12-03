@@ -24,7 +24,7 @@ const EventEndpoint = require("./endpoint-event");
  * @typedef {import("../context")} Context
  * @typedef {import("./node")} Node
  * @typedef {import("../strategies/base")} BaseStrategy
- * @typedef {import("../service").ServiceEvent} ServiceEvent
+ * @typedef {import("../service").EventSchema} EventSchema
  */
 
 /**
@@ -59,7 +59,7 @@ class EventCatalog {
 	 *
 	 * @param {Node} node
 	 * @param {ServiceItem} service
-	 * @param {ServiceEvent} event
+	 * @param {EventSchema} event
 	 * @returns {EndpointList}
 	 * @memberof EventCatalog
 	 */

@@ -35,7 +35,7 @@ declare namespace Service {
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
-		events?: ServiceEvents;
+		events?: EventSchemas;
 		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
 		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
@@ -159,9 +159,9 @@ declare namespace Service {
 		error?: ServiceHooksError;
 	}
 
-	export type ServiceEventHandler = (ctx: Context) => void | Promise<void>;
+	export type EventSchemaHandler = (ctx: Context) => void | Promise<void>;
 
-	export interface ServiceEvent {
+	export interface EventSchema {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -170,13 +170,13 @@ declare namespace Service {
 		throttle?: number;
 		strategy?: string| typeof Strategy;
 		strategyOptions?: Record<string, any>;
-		handler?: ServiceEventHandler;
+		handler?: EventSchemaHandler;
 
 		// [key: string]: any;
 	}
 
-	export type ServiceEvents<S = ServiceSettingSchema> = {
-		[key: string]: ServiceEventHandler | ServiceEvent;
+	export type EventSchemas<S = ServiceSettingSchema> = {
+		[key: string]: EventSchemaHandler | EventSchema;
 	} & ThisType<Service<S>>;
 
 	export interface WaitForServicesResult {

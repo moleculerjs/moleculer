@@ -16,7 +16,7 @@ const Endpoint = require("./endpoint");
  * @typedef {import("./endpoint-event")} EventEndpointClass
  * @typedef {import("./node")} Node
  * @typedef {import("../service")} Service
- * @typedef {import("../service").ServiceEvent} ServiceEvent
+ * @typedef {import("../service").EventSchema} EventSchema
  */
 
 /**
@@ -33,7 +33,7 @@ class EventEndpoint extends Endpoint {
 	 * @param {ServiceBroker} broker
 	 * @param {Node} node
 	 * @param {Service} service
-	 * @param {ServiceEvent} event
+	 * @param {EventSchema} event
 	 * @memberof EventEndpoint
 	 */
 	constructor(registry, broker, node, service, event) {
@@ -46,7 +46,7 @@ class EventEndpoint extends Endpoint {
 	/**
 	 * Update properties
 	 *
-	 * @param {ServiceEvent} event
+	 * @param {EventSchema} event
 	 * @memberof EventEndpoint
 	 */
 	update(event) {

@@ -4,14 +4,14 @@ import Node = require("./node");
 
 import Endpoint = require("./endpoint");
 import type Service = require("../service");
-import type { ServiceEvent } from "../service";
+import type { EventSchema } from "../service";
 
 declare class EventEndpoint extends Endpoint {
 	service: Service;
-	event: ServiceEvent;
+	event: EventSchema;
 
-	constructor(registry: Registry, broker: ServiceBroker, node: Node, service: Service, event: ServiceEvent);
+	constructor(registry: Registry, broker: ServiceBroker, node: Node, service: Service, event: EventSchema);
 
-	update(event: ServiceEvent): void;
+	update(event: EventSchema): void;
 }
 export = EventEndpoint;

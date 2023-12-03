@@ -21,9 +21,17 @@ const METRIC_LABEL_REGEXP = /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
  *
  * @typedef {import("./registry")} MetricRegistryClass
  * @typedef {import("./registry").MetricListOptions} MetricListOptions
+ * @typedef {import("./registry").GaugeMetricOptions} GaugeMetricOptions
+ * @typedef {import("./registry").CounterMetricOptions} CounterMetricOptions
+ * @typedef {import("./registry").HistogramMetricOptions} HistogramMetricOptions
+ * @typedef {import("./registry").InfoMetricOptions} InfoMetricOptions
+ *
+ * @typedef {import("./types/counter")} CounterMetric
+ * @typedef {import("./types/gauge")} GaugeMetric
+ * @typedef {import("./types/histogram")} HistogramMetric
+ * @typedef {import("./types/info")} InfoMetric
  * @typedef {import("./types/base")} BaseMetric
  * @typedef {import("./types/base").BaseMetricOptions} BaseMetricOptions
- * @typedef {import("./types/gauge")} GaugeMetric
  *
  * @typedef {import("../service-broker")} ServiceBroker
  */
@@ -135,8 +143,8 @@ class MetricRegistry {
 	/**
 	 * Register a new metric.
 	 *
-	 * @param {BaseMetricOptions} opts
-	 * @returns {BaseMetric}
+	 * @param {GaugeMetricOptions|CounterMetricOptions|HistogramMetricOptions|InfoMetricOptions} opts
+	 * @returns {CounterMetric | GaugeMetric | HistogramMetric | InfoMetric}
 	 * @memberof MetricRegistry
 	 */
 	register(opts) {
@@ -180,7 +188,7 @@ class MetricRegistry {
 	 * Get metric by name
 	 *
 	 * @param {String} name
-	 * @returns {BaseMetric}
+	 * @returns {CounterMetric | GaugeMetric | HistogramMetric | InfoMetric}
 	 * @memberof MetricRegistry
 	 */
 	getMetric(name) {
@@ -194,9 +202,9 @@ class MetricRegistry {
 	 * Increment a metric value.
 	 *
 	 * @param {String} name
-	 * @param {Object?} labels
-	 * @param {number?} [value=1]
-	 * @param {Number?} timestamp
+	 * @param {Object=} labels
+	 * @param {number=} [value=1]
+	 * @param {Number=} timestamp
 	 * @returns
 	 * @memberof MetricRegistry
 	 */
@@ -217,9 +225,9 @@ class MetricRegistry {
 	 * Decrement a metric value.
 	 *
 	 * @param {String} name
-	 * @param {Object?} labels
-	 * @param {number} [value=1]
-	 * @param {Number?} timestamp
+	 * @param {Object=} labels
+	 * @param {number=} [value=1]
+	 * @param {Number=} timestamp
 	 * @returns
 	 * @memberof MetricRegistry
 	 */
@@ -239,8 +247,8 @@ class MetricRegistry {
 	 *
 	 * @param {String} name
 	 * @param {any} value
-	 * @param {Object?} labels
-	 * @param {Number?} timestamp
+	 * @param {Object=} labels
+	 * @param {Number=} timestamp
 	 * @returns
 	 * @memberof MetricRegistry
 	 */
@@ -261,14 +269,15 @@ class MetricRegistry {
 	 *
 	 * @param {String} name
 	 * @param {Number} value
-	 * @param {Object?} labels
-	 * @param {Number?} timestamp
+	 * @param {Object=} labels
+	 * @param {Number=} timestamp
 	 * @returns
 	 * @memberof MetricRegistry
 	 */
 	observe(name, value, labels, timestamp) {
 		if (!this.opts.enabled) return null;
 
+		/** @type {HistogramMetric} */
 		const item = this.getMetric(name);
 		if (!isFunction(item.observe))
 			throw new Error(

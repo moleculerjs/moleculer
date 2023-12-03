@@ -26,7 +26,7 @@ const { METRIC } = require("../metrics");
  * @typedef {import("./service-item")} ServiceItem
  * @typedef {import("../service").ServiceAction} ServiceAction
  * @typedef {import("../service").ActionSchema} ActionSchema
- * @typedef {import("../service").ServiceEvent} ServiceEvent
+ * @typedef {import("../service").EventSchema} EventSchema
  * @typedef {import("./registry")} RegistryClass
  * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("../service-broker")} ServiceBroker
@@ -442,7 +442,7 @@ class Registry {
 	 *
 	 * @param {Node} node
 	 * @param {ServiceItem} service
-	 * @param {Record<string, ServiceEvent>} events
+	 * @param {Record<string, EventSchema>} events
 	 * @memberof Registry
 	 */
 	registerEvents(node, service, events) {

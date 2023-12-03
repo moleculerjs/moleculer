@@ -56,14 +56,18 @@ declare namespace MetricRegistry {
 
 	type GaugeMetricOptions = BaseMetricOptions & {
 		type: "gauge";
+		rate?: boolean;
 	};
 
 	type CounterMetricOptions = BaseMetricOptions & {
 		type: "counter";
+		rate?: boolean;
 	};
 
 	type HistogramMetricOptions = BaseMetricOptions & {
 		type: "histogram";
+		quantiles?: boolean|number[];
+		buckets?: boolean|number[];
 	};
 
 	type InfoMetricOptions = BaseMetricOptions & {
@@ -94,7 +98,7 @@ declare class MetricRegistry {
 	register(opts: MetricRegistry.InfoMetricOptions): InfoMetric | null;
 
 	hasMetric(name: string): boolean;
-	getMetric(name: string): BaseMetric<any>;
+	getMetric(name: string): CounterMetric | GaugeMetric | HistogramMetric | InfoMetric | null;
 
 	increment(name: string, labels?: Record<string, any>, value?: number, timestamp?: number): void;
 	decrement(name: string, labels?: Record<string, any>, value?: number, timestamp?: number): void;
@@ -107,7 +111,7 @@ declare class MetricRegistry {
 	timer(name: string, labels?: Record<string, any>, timestamp?: number): () => number;
 
 	changed(
-		metric: BaseMetric<any>,
+		metric: CounterMetric | GaugeMetric | HistogramMetric | InfoMetric,
 		value: any | null,
 		labels?: Record<string, any>,
 		timestamp?: number

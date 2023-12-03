@@ -40,7 +40,7 @@ function getByName(name) {
  * Resolve metric type by name
  *
  * @param {string} type
- * @returns {any}
+ * @returns {BaseMetric}
  * @memberof ServiceBroker
  */
 function resolve(type) {

@@ -11,6 +11,9 @@ const { pick } = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
+ * @typedef {import("./context")} ContextClass
+ * @typedef {import("./service-broker").MCallDefinition} MCallDefinition
+ * @typedef {import("./service-broker").MCallCallingOptions} MCallCallingOptions
  * @typedef {import("./service-broker")} ServiceBroker Moleculer Service Broker instance
  * @typedef {import("./service-broker").CallingOptions} CallingOptions Calling Options
  * @typedef {import("./registry/endpoint")} Endpoint Registry Endpoint
@@ -33,8 +36,8 @@ function mergeMeta(ctx, newMeta) {
 /**
  * Context class for action calls
  *
- * @typedef {import("./context")} ContextInterface
- * @implements {ContextInterface}
+ * @class Context
+ * @implements {ContextClass}
  */
 class Context {
 	/**
@@ -168,15 +171,16 @@ class Context {
 		}
 
 		// Event acknowledgement
-		if (opts.needAck) {
-			ctx.needAck = opts.needAck;
-		}
+		// if (opts.needAck) {
+		// 	ctx.needAck = opts.needAck;
+		// }
 
 		return ctx;
 	}
 
 	/**
 	 * Copy itself without ID.
+	 *
 	 * @param {Endpoint} ep
 	 * @returns {Context}
 	 */
@@ -248,8 +252,8 @@ class Context {
 	 * Call an other action. It creates a sub-context.
 	 *
 	 * @param {String} actionName
-	 * @param {Object?} params
-	 * @param {Object?} _opts
+	 * @param {Object=} params
+	 * @param {Object=} _opts
 	 * @returns {Promise}
 	 *
 	 * @example <caption>Call an other service with params & options</caption>
@@ -307,6 +311,13 @@ class Context {
 			});
 	}
 
+	/**
+	 * Multiple action calls.
+	 *
+	 * @param {Record<string, MCallDefinition>|MCallDefinition[]} def
+	 * @param {MCallCallingOptions=} _opts
+	 * @returns {Promise<Record<string, any>>|Promise<any[]>}
+	 */
 	mcall(def, _opts) {
 		const opts = Object.assign(
 			{
@@ -366,8 +377,8 @@ class Context {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any?} data
-	 * @param {Object?} opts
+	 * @param {any=} data
+	 * @param {Object=} opts
 	 * @returns {Promise}
 	 *
 	 * @example
@@ -388,8 +399,8 @@ class Context {
 	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any?} data
-	 * @param {Object?} opts
+	 * @param {any=} data
+	 * @param {Object=} opts
 	 * @returns {Promise}
 	 *
 	 * @example
@@ -410,7 +421,7 @@ class Context {
 	 * Start a new child tracing span.
 	 *
 	 * @param {String} name
-	 * @param {Object?} opts
+	 * @param {Object=} opts
 	 * @returns {Span}
 	 * @memberof Context
 	 */
@@ -432,7 +443,7 @@ class Context {
 	 * Finish an active span.
 	 *
 	 * @param {Span} span
-	 * @param {Number?} time
+	 * @param {Number=} time
 	 */
 	finishSpan(span, time) {
 		if (!span.isActive()) return;

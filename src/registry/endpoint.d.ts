@@ -1,7 +1,7 @@
 import ServiceBroker = require("../service-broker");
 import Registry = require("./registry");
 import Node = require("./node");
-import type { ActionSchema, ServiceEvent } from "../service";
+import type { ActionSchema, EventSchema } from "../service";
 
 declare abstract class Endpoint {
 	broker: ServiceBroker;
@@ -17,7 +17,7 @@ declare abstract class Endpoint {
 	destroy(): void;
 
 	get isAvailable(): boolean;
-	abstract update(param: ActionSchema | ServiceEvent): void;
+	abstract update(param: ActionSchema | EventSchema): void;
 
 }
 export = Endpoint;

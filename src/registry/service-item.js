@@ -12,7 +12,7 @@
  * @typedef {import("./service-item")} ServiceItemClass
  * @typedef {import("./node")} Node
  * @typedef {import("../service").ActionSchema} ActionSchema
- * @typedef {import("../service").ServiceEvent} ServiceEvent
+ * @typedef {import("../service").EventSchema} EventSchema
  */
 
 /**
@@ -82,7 +82,7 @@ class ServiceItem {
 	/**
 	 * Add event to service
 	 *
-	 * @param {ServiceEvent} event
+	 * @param {EventSchema} event
 	 * @memberof ServiceItem
 	 */
 	addEvent(event) {

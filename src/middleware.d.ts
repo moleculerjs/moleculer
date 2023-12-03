@@ -1,4 +1,4 @@
-import type { ActionHandler, ActionSchema, ServiceEvent } from "./service";
+import type { ActionHandler, ActionSchema, EventSchema } from "./service";
 import type { CallingOptions } from "./service-broker";
 import type Service = require("./service");
 import type ServiceBroker = require("./service-broker");
@@ -13,7 +13,7 @@ declare namespace MiddlewareHandler {
 	export type Middleware = {
 		[name: string]:
 			| ((handler: ActionHandler, action: ActionSchema) => any)
-			| ((handler: ActionHandler, event: ServiceEvent) => any)
+			| ((handler: ActionHandler, event: EventSchema) => any)
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
 			| ((broker: ServiceBroker) => any)
