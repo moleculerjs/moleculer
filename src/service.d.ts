@@ -66,7 +66,6 @@ declare namespace Service {
 
 	export type ActionVisibility = "published" | "public" | "protected" | "private";
 
-	// export type ActionParamSchema = { [key: string]: any };
 	export type ActionParamTypes =
 		| "any"
 		| "array"
@@ -83,8 +82,9 @@ declare namespace Service {
 		| "url"
 		| "uuid"
 		| boolean
-		| string;
-		// | ActionParamSchema;
+		| string
+		| Record<string, any>;
+
 	export type ActionParams = { [key: string]: ActionParamTypes };
 
 	export type ActionCacheEnabledFunc = (ctx: Context<any, any>) => boolean;

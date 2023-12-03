@@ -16,6 +16,10 @@ const os = require("os");
 const cluster = require("cluster");
 const kleur = require("kleur");
 
+/**
+ * Import types
+ */
+
 const stopSignals = [
 	"SIGHUP",
 	"SIGINT",

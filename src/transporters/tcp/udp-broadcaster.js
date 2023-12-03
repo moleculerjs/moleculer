@@ -128,7 +128,7 @@ class UdpServer extends EventEmitter {
 
 				/** @type {import("dgram").BindOptions} */
 				const bindOptions = { port, exclusive: true };
-				if (host) {
+				if (host && !multicastAddress) {
 					bindOptions.address = host;
 				}
 

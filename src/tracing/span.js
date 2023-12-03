@@ -27,6 +27,7 @@ function defProp(instance, propName, value, readOnly = false) {
 /**
  * Trace Span class
  *
+ * @property {Tracer} tracer
  * @class Span
  * @implements {SpanClass}
  */
@@ -41,7 +42,7 @@ class Span {
 	 */
 	constructor(tracer, name, opts) {
 		defProp(this, "tracer", tracer, true);
-		defProp(this, "logger", this.tracer.logger, true);
+		defProp(this, "logger", tracer.logger, true);
 		defProp(this, "opts", opts || {});
 		defProp(this, "meta", {});
 

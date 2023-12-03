@@ -11,7 +11,7 @@ import type {
 	Regenerator as ErrorRegenerator
 } from "./errors";
 import { Stream } from "stream";
-import { NodeRawInfo } from "./service-broker";
+import { NodeRawInfo } from "./registry";
 
 declare namespace Transit {
 	export interface TransitOptions {
