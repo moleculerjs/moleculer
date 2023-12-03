@@ -40,7 +40,7 @@ declare class ActionCatalog {
 	StrategyFactory: Strategy;
 	EndpointFactory: typeof ActionEndpoint;
 
-	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: Strategy);
+	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
 	add(node: Node, service: ServiceItem, action: ActionSchema): EndpointList;
 

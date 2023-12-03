@@ -634,7 +634,7 @@ class Regenerator {
 /**
  * Resolves a regenerator option
  *
- * @param {Regenerator} opt
+ * @param {Regenerator=} opt
  * @return {Regenerator}
  */
 function resolveRegenerator(opt) {

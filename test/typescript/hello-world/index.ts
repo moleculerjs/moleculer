@@ -7,6 +7,12 @@ const broker = new ServiceBroker({
 	logger: true,
 	metrics: {
 		enabled: true,
+		reporter: {
+			type: "Event",
+			options: {
+				broadcast: true
+			}
+		}
 	},
 	tracing: {
 		enabled: true,

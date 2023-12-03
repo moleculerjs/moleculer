@@ -27,24 +27,33 @@ declare namespace MiddlewareHandler {
 }
 
 declare class MiddlewareHandler {
+	broker: ServiceBroker;
 	list: MiddlewareHandler.Middleware[];
+	registeredHooks: Record<string, Function>;
+
+	constructor(broker: ServiceBroker);
 
 	add(mw: string | MiddlewareHandler.Middleware | MiddlewareHandler.MiddlewareInit): void;
-	wrapHandler(method: string, handler: ActionHandler, def: ActionSchema): typeof handler;
+
+	wrapHandler(method: string, handler: Function, def: ActionSchema): typeof handler;
+
 	callHandlers(
 		method: string,
 		args: any[],
-		opts: MiddlewareHandler.MiddlewareCallHandlerOptions
+		opts?: MiddlewareHandler.MiddlewareCallHandlerOptions
 	): Promise<void>;
+
 	callSyncHandlers(
 		method: string,
 		args: any[],
-		opts: MiddlewareHandler.MiddlewareCallHandlerOptions
-	): void;
+		opts?: MiddlewareHandler.MiddlewareCallHandlerOptions
+	): any[];
+
 	count(): number;
+
 	wrapMethod(
 		method: string,
-		handler: ActionHandler,
+		handler: Function,
 		bindTo?: any,
 		opts?: MiddlewareHandler.MiddlewareCallHandlerOptions
 	): typeof handler;

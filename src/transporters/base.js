@@ -67,10 +67,11 @@ class BaseTransporter {
 	/**
 	 * Connect to the transporter server
 	 *
+	 * @param {Function} errorHandler
 	 * @returns {Promise}
 	 * @memberof BaseTransporter
 	 */
-	connect() {
+	connect(errorHandler) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}

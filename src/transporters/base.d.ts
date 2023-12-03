@@ -23,7 +23,7 @@ declare abstract class BaseTransporter {
 		afterConnect: (wasReconnect: boolean) => void
 	): void;
 
-	abstract connect(): Promise<any>;
+	abstract connect(errorHandler: Function): Promise<any>;
 
 	abstract disconnect(): Promise<any>;
 

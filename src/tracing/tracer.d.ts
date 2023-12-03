@@ -4,6 +4,13 @@ import Span = require("./span");
 import RateLimiter = require("./rate-limiter");
 import BaseTraceExporter = require("./exporters/base");
 import type { Logger } from "../logger-factory";
+import type { ConsoleTraceExporterOptions } from "./exporters/console";
+import type { DatadogTraceExporterOptions } from "./exporters/datadog";
+import type { EventTraceExporterOptions } from "./exporters/event";
+import type { JaegerTraceExporterOptions } from "./exporters/jaeger";
+import type { NewRelicTraceExporterOptions } from "./exporters/newrelic";
+import type { ZipkinTraceExporterOptions } from "./exporters/zipkin";
+import { Tracing } from "trace_events";
 
 declare namespace Tracer {
 	export type TracerDefaultTagsFunction = (tracer: Tracer) => Record<string, any>;
@@ -30,9 +37,31 @@ declare namespace Tracer {
 				meta?: boolean | string[];
 		  };
 
+	export type TracingExporter = {
+		type: "Console",
+		options?: ConsoleTraceExporterOptions
+	} | {
+		type: "Datadog",
+		options?: DatadogTraceExporterOptions
+	} | {
+		type: "Event",
+		options?: EventTraceExporterOptions
+	} | {
+		type: "Jaeger",
+		options?: JaegerTraceExporterOptions
+	} | {
+		type: "NewRelic",
+		options?: NewRelicTraceExporterOptions
+	} | {
+		type: "Zipkin",
+		options?: ZipkinTraceExporterOptions
+	}
+
+	type TracingExporterTypes = TracingExporter["type"];
+
 	export interface TracerOptions {
 		enabled?: boolean;
-		exporter?: string | TracerExporterOptions | (TracerExporterOptions | string)[] | null;
+		exporter?: TracingExporterTypes | TracingExporter | (TracingExporter | TracingExporterTypes)[] | null;
 		sampling?: {
 			rate?: number | null;
 			tracesPerSecond?: number | null;
@@ -45,7 +74,7 @@ declare namespace Tracer {
 		errorFields?: string[];
 		stackTrace?: boolean;
 
-		defaultTags?: Record<string, any> | Function | null;
+		defaultTags?: Record<string, any> | TracerDefaultTagsFunction | null;
 
 		tags?: {
 			action?: TracingActionTags;

@@ -1,5 +1,4 @@
 import type { EventEmitter2 } from "eventemitter2";
-import type AsyncStorage = require("./async-storage");
 import type { Base as BaseCacher } from "./cachers";
 import type { ContextParentSpan } from "./context";
 import type {
@@ -13,27 +12,105 @@ import type { MetricRegistry, MetricRegistryOptions } from "./metrics";
 import type { Middleware, MiddlewareCallHandlerOptions } from "./middleware";
 import type { BulkheadOptions } from "./middlewares";
 import type ServiceRegistry = require("./registry");
-import type { Base as BaseDiscoverer, RegistryDiscovererOptions } from "./registry/discoverers";
 import type { Base as BaseSerializer } from "./serializers";
-import type { ActionHandler, ServiceSchema } from "./service";
+import type { ServiceSchema } from "./service";
 import type { Tracer, TracerOptions } from "./tracing";
 import type Transit = require("./transit");
 import type { Base as BaseTransporter } from "./transporters";
 import type { Base as BaseValidator, ValidatorNames, ValidatorOptions } from "./validators";
 import type Context = require("./context");
 import type MiddlewareHandler = require("./middleware");
-import type Node = require("./registry/node");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
 import type { ServiceDependency } from "./service";
 import type { Stream } from "stream";
-import { ReplOptions } from "repl";
-import { LoggerOptions } from "./loggers/base";
+import type { LoggerOptions } from "./loggers/base";
+import type { TcpTransporterOptions } from "./transporters/tcp";
+import type { NatsTransporterOptions } from "./transporters/nats";
+import type { AmqpTransporterOptions } from "./transporters/amqp";
+import type { Amqp10TransporterOptions } from "./transporters/amqp10";
+import type { MqttTransporterOptions } from "./transporters/mqtt";
+import type { KafkaTransporterOptions } from "./transporters/kafka";
+import type { RedisTransporterOptions } from "./transporters/redis";
+import type { MemoryCacherOptions } from "./cachers/memory";
+import type { MemoryLRUCacherOptions } from "./cachers/memory-lru";
+import type { RedisCacherOptions } from "./cachers/redis";
+import type { UserInfo, type } from "os";
+import type { JSONExtSerializerOptions } from "./serializers/json-extended";
+import type { CborSerializerOptions } from "./serializers/cbor";
+import type ServiceItem = require("./registry/service-item");
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
 	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
+
+	type TransporterConfig =
+		| {
+				type: "AMQP";
+				options?: AmqpTransporterOptions;
+		  }
+		| {
+				type: "AMQP10";
+				options?: Amqp10TransporterOptions;
+		  }
+		| {
+				type: "Fake";
+		  }
+		| {
+				type: "Kafka";
+				options?: KafkaTransporterOptions;
+		  }
+		| {
+				type: "MQTT";
+				options?: MqttTransporterOptions;
+		  }
+		| {
+				type: "NATS";
+				options?: NatsTransporterOptions;
+		  }
+		| {
+				type: "Redis";
+				options?: RedisTransporterOptions;
+		  }
+		| {
+				type: "TCP";
+				options?: TcpTransporterOptions;
+		  };
+
+	type TransporterType = TransporterConfig["type"];
+
+	type CacherConfig =
+		| {
+				type: "Memory";
+				options?: MemoryCacherOptions;
+		  }
+		| {
+				type: "MemoryLRU";
+				options?: MemoryLRUCacherOptions;
+		  }
+		| {
+				type: "Redis";
+				options?: RedisCacherOptions;
+		  };
+
+	type CacherType = CacherConfig["type"];
+
+	type SerializerConfig = {
+		type: "JSON"
+	} | {
+		type: "JSONExt",
+		options?: JSONExtSerializerOptions
+	} | {
+		type: "MsgPack"
+	} | {
+		type: "Notepack"
+	} | {
+		type: "CBOR",
+		options?: CborSerializerOptions
+	};
+
+	type SerializerType = SerializerConfig["type"];
 
 	export interface ServiceBrokerOptions {
 		namespace?: string | null;
@@ -42,7 +119,7 @@ declare namespace ServiceBroker {
 		logger?: BaseLogger<LoggerOptions> | LoggerConfig | LoggerConfig[] | boolean | null;
 		logLevel?: LogLevels | LogLevelConfig | null;
 
-		transporter?: BaseTransporter | string | Record<string, any> | null;
+		transporter?: BaseTransporter | TransporterType | TransporterConfig | null;
 		requestTimeout?: number;
 		retryPolicy?: RetryPolicyOptions;
 
@@ -55,20 +132,20 @@ declare namespace ServiceBroker {
 
 		disableBalancer?: boolean;
 
-		registry?: BrokerRegistryOptions;
+		registry?: ServiceRegistry.RegistryOptions;
 
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 
 		bulkhead?: BulkheadOptions;
 
-		transit?: BrokerTransitOptions;
+		transit?: Transit.TransitOptions;
 
 		uidGenerator?: () => string;
 
-		errorHandler?: ((err: Error, info: any) => void) | null;
+		errorHandler?: ((err: Error, info: Record<string, any>) => void) | null;
 
-		cacher?: boolean | BaseCacher | string | Record<string, any> | null;
-		serializer?: BaseSerializer | string | Record<string, any> | null;
+		cacher?: boolean | BaseCacher | CacherType | CacherConfig | null;
+		serializer?: BaseSerializer | SerializerType | SerializerConfig | null;
 		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
 		errorRegenerator?: ErrorRegenerator | null;
 
@@ -78,7 +155,7 @@ declare namespace ServiceBroker {
 		internalServices?:
 			| boolean
 			| {
-					[key: string]: Partial<ServiceSchema>;
+					$node: Partial<ServiceSchema>;
 			  };
 		internalMiddlewares?: boolean;
 
@@ -101,26 +178,13 @@ declare namespace ServiceBroker {
 		started?: BrokerAsyncLifecycleHandler;
 		stopped?: BrokerAsyncLifecycleHandler;
 
-		/**
-		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
-		 * You have to register this manually and stop broker in this case!
-		 */
 		skipProcessEventRegistration?: boolean;
-
-		maxSafeObjectSize?: number;
+		maxSafeObjectSize?: number | null;
 	}
 
 	export interface ReplOptions {
 		customCommands?: Record<string, any>[] | null;
 		delimiter?: string;
-	}
-
-	export interface BrokerRegistryOptions {
-		strategy?: Function | string;
-		strategyOptions?: Record<string, any>;
-		preferLocal?: boolean;
-		stopDelay?: number;
-		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
 	}
 
 	export interface BrokerCircuitBreakerOptions {
@@ -150,13 +214,6 @@ declare namespace ServiceBroker {
 		[module: string]: boolean | LogLevels;
 	}
 
-	export interface BrokerTransitOptions {
-		maxQueueSize?: number;
-		disableReconnect?: boolean;
-		disableVersionCheck?: boolean;
-		maxChunkSize?: number;
-	}
-
 	export interface BrokerTrackingOptions {
 		enabled?: boolean;
 		shutdownTimeout?: number;
@@ -182,7 +239,7 @@ declare namespace ServiceBroker {
 			hostname: string;
 			arch: string;
 			platform: string;
-			user: string;
+			user: UserInfo<string> | {};
 		};
 		process: {
 			pid: NodeJS.Process["pid"];
@@ -273,8 +330,6 @@ declare class ServiceBroker {
 
 	ContextFactory: typeof Context;
 
-	started: boolean;
-
 	namespace: string;
 
 	nodeID: string;
@@ -307,28 +362,37 @@ declare class ServiceBroker {
 
 	transit?: Transit;
 
+	started: boolean;
+	servicesStarting: boolean;
+	stopping: boolean;
+
 	constructor(options?: ServiceBroker.ServiceBrokerOptions);
+
+	registerMiddlewares(userMiddlewares: MiddlewareHandler.Middleware[]): void;
+	registerMoleculerMetrics(): void;
 
 	start(): Promise<void>;
 
 	stop(): Promise<void>;
 
+	repl(): void;
+
 	errorHandler(err: Error, info: Record<string, any>): void;
 
 	wrapMethod(
 		name: string,
-		handler: ActionHandler,
+		handler: Function,
 		bindTo?: any,
 		opts?: MiddlewareCallHandlerOptions
-	): typeof handler;
+	): any;
 
+	callMiddlewareHook(name: string, args: any[], opts?: MiddlewareCallHandlerOptions): Promise<void>;
 	callMiddlewareHookSync(
 		name: string,
 		args: any[],
 		opts?: MiddlewareCallHandlerOptions
-	): Promise<void>;
+	): void;
 
-	callMiddlewareHook(name: string, args: any[], opts?: MiddlewareCallHandlerOptions): void;
 
 	isMetricsEnabled(): boolean;
 
@@ -339,14 +403,23 @@ declare class ServiceBroker {
 	fatal(message: string, err?: Error, needExit?: boolean): void;
 
 	loadServices(folder?: string, fileMask?: string): number;
-
 	loadService(filePath: string): Service;
+
+	getLocalService(name: string | ServiceDependency): Service;
 
 	createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 
+	_restartService(service: Service): Promise<void>;
+
+	addLocalService(service: Service): void
+	registerLocalService(registryItem: ServiceItem): void;
+
 	destroyService(service: Service | string | ServiceDependency): Promise<void>;
 
-	getLocalService(name: string | ServiceDependency): Service;
+	servicesChanged(localService?: boolean): void;
+	localServiceChanged(): void;
+
+	registerInternalServices(opts?: ServiceSchema): void;
 
 	waitForServices(
 		serviceNames: string | ServiceDependency | (string | ServiceDependency)[],
@@ -356,7 +429,7 @@ declare class ServiceBroker {
 	): Promise<void>;
 
 	findNextActionEndpoint(
-		actionName: string,
+		actionName: string|ActionEndpoint,
 		opts?: Record<string, any>,
 		ctx?: Context
 	): ActionEndpoint | MoleculerRetryableError;
@@ -367,6 +440,15 @@ declare class ServiceBroker {
 		params: TParams,
 		opts?: ServiceBroker.CallingOptions
 	): Promise<TReturn>;
+
+	callWithoutBalancer<TReturn>(actionName: string): Promise<TReturn>;
+	callWithoutBalancer<TReturn, TParams>(
+		actionName: string,
+		params: TParams,
+		opts?: ServiceBroker.CallingOptions
+	): Promise<TReturn>;
+
+	_getLocalActionEndpoint(actionName: string, ctx: Context): ActionEndpoint;
 
 	mcall<TReturn>(
 		def: Record<string, ServiceBroker.MCallDefinition>,
@@ -383,24 +465,29 @@ declare class ServiceBroker {
 	broadcast<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
-	broadcastLocal<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
+	broadcastLocal<TData>(
+		eventName: string,
+		data?: TData,
+		opts?: Record<string, any>
+	): Promise<void>;
 	broadcastLocal(eventName: string): Promise<void>;
 
 	ping(nodeID?: string | string[], timeout?: number): Promise<ServiceBroker.PongResponse>;
 
 	getHealthStatus(): ServiceBroker.NodeHealthStatus;
 
-	getLocalNodeInfo(): Node;
+	getLocalNodeInfo(): ServiceRegistry.NodeRawInfo;
 
-	getCpuUsage(): Promise<any>;
+	getEventGroups(eventName: string): string[];
+	hasEventListener(eventName: string): boolean;
+	getEventListeners(eventName: string): EventEndpoint[];
+	emitLocalServices(ctx: Context): Promise<void>;
 
+	getCpuUsage(): Promise<Record<string, any>>;
 	generateUid(): string;
 
-	hasEventListener(eventName: string): boolean;
-
-	getEventListeners(eventName: string): EventEndpoint[];
-
-	getConstructorName(obj: any): string;
+	getConstructorName(obj: Record<string, any>): string;
+	normalizeSchemaConstructor(schema: ServiceSchema): ServiceSchema;
 }
 
 export = ServiceBroker;

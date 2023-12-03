@@ -1,9 +1,17 @@
 import ServiceBroker = require("../service-broker");
 import BaseMetric = require("./types/base");
 import type { BaseMetricPOJO, BaseMetricOptions } from "./types/base";
-import type { MetricReporterOptions } from "./reporters/base";
 import type { Logger } from "../logger-factory";
 import MetricBaseReporter = require("./reporters/base");
+import { ConsoleReporterOptions } from "./reporters/console";
+import { DatadogReporterOptions } from "./reporters/datadog";
+import { EventReporterOptions } from "./reporters/event";
+import { PrometheusReporterOptions } from "./reporters/prometheus";
+import { StatsDReporterOptions } from "./reporters/statsd";
+import GaugeMetric = require("./types/gauge");
+import CounterMetric = require("./types/counter");
+import HistogramMetric = require("./types/histogram");
+import InfoMetric = require("./types/info");
 
 declare namespace MetricRegistry {
 	export interface MetricListOptions {
@@ -12,22 +20,55 @@ declare namespace MetricRegistry {
 		excludes?: string | string[];
 	}
 
-	export interface MetricsReporterOptions {
-		type: string;
-		options?: MetricReporterOptions;
-	}
+	export type MetricsReporter = {
+		type: "Console",
+		options?: ConsoleReporterOptions,
+	} | {
+		type: "CSV",
+		options?: ConsoleReporterOptions,
+	} | {
+		type: "Datadog",
+		options?: DatadogReporterOptions,
+	} | {
+		type: "Event",
+		options?: EventReporterOptions,
+	} | {
+		type: "Prometheus",
+		options?: PrometheusReporterOptions,
+	} | {
+		type: "StatsD",
+		options?: StatsDReporterOptions,
+	};
+
+	type MetricsReporterTypes = MetricsReporter["type"];
 
 	export interface MetricRegistryOptions {
 		enabled?: boolean;
 		collectProcessMetrics?: boolean;
 		collectInterval?: number;
-		reporter?: string | MetricsReporterOptions | (MetricsReporterOptions | string)[] | null;
+		reporter?: MetricsReporterTypes | MetricsReporter | (MetricsReporter | MetricsReporterTypes)[] | null;
 		defaultBuckets?: number[];
 		defaultQuantiles?: number[];
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
 		defaultAggregator?: string;
 	}
+
+	type GaugeMetricOptions = BaseMetricOptions & {
+		type: "gauge";
+	};
+
+	type CounterMetricOptions = BaseMetricOptions & {
+		type: "counter";
+	};
+
+	type HistogramMetricOptions = BaseMetricOptions & {
+		type: "histogram";
+	};
+
+	type InfoMetricOptions = BaseMetricOptions & {
+		type: "info";
+	};
 }
 
 declare class MetricRegistry {
@@ -46,7 +87,11 @@ declare class MetricRegistry {
 	stop(): Promise<void>;
 
 	isEnabled(): boolean;
-	register(opts: BaseMetricOptions): BaseMetric<any> | null;
+
+	register(opts: MetricRegistry.GaugeMetricOptions): GaugeMetric | null;
+	register(opts: MetricRegistry.CounterMetricOptions): CounterMetric | null;
+	register(opts: MetricRegistry.HistogramMetricOptions): HistogramMetric | null;
+	register(opts: MetricRegistry.InfoMetricOptions): InfoMetric | null;
 
 	hasMetric(name: string): boolean;
 	getMetric(name: string): BaseMetric<any>;

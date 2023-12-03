@@ -27,12 +27,13 @@ const { METRIC } = require("../metrics");
  * @typedef {import("../service").ServiceAction} ServiceAction
  * @typedef {import("../service").ActionSchema} ActionSchema
  * @typedef {import("../service").ServiceEvent} ServiceEvent
- * @typedef {import("../registry")} RegistryClass
- * @typedef {import("../registry").NodeRawInfo} NodeRawInfo
+ * @typedef {import("./registry")} RegistryClass
+ * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("../service-broker")} ServiceBroker
  * @typedef {import("./node")} Node
  * @typedef {import("./endpoint-list")} EndpointList
  * @typedef {import("./endpoint")} Endpoint
+ * @typedef {import("../strategies/base")} BaseStrategy
  */
 
 /**
@@ -45,7 +46,7 @@ class Registry {
 	/**
 	 * Creates an instance of Registry.
 	 *
-	 * @param {any} broker
+	 * @param {ServiceBroker} broker
 	 * @memberof Registry
 	 */
 	constructor(broker) {
@@ -58,6 +59,7 @@ class Registry {
 		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
 		this.logger.info(`Strategy: ${this.StrategyFactory.name}`);
 
+		/** @type {Discoverers.Base} */
 		this.discoverer = Discoverers.resolve(this.opts.discoverer);
 		this.logger.info(`Discoverer: ${this.broker.getConstructorName(this.discoverer)}`);
 
@@ -73,7 +75,7 @@ class Registry {
 		this.updateMetrics();
 	}
 
-	init(/*broker*/) {
+	init() {
 		this.discoverer.init(this);
 	}
 
@@ -182,7 +184,7 @@ class Registry {
 	/**
 	 * Register local service
 	 *
-	 * @param {Service} svc
+	 * @param {ServiceItem} svc
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {

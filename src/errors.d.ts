@@ -110,3 +110,5 @@ export declare class Regenerator {
 	private _restoreExternalFields(plainError: PlainMoleculerError, err: PlainMoleculerError, payload: Record<string, any>): void;
 	private _restoreStack(plainError: PlainMoleculerError, err: Error): void;
 }
+
+export declare function resolveRegenerator(opts?: Regenerator): Regenerator

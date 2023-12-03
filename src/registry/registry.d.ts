@@ -1,21 +1,23 @@
-import ServiceBroker = require("../service-broker");
-import MetricRegistry = require("../metrics/registry");
-import BaseStrategy = require("../strategies/base");
+import type ServiceBroker = require("../service-broker");
+import type MetricRegistry = require("../metrics/registry");
+import type BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
 import type { Logger } from "../logger-factory";
-import type { BrokerRegistryOptions } from "../service-broker";
 import type { ActionSchema, ServiceEvent } from "../service";
-import ServiceItem = require("./service-item");
-import ServiceCatalog = require("./service-catalog");
-import ActionCatalog = require("./action-catalog");
-import ActionEndpoint = require("./endpoint-action");
-import NodeCatalog = require("./node-catalog");
-import EventCatalog = require("./event-catalog");
-import EndpointList = require("./endpoint-list");
-import Endpoint = require("./endpoint");
-import Node = require("./node");
-import Service = require("../service");
-import BaseDiscoverer = require("./discoverers/base");
+import type ServiceItem = require("./service-item");
+import type ServiceCatalog = require("./service-catalog");
+import type ActionCatalog = require("./action-catalog");
+import type ActionEndpoint = require("./endpoint-action");
+import type NodeCatalog = require("./node-catalog");
+import type EventCatalog = require("./event-catalog");
+import type EndpointList = require("./endpoint-list");
+import type Endpoint = require("./endpoint");
+import type Node = require("./node");
+
+import type BaseDiscoverer = require("./discoverers/base");
+import type { LocalDiscovererOptions } from "./discoverers/local";
+import type { Etcd3DiscovererOptions } from "./discoverers/etcd3";
+import type { RedisDiscovererOptions } from "./discoverers/redis";
 
 declare namespace ServiceRegistry {
 	export interface NodeRawInfo {
@@ -29,6 +31,27 @@ declare namespace ServiceRegistry {
 		metadata: Record<string, any>;
 		services: [Record<string, any>];
 	}
+
+	type DiscovererConfig = {
+		type: "Local";
+		options?: LocalDiscovererOptions;
+	} | {
+		type: "Etcd3";
+		options?: Etcd3DiscovererOptions;
+	} | {
+		type: "Redis";
+		options?: RedisDiscovererOptions;
+	};
+
+	type DiscovererType = DiscovererConfig["type"];
+
+	export interface RegistryOptions {
+		strategy?: typeof BaseStrategy | string;
+		strategyOptions?: Record<string, any>;
+		preferLocal?: boolean;
+		stopDelay?: number;
+		discoverer?: DiscovererConfig | BaseDiscoverer | DiscovererType;
+	}
 }
 
 declare class ServiceRegistry {
@@ -36,9 +59,9 @@ declare class ServiceRegistry {
 	metrics: MetricRegistry;
 	logger: Logger;
 
-	opts: BrokerRegistryOptions;
+	opts: ServiceRegistry.RegistryOptions;
 
-	StrategyFactory: BaseStrategy;
+	StrategyFactory: typeof BaseStrategy;
 
 	discoverer: BaseDiscoverer;
 
@@ -47,6 +70,8 @@ declare class ServiceRegistry {
 	actions: ActionCatalog;
 	events: EventCatalog;
 
+	constructor(broker: ServiceBroker);
+
 	init(): void;
 
 	stop(): Promise<void>;
@@ -54,7 +79,7 @@ declare class ServiceRegistry {
 	registerMoleculerMetrics(): void;
 	updateMetrics(): void;
 
-	registerLocalService(service: Service): void;
+	registerLocalService(service: ServiceItem): void;
 
 	registerServices(node: Node, serviceList: Record<string, any>[]): void;
 

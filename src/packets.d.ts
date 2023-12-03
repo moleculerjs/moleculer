@@ -38,6 +38,79 @@ export interface PacketPayload {
 	sender: string | null;
 }
 
+export interface PacketDiscoverPayload extends PacketPayload {}
+export interface PacketInfoPayload extends PacketPayload {
+	services: [Record<string, any>];
+	config: Record<string, any>;
+	instanceID: string;
+	ipList: string[];
+	hostname: string;
+	client: {
+		type: string;
+		version: string;
+		langVersion: string;
+	};
+	metadata: Record<string, any>;
+}
+
+export interface PacketHeartbeatPayload extends PacketPayload {
+	cpu: number;
+}
+
+export interface PacketRequestPayload extends PacketPayload {
+	id: string;
+	action: string;
+	params: Record<string, any>;
+	meta: Record<string, any>;
+	timeout: number;
+	level: number;
+	tracing: boolean;
+	parentID?: string;
+	requestID?: string;
+	caller?: string;
+	stream: boolean;
+	seq?: number;
+}
+
+export interface PacketResponsePayload extends PacketPayload {
+	id: string;
+	success: boolean;
+	data?: Record<string, any>;
+	error?: Record<string, any>;
+	meta: Record<string, any>;
+	stream: boolean;
+	seq?: number;
+}
+
+export interface PacketEventPayload extends PacketPayload {
+	id: string;
+	event: string;
+	data?: Record<string, any>;
+	meta: Record<string, any>;
+	level: number;
+	tracing: boolean;
+	parentID?: string;
+	requestID?: string;
+	caller?: string;
+	stream: boolean;
+	seq?: number;
+	groups: string[];
+	broadcast: boolean;
+}
+
+export interface PacketPingPayload extends PacketPayload {
+	id: string;
+	time: number;
+}
+
+export interface PacketPongPayload extends PacketPayload {
+	id: string;
+	time: number;
+	arrived: number;
+}
+
+export interface PacketDisconnectPayload extends PacketPayload {}
+
 export declare class Packet {
 	type: PacketType;
 
@@ -45,5 +118,5 @@ export declare class Packet {
 
 	payload: PacketPayload;
 
-	constructor(type: string, target?: string|null, payload?: any);
+	constructor(type: string, target?: string | null, payload?: any);
 }

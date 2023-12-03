@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,6 +11,18 @@ const Middlewares = require("./middlewares");
 const { BrokerOptionsError } = require("./errors");
 const { isObject, isFunction, isString } = require("./utils");
 
+/**
+ * Import types
+ *
+ * @typedef {import("./middleware")} MiddlewareClass
+ * @typedef {import("./middleware").MiddlewareCallHandlerOptions} MiddlewareCallHandlerOptions
+ * @typedef {import("./service").ActionHandler} ActionHandler
+ */
+
+/**
+ * class MiddlewareHandler
+ * @implements {MiddlewareClass}
+ */
 class MiddlewareHandler {
 	constructor(broker) {
 		this.broker = broker;
@@ -76,7 +88,7 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Object} opts
+	 * @param {MiddlewareCallHandlerOptions=} opts
 	 * @returns {Promise}
 	 * @memberof MiddlewareHandler
 	 */
@@ -99,8 +111,8 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Object} opts
-	 * @returns {Array<any}
+	 * @param {MiddlewareCallHandlerOptions=} opts
+	 * @returns {Array<any>}
 	 * @memberof MiddlewareHandler
 	 */
 	callSyncHandlers(method, args, opts = {}) {
@@ -128,8 +140,8 @@ class MiddlewareHandler {
 	 *
 	 * @param {string} method
 	 * @param {Function} handler
-	 * @param {any} bindTo
-	 * @param {Object} opts
+	 * @param {any=} bindTo
+	 * @param {MiddlewareCallHandlerOptions=} opts
 	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */

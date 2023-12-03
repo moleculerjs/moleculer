@@ -19,6 +19,7 @@ const C = require("./constants");
  * @typedef {import("./transporters/base")} Transporter
  * @typedef {import("stream").Stream} Stream
  * @typedef {import("./context")} Context
+ * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("./transit")} TransitClass
  */
 
@@ -309,7 +310,7 @@ class Transit {
 	 *
 	 * @param {string} cmd
 	 * @param {Packet} packet
-	 * @returns {Promise<boolean>} If packet is processed resolve with `true` else `false`
+	 * @returns {Promise} If packet is processed resolve with `true` else `false`
 	 *
 	 * @memberof Transit
 	 */
@@ -411,7 +412,7 @@ class Transit {
 	/**
 	 * Handle incoming event
 	 *
-	 * @param {any} payload
+	 * @param {Record<string, any>} payload
 	 * @returns {Promise<boolean>}
 	 * @memberof Transit
 	 */
@@ -460,7 +461,7 @@ class Transit {
 	/**
 	 * Handle incoming request
 	 *
-	 * @param {Object} payload
+	 * @param {Record<string, any>} payload
 	 * @returns {Promise<any>}
 	 * @memberof Transit
 	 */
@@ -647,6 +648,7 @@ class Transit {
 	 * Create an Error instance from payload ata
 	 * @param {Object} error
 	 * @param {Object} payload
+	 * @returns {Error}
 	 */
 	_createErrFromPayload(error, payload) {
 		return this.errorRegenerator?.restore(error, payload);
@@ -1040,7 +1042,7 @@ class Transit {
 	/**
 	 * Remove a pending request
 	 *
-	 * @param {any} id
+	 * @param {String} id
 	 *
 	 * @memberof Transit
 	 */
@@ -1257,6 +1259,8 @@ class Transit {
 	/**
 	 * Send node info package to other nodes.
 	 *
+	 * @param {NodeRawInfo} info
+	 * @param {String} nodeID
 	 * @memberof Transit
 	 */
 	sendNodeInfo(info, nodeID) {
@@ -1290,7 +1294,7 @@ class Transit {
 	 * Send ping to a node (or all nodes if nodeID is null)
 	 *
 	 * @param {String} nodeID
-	 * @param {String} id
+	 * @param {String=} id
 	 * @returns
 	 * @memberof Transit
 	 */

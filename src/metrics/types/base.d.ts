@@ -8,7 +8,6 @@ declare namespace BaseMetric {
 		labelNames?: string[];
 		unit?: string;
 		aggregator?: string;
-		// [key: string]: unknown;
 	}
 
 	export interface BaseMetricPOJO<TSnapshot extends Record<string, any>> {

@@ -13,7 +13,7 @@ const utils = require("./utils");
  * Internal service ($node.*)
  */
 module.exports = function () {
-	/** @type import("./service").ServiceSchema */
+	/** @type {import("./service").ServiceSchema} */
 	const schema = {
 		name: "$node",
 

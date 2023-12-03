@@ -10,6 +10,12 @@ const os = require("os");
 const { getIpList } = require("./utils");
 const MOLECULER_VERSION = require("../package.json").version;
 
+/**
+ * Import types
+ *
+ * @typedef {import("./service-broker").NodeHealthStatus} NodeHealthStatus
+ */
+
 const getClientInfo = () => {
 	return {
 		type: "nodejs",
@@ -21,13 +27,14 @@ const getClientInfo = () => {
 const getCpuInfo = () => {
 	const cpus = os.cpus();
 	const load = os.loadavg();
+	const cores = Array.isArray(cpus) ? os.cpus().length : null;
 	const cpu = {
 		load1: load[0],
 		load5: load[1],
 		load15: load[2],
-		cores: Array.isArray(cpus) ? os.cpus().length : null
+		cores: cores,
+		utilization: Math.min(Math.floor((load[0] * 100) / cores), 100)
 	};
-	cpu.utilization = Math.min(Math.floor((load[0] * 100) / cpu.cores), 100);
 
 	return cpu;
 };
@@ -35,13 +42,18 @@ const getCpuInfo = () => {
 const getMemoryInfo = () => {
 	const mem = {
 		free: os.freemem(),
-		total: os.totalmem()
+		total: os.totalmem(),
+		percent: null
 	};
 	mem.percent = (mem.free * 100) / mem.total;
 
 	return mem;
 };
 
+/**
+ *
+ * @returns {os.UserInfo| {}}
+ */
 const getUserInfo = () => {
 	try {
 		return os.userInfo();
@@ -85,7 +97,11 @@ const getDateTimeInfo = () => {
 	};
 };
 
-const getHealthStatus = (/*broker*/) => {
+/**
+ *
+ * @returns {NodeHealthStatus}
+ */
+const getHealthStatus = () => {
 	return {
 		cpu: getCpuInfo(),
 		mem: getMemoryInfo(),

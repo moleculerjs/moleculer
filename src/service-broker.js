@@ -36,14 +36,18 @@ const C = require("./constants");
  * Import types
  *
  * @typedef {import("./context")} Context
- * @typedef {import("./registry/endpoint")} Endpoint
+ * @typedef {import("./registry/endpoint-action")} ActionEndpoint
  * @typedef {import("./service")} Service
- * @typedef {import("./service").ServiceSearchObj} ServiceSearchObj
+ * @typedef {import("./service").ServiceSchema} ServiceSchema
+ * @typedef {import("./service").ServiceDependency} ServiceDependency
+ * @typedef {import("./service").ActionHandler} ActionHandler
  * @typedef {import("./service-broker")} ServiceBrokerClass
  * @typedef {import("./service-broker").ServiceBrokerOptions} ServiceBrokerOptions
  * @typedef {import("./service-broker").CallingOptions} CallingOptions
  * @typedef {import("./service-broker").NodeHealthStatus} NodeHealthStatus
  * @typedef {import("./logger-factory").Logger} Logger
+ * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
+ * @typedef {import("./registry/service-item")} ServiceItem
  */
 
 /**
@@ -87,7 +91,8 @@ const defaultOptions = {
 	registry: {
 		strategy: "RoundRobin",
 		preferLocal: true,
-		stopDelay: 100
+		stopDelay: 100,
+		discoverer: "Local"
 	},
 
 	circuitBreaker: {
@@ -181,7 +186,7 @@ class ServiceBroker {
 	/**
 	 * Creates an instance of ServiceBroker.
 	 *
-	 * @param {Object} options
+	 * @param {ServiceBrokerOptions} options
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -248,7 +253,7 @@ class ServiceBroker {
 
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
-			this.metrics.init();
+			this.metrics.init(this);
 			this.registerMoleculerMetrics();
 
 			// Middleware handler
@@ -323,7 +328,7 @@ class ServiceBroker {
 			const origLocalServiceChanged = this.localServiceChanged;
 			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
 
-			this.registry.init(this);
+			this.registry.init();
 
 			// Register internal actions
 			if (this.options.internalServices)
@@ -363,6 +368,7 @@ class ServiceBroker {
 	/**
 	 * Register middlewares (user & internal)
 	 *
+	 * @param {MiddlewareHandler.Middleware[]} userMiddlewares
 	 * @memberof ServiceBroker
 	 */
 	registerMiddlewares(userMiddlewares) {
@@ -613,7 +619,7 @@ class ServiceBroker {
 	 *
 	 * @example
 	 * broker.start().then(() => broker.repl());
-	 * @returns {object}
+	 * @returns
 	 */
 	repl() {
 		let repl;
@@ -657,9 +663,9 @@ class ServiceBroker {
 	 *
 	 * @param {string} name
 	 * @param {Function} handler
-	 * @param {any} bindTo
-	 * @param {Object} opts
-	 * @returns {Function}
+	 * @param {any=} bindTo
+	 * @param {Object=} opts
+	 * @returns {any}
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -672,7 +678,7 @@ class ServiceBroker {
 	 *
 	 * @param {String} name
 	 * @param {Array<any>} args
-	 * @param {Object} opts
+	 * @param {Object=} opts
 	 * @returns {Promise}
 	 *
 	 * @memberof ServiceBroker
@@ -686,7 +692,7 @@ class ServiceBroker {
 	 *
 	 * @param {String} name
 	 * @param {Array<any>} args
-	 * @param {Object} opts
+	 * @param {Object=} opts
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
@@ -719,7 +725,7 @@ class ServiceBroker {
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
 	 * @param {String} mod	Name of module
-	 * @param {Record<string, any>?} props	Module properties (service name, version, ...etc
+	 * @param {Record<string, any>=} props	Module properties (service name, version, ...etc
 	 * @returns {Logger}
 	 *
 	 * @memberof ServiceBroker
@@ -741,8 +747,8 @@ class ServiceBroker {
 	 * Fatal error. Print the message to console and exit the process (if need)
 	 *
 	 * @param {String} message
-	 * @param {Error?} err
-	 * @param {boolean} [needExit=true]
+	 * @param {Error=} err
+	 * @param {boolean=} [needExit=true]
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -834,13 +840,14 @@ class ServiceBroker {
 	/**
 	 * Create a new service by schema
 	 *
-	 * @param {any} schema	Schema of service or a Service class
-	 * @param {any=} schemaMods	Modified schema
+	 * @param {ServiceSchema} schema	Schema of service or a Service class
+	 * @param {ServiceSchema=} schemaMods	Modified schema
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker
 	 */
 	createService(schema, schemaMods) {
+		/** @type {Service} */
 		let service;
 
 		schema = this.normalizeSchemaConstructor(schema);
@@ -862,7 +869,6 @@ class ServiceBroker {
 	 * @param {Service} service
 	 * @returns {Promise}
 	 * @memberof ServiceBroker
-	 * @private
 	 */
 	_restartService(service) {
 		return service._start.call(service).catch(err => {
@@ -890,7 +896,7 @@ class ServiceBroker {
 	/**
 	 * Register a local service to Service Registry
 	 *
-	 * @param {Object} registryItem
+	 * @param {ServiceItem} registryItem
 	 * @memberof ServiceBroker
 	 */
 	registerLocalService(registryItem) {
@@ -902,33 +908,37 @@ class ServiceBroker {
 	/**
 	 * Destroy a local service
 	 *
-	 * @param {Service|string|ServiceSearchObj} service
+	 * @param {Service|string|ServiceDependency} service
 	 * @returns Promise<void>
 	 * @memberof ServiceBroker
 	 */
 	destroyService(service) {
 		let serviceName;
 		let serviceVersion;
+		/** @type {Service} */
+		let svc;
 		if (utils.isString(service)) {
 			serviceName = service;
-			service = this.getLocalService(service);
+			svc = this.getLocalService(service);
 		} else if (utils.isPlainObject(service)) {
 			serviceName = service.name;
 			serviceVersion = service.version;
-			service = this.getLocalService(service);
+			svc = this.getLocalService(service);
+		} else {
+			svc = service;
 		}
 
-		if (!service) {
+		if (!svc) {
 			return this.Promise.reject(
 				new E.ServiceNotFoundError({ service: serviceName, version: serviceVersion })
 			);
 		}
 
 		return this.Promise.resolve()
-			.then(() => service._stop())
+			.then(() => svc._stop())
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
+				this.logger.error(`Unable to stop '${svc.fullName}' service.`, err);
 
 				this.broadcastLocal("$broker.error", {
 					error: err,
@@ -937,10 +947,10 @@ class ServiceBroker {
 				});
 			})
 			.then(() => {
-				utils.removeFromArray(this.services, service);
-				this.registry.unregisterService(service.fullName, this.nodeID);
+				utils.removeFromArray(this.services, svc);
+				this.registry.unregisterService(svc.fullName, this.nodeID);
 
-				this.logger.info(`Service '${service.fullName}' is stopped.`);
+				this.logger.info(`Service '${svc.fullName}' is stopped.`);
 				this.servicesChanged(true);
 
 				this.metrics.set(
@@ -975,13 +985,14 @@ class ServiceBroker {
 
 	/**
 	 * Register internal services
-	 * @param {Object?} opts
+	 * @param {ServiceSchema?} opts
 	 *
 	 * @memberof ServiceBroker
 	 */
 	registerInternalServices(opts) {
 		opts = utils.isObject(opts) ? opts : {};
-		const internalsSchema = require("./internals")(this);
+		/** @type {import("./service").ServiceSchema} */
+		const internalsSchema = require("./internals")();
 		let definitiveSchema = {};
 		// If it's present any custom definition, define it as the root schema and the default one as a mixin
 		if (opts["$node"]) {
@@ -1002,7 +1013,7 @@ class ServiceBroker {
 	 * 	getLocalService("v2.posts");
 	 * 	getLocalService({ name: "posts", version: 2 });
 	 *
-	 * @param {String|ServiceSearchObj} name
+	 * @param {String|ServiceDependency} name
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker
@@ -1018,20 +1029,20 @@ class ServiceBroker {
 	/**
 	 * Wait for other services
 	 *
-	 * @param {String|Array<String>} serviceNames
-	 * @param {Number} timeout Timeout in milliseconds
-	 * @param {Number} interval Check interval in milliseconds
+	 * @param {String|Array<String>|ServiceDependency|Array<ServiceDependency>} service
+	 * @param {Number=} timeout Timeout in milliseconds
+	 * @param {Number=} interval Check interval in milliseconds
 	 * @returns {Promise}
 	 *
 	 * @memberof ServiceBroker
 	 */
 	waitForServices(
-		serviceNames,
+		service,
 		timeout = this.options.dependencyTimeout,
 		interval = this.options.dependencyInterval,
 		logger = this.logger
 	) {
-		if (!Array.isArray(serviceNames)) serviceNames = [serviceNames];
+		let serviceNames = Array.isArray(service) ? service : [service];
 
 		serviceNames = utils.uniq(
 			_.compact(
@@ -1123,10 +1134,10 @@ class ServiceBroker {
 	/**
 	 * Find the next available endpoint for action
 	 *
-	 * @param {String} actionName
+	 * @param {String |ActionEndpoint} actionName
 	 * @param {Object?} opts
 	 * @param {Context?} ctx
-	 * @returns {Endpoint|Error}
+	 * @returns {ActionEndpoint|E.MoleculerRetryableError}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
@@ -1168,8 +1179,8 @@ class ServiceBroker {
 	 * Call an action
 	 *
 	 * @param {String} actionName		name of action
-	 * @param {Object?} params			params of action
-	 * @param {CallingOptions?} opts	options of call (optional)
+	 * @param {Object=} params			params of action
+	 * @param {CallingOptions=} opts	options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @performance-critical
@@ -1243,17 +1254,17 @@ class ServiceBroker {
 	 * built-in balancer with the "disableBalancer" option.
 	 *
 	 * @param {String} actionName	name of action
-	 * @param {Object?} params		params of action
-	 * @param {Object?} opts 		options of call (optional)
+	 * @param {Object=} params		params of action
+	 * @param {Object=} opts 		options of call (optional)
 	 * @returns {Promise}
 	 *
-	 * @private
 	 * @memberof ServiceBroker
 	 */
 	callWithoutBalancer(actionName, params, opts = {}) {
 		if (params === undefined) params = {}; // Backward compatibility
 
 		let nodeID = null;
+		/** @type {ActionEndpoint} */
 		let endpoint = null;
 		if (typeof actionName !== "string") {
 			endpoint = actionName;
@@ -1341,8 +1352,8 @@ class ServiceBroker {
 	 * Multiple action calls.
 	 *
 	 * @param {Array<Object>|Object} def Calling definitions.
-	 * @param {Object} opts Calling options for each call.
-	 * @returns {Promise<Array<Object>|Object>|PromiseSettledResult<any>}
+	 * @param {Object=} opts Calling options for each call.
+	 * @returns {Promise<any>}
 	 *
 	 * @example
 	 * Call `mcall` with an array:
@@ -1405,8 +1416,8 @@ class ServiceBroker {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any?} payload
-	 * @param {Object?} opts
+	 * @param {any=} payload
+	 * @param {Object=} opts
 	 * @returns {Promise<any>}
 	 *
 	 * @memberof ServiceBroker
@@ -1506,8 +1517,8 @@ class ServiceBroker {
 	 * Broadcast an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any?} payload
-	 * @param {Object?} opts
+	 * @param {any=} payload
+	 * @param {Object=} opts
 	 * @returns {Promise}
 	 *
 	 * @memberof ServiceBroker
@@ -1587,8 +1598,8 @@ class ServiceBroker {
 	 * Broadcast an event for all local services
 	 *
 	 * @param {string} eventName
-	 * @param {any?} payload
-	 * @param {Object?} opts
+	 * @param {any=} payload
+	 * @param {Object=} opts
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
@@ -1703,13 +1714,13 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	getHealthStatus() {
-		return H.getHealthStatus(this);
+		return H.getHealthStatus();
 	}
 
 	/**
 	 * Get local node info.
 	 *
-	 * @returns
+	 * @returns {NodeRawInfo}
 	 * @memberof ServiceBroker
 	 */
 	getLocalNodeInfo() {
@@ -1810,8 +1821,8 @@ class ServiceBroker {
 	/**
 	 * Ensure the service schema will be prototype of ServiceFactory;
 	 *
-	 * @param {any} schema
-	 * @returns {string}
+	 * @param {ServiceSchema} schema
+	 * @returns {ServiceSchema}
 	 *
 	 */
 	normalizeSchemaConstructor(schema) {
