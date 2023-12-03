@@ -7,7 +7,7 @@ import {
 } from "../../../index";
 
 // set up some test globals
-const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 interface ExtendedSettings extends ServiceSettingSchema {
 	foo: string;
 }

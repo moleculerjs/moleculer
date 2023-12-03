@@ -7,7 +7,7 @@ import {
 	ServiceSettingSchema,
 } from "../../../index";
 
-const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
 class TestService extends Service {
 	constructor(broker: ServiceBroker) {

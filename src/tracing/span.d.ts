@@ -26,6 +26,12 @@ declare namespace Span {
 		time: number;
 		elapsed: number;
 	}
+
+	export interface SpanServiceInfo {
+		name: string;
+		version?: string | number;
+		fullName?: string;
+	}
 }
 
 declare class Span {
@@ -42,11 +48,7 @@ declare class Span {
 	traceID: string;
 	parentID: string | null;
 
-	service?: {
-		name: string;
-		version?: string | number;
-		fullName?: string;
-	};
+	service: Span.SpanServiceInfo;
 
 	priority: number;
 	sampled: boolean;
@@ -56,7 +58,7 @@ declare class Span {
 	finishTime: number | null;
 	duration: number | null;
 
-	error: Error | null;
+	error: Error | boolean | null;
 
 	logs: Span.SpanLogEntry[];
 	tags: Record<string, any>;

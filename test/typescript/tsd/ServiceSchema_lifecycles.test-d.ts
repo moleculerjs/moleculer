@@ -1,7 +1,7 @@
 import { expectType } from "tsd";
 import { Service, ServiceBroker, ServiceSchema } from "../../../index";
 
-const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
 class TestService1 extends Service {
 	constructor(broker: ServiceBroker) {

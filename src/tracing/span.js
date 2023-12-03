@@ -22,6 +22,8 @@ function defProp(instance, propName, value, readOnly = false) {
  * @typedef {import("./tracer")} Tracer
  * @typedef {import("./span")} SpanClass
  * @typedef {import("./span").SpanOptions} SpanOptions
+ * @typedef {import("./span").SpanServiceInfo} SpanServiceInfo
+ * @typedef {import("../logger-factory").Logger} Logger
  */
 
 /**
@@ -32,6 +34,17 @@ function defProp(instance, propName, value, readOnly = false) {
  * @implements {SpanClass}
  */
 class Span {
+	/** @type {Tracer} */
+	tracer;
+	/** @type {SpanOptions} */
+	opts;
+	/** @type {Object} */
+	meta;
+	/** @type {Logger} */
+	logger;
+	/** @type {SpanServiceInfo} */
+	service;
+
 	/**
 	 * Creates an instance of Span.
 	 * @param {Tracer} tracer
