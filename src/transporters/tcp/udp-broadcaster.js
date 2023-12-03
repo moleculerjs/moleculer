@@ -127,7 +127,10 @@ class UdpServer extends EventEmitter {
 				port = port || 4445;
 
 				/** @type {import("dgram").BindOptions} */
-				const bindOptions = { port, address: host, exclusive: true };
+				const bindOptions = { port, exclusive: true };
+				if (host) {
+					bindOptions.address = host;
+				}
 
 				server.bind(bindOptions, () => {
 					try {
