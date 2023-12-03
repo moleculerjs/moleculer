@@ -18,6 +18,7 @@ const C = require("./constants");
  * @typedef {import("./service-broker")} ServiceBroker
  * @typedef {import("./transporters/base")} Transporter
  * @typedef {import("stream").Stream} Stream
+ * @typedef {import("stream").Readable} Readable
  * @typedef {import("./context")} Context
  * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("./transit")} TransitClass
@@ -862,6 +863,7 @@ class Transit {
 		};
 
 		if (isStream) {
+			/** @type {Readable} */
 			const s = ctx.options.stream;
 			if (s.readableObjectMode === true || s._readableState?.objectMode === true) {
 				payload.headers = payload.headers ?? {};

@@ -448,7 +448,7 @@ declare class ServiceBroker {
 		opts?: ServiceBroker.CallingOptions
 	): Promise<TReturn>;
 
-	_getLocalActionEndpoint(actionName: string, ctx: Context): ActionEndpoint;
+	_getLocalActionEndpoint(actionName: string, ctx?: Context): ActionEndpoint;
 
 	mcall<TReturn>(
 		def: Record<string, ServiceBroker.MCallDefinition>,

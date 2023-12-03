@@ -1330,6 +1330,12 @@ class ServiceBroker {
 		return p;
 	}
 
+	/**
+	 *
+	 * @param {string} actionName
+	 * @param {Context=} ctx
+	 * @returns
+	 */
 	_getLocalActionEndpoint(actionName, ctx) {
 		// Find action by name
 		let epList = this.registry.getActionEndpoints(actionName);
