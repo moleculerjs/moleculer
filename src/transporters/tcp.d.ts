@@ -79,7 +79,7 @@ declare class TcpTransporter extends BaseTransporter {
 	subscribeBalancedEvent(event: string, group: string): Promise<void>;
 	unsubscribeFromBalancedCommands(): Promise<void>;
 
-	publish(packet: Packet): any;
+	publish(packet: Packet<any>): any;
 	send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
 }
 export = TcpTransporter;

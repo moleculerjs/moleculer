@@ -32,7 +32,7 @@ declare class AmqpTransporter extends BaseTransporter {
 	disconnect(): Promise<void>;
 
 	_getQueueOptions(packetType: string, balancedQueue?: boolean): Record<string, any>;
-	_consumeCB(cmd: string, needAck?: boolean): (msg: any) => Promise<void>;
+	_consumeCB(cmd: string, needAck?: boolean): (msg: any) => void | Promise<void>;
 
 	subscribe(cmd: string, nodeID?: string): Promise<void>;
 	subscribeBalancedRequest(action: string): Promise<void>;

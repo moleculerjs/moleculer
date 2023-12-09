@@ -122,12 +122,12 @@ class BaseTraceExporter {
 	/**
 	 * Convert Error to POJO.
 	 *
-	 * @param {Error} err
+	 * @param {Error|boolean} err
 	 * @returns {Record<string, any>}
 	 * @memberof BaseTraceExporter
 	 */
 	errorToObject(err) {
-		if (!err) return null;
+		if (!err || !isObject(err)) return null;
 
 		return _.pick(err, this.tracer.opts.errorFields);
 	}

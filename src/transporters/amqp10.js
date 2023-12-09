@@ -16,7 +16,11 @@ const C = require("../constants");
  *
  * @typedef {import("./amqp10")} Amqp10TransporterClass
  * @typedef {import("./amqp10").Amqp10TransporterOptions} Amqp10TransporterOptions
- * @typedef {import("../packets").Packet} Packet
+ * @typedef {import('../packets').Packet} Packet
+ * @typedef {import("../packets").PacketRequestPayload} PacketRequestPayload
+ * @typedef {import("../packets").PacketEventPayload} PacketEventPayload
+ * @typedef {import("rhea-promise").ConnectionEvents} ConnectionEvents
+ * @typedef {import("rhea-promise").ReceiverEvents} ReceiverEvents
  */
 
 const {
@@ -235,7 +239,7 @@ class Amqp10Transporter extends Transporter {
 		const container = new rhea.Container();
 		const connection = container.createConnection(connectionOptions);
 
-		connection.on("disconnected", e => {
+		connection.on(/** @type {ConnectionEvents} */ ("disconnected"), e => {
 			this.logger.info("AMQP10 disconnected.");
 			this.connected = false;
 			if (e) {
@@ -260,7 +264,9 @@ class Amqp10Transporter extends Transporter {
 				this.connection.createSession().then(session => {
 					this.session = session;
 					this.logger.info("AMQP10 is connected");
+					// @ts-ignore
 					this.connection._connection.setMaxListeners(0);
+					// @ts-ignore
 					this.session._session.setMaxListeners(0);
 					this.session.setMaxListeners(0);
 					this.connected = true;
@@ -359,7 +365,7 @@ class Amqp10Transporter extends Transporter {
 					receiver.addCredit(this.opts.prefetch);
 				}
 
-				receiver.on("message", context => {
+				receiver.on(/** @type {ReceiverEvents} */ ("message"), context => {
 					const cb = this._consumeCB(cmd, needAck)(context);
 					if (isPromise(cb) && this.opts.prefetch !== 0) {
 						return cb.then(() => receiver.addCredit(1));
@@ -381,7 +387,7 @@ class Amqp10Transporter extends Transporter {
 				session: this.session
 			});
 			return this.connection.createReceiver(receiverOptions).then(receiver => {
-				receiver.on("message", context => {
+				receiver.on(/** @type {ReceiverEvents} */ ("message"), context => {
 					this._consumeCB(cmd, false)(context);
 				});
 
@@ -407,14 +413,14 @@ class Amqp10Transporter extends Transporter {
 				autoaccept: false,
 				session: this.session
 			},
-			this._getQueueOptions(PACKET_REQUEST, true)
+			this._getQueueOptions(PACKET_REQUEST)
 		);
 		return this.connection.createReceiver(receiverOptions).then(receiver => {
 			if (this.opts.prefetch !== 0) {
 				receiver.addCredit(this.opts.prefetch);
 			}
 
-			receiver.on("message", context => {
+			receiver.on(/** @type {ReceiverEvents} */ ("message"), context => {
 				const cb = this._consumeCB(PACKET_REQUEST, true)(context);
 				if (isPromise(cb) && this.opts.prefetch !== 0) {
 					return cb.then(() => receiver.addCredit(1));
@@ -445,11 +451,14 @@ class Amqp10Transporter extends Transporter {
 				autoaccept: false,
 				session: this.session
 			},
-			this._getQueueOptions(PACKET_EVENT + "LB", true)
+			this._getQueueOptions(PACKET_EVENT + "LB")
 		);
 
 		return this.connection.createReceiver(receiverOptions).then(receiver => {
-			receiver.on("message", this._consumeCB(PACKET_EVENT, true));
+			receiver.on(
+				/** @type {ReceiverEvents} */ ("message"),
+				this._consumeCB(PACKET_EVENT, true)
+			);
 
 			this.receivers.push(receiver);
 		});
@@ -508,7 +517,7 @@ class Amqp10Transporter extends Transporter {
 	/**
 	 * Publish a balanced EVENT(B) packet to a balanced queue
 	 *
-	 * @param {Packet} packet
+	 * @param {import('../packets').Packet<PacketEventPayload>} packet
 	 * @param {String} group
 	 * @returns {Promise}
 	 * @memberof Amqp10Transporter
@@ -555,7 +564,7 @@ class Amqp10Transporter extends Transporter {
 	/**
 	 * Publish a balanced REQ(B) packet to a balanced queue
 	 *
-	 * @param {Packet} packet
+	 * @param {import('../packets').Packet<PacketRequestPayload>} packet
 	 * @returns {Promise}
 	 * @memberof Amqp10Transporter
 	 */
@@ -597,6 +606,20 @@ class Amqp10Transporter extends Transporter {
 					type: C.FAILED_PUBLISH_BALANCED_REQUEST
 				});
 			});
+	}
+
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(topic, data, { balanced, packet }) {
+		// Doesn't used
+		return this.broker.Promise.resolve();
 	}
 }
 

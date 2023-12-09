@@ -331,7 +331,7 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @param {String} cmd
 	 * @param {Boolean=} needAck
-	 * @returns {(msg: any) => Promise<void>}
+	 * @returns {(msg: any) => void | Promise<void>}
 	 *
 	 * @memberof AmqpTransporter
 	 */

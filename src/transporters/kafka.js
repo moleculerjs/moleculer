@@ -53,38 +53,40 @@ class KafkaTransporter extends Transporter {
 			opts = {};
 		}
 
-		opts = defaultsDeep(opts, {
-			// KafkaClient options. More info: https://kafka.js.org/docs/configuration
-			client: {
-				brokers: Array.isArray(opts.brokers)
-					? opts.brokers
-					: opts.brokers
-					  ? [opts.brokers]
-					  : null,
-				logLevel: 1,
-				logCreator:
-					logLevel =>
-					({ level, log }) => {
-						const { message, ...extra } = log;
-						if (log.error == "Topic creation errors") return;
-						this.logger[toMoleculerLogLevel(level)](message, extra);
-					}
-			},
+		opts = /** @type {KafkaTransporterOptions} */ (
+			defaultsDeep(opts, {
+				// KafkaClient options. More info: https://kafka.js.org/docs/configuration
+				client: {
+					brokers: Array.isArray(opts.brokers)
+						? opts.brokers
+						: opts.brokers
+						  ? [opts.brokers]
+						  : null,
+					logLevel: 1,
+					logCreator:
+						logLevel =>
+						({ level, log }) => {
+							const { message, ...extra } = log;
+							if (log.error == "Topic creation errors") return;
+							this.logger[toMoleculerLogLevel(level)](message, extra);
+						}
+				},
 
-			// KafkaProducer options. More info: https://kafka.js.org/docs/producing#options
-			producer: {},
+				// KafkaProducer options. More info: https://kafka.js.org/docs/producing#options
+				producer: {},
 
-			// ConsumerGroup options. More info: https://kafka.js.org/docs/consuming#a-name-options-a-options
-			consumer: {},
+				// ConsumerGroup options. More info: https://kafka.js.org/docs/consuming#a-name-options-a-options
+				consumer: {},
 
-			// Advanced options for `send`. More info: https://kafka.js.org/docs/producing#producing-messages
-			publish: {},
+				// Advanced options for `send`. More info: https://kafka.js.org/docs/producing#producing-messages
+				publish: {},
 
-			// Advanced message options for `send`. More info: https://kafka.js.org/docs/producing#message-structure
-			publishMessage: {
-				partition: 0
-			}
-		});
+				// Advanced message options for `send`. More info: https://kafka.js.org/docs/producing#message-structure
+				publishMessage: {
+					partition: 0
+				}
+			})
+		);
 
 		super(opts);
 

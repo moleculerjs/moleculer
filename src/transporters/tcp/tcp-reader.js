@@ -64,7 +64,9 @@ class TcpReader extends EventEmitter {
 
 			// Listening
 			server.listen(h, () => {
-				this.opts.port = this.server.address().port;
+				this.opts.port = /** @type {import("net").AddressInfo} */ (
+					this.server.address()
+				).port;
 				this.logger.info(`TCP server is listening on port ${this.opts.port}`);
 				this.connected = true;
 

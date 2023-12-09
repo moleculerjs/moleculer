@@ -170,7 +170,6 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * Get a tracer instance by service name
 	 *
 	 * @param {string} serviceName
-	 * @returns {Jaeger.Tracer}
 	 */
 	getTracer(serviceName) {
 		if (this.tracers[serviceName]) return this.tracers[serviceName];

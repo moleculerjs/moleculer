@@ -24,7 +24,6 @@ import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
 import type { ServiceDependency } from "./service";
-import type { Stream } from "stream";
 import type { LoggerOptions } from "./loggers/base";
 import type { TcpTransporterOptions } from "./transporters/tcp";
 import type { NatsTransporterOptions } from "./transporters/nats";
@@ -40,6 +39,7 @@ import type { UserInfo, type } from "os";
 import type { JSONExtSerializerOptions } from "./serializers/json-extended";
 import type { CborSerializerOptions } from "./serializers/cbor";
 import type ServiceItem = require("./registry/service-item");
+import type { Readable } from "stream";
 
 declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
@@ -295,7 +295,7 @@ declare namespace ServiceBroker {
 		paramsCloning?: boolean;
 		caller?: string;
 		headers?: Record<string, any>;
-		stream?: Stream;
+		stream?: Readable;
 		ctx?: Context;
 	}
 

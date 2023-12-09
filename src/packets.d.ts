@@ -62,6 +62,7 @@ export interface PacketRequestPayload extends PacketPayload {
 	action: string;
 	params: Record<string, any>;
 	meta: Record<string, any>;
+	headers: Record<string, any>;
 	timeout: number;
 	level: number;
 	tracing: boolean;
@@ -87,6 +88,7 @@ export interface PacketEventPayload extends PacketPayload {
 	event: string;
 	data?: Record<string, any>;
 	meta: Record<string, any>;
+	headers: Record<string, any>;
 	level: number;
 	tracing: boolean;
 	parentID?: string;
@@ -111,12 +113,12 @@ export interface PacketPongPayload extends PacketPayload {
 
 export interface PacketDisconnectPayload extends PacketPayload {}
 
-export declare class Packet {
+export declare class Packet<T extends PacketPayload> {
 	type: PacketType;
 
 	target?: string;
 
-	payload: PacketPayload;
+	payload: T;
 
 	constructor(type: string, target?: string | null, payload?: any);
 }

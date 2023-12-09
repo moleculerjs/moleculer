@@ -16,14 +16,10 @@ declare namespace Amqp10Transporter {
 declare class Amqp10Transporter extends BaseTransporter {
 	opts: Amqp10Transporter.Amqp10TransporterOptions;
 
+	receivers: any[];
 	hasBuiltInBalancer: boolean;
 	connection: any;
-	channel: any;
-	bindings: any[];
-
-	channelDisconnecting: boolean;
-	connectionDisconnecting: boolean;
-	connectionCount: number;
+	session: any;
 
 	constructor(opts?: string | Amqp10Transporter.Amqp10TransporterOptions);
 

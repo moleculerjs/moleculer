@@ -55,7 +55,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		super.init(tracer);
 
 		try {
-			const ddTrace = require("dd-trace");
+			const ddTrace = require("dd-trace").tracer;
 			DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
 			DatadogID = require("dd-trace/packages/dd-trace/src/id");
 			if (!this.ddTracer) {

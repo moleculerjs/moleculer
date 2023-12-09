@@ -22,6 +22,13 @@ const C = require("./constants");
  * @typedef {import("./context")} Context
  * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("./transit")} TransitClass
+ * @typedef {import("./packets").PacketDiscoverPayload} PacketDiscoverPayload
+ * @typedef {import("./packets").PacketInfoPayload} PacketInfoPayload
+ * @typedef {import("./packets").PacketRequestPayload} PacketRequestPayload
+ * @typedef {import("./packets").PacketResponsePayload} PacketResponsePayload
+ * @typedef {import("./packets").PacketEventPayload} PacketEventPayload
+ * @typedef {import("./packets").PacketPingPayload} PacketPingPayload
+ * @typedef {import("./packets").PacketPongPayload} PacketPongPayload
  */
 
 /**
@@ -340,11 +347,13 @@ class Transit {
 
 			if (payload.sender === this.nodeID) {
 				// Detect nodeID conflict
-				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
-					this.broker.fatal(
-						"ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped."
-					);
-					return this.Promise.resolve(false);
+				if (cmd === P.PACKET_INFO) {
+					if (/** @type {PacketInfoPayload} */ (payload).instanceID !== this.instanceID) {
+						this.broker.fatal(
+							"ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped."
+						);
+						return this.Promise.resolve(false);
+					}
 				}
 
 				// Skip own packets (if only built-in balancer disabled)
@@ -354,17 +363,19 @@ class Transit {
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
-				return this.requestHandler(payload).then(() => true);
+				return this.requestHandler(/** @type {PacketRequestPayload} */ (payload)).then(
+					() => true
+				);
 			}
 
 			// Response
 			else if (cmd === P.PACKET_RESPONSE) {
-				this.responseHandler(payload);
+				this.responseHandler(/** @type {PacketResponsePayload} */ (payload));
 			}
 
 			// Event
 			else if (cmd === P.PACKET_EVENT) {
-				return this.eventHandler(payload);
+				return this.eventHandler(/** @type {PacketEventPayload} */ (payload));
 			}
 
 			// Discover
@@ -389,12 +400,12 @@ class Transit {
 
 			// Ping
 			else if (cmd === P.PACKET_PING) {
-				this.sendPong(payload);
+				this.sendPong(/** @type {PacketPingPayload} */ (payload));
 			}
 
 			// Pong
 			else if (cmd === P.PACKET_PONG) {
-				this.processPong(payload);
+				this.processPong(/** @type {PacketPongPayload} */ (payload));
 			}
 
 			return this.Promise.resolve(true);
@@ -413,7 +424,7 @@ class Transit {
 	/**
 	 * Handle incoming event
 	 *
-	 * @param {Record<string, any>} payload
+	 * @param {PacketEventPayload} payload
 	 * @returns {Promise<boolean>}
 	 * @memberof Transit
 	 */
@@ -462,7 +473,7 @@ class Transit {
 	/**
 	 * Handle incoming request
 	 *
-	 * @param {Record<string, any>} payload
+	 * @param {PacketRequestPayload} payload
 	 * @returns {Promise<any>}
 	 * @memberof Transit
 	 */
@@ -658,7 +669,7 @@ class Transit {
 	/**
 	 * Process incoming response of request
 	 *
-	 * @param {Object} packet
+	 * @param {PacketResponsePayload} packet
 	 *
 	 * @memberof Transit
 	 */
@@ -865,7 +876,7 @@ class Transit {
 		if (isStream) {
 			/** @type {Readable} */
 			const s = ctx.options.stream;
-			if (s.readableObjectMode === true || s._readableState?.objectMode === true) {
+			if (s.readableObjectMode === true) {
 				payload.headers = payload.headers ?? {};
 				payload.headers.$streamObjectMode = true;
 			}
@@ -903,10 +914,7 @@ class Transit {
 					// Skip to send ctx.meta after the first packet because it doesn't appear on the remote side.
 					payload.meta = {};
 					// Still send information about objectMode in case of packets are received in wrong order
-					if (
-						stream.readableObjectMode === true ||
-						stream._readableState?.objectMode === true
-					) {
+					if (stream.readableObjectMode === true) {
 						payload.headers = payload.headers ?? {};
 						payload.headers.$streamObjectMode = true;
 					}
@@ -1322,7 +1330,7 @@ class Transit {
 	/**
 	 * Send back pong response
 	 *
-	 * @param {Object} payload
+	 * @param {PacketPingPayload} payload
 	 * @returns
 	 * @memberof Transit
 	 */
@@ -1350,7 +1358,7 @@ class Transit {
 	 * Process incoming PONG packet.
 	 * Measure ping time & current time difference.
 	 *
-	 * @param {Object} payload
+	 * @param {PacketPongPayload} payload
 	 * @memberof Transit
 	 */
 	processPong(payload) {

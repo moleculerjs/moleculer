@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const BaseTraceExporter = require("./base");
-const { isFunction } = require("../../utils");
+const { isFunction, isObject } = require("../../utils");
 
 /**
  * Import types
@@ -195,7 +195,8 @@ class NewRelicTraceExporter extends BaseTraceExporter {
 		};
 
 		if (span.error) {
-			payload.tags["error"] = span.error.message;
+			if (isObject(span.error)) payload.tags["error"] = span.error.message;
+			else payload.tags["error"] = "Unknown error";
 
 			payload.annotations.push({
 				value: "error",

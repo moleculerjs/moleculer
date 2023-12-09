@@ -61,7 +61,7 @@ declare class Transit {
 	sendDisconnectPacket(): Promise<void>;
 	makeSubscriptions(): Promise<void[]>;
 
-	messageHandler(cmd: string, packet: Packet): Promise<void>;
+	messageHandler(cmd: string, packet: Packet<any>): Promise<void>;
 	eventHandler(payload: Record<string, any>): Promise<boolean>;
 	requestHandler(payload: Record<string, any>): Promise<void>;
 
@@ -99,6 +99,6 @@ declare class Transit {
 	processPong(payload: Record<string, any>): void;
 
 	sendHeartbeat(localNode: Node): Promise<void>;
-	publish(packet: Packet): Promise<void>;
+	publish(packet: Packet<any>): Promise<void>;
 }
 export = Transit;

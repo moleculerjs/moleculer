@@ -10,6 +10,7 @@ const { MoleculerError } = require("../errors");
 const Transporter = require("./base");
 const { BrokerOptionsError } = require("../errors");
 const C = require("../constants");
+const { isObject } = require("../utils");
 
 /**
  * Import types
@@ -194,7 +195,7 @@ class RedisTransporter extends Transporter {
 		let client;
 		let Redis;
 		try {
-			Redis = require("ioredis");
+			Redis = require("ioredis").Redis;
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal(
@@ -203,7 +204,7 @@ class RedisTransporter extends Transporter {
 				true
 			);
 		}
-		if (opts && opts.cluster) {
+		if (isObject(opts) && opts.cluster) {
 			if (!opts.cluster.nodes || opts.cluster.nodes.length === 0) {
 				throw new BrokerOptionsError("No nodes defined for cluster");
 			}
@@ -211,7 +212,7 @@ class RedisTransporter extends Transporter {
 			client = new Redis.Cluster(opts.cluster.nodes, opts.cluster.clusterOptions);
 		} else {
 			this.logger.info("Setting Redis transporter");
-			client = new Redis(opts);
+			client = new Redis(/** @type {any} */ (opts));
 		}
 		return client;
 	}

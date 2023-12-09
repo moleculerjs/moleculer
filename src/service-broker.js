@@ -805,6 +805,7 @@ class ServiceBroker {
 			schema = this.normalizeSchemaConstructor(schema);
 			if (utils.isInheritedClass(schema, this.ServiceFactory)) {
 				// Service implementation
+				// @ts-ignore
 				svc = new schema(this);
 
 				// If broker is started, call the started lifecycle event of service
@@ -854,6 +855,7 @@ class ServiceBroker {
 
 		schema = this.normalizeSchemaConstructor(schema);
 		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
+			// @ts-ignore
 			service = new schema(this, schemaMods);
 		} else {
 			service = new this.ServiceFactory(this, schema, schemaMods);
@@ -987,7 +989,7 @@ class ServiceBroker {
 
 	/**
 	 * Register internal services
-	 * @param {ServiceSchema?} opts
+	 * @param {Partial<ServiceSchema>?} opts
 	 *
 	 * @memberof ServiceBroker
 	 */
@@ -995,17 +997,16 @@ class ServiceBroker {
 		opts = utils.isObject(opts) ? opts : {};
 		/** @type {import("./service").ServiceSchema} */
 		const internalsSchema = require("./internals")();
-		let definitiveSchema = {};
 		// If it's present any custom definition, define it as the root schema and the default one as a mixin
 		if (opts["$node"]) {
-			definitiveSchema = opts["$node"];
+			const definitiveSchema = opts["$node"];
 			if (!definitiveSchema.mixins) definitiveSchema.mixins = [];
 			definitiveSchema.mixins.push(internalsSchema);
+			this.createService(definitiveSchema);
 		} else {
 			// Otherwise, just use the default one
-			definitiveSchema = internalsSchema;
+			this.createService(internalsSchema);
 		}
-		this.createService(definitiveSchema);
 	}
 
 	/**

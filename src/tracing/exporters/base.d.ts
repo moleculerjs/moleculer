@@ -33,6 +33,6 @@ declare abstract class BaseTraceExporter {
 		path?: string
 	): Record<string, any>;
 
-	errorToObject(err: Error): Record<string, any>;
+	errorToObject(err: Error|boolean): Record<string, any>;
 }
 export = BaseTraceExporter;

@@ -115,6 +115,9 @@ declare namespace Service {
 		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
 
+		// For internal purposes only!
+		remoteHandler?: ActionHandler;
+
 		// [key: string]: any;
 	}
 

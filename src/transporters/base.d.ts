@@ -1,5 +1,5 @@
 import type Transit = require("../transit");
-import type { Packet } from "../packets";
+import type { Packet, PacketRequestPayload, PacketEventPayload } from "../packets";
 import ServiceBroker = require("../service-broker");
 import { Logger } from "../logger-factory";
 import type { Socket } from "net";
@@ -40,16 +40,16 @@ declare abstract class BaseTransporter {
 	abstract subscribeBalancedEvent(event: string, group: string): Promise<void>;
 	unsubscribeFromBalancedCommands(): Promise<void>;
 
-	prepublish(packet: Packet): Promise<void>;
-	publish(packet: Packet): Promise<void>;
-	publishBalancedEvent(packet: Packet, group: string): Promise<void>;
-	publishBalancedRequest(packet: Packet): Promise<void>;
+	prepublish(packet: Packet<any>): Promise<void>;
+	publish(packet: Packet<any>): Promise<void>;
+	publishBalancedEvent(packet: Packet<PacketEventPayload>, group: string): Promise<void>;
+	publishBalancedRequest(packet: Packet<PacketRequestPayload>): Promise<void>;
 	abstract send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
 
 	getTopicName(cmd: string, nodeID?: string): string;
 
-	serialize(packet: Packet): Buffer;
-	deserialize(type: string, buf: Buffer): Packet;
+	serialize(packet: Packet<any>): Buffer;
+	deserialize(type: string, buf: Buffer): Packet<any>;
 }
 
 export = BaseTransporter;

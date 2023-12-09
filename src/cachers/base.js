@@ -31,7 +31,7 @@ class Cacher {
 	/**
 	 * Creates an instance of Cacher.
 	 *
-	 * @param {object} opts
+	 * @param {CacherOptions} opts
 	 *
 	 * @memberof Cacher
 	 */

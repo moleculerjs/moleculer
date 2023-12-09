@@ -1,10 +1,17 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
+
+/**
+ * Import types
+ *
+ * @typedef {import("./packets").Packet} PacketClass
+ * @typedef {import("./packets").PacketType} PacketType
+ */
 
 // Packet types
 const PACKET_UNKNOWN = "???";
@@ -30,15 +37,17 @@ const DATATYPE_BUFFER = 3;
 /**
  * Packet for transporters
  *
+ * @template T
  * @class Packet
+ * @implements {PacketClass}
  */
 class Packet {
 	/**
 	 * Creates an instance of Packet.
 	 *
-	 * @param {String} type
+	 * @param {PacketType} type
 	 * @param {String} target
-	 * @param {any} payload
+	 * @param {T} payload
 	 *
 	 * @memberof Packet
 	 */

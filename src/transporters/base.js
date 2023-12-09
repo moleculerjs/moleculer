@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2021 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -19,6 +19,8 @@ const { BrokerDisconnectedError } = require("../errors");
  * @typedef {import("./base")} BaseTransporterClass
  * @typedef {import("../transit")} Transit
  * @typedef {import("../packets").Packet} Packet
+ * @typedef {import("../packets").PacketRequestPayload} PacketRequestPayload
+ * @typedef {import("../packets").PacketEventPayload} PacketEventPayload
  */
 
 /**
@@ -334,8 +336,8 @@ class BaseTransporter {
 			}
 		}
 
-		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
-			const groups = packet.payload.groups;
+		if (packet.type === P.PACKET_EVENT && packet.target == null && "groups" in packet.payload) {
+			const groups = /** @type {PacketEventPayload} */ (packet.payload).groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
