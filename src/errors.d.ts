@@ -5,7 +5,7 @@ export declare class ExtendableError extends Error {
 
 	name: string;
 
-	stack: string;
+	stack?: string;
 
 	constructor(message: string);
 }

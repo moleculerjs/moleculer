@@ -171,12 +171,6 @@ function registerCommonMetrics() {
 		unit: METRIC.UNIT_HANDLE,
 		description: "Number of active process handlers"
 	});
-	this.register({
-		name: METRIC.PROCESS_INTERNAL_ACTIVE_REQUESTS,
-		type: METRIC.TYPE_GAUGE,
-		unit: METRIC.UNIT_REQUEST,
-		description: "Number of active process requests"
-	});
 
 	this.register({
 		name: METRIC.PROCESS_VERSIONS_NODE,
@@ -403,8 +397,7 @@ function updateCommonMetrics() {
 	}
 
 	this.set(METRIC.PROCESS_UPTIME, process.uptime());
-	this.set(METRIC.PROCESS_INTERNAL_ACTIVE_HANDLES, process._getActiveHandles().length);
-	this.set(METRIC.PROCESS_INTERNAL_ACTIVE_REQUESTS, process._getActiveRequests().length);
+	this.set(METRIC.PROCESS_INTERNAL_ACTIVE_HANDLES, process.getActiveResourcesInfo().length);
 
 	// --- OS METRICS ---
 

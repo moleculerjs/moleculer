@@ -454,10 +454,14 @@ declare class ServiceBroker {
 
 	_getLocalActionEndpoint(actionName: string, ctx?: Context): ActionEndpoint;
 
-	mcall<TReturn>(
-		def: Record<string, ServiceBroker.MCallDefinition> | ServiceBroker.MCallDefinition[],
+	mcall<TResult>(
+		def: Record<string, ServiceBroker.MCallDefinition>,
 		opts?: ServiceBroker.MCallCallingOptions
-	): Promise<Record<string, TReturn> | TReturn[]>;
+	): Promise<Record<string, TResult>>;
+	mcall<TResult>(
+		def: ServiceBroker.MCallDefinition[],
+		opts?: ServiceBroker.MCallCallingOptions
+	): Promise<TResult[]>;
 
 	emit<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;

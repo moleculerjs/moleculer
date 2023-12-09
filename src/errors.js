@@ -551,7 +551,7 @@ class Regenerator {
 	 * Extracts a plain error object from Error object
 	 *
 	 * @param {Record<string, any>} plainErr
-	 * @param {Object} payload
+	 * @param {Record<string, any>} payload
 	 * @return {PlainMoleculerError} plain error
 	 *
 	 * @memberof Regenerator
@@ -598,6 +598,7 @@ class Regenerator {
 		err.code = plainError.code;
 		err.type = plainError.type;
 		err.data = plainError.data;
+		if (plainError.stack) err.stack = plainError.stack;
 
 		return err;
 	}
@@ -620,7 +621,7 @@ class Regenerator {
 	/**
 	 * Restores an error stack
 	 *
-	 * @param {Error} plainError
+	 * @param {PlainMoleculerError} plainError
 	 * @param {Error} err
 	 * @private
 	 *

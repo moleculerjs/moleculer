@@ -334,6 +334,18 @@ class Context {
 	}
 
 	/**
+	 * @overload
+	 * @param {Record<string, MCallDefinition>} def
+	 * @param {MCallCallingOptions=} _opts
+	 * @returns {Promise<Record<string, TResult>>}
+	 */
+	/**
+	 * @overload
+	 * @param {MCallDefinition[]} def
+	 * @param {MCallCallingOptions=} _opts
+	 * @returns {Promise<TResult[]>}
+	 */
+	/**
 	 * Multiple action calls.
 	 *
 	 * @template TResult

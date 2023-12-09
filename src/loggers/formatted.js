@@ -142,7 +142,10 @@ class FormattedLogger extends BaseLogger {
 
 		const mod = bindings && bindings.mod ? bindings.mod.toUpperCase() : "";
 		const c = this.getNextColor(mod);
-		const modColorName = c.split(".").reduce((a, b) => a[b] || a()[b], kleur)(mod);
+		const modColorName = c.split(".").reduce((a, b) => {
+			// @ts-ignore
+			return a[b] || a()[b];
+		}, kleur)(mod);
 		const moduleColorName = bindings ? kleur.grey(bindings.nodeID + "/") + modColorName : "";
 
 		const printArgs = args => {

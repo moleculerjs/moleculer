@@ -45,6 +45,8 @@ const C = require("./constants");
  * @typedef {import("./service-broker").ServiceBrokerOptions} ServiceBrokerOptions
  * @typedef {import("./service-broker").CallingOptions} CallingOptions
  * @typedef {import("./service-broker").NodeHealthStatus} NodeHealthStatus
+ * @typedef {import("./service-broker").MCallDefinition} MCallDefinition
+ * @typedef {import("./service-broker").MCallCallingOptions} MCallCallingOptions
  * @typedef {import("./logger-factory").Logger} Logger
  * @typedef {import("./registry").NodeRawInfo} NodeRawInfo
  * @typedef {import("./registry/service-item")} ServiceItem
@@ -1355,36 +1357,24 @@ class ServiceBroker {
 	}
 
 	/**
+	 * @overload
+	 * @param {Record<string, MCallDefinition>} def
+	 * @param {MCallCallingOptions=} opts
+	 * @returns {Promise<Record<string, TResult>>}
+	 */
+	/**
+	 * @overload
+	 * @param {MCallDefinition[]} def
+	 * @param {MCallCallingOptions=} opts
+	 * @returns {Promise<TResult[]>}
+	 */
+	/**
 	 * Multiple action calls.
 	 *
-	 * @param {Array<Object>|Object} def Calling definitions.
-	 * @param {Object=} opts Calling options for each call.
-	 * @returns {Promise<any>}
-	 *
-	 * @example
-	 * Call `mcall` with an array:
-	 * ```js
-	 * broker.mcall([
-	 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
-	 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
-	 * ]).then(results => {
-	 * 	let posts = results[0];
-	 * 	let users = results[1];
-	 * })
-	 * ```
-	 *
-	 * @example
-	 * Call `mcall` with an Object:
-	 * ```js
-	 * broker.mcall({
-	 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
-	 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
-	 * }).then(results => {
-	 * 	let posts = results.posts;
-	 * 	let users = results.users;
-	 * })
-	 * ```
-	 * @throws MoleculerServerError - If the `def` is not an `Array` and not an `Object`.
+	 * @template TResult
+	 * @param {Record<string, MCallDefinition>|MCallDefinition[]} def
+	 * @param {MCallCallingOptions=} opts
+	 * @returns {Promise<Record<string, TResult> | TResult[]>}
 	 * @memberof ServiceBroker
 	 */
 	mcall(def, opts = {}) {

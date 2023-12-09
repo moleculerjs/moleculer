@@ -103,6 +103,7 @@ class LoggerFactory {
 		Error.prepareStackTrace = _prepareStackTrace;
 
 		if (stack.length > 2) {
+			/** @type {any} */
 			const site = stack[2];
 			return {
 				filename: site.getFileName().substring(cwd.length + 1),

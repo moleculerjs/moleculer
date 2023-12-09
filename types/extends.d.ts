@@ -13,7 +13,14 @@ declare global {
 		mapSeries<T>(arr: Array<any>, fn: Function): Promise<T>;
 	}
 
+	namespace NodeJS {
+		interface Process {
+			getActiveResourcesInfo(): string[];
+		}
+	}
+
 }
+
 
 declare module "net" {
 	interface Socket {

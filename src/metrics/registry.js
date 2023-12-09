@@ -143,9 +143,28 @@ class MetricRegistry {
 	/**
 	 * Register a new metric.
 	 *
+	 * @overload
+	 * @param {GaugeMetricOptions} opts
+	 * @returns {GaugeMetric}
+	 */
+	/**
+	 * @overload
+	 * @param {CounterMetricOptions} opts
+	 * @returns {CounterMetric}
+	 */
+	/**
+	 * @overload
+	 * @param {HistogramMetricOptions} opts
+	 * @returns {HistogramMetric}
+	 */
+	/**
+	 * @overload
+	 * @param {InfoMetricOptions} opts
+	 * @returns {InfoMetric}
+	 */
+	/**
 	 * @param {GaugeMetricOptions|CounterMetricOptions|HistogramMetricOptions|InfoMetricOptions} opts
 	 * @returns {CounterMetric | GaugeMetric | HistogramMetric | InfoMetric}
-	 * @memberof MetricRegistry
 	 */
 	register(opts) {
 		if (!isPlainObject(opts)) throw new Error("Wrong argument. Must be an Object.");
@@ -211,8 +230,7 @@ class MetricRegistry {
 	increment(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled) return null;
 
-		/** @type {GaugeMetric} */
-		const item = this.getMetric(name);
+		const item = /** @type {GaugeMetric} */ (this.getMetric(name));
 		if (!isFunction(item.increment))
 			throw new Error(
 				"Invalid metric type. Incrementing works only with counter & gauge metric types."
@@ -234,8 +252,7 @@ class MetricRegistry {
 	decrement(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled) return null;
 
-		/** @type {GaugeMetric} */
-		const item = this.getMetric(name);
+		const item = /** @type {GaugeMetric} */ (this.getMetric(name));
 		if (!isFunction(item.decrement))
 			throw new Error("Invalid metric type. Decrementing works only with gauge metric type.");
 
@@ -255,7 +272,7 @@ class MetricRegistry {
 	set(name, value, labels, timestamp) {
 		if (!this.opts.enabled) return null;
 
-		const item = this.getMetric(name);
+		const item = /** @type {GaugeMetric} */ (this.getMetric(name));
 		if (!isFunction(item.set))
 			throw new Error(
 				"Invalid metric type. Value setting works only with counter, gauge & info metric types."
@@ -277,8 +294,7 @@ class MetricRegistry {
 	observe(name, value, labels, timestamp) {
 		if (!this.opts.enabled) return null;
 
-		/** @type {HistogramMetric} */
-		const item = this.getMetric(name);
+		const item = /** @type {HistogramMetric} */ (this.getMetric(name));
 		if (!isFunction(item.observe))
 			throw new Error(
 				"Invalid metric type. Observing works only with histogram metric type."
@@ -331,7 +347,7 @@ class MetricRegistry {
 		let item;
 		if (name && this.opts.enabled) {
 			item = this.getMetric(name);
-			if (!isFunction(item.observe) && !isFunction(item.set)) {
+			if (!("observe" in item) && !("set" in item)) {
 				/* istanbul ignore next */
 				throw new Error(
 					"Invalid metric type. Timing works only with histogram or gauge metric types"

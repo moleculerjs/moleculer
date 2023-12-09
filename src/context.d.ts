@@ -105,9 +105,13 @@ declare class Context<
 	): Promise<TResult>;
 
 	mcall<TResult>(
-		def: Record<string, MCallDefinition> | MCallDefinition[],
+		def: Record<string, MCallDefinition>,
 		opts?: MCallCallingOptions
-	): Promise<Record<string, TResult> | TResult[]>;
+	): Promise<Record<string, TResult>>;
+	mcall<TResult>(
+		def: MCallDefinition[],
+		opts?: MCallCallingOptions
+	): Promise<TResult[]>;
 
 	emit<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;

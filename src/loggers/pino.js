@@ -57,12 +57,10 @@ class PinoLogger extends BaseLogger {
 		super.init(loggerFactory);
 
 		try {
-			const Pino = require("pino");
+			const Pino = require("pino").pino;
 			this.pino = Pino(
-				this.opts.pino && this.opts.pino.options ? this.opts.pino.options : undefined,
-				this.opts.pino && this.opts.pino.destination
-					? this.opts.pino.destination
-					: undefined
+				this.opts.pino?.options ?? undefined,
+				this.opts.pino?.destination ?? undefined
 			);
 		} catch (err) {
 			/* istanbul ignore next */

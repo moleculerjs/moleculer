@@ -1,3 +1,4 @@
+import { DestinationStream } from "pino";
 import LoggerFactory = require("../logger-factory");
 
 import BaseLogger = require("./base");
@@ -7,7 +8,7 @@ declare namespace PinoLogger {
 	export interface PinoLoggerOptions extends LoggerOptions {
 		pino?: {
 			options: Record<string, any>;
-			destination: Record<string, any>;
+			destination: DestinationStream;
 		};
 	}
 }

@@ -154,6 +154,7 @@ Since `gc-stats` and `event-loop-stats` native libraries are not maintained and 
 - `process.eventloop.lag.avg`
 - `process.eventloop.lag.max`
 - `process.eventloop.lag.count`
+- `process.internal.active.requests`
 
 ## Removed STAN (NATS Streaming) transporter
 

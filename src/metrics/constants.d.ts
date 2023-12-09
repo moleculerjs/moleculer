@@ -40,7 +40,6 @@ export declare const PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE = "process.memory.heap
 
 export declare const PROCESS_UPTIME = "process.uptime";
 export declare const PROCESS_INTERNAL_ACTIVE_HANDLES = "process.internal.active.handles";
-export declare const PROCESS_INTERNAL_ACTIVE_REQUESTS = "process.internal.active.requests";
 
 export declare const PROCESS_VERSIONS_NODE = "process.versions.node";
 

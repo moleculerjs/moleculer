@@ -50,7 +50,6 @@ module.exports = {
 
 	PROCESS_UPTIME: "process.uptime", // seconds
 	PROCESS_INTERNAL_ACTIVE_HANDLES: "process.internal.active.handles",
-	PROCESS_INTERNAL_ACTIVE_REQUESTS: "process.internal.active.requests",
 
 	PROCESS_VERSIONS_NODE: "process.versions.node",
 
