@@ -281,7 +281,7 @@ describe("Test BaseTransporter", () => {
 			});
 
 			it("check with PACKET_EVENT without target", () => {
-				let packet = new P.Packet(P.PACKET_EVENT, null, "user.created");
+				let packet = new P.Packet(P.PACKET_EVENT, null, { event: "user.created" });
 				return transporter
 					.prepublish(packet)
 					.catch(protectReject)
