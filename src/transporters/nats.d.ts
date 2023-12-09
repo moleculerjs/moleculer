@@ -27,6 +27,5 @@ declare class NatsTransporter extends BaseTransporter {
 	unsubscribeFromBalancedCommands(): Promise<void>;
 
 	send(topic: string, data: Buffer): Promise<void>;
-
 }
 export = NatsTransporter;

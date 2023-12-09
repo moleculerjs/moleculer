@@ -1,7 +1,6 @@
 import Registry = require("../registry");
 import BaseDiscoverer = require("./base");
 
-
 declare namespace LocalDiscoverer {
 	export interface LocalDiscovererOptions extends BaseDiscoverer.DiscovererOptions {}
 }

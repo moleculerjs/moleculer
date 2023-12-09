@@ -4,9 +4,9 @@ import BaseTransporter = require("./base");
 declare class FakeTransporter extends BaseTransporter {
 	bus: EventEmitter;
 	hasBuiltInBalancer: boolean;
-	subscriptions: Array<{ topic: string, handler: Function }>;
+	subscriptions: Array<{ topic: string; handler: Function }>;
 
-	constructor(opts?: string|Record<string, any>);
+	constructor(opts?: string | Record<string, any>);
 
 	connect(): Promise<void>;
 	disconnect(): Promise<void>;

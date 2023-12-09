@@ -112,7 +112,7 @@ declare namespace Service {
 		retryPolicy?: RetryPolicyOptions;
 		fallback?: string | FallbackHandler;
 		hooks?: ActionHooks;
-		strategy?: string| typeof Strategy;
+		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
 
 		// [key: string]: any;
@@ -168,7 +168,7 @@ declare namespace Service {
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;
-		strategy?: string| typeof Strategy;
+		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
 		handler?: EventSchemaHandler;
 

@@ -22,8 +22,8 @@ declare class DatadogReporter extends MetricBaseReporter {
 	flush(): Promise<void>;
 
 	generateDatadogSeries(): Array<any>;
-    escapeLabelValue(str: string): string;
-    labelsToTags(itemLabels: Record<string, any>): Array<string>;
-    posixTimestamp(time?: number): number;
+	escapeLabelValue(str: string): string;
+	labelsToTags(itemLabels: Record<string, any>): Array<string>;
+	posixTimestamp(time?: number): number;
 }
 export = DatadogReporter;

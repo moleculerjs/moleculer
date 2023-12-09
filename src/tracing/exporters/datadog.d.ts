@@ -28,12 +28,11 @@ declare class DatadogTraceExporter extends BaseTraceExporter {
 	init(tracer: Tracer): void;
 	stop(): void;
 
-
 	spanStarted(span: Span): void;
 	spanFinished(span: Span): void;
 
 	addTags(span: any, key: string, value: any, prefix?: string): void;
-    addLogs(span: any, logs: Span.SpanLogEntry[]): void;
-    convertID(id: string): string;
+	addLogs(span: any, logs: Span.SpanLogEntry[]): void;
+	convertID(id: string): string;
 }
 export = DatadogTraceExporter;

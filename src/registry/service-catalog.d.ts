@@ -48,7 +48,7 @@ declare namespace ServiceCatalog {
 
 declare class ServiceCatalog {
 	registry: Registry;
-    broker: ServiceBroker;
+	broker: ServiceBroker;
 	services: ServiceItem[];
 
 	constructor(registry: Registry, broker: ServiceBroker);
@@ -56,15 +56,14 @@ declare class ServiceCatalog {
 	add(node: Node, service: ServiceItem, local: boolean): ServiceItem;
 
 	has(fullName: string, nodeID: string): boolean;
-    get(fullName: string, nodeID: string): ServiceItem;
+	get(fullName: string, nodeID: string): ServiceItem;
 
 	list(opts: ServiceCatalog.ServiceCatalogListOptions): ServiceCatalog.ServiceCatalogListResult[];
 
-    getLocalNodeServices(): ServiceCatalog.ServiceCatalogLocalNodeServicesResult[];
+	getLocalNodeServices(): ServiceCatalog.ServiceCatalogLocalNodeServicesResult[];
 
-    removeAllByNodeID(nodeID: string): void;
-    remove(fullName: string, nodeID: string): void;
-
+	removeAllByNodeID(nodeID: string): void;
+	remove(fullName: string, nodeID: string): void;
 }
 
 export = ServiceCatalog;

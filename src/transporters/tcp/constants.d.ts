@@ -9,4 +9,6 @@ export const PACKET_GOSSIP_HELLO_ID: number;
 export const IGNORABLE_ERRORS: string[];
 
 export function resolvePacketID(type: string): number;
-export function resolvePacketType(id: number): "EVENT" | "REQ" | "RES" | "PING" | "PONG" | "GOSSIP_REQ" | "GOSSIP_RES" | "GOSSIP_HELLO";
+export function resolvePacketType(
+	id: number
+): "EVENT" | "REQ" | "RES" | "PING" | "PONG" | "GOSSIP_REQ" | "GOSSIP_RES" | "GOSSIP_HELLO";

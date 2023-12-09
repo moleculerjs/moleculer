@@ -10,7 +10,13 @@ declare class EventEndpoint extends Endpoint {
 	service: Service;
 	event: EventSchema;
 
-	constructor(registry: Registry, broker: ServiceBroker, node: Node, service: Service, event: EventSchema);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		node: Node,
+		service: Service,
+		event: EventSchema
+	);
 
 	update(event: EventSchema): void;
 }

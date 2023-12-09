@@ -12,5 +12,7 @@ export {
 	InfoMetric as Info
 };
 
-export declare function resolve(opt: string): (typeof CounterMetric | typeof GaugeMetric | typeof HistogramMetric | typeof InfoMetric);
+export declare function resolve(
+	opt: string
+): typeof CounterMetric | typeof GaugeMetric | typeof HistogramMetric | typeof InfoMetric;
 export declare function register(name: string, value: BaseMetric<any>): void;

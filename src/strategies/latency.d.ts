@@ -14,13 +14,15 @@ declare namespace LatencyStrategy {
 }
 
 declare class LatencyStrategy extends BaseStrategy {
-
-	constructor(registry: Registry, broker: ServiceBroker, opts?: LatencyStrategy.LatencyStrategyOptions);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		opts?: LatencyStrategy.LatencyStrategyOptions
+	);
 
 	opts: LatencyStrategy.LatencyStrategyOptions;
 
 	select(list: Endpoint[]): Endpoint;
-
 }
 
 export = LatencyStrategy;

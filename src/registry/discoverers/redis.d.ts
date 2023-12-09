@@ -1,12 +1,11 @@
 import Registry = require("../registry");
 import BaseDiscoverer = require("./base");
 
-
 declare namespace RedisDiscoverer {
 	export interface RedisDiscovererOptions extends BaseDiscoverer.DiscovererOptions {
 		redis?: any;
 		serializer?: string;
-		fullCheck?: number|null;
+		fullCheck?: number | null;
 		scanLength?: number;
 		monitor?: boolean;
 	}
@@ -24,7 +23,7 @@ declare class RedisDiscoverer extends BaseDiscoverer {
 
 	reconnecting: boolean;
 
-	constructor(opts?: string|RedisDiscoverer.RedisDiscovererOptions);
+	constructor(opts?: string | RedisDiscoverer.RedisDiscovererOptions);
 	init(registry: Registry): void;
 	stop(): Promise<void>;
 	registerMoleculerMetrics(): void;

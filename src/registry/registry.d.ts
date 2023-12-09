@@ -32,16 +32,19 @@ declare namespace ServiceRegistry {
 		services: [Record<string, any>];
 	}
 
-	type DiscovererConfig = {
-		type: "Local";
-		options?: LocalDiscovererOptions;
-	} | {
-		type: "Etcd3";
-		options?: Etcd3DiscovererOptions;
-	} | {
-		type: "Redis";
-		options?: RedisDiscovererOptions;
-	};
+	type DiscovererConfig =
+		| {
+				type: "Local";
+				options?: LocalDiscovererOptions;
+		  }
+		| {
+				type: "Etcd3";
+				options?: Etcd3DiscovererOptions;
+		  }
+		| {
+				type: "Redis";
+				options?: RedisDiscovererOptions;
+		  };
 
 	type DiscovererType = DiscovererConfig["type"];
 

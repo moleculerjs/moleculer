@@ -4,16 +4,14 @@ import BaseLogger = require("./base");
 import type { LoggerOptions } from "./base";
 
 declare namespace DatadogLogger {
-
 	export interface DatadogLoggerOptions extends LoggerOptions {
-		url?: string,
-		apiKey?: string,
-		ddSource?: string,
-		env?: string,
-		hostname?: string,
-		objectPrinter?: (obj: any) => string,
-		interval?: number
-
+		url?: string;
+		apiKey?: string;
+		ddSource?: string;
+		env?: string;
+		hostname?: string;
+		objectPrinter?: (obj: any) => string;
+		interval?: number;
 	}
 }
 

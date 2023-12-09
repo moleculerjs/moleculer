@@ -8,7 +8,7 @@ declare namespace BaseLogger {
 
 	export interface LoggerOptions {
 		level?: LogLevels;
-		createLogger?: Function
+		createLogger?: Function;
 	}
 
 	// export const BaseLogger;
@@ -17,8 +17,8 @@ declare namespace BaseLogger {
 declare abstract class BaseLogger<T extends BaseLogger.LoggerOptions> {
 	constructor(opts?: T);
 
-    loggerFactory: LoggerFactory;
-    broker: ServiceBroker;
+	loggerFactory: LoggerFactory;
+	broker: ServiceBroker;
 
 	opts: T;
 

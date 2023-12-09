@@ -18,9 +18,9 @@ declare namespace ActionCatalog {
 	}
 
 	interface ActionEndpointList {
-		nodeID: string,
-		state: boolean,
-		available: boolean,
+		nodeID: string;
+		state: boolean;
+		available: boolean;
 	}
 
 	export interface ActionCatalogListResult {
@@ -35,7 +35,7 @@ declare namespace ActionCatalog {
 
 declare class ActionCatalog {
 	registry: Registry;
-    broker: ServiceBroker;
+	broker: ServiceBroker;
 	actions: Map<string, any>;
 	StrategyFactory: Strategy;
 	EndpointFactory: typeof ActionEndpoint;

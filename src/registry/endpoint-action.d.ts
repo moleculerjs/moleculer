@@ -10,7 +10,13 @@ declare class ActionEndpoint extends Endpoint {
 	service: Service;
 	action: ActionSchema;
 
-	constructor(registry: Registry, broker: ServiceBroker, node: Node, service: Service, action: any);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		node: Node,
+		service: Service,
+		action: any
+	);
 
 	update(action: ActionSchema): void;
 }

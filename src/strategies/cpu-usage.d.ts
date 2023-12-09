@@ -12,12 +12,14 @@ declare namespace CpuUsageStrategy {
 }
 
 declare class CpuUsageStrategy extends BaseStrategy {
-
-	constructor(registry: Registry, broker: ServiceBroker, opts?: CpuUsageStrategy.CpuUsageStrategyOptions);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		opts?: CpuUsageStrategy.CpuUsageStrategyOptions
+	);
 
 	opts: CpuUsageStrategy.CpuUsageStrategyOptions;
 
 	select(list: Endpoint[]): Endpoint;
-
 }
 export = CpuUsageStrategy;

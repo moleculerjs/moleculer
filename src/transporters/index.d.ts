@@ -20,5 +20,5 @@ export {
 	TcpTransporter as TCP
 };
 
-export declare function resolve(opt: Record<string,any>|string): BaseTransporter;
+export declare function resolve(opt: Record<string, any> | string): BaseTransporter;
 export declare function register(name: string, value: BaseTransporter): void;

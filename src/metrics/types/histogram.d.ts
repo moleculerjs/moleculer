@@ -1,7 +1,6 @@
 import BaseMetric = require("./base");
 
 declare namespace HistogramMetric {
-
 	export interface HistogramMetricOptions extends BaseMetric.BaseMetricOptions {
 		linearBuckets?: {
 			start: number;
@@ -13,8 +12,8 @@ declare namespace HistogramMetric {
 			factor: number;
 			count: number;
 		};
-		buckets?: boolean|number[];
-		quantiles?: boolean|number[];
+		buckets?: boolean | number[];
+		quantiles?: boolean | number[];
 
 		maxAgeSeconds?: number;
 		ageBuckets?: number;
@@ -55,7 +54,10 @@ declare class HistogramMetric extends BaseMetric<HistogramMetric.HistogramMetric
 
 	generateSnapshot(): HistogramMetric.HistogramMetricSnapshot[];
 
-	generateItemSnapshot(item: Record<string, any>, key: string): HistogramMetric.HistogramMetricSnapshot;
+	generateItemSnapshot(
+		item: Record<string, any>,
+		key: string
+	): HistogramMetric.HistogramMetricSnapshot;
 
 	resetItem(item: Record<string, any>, timestamp?: number): Record<string, any>;
 
@@ -66,6 +68,5 @@ declare class HistogramMetric extends BaseMetric<HistogramMetric.HistogramMetric
 	static generateLinearBuckets(start: number, width: number, count: number): number[];
 
 	static generateExponentialBuckets(start: number, factor: number, count: number): number[];
-
 }
 export = HistogramMetric;

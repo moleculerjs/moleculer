@@ -25,8 +25,8 @@ declare class ConsoleReporter extends MetricBaseReporter {
 	constructor(opts?: ConsoleReporter.ConsoleReporterOptions);
 
 	labelsToStr(labels: Record<string, any>): string;
-    print(): void;
-    log(...args: any[]): any;
+	print(): void;
+	log(...args: any[]): any;
 
 	metricChanged(metric: BaseMetric<any>): void;
 }

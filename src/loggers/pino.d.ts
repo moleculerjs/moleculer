@@ -4,12 +4,11 @@ import BaseLogger = require("./base");
 import type { LoggerOptions } from "./base";
 
 declare namespace PinoLogger {
-
 	export interface PinoLoggerOptions extends LoggerOptions {
 		pino?: {
-			options: Record<string, any>,
-			destination: Record<string, any>,
-		}
+			options: Record<string, any>;
+			destination: Record<string, any>;
+		};
 	}
 }
 

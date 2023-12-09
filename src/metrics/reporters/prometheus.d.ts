@@ -1,6 +1,6 @@
 import MetricRegistry = require("../registry");
 import MetricBaseReporter = require("./base");
-import { Server, IncomingMessage, ServerResponse} from "http";
+import { Server, IncomingMessage, ServerResponse } from "http";
 
 declare namespace PrometheusReporter {
 	export interface PrometheusReporterOptions extends MetricBaseReporter.MetricReporterOptions {
@@ -20,8 +20,8 @@ declare class PrometheusReporter extends MetricBaseReporter {
 	stop(): Promise<void>;
 
 	handler(req: IncomingMessage, res: ServerResponse): void;
-    generatePrometheusResponse(): string;
-    escapeLabelValue(str: string): string;
-    labelsToStr(itemLabels: Record<string, any>, extraLabels?: Record<string, any>): string;
+	generatePrometheusResponse(): string;
+	escapeLabelValue(str: string): string;
+	labelsToStr(itemLabels: Record<string, any>, extraLabels?: Record<string, any>): string;
 }
 export = PrometheusReporter;

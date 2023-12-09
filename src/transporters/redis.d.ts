@@ -6,7 +6,7 @@ declare namespace RedisTransporter {
 		cluster?: {
 			nodes?: ClusterNode[];
 			clusterOptions?: ClusterOptions;
-		}
+		};
 	}
 }
 
@@ -19,7 +19,7 @@ declare class RedisTransporter extends BaseTransporter {
 
 	constructor(opts?: string | RedisOptions | RedisTransporter.RedisTransporterOptions);
 
-	getRedisClient(opts): Redis|Cluster;
+	getRedisClient(opts): Redis | Cluster;
 
 	connect(): Promise<void>;
 	disconnect(): Promise<void>;
@@ -30,6 +30,5 @@ declare class RedisTransporter extends BaseTransporter {
 	unsubscribeFromBalancedCommands(): Promise<void>;
 
 	send(topic: string, data: Buffer): Promise<void>;
-
 }
 export = RedisTransporter;

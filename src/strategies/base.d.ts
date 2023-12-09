@@ -7,7 +7,7 @@ declare abstract class BaseStrategy {
 	constructor(registry: Registry, broker: ServiceBroker, opts?: object);
 
 	registry: Registry;
-    broker: ServiceBroker;
+	broker: ServiceBroker;
 	// opts: Record<string, any>;
 
 	abstract select(list: Endpoint[], ctx?: Context): Endpoint;

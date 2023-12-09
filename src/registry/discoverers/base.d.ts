@@ -21,7 +21,6 @@ declare namespace BaseDiscoverer {
 }
 
 declare abstract class BaseDiscoverer {
-
 	broker: ServiceBroker;
 	registry: Registry;
 	Promise: PromiseConstructor;

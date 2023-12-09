@@ -26,6 +26,5 @@ declare class MqttTransporter extends BaseTransporter {
 	subscribeBalancedEvent(event: string, group: string): Promise<void>;
 
 	send(topic: string, data: Buffer): Promise<void>;
-
 }
 export = MqttTransporter;

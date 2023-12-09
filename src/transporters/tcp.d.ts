@@ -58,28 +58,28 @@ declare class TcpTransporter extends BaseTransporter {
 	loadUrls(): Promise<void>;
 
 	onIncomingMessage(type: string, message: Buffer, socket: Socket): void | Promise<void>;
-    receive(type: string, message: Buffer, socket: Socket): void | Promise<void>;
-    startTimers(): void;
-    stopTimers(): void;
-    addOfflineNode(id: string, address: string, port: number): Node;
-    getNode(nodeID: string): Node;
-    getNodeAddress(node: Node): string;
-    sendHello(nodeID: string): Promise<void>;
-    processGossipHello(msg: Buffer, socket: Socket): void;
-    sendGossipRequest(): void;
-    sendGossipToRandomEndpoint(data: Record<string, any>, endpoints: Node[]): void;
-    processGossipRequest(msg: Buffer): void;
-    processGossipResponse(msg: Buffer): void;
+	receive(type: string, message: Buffer, socket: Socket): void | Promise<void>;
+	startTimers(): void;
+	stopTimers(): void;
+	addOfflineNode(id: string, address: string, port: number): Node;
+	getNode(nodeID: string): Node;
+	getNodeAddress(node: Node): string;
+	sendHello(nodeID: string): Promise<void>;
+	processGossipHello(msg: Buffer, socket: Socket): void;
+	sendGossipRequest(): void;
+	sendGossipToRandomEndpoint(data: Record<string, any>, endpoints: Node[]): void;
+	processGossipRequest(msg: Buffer): void;
+	processGossipResponse(msg: Buffer): void;
 
-    getLocalNodeInfo(): Node;
-    getNodeInfo(nodeID: string): Node;
+	getLocalNodeInfo(): Node;
+	getNodeInfo(nodeID: string): Node;
 
 	subscribe(cmd: string, nodeID?: string): Promise<void>;
 	subscribeBalancedRequest(action: string): Promise<void>;
 	subscribeBalancedEvent(event: string, group: string): Promise<void>;
 	unsubscribeFromBalancedCommands(): Promise<void>;
 
-    publish(packet: Packet): any;
+	publish(packet: Packet): any;
 	send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
 }
 export = TcpTransporter;

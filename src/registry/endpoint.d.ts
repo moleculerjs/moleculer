@@ -18,6 +18,5 @@ declare abstract class Endpoint {
 
 	get isAvailable(): boolean;
 	abstract update(param: ActionSchema | EventSchema): void;
-
 }
 export = Endpoint;

@@ -10,5 +10,5 @@ export {
 	RedisCacher as Redis
 };
 
-export declare function resolve(opt: Record<string,any>|string|boolean): Cacher;
+export declare function resolve(opt: Record<string, any> | string | boolean): Cacher;
 export declare function register(name: string, value: Cacher): void;

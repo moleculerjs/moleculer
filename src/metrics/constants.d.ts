@@ -3,7 +3,6 @@ export declare const TYPE_GAUGE = "gauge";
 export declare const TYPE_HISTOGRAM = "histogram";
 export declare const TYPE_INFO = "info";
 
-
 export declare const PROCESS_ARGUMENTS: "process.arguments";
 
 export declare const PROCESS_PID = "process.pid";
@@ -16,17 +15,27 @@ export declare const PROCESS_MEMORY_EXTERNAL = "process.memory.external";
 
 export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL = "process.memory.heap.space.size.total";
 export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_USED = "process.memory.heap.space.size.used";
-export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE = "process.memory.heap.space.size.available";
-export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL = "process.memory.heap.space.size.physical";
+export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE =
+	"process.memory.heap.space.size.available";
+export declare const PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL =
+	"process.memory.heap.space.size.physical";
 
-export declare const PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL = "process.memory.heap.stat.heap.size.total";
-export declare const PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL = "process.memory.heap.stat.executable.size.total";
-export declare const PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL = "process.memory.heap.stat.physical.size.total";
-export declare const PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL = "process.memory.heap.stat.available.size.total";
-export declare const PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE = "process.memory.heap.stat.used.heap.size";
-export declare const PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT = "process.memory.heap.stat.heap.size.limit";
-export declare const PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY = "process.memory.heap.stat.mallocated.memory";
-export declare const PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY = "process.memory.heap.stat.peak.mallocated.memory";
+export declare const PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL =
+	"process.memory.heap.stat.heap.size.total";
+export declare const PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL =
+	"process.memory.heap.stat.executable.size.total";
+export declare const PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL =
+	"process.memory.heap.stat.physical.size.total";
+export declare const PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL =
+	"process.memory.heap.stat.available.size.total";
+export declare const PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE =
+	"process.memory.heap.stat.used.heap.size";
+export declare const PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT =
+	"process.memory.heap.stat.heap.size.limit";
+export declare const PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY =
+	"process.memory.heap.stat.mallocated.memory";
+export declare const PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY =
+	"process.memory.heap.stat.peak.mallocated.memory";
 export declare const PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE = "process.memory.heap.stat.zap.garbage";
 
 export declare const PROCESS_UPTIME = "process.uptime";

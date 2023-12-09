@@ -5,7 +5,6 @@ import FormattedLogger = require("./formatted");
 import type { FormattedLoggerOptions } from "./formatted";
 
 declare namespace ConsoleLogger {
-
 	export interface ConsoleLoggerOptions extends FormattedLoggerOptions {}
 }
 

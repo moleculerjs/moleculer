@@ -96,19 +96,24 @@ declare namespace ServiceBroker {
 
 	type CacherType = CacherConfig["type"];
 
-	type SerializerConfig = {
-		type: "JSON"
-	} | {
-		type: "JSONExt",
-		options?: JSONExtSerializerOptions
-	} | {
-		type: "MsgPack"
-	} | {
-		type: "Notepack"
-	} | {
-		type: "CBOR",
-		options?: CborSerializerOptions
-	};
+	type SerializerConfig =
+		| {
+				type: "JSON";
+		  }
+		| {
+				type: "JSONExt";
+				options?: JSONExtSerializerOptions;
+		  }
+		| {
+				type: "MsgPack";
+		  }
+		| {
+				type: "Notepack";
+		  }
+		| {
+				type: "CBOR";
+				options?: CborSerializerOptions;
+		  };
 
 	type SerializerType = SerializerConfig["type"];
 
@@ -386,13 +391,12 @@ declare class ServiceBroker {
 		opts?: MiddlewareCallHandlerOptions
 	): any;
 
-	callMiddlewareHook(name: string, args: any[], opts?: MiddlewareCallHandlerOptions): Promise<void>;
-	callMiddlewareHookSync(
+	callMiddlewareHook(
 		name: string,
 		args: any[],
 		opts?: MiddlewareCallHandlerOptions
-	): void;
-
+	): Promise<void>;
+	callMiddlewareHookSync(name: string, args: any[], opts?: MiddlewareCallHandlerOptions): void;
 
 	isMetricsEnabled(): boolean;
 
@@ -411,7 +415,7 @@ declare class ServiceBroker {
 
 	_restartService(service: Service): Promise<void>;
 
-	addLocalService(service: Service): void
+	addLocalService(service: Service): void;
 	registerLocalService(registryItem: ServiceItem): void;
 
 	destroyService(service: Service | string | ServiceDependency): Promise<void>;
@@ -429,7 +433,7 @@ declare class ServiceBroker {
 	): Promise<void>;
 
 	findNextActionEndpoint(
-		actionName: string|ActionEndpoint,
+		actionName: string | ActionEndpoint,
 		opts?: Record<string, any>,
 		ctx?: Context
 	): ActionEndpoint | MoleculerRetryableError;

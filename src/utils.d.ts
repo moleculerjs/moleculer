@@ -24,9 +24,15 @@ export declare function isPromise<T>(promise: unknown): promise is Promise<T>;
 
 export declare function polyfillPromise(P: typeof Promise): void;
 
-export declare function promiseAllControl(promises: any[], settled?: boolean, promise?: any): Promise<{
-    [p: string]: PromiseSettledResult<any>;
-}> | Promise<unknown[]>;
+export declare function promiseAllControl(
+	promises: any[],
+	settled?: boolean,
+	promise?: any
+):
+	| Promise<{
+			[p: string]: PromiseSettledResult<any>;
+	  }>
+	| Promise<unknown[]>;
 
 export declare function clearRequireCache(filename: string): void;
 
@@ -40,9 +46,9 @@ export declare function dotSet<T extends object>(obj: T, path: string, value: un
 
 export declare function makeDirs(path: string): void;
 
-export declare function parseByteString(value: string|number): number;
+export declare function parseByteString(value: string | number): number;
 
-export declare function uniq(arr: Array<String|Number>): Array<String|Number>;
+export declare function uniq(arr: Array<String | Number>): Array<String | Number>;
 
 export declare function getConstructorName(obj: any): string;
 

@@ -1,6 +1,6 @@
 import ServiceBroker = require("./service-broker");
 import Service = require("./service");
-import type { ServiceBrokerOptions} from "./service-broker";
+import type { ServiceBrokerOptions } from "./service-broker";
 import { Worker } from "cluster";
 
 declare namespace Runner {
@@ -8,7 +8,6 @@ declare namespace Runner {
 	 * Parsed CLI flags
 	 */
 	export interface RunnerFlags {
-
 		/**
 		 * Path to load configuration from a file
 		 */
@@ -48,9 +47,7 @@ declare namespace Runner {
 		 * File mask for loading services
 		 */
 		mask?: string;
-
 	}
-
 }
 
 /**

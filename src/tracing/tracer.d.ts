@@ -37,31 +37,41 @@ declare namespace Tracer {
 				meta?: boolean | string[];
 		  };
 
-	export type TracingExporter = {
-		type: "Console",
-		options?: ConsoleTraceExporterOptions
-	} | {
-		type: "Datadog",
-		options?: DatadogTraceExporterOptions
-	} | {
-		type: "Event",
-		options?: EventTraceExporterOptions
-	} | {
-		type: "Jaeger",
-		options?: JaegerTraceExporterOptions
-	} | {
-		type: "NewRelic",
-		options?: NewRelicTraceExporterOptions
-	} | {
-		type: "Zipkin",
-		options?: ZipkinTraceExporterOptions
-	}
+	export type TracingExporter =
+		| {
+				type: "Console";
+				options?: ConsoleTraceExporterOptions;
+		  }
+		| {
+				type: "Datadog";
+				options?: DatadogTraceExporterOptions;
+		  }
+		| {
+				type: "Event";
+				options?: EventTraceExporterOptions;
+		  }
+		| {
+				type: "Jaeger";
+				options?: JaegerTraceExporterOptions;
+		  }
+		| {
+				type: "NewRelic";
+				options?: NewRelicTraceExporterOptions;
+		  }
+		| {
+				type: "Zipkin";
+				options?: ZipkinTraceExporterOptions;
+		  };
 
 	type TracingExporterTypes = TracingExporter["type"];
 
 	export interface TracerOptions {
 		enabled?: boolean;
-		exporter?: TracingExporterTypes | TracingExporter | (TracingExporter | TracingExporterTypes)[] | null;
+		exporter?:
+			| TracingExporterTypes
+			| TracingExporter
+			| (TracingExporter | TracingExporterTypes)[]
+			| null;
 		sampling?: {
 			rate?: number | null;
 			tracesPerSecond?: number | null;

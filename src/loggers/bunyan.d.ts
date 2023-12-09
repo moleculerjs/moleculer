@@ -6,9 +6,8 @@ import type { LoggerOptions } from "./base";
 import type { LoggerOptions as BunyanNativeLoggerOptions } from "bunyan";
 
 declare namespace BunyanLogger {
-
 	export interface BunyanLoggerOptions extends LoggerOptions {
-		bunyan?: BunyanNativeLoggerOptions
+		bunyan?: BunyanNativeLoggerOptions;
 	}
 }
 

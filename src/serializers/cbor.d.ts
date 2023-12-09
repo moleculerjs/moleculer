@@ -8,11 +8,9 @@ declare namespace CborSerializer {
 }
 
 declare class CborSerializer extends BaseSerializer {
-
 	opts: CborSerializer.CborSerializerOptions;
 
 	serialize(obj: any): Buffer;
-	deserialize(buf: Buffer|string): any;
-
+	deserialize(buf: Buffer | string): any;
 }
 export = CborSerializer;

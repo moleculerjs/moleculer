@@ -4,12 +4,11 @@ import BaseLogger = require("./base");
 import type { LoggerOptions } from "./base";
 
 declare namespace WinstonLogger {
-
 	export interface WinstonLoggerOptions extends LoggerOptions {
 		winston: {
-			level?: string,
-			[key: string]: any
-		}
+			level?: string;
+			[key: string]: any;
+		};
 	}
 }
 

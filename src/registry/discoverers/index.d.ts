@@ -11,5 +11,5 @@ export {
 };
 export { RegistryDiscovererOptions } from "./base";
 
-export declare function resolve(opts: Record<string, any>|string): BaseDiscoverer;
+export declare function resolve(opts: Record<string, any> | string): BaseDiscoverer;
 export declare function register(name: string, value: BaseDiscoverer): void;

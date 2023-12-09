@@ -7,9 +7,7 @@ import ServiceBroker = require("./service-broker");
 import Transporter = require("./transporters/base");
 import BaseDiscoverer = require("./registry/discoverers/base");
 import MetricRegistry = require("./metrics/registry");
-import type {
-	Regenerator as ErrorRegenerator
-} from "./errors";
+import type { Regenerator as ErrorRegenerator } from "./errors";
 import { Stream } from "stream";
 import { NodeRawInfo } from "./registry";
 
@@ -67,7 +65,7 @@ declare class Transit {
 	eventHandler(payload: Record<string, any>): Promise<boolean>;
 	requestHandler(payload: Record<string, any>): Promise<void>;
 
-	_handleIncomingRequestStream(payload: Record<string, any>): boolean|Stream;
+	_handleIncomingRequestStream(payload: Record<string, any>): boolean | Stream;
 	_createErrFromPayload(error: Record<string, any>, payload: Record<string, any>): Error;
 	responseHandler(packet: Record<string, any>): void;
 	_handleIncomingResponseStream(packet: Record<string, any>, req: Record<string, any>): boolean;
@@ -82,7 +80,14 @@ declare class Transit {
 
 	_createPayloadErrorField(error: Error, payload: Record<string, any>): Record<string, any>;
 
-	sendResponse(nodeID: string, id: string, meta: Record<string, any>, headers: Record<string, any>, data: Record<string, any>, err?: Error): Promise<void>;
+	sendResponse(
+		nodeID: string,
+		id: string,
+		meta: Record<string, any>,
+		headers: Record<string, any>,
+		data: Record<string, any>,
+		err?: Error
+	): Promise<void>;
 
 	discoverNodes(): Promise<void>;
 	discoverNode(nodeID: string): Promise<void>;

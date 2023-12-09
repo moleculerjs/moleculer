@@ -26,7 +26,6 @@ declare class RedisCacher<TClient = any> extends BaseCacher {
 	clean(match?: string | string[]): Promise<unknown>;
 	tryLock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
-
 }
 
 export = RedisCacher;

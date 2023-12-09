@@ -4,7 +4,6 @@ import BaseLogger = require("./base");
 import type { LoggerOptions } from "./base";
 
 declare namespace DebugLogger {
-
 	export interface DebugLoggerOptions extends LoggerOptions {}
 }
 

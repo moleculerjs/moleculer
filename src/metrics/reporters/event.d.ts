@@ -22,7 +22,7 @@ declare class EventReporter extends MetricBaseReporter {
 	timer: NodeJS.Timeout;
 
 	init(registry: MetricRegistry): void;
-    sendEvent(): void;
+	sendEvent(): void;
 	metricChanged(metric: BaseMetric<any>): void;
 }
 export = EventReporter;

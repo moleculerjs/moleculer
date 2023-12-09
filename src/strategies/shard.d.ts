@@ -7,16 +7,19 @@ import type Endpoint = require("../registry/endpoint");
 
 declare namespace ShardStrategy {
 	export interface ShardStrategyOptions {
-		shardKey?: string|null;
+		shardKey?: string | null;
 		vnodes?: number;
-		ringSize?: number|null;
+		ringSize?: number | null;
 		cacheSize?: number;
 	}
 }
 
 declare class ShardStrategy extends BaseStrategy {
-
-	constructor(registry: Registry, broker: ServiceBroker, opts?: ShardStrategy.ShardStrategyOptions);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		opts?: ShardStrategy.ShardStrategyOptions
+	);
 
 	opts: ShardStrategy.ShardStrategyOptions;
 

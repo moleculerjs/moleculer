@@ -32,8 +32,8 @@ declare class NewRelicTraceExporter extends BaseTraceExporter {
 	flush(): void;
 
 	generateTracingData(): Record<string, any>[];
-    makePayload(span: Span): Record<string, any>;
-    convertID(id: string): string;
-    convertTime(ts: number): number;
+	makePayload(span: Span): Record<string, any>;
+	convertID(id: string): string;
+	convertTime(ts: number): number;
 }
 export = NewRelicTraceExporter;

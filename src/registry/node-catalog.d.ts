@@ -13,7 +13,7 @@ declare namespace NodeCatalog {
 
 declare class NodeCatalog {
 	registry: Registry;
-    broker: ServiceBroker;
+	broker: ServiceBroker;
 	nodes: Map<string, any>;
 	localNode?: Node;
 
@@ -23,13 +23,13 @@ declare class NodeCatalog {
 	add(id: string, node: Node): void;
 	has(id: string): boolean;
 	get(id: string): Node;
-    delete(id: string): boolean;
-    count(): number;
-    onlineCount(): number;
-    processNodeInfo(payload: any): Node;
-    disconnected(nodeID: string, isUnexpected: boolean): void;
-    list(opts: NodeCatalog.NodeCatalogListOptions): NodeCatalog.NodeCatalogListResult[];
-    toArray(): Node[];
+	delete(id: string): boolean;
+	count(): number;
+	onlineCount(): number;
+	processNodeInfo(payload: any): Node;
+	disconnected(nodeID: string, isUnexpected: boolean): void;
+	list(opts: NodeCatalog.NodeCatalogListOptions): NodeCatalog.NodeCatalogListResult[];
+	toArray(): Node[];
 }
 
 export = NodeCatalog;

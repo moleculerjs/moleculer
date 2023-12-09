@@ -20,12 +20,12 @@ declare class StatsDReporter extends MetricBaseReporter {
 	flush(): void;
 
 	sendChunks(series: Array<any>): void;
-    send(buf: Buffer): void;
+	send(buf: Buffer): void;
 
-    generateStatsDSeries(): Array<string>;
-    generateStatDLine(metric: any, item: any, lastValue: any): string;
-    metricChanged(metric: BaseMetric<any>, value: any, labels: any): void;
-    escapeLabelValue(str: string): string;
-    labelsToTags(itemLabels: Record<string, any>): string;
+	generateStatsDSeries(): Array<string>;
+	generateStatDLine(metric: any, item: any, lastValue: any): string;
+	metricChanged(metric: BaseMetric<any>, value: any, labels: any): void;
+	escapeLabelValue(str: string): string;
+	labelsToTags(itemLabels: Record<string, any>): string;
 }
 export = StatsDReporter;

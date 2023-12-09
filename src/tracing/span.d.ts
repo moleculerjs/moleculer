@@ -7,11 +7,13 @@ declare namespace Span {
 		id?: string;
 		traceID?: string;
 		parentID?: string | null;
-		service?: string | {
-			name?: string;
-			version?: string | number;
-			fullName?: string;
-		};
+		service?:
+			| string
+			| {
+					name?: string;
+					version?: string | number;
+					fullName?: string;
+			  };
 		priority?: number;
 		sampled?: boolean;
 		tags?: Record<string, any>;

@@ -10,6 +10,5 @@ declare class RoundRobinStrategy extends BaseStrategy {
 	counter: number;
 
 	select(list: Endpoint[]): Endpoint;
-
 }
 export = RoundRobinStrategy;

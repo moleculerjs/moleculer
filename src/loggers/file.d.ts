@@ -5,12 +5,11 @@ import FormattedLogger = require("./formatted");
 import type { FormattedLoggerOptions } from "./formatted";
 
 declare namespace FileLogger {
-
 	export interface FileLoggerOptions extends FormattedLoggerOptions {
-		folder?: string,
-		filename?: string,
-		eol?: string,
-		interval?: number
+		folder?: string;
+		filename?: string;
+		eol?: string;
+		interval?: number;
 	}
 }
 

@@ -22,6 +22,6 @@ declare class ServiceItem {
 	update(svc: Record<string, any>): void;
 
 	addAction(action: ActionSchema): void;
-    addEvent(event: EventSchema): void;
+	addEvent(event: EventSchema): void;
 }
 export = ServiceItem;

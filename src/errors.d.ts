@@ -101,14 +101,15 @@ export declare class Regenerator {
 
 	extractPlainError(err: Record<string, any>, payload?: Record<string, any>): PlainMoleculerError;
 
-	restoreCustomError(
-		plainError: PlainMoleculerError,
-		payload: Record<string, any>
-	): Error;
+	restoreCustomError(plainError: PlainMoleculerError, payload: Record<string, any>): Error;
 
 	private _createDefaultError(plainError: PlainMoleculerError): Error;
-	private _restoreExternalFields(plainError: PlainMoleculerError, err: PlainMoleculerError, payload: Record<string, any>): void;
+	private _restoreExternalFields(
+		plainError: PlainMoleculerError,
+		err: PlainMoleculerError,
+		payload: Record<string, any>
+	): void;
 	private _restoreStack(plainError: PlainMoleculerError, err: Error): void;
 }
 
-export declare function resolveRegenerator(opts?: Regenerator): Regenerator
+export declare function resolveRegenerator(opts?: Regenerator): Regenerator;

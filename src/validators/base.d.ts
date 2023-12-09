@@ -26,6 +26,5 @@ declare abstract class BaseValidator {
 	abstract convertSchemaToMoleculer(schema: any): Record<string, any>;
 
 	middleware(broker: ServiceBroker);
-
 }
 export = BaseValidator;

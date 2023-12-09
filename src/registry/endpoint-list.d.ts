@@ -10,17 +10,25 @@ import ServiceItem = require("./service-item");
 import Context = require("../context");
 
 declare class EndpointList {
-    registry: Registry;
-    broker: ServiceBroker;
-    strategy: typeof BaseStrategy;
-    name: string;
-    group: string;
-    internal: boolean;
-    EndPointFactory: typeof Endpoint;
+	registry: Registry;
+	broker: ServiceBroker;
+	strategy: typeof BaseStrategy;
+	name: string;
+	group: string;
+	internal: boolean;
+	EndPointFactory: typeof Endpoint;
 	endpoints: (ActionEndpoint | EventEndpoint)[];
-    localEndpoints: (ActionEndpoint | EventEndpoint)[];
+	localEndpoints: (ActionEndpoint | EventEndpoint)[];
 
-	constructor(registry: Registry, broker: ServiceBroker, name: string, group: string, EndPointFactory?: typeof ActionEndpoint | typeof EventEndpoint, StrategyFactory?: typeof BaseStrategy, strategyOptions?: Record<string, any>);
+	constructor(
+		registry: Registry,
+		broker: ServiceBroker,
+		name: string,
+		group: string,
+		EndPointFactory?: typeof ActionEndpoint | typeof EventEndpoint,
+		StrategyFactory?: typeof BaseStrategy,
+		strategyOptions?: Record<string, any>
+	);
 
 	add(node: Node, service: ServiceItem, data: any): Endpoint;
 	getFirst(): Endpoint | null;
@@ -28,14 +36,14 @@ declare class EndpointList {
 	next(ctx: Context): Endpoint | null;
 	nextLocal(ctx: Context): Endpoint | null;
 
-    hasAvailable(): boolean;
-    hasLocal(): boolean;
-    setLocalEndpoints(): void;
-    count(): number;
+	hasAvailable(): boolean;
+	hasLocal(): boolean;
+	setLocalEndpoints(): void;
+	count(): number;
 
 	getEndpointByNodeID(nodeID: string): Endpoint | null;
-    hasNodeID(nodeID: string): boolean;
-    removeByService(service: ServiceItem): void;
-    removeByNodeID(nodeID: string): void;
+	hasNodeID(nodeID: string): boolean;
+	removeByService(service: ServiceItem): void;
+	removeByNodeID(nodeID: string): void;
 }
 export = EndpointList;

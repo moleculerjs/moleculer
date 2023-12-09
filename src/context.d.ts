@@ -9,7 +9,6 @@ import { Stream } from "stream";
 import util = require("util");
 
 declare namespace Context {
-
 	export interface ContextParentSpan {
 		id: string;
 		traceID: string;
@@ -17,15 +16,24 @@ declare namespace Context {
 	}
 }
 
-declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Record<string, any>, THeaders = Record<string, any>> {
+declare class Context<
+	TParams = unknown,
+	TMeta extends object = {},
+	TLocals = Record<string, any>,
+	THeaders = Record<string, any>
+> {
 	static create(
 		broker: ServiceBroker,
-		endpoint: ActionEndpoint|EventEndpoint,
+		endpoint: ActionEndpoint | EventEndpoint,
 		params: Record<string, any>,
 		opts: Record<string, any>
 	): Context;
-	static create(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint, params: Record<string, any>): Context;
-	static create(broker: ServiceBroker, endpoint: ActionEndpoint|EventEndpoint): Context;
+	static create(
+		broker: ServiceBroker,
+		endpoint: ActionEndpoint | EventEndpoint,
+		params: Record<string, any>
+	): Context;
+	static create(broker: ServiceBroker, endpoint: ActionEndpoint | EventEndpoint): Context;
 	static create(broker: ServiceBroker): Context;
 
 	id: string;
@@ -80,9 +88,9 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 
 	cachedResult: boolean;
 
-	constructor(broker: ServiceBroker, endpoint?: ActionEndpoint|EventEndpoint);
+	constructor(broker: ServiceBroker, endpoint?: ActionEndpoint | EventEndpoint);
 
-	setEndpoint(endpoint: ActionEndpoint|EventEndpoint): void;
+	setEndpoint(endpoint: ActionEndpoint | EventEndpoint): void;
 
 	setParams(newParams: TParams, cloning?: boolean): void;
 
@@ -105,7 +113,7 @@ declare class Context<TParams = unknown, TMeta extends object = {}, TLocals = Re
 	broadcast<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
-	copy(endpoint: ActionEndpoint|EventEndpoint): this;
+	copy(endpoint: ActionEndpoint | EventEndpoint): this;
 	copy(): this;
 
 	startSpan(name: string, opts?: Record<string, any>): Span;

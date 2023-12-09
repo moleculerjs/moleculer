@@ -20,25 +20,31 @@ declare namespace MetricRegistry {
 		excludes?: string | string[];
 	}
 
-	export type MetricsReporter = {
-		type: "Console",
-		options?: ConsoleReporterOptions,
-	} | {
-		type: "CSV",
-		options?: ConsoleReporterOptions,
-	} | {
-		type: "Datadog",
-		options?: DatadogReporterOptions,
-	} | {
-		type: "Event",
-		options?: EventReporterOptions,
-	} | {
-		type: "Prometheus",
-		options?: PrometheusReporterOptions,
-	} | {
-		type: "StatsD",
-		options?: StatsDReporterOptions,
-	};
+	export type MetricsReporter =
+		| {
+				type: "Console";
+				options?: ConsoleReporterOptions;
+		  }
+		| {
+				type: "CSV";
+				options?: ConsoleReporterOptions;
+		  }
+		| {
+				type: "Datadog";
+				options?: DatadogReporterOptions;
+		  }
+		| {
+				type: "Event";
+				options?: EventReporterOptions;
+		  }
+		| {
+				type: "Prometheus";
+				options?: PrometheusReporterOptions;
+		  }
+		| {
+				type: "StatsD";
+				options?: StatsDReporterOptions;
+		  };
 
 	type MetricsReporterTypes = MetricsReporter["type"];
 
@@ -46,7 +52,11 @@ declare namespace MetricRegistry {
 		enabled?: boolean;
 		collectProcessMetrics?: boolean;
 		collectInterval?: number;
-		reporter?: MetricsReporterTypes | MetricsReporter | (MetricsReporter | MetricsReporterTypes)[] | null;
+		reporter?:
+			| MetricsReporterTypes
+			| MetricsReporter
+			| (MetricsReporter | MetricsReporterTypes)[]
+			| null;
 		defaultBuckets?: number[];
 		defaultQuantiles?: number[];
 		defaultMaxAgeSeconds?: number;
@@ -66,8 +76,8 @@ declare namespace MetricRegistry {
 
 	type HistogramMetricOptions = BaseMetricOptions & {
 		type: "histogram";
-		quantiles?: boolean|number[];
-		buckets?: boolean|number[];
+		quantiles?: boolean | number[];
+		buckets?: boolean | number[];
 	};
 
 	type InfoMetricOptions = BaseMetricOptions & {

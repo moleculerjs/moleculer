@@ -20,9 +20,9 @@ declare namespace EventCatalog {
 	}
 
 	interface EventEndpointList {
-		nodeID: string,
-		state: boolean,
-		available: boolean,
+		nodeID: string;
+		state: boolean;
+		available: boolean;
 	}
 
 	export interface EventCatalogListResult {
@@ -37,26 +37,30 @@ declare namespace EventCatalog {
 
 declare class EventCatalog {
 	registry: Registry;
-    broker: ServiceBroker;
+	broker: ServiceBroker;
 	events: EndpointList[];
 	StrategyFactory: typeof Strategy;
 	EndpointFactory: typeof EventEndpoint;
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
-	add(node: Node, service: ServiceItem, event: EventSchema ): EndpointList;
+	add(node: Node, service: ServiceItem, event: EventSchema): EndpointList;
 
-	get(eventName: string, groupName: string ): EndpointList | null;
+	get(eventName: string, groupName: string): EndpointList | null;
 
-	getBalancedEndpoints(eventName: string, groups?: string | string[], ctx?: Context): [EventEndpoint, string][];
-    getGroups(eventName: string): string[];
-    getAllEndpoints(eventName: string, groupNames?: string[]): EventEndpoint[];
+	getBalancedEndpoints(
+		eventName: string,
+		groups?: string | string[],
+		ctx?: Context
+	): [EventEndpoint, string][];
+	getGroups(eventName: string): string[];
+	getAllEndpoints(eventName: string, groupNames?: string[]): EventEndpoint[];
 
 	emitLocalServices(ctx: Context): Promise<any>;
-    callEventHandler(ctx: Context): Promise<any>;
+	callEventHandler(ctx: Context): Promise<any>;
 
 	removeByService(service: ServiceItem): void;
-    remove(eventName: string, nodeID: string): void;
+	remove(eventName: string, nodeID: string): void;
 
 	list(opts: EventCatalog.EventCatalogListOptions): EventCatalog.EventCatalogListResult[];
 }

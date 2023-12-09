@@ -10,12 +10,12 @@ declare namespace AmqpTransporter {
 		exchangeOptions?: Record<string, any>;
 		messageOptions?: Record<string, any>;
 		consumeOptions?: Record<string, any>;
-		autoDeleteQueues?: boolean|number;
+		autoDeleteQueues?: boolean | number;
 	}
 }
 
 declare class AmqpTransporter extends BaseTransporter {
-	opts: AmqpTransporter.AmqpTransporterOptions
+	opts: AmqpTransporter.AmqpTransporterOptions;
 
 	hasBuiltInBalancer: boolean;
 	connection: any;
@@ -26,7 +26,7 @@ declare class AmqpTransporter extends BaseTransporter {
 	connectionDisconnecting: boolean;
 	connectionCount: number;
 
-	constructor(opts?: string|AmqpTransporter.AmqpTransporterOptions);
+	constructor(opts?: string | AmqpTransporter.AmqpTransporterOptions);
 
 	connect(): Promise<void>;
 	disconnect(): Promise<void>;

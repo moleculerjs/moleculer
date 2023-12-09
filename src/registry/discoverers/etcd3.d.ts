@@ -1,12 +1,11 @@
 import Registry = require("../registry");
 import BaseDiscoverer = require("./base");
 
-
 declare namespace Etcd3Discoverer {
 	export interface Etcd3DiscovererOptions extends BaseDiscoverer.DiscovererOptions {
 		etcd?: any;
 		serializer?: string;
-		fullCheck?: number|null;
+		fullCheck?: number | null;
 	}
 }
 

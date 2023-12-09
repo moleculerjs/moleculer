@@ -31,6 +31,5 @@ declare class KafkaTransporter extends BaseTransporter {
 	subscribeBalancedEvent(event: string, group: string): Promise<void>;
 
 	send(topic: string, data: Buffer, meta: Record<string, any>): Promise<void>;
-
 }
 export = KafkaTransporter;

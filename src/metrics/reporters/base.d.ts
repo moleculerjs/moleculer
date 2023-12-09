@@ -1,7 +1,7 @@
 import ServiceBroker = require("../../service-broker");
 import type MetricRegistry = require("../registry");
 import type BaseMetric = require("../types/base");
-import type {Logger} from "../../logger-factory";
+import type { Logger } from "../../logger-factory";
 
 declare namespace MetricBaseReporter {
 	export interface MetricReporterOptions {

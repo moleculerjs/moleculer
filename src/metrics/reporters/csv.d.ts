@@ -28,9 +28,9 @@ declare class CSVReporter extends MetricBaseReporter {
 	constructor(opts?: CSVReporter.CSVReporterOptions);
 
 	labelsToStr(labels: Record<string, any>): string;
-    getFilename(metric: BaseMetric<any>, item: any): any;
-    flush(): void;
-    writeRow(filename: string, headers: string[], fields: string[]): void;
+	getFilename(metric: BaseMetric<any>, item: any): any;
+	flush(): void;
+	writeRow(filename: string, headers: string[], fields: string[]): void;
 
 	metricChanged(metric: BaseMetric<any>, value: any, labels?: Record<string, any>): void;
 }
