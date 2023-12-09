@@ -35,8 +35,8 @@ class EndpointList {
 	 * @param {ServiceBroker} broker
 	 * @param {String} name
 	 * @param {String} group
-	 * @param {Endpoint} EndPointFactory
-	 * @param {Strategy} StrategyFactory
+	 * @param {typeof import("./endpoint")} EndPointFactory
+	 * @param {typeof import("../strategies/base")} StrategyFactory
 	 * @param {Object?} strategyOptions
 	 * @memberof EndpointList
 	 */

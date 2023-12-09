@@ -39,7 +39,7 @@ class EventCatalog {
 	 *
 	 * @param {Registry} registry
 	 * @param {ServiceBroker} broker
-	 * @param {BaseStrategy} StrategyFactory
+	 * @param {typeof import("../strategies/base")} StrategyFactory
 	 * @memberof EventCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
@@ -48,7 +48,7 @@ class EventCatalog {
 		this.logger = registry.logger;
 		this.StrategyFactory = StrategyFactory;
 
-		/** @type EndpointList[] */
+		/** @type EndpointList<EventEndpoint>[] */
 		this.events = [];
 
 		this.EndpointFactory = EventEndpoint;
@@ -60,7 +60,7 @@ class EventCatalog {
 	 * @param {Node} node
 	 * @param {ServiceItem} service
 	 * @param {EventSchema} event
-	 * @returns {EndpointList}
+	 * @returns {EndpointList<EventEndpoint>}
 	 * @memberof EventCatalog
 	 */
 	add(node, service, event) {
@@ -84,6 +84,7 @@ class EventCatalog {
 				strategyFactory,
 				strategyOptions
 			);
+
 			this.events.push(list);
 		}
 
@@ -97,7 +98,7 @@ class EventCatalog {
 	 *
 	 * @param {String} eventName
 	 * @param {String} groupName
-	 * @returns {EndpointList}
+	 * @returns {EndpointList<EventEndpoint>}
 	 * @memberof EventCatalog
 	 */
 	get(eventName, groupName) {
@@ -131,8 +132,8 @@ class EventCatalog {
 	/**
 	 * Get all groups for event
 	 *
-	 * @param {String} eventName
-	 * @returns {Array<String>}
+	 * @param {string} eventName
+	 * @returns {string[]}
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
@@ -223,6 +224,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
+		/* @ts-ignore */
 		return ctx.endpoint.event.handler(ctx);
 	}
 
@@ -285,7 +287,7 @@ class EventCatalog {
 			};
 
 			if (item.count > 0) {
-				const ep = list.endpoints[0];
+				const ep = /** @type {EventEndpoint} */ (list.endpoints[0]);
 				if (ep) item.event = _.omit(ep.event, ["handler", "remoteHandler", "service"]);
 			}
 

@@ -13,6 +13,7 @@ const BaseDiscoverer = require("./base");
  *
  * @typedef {import("./local")} LocalDiscovererClass
  * @typedef {import("./local").LocalDiscovererOptions} LocalDiscovererOptions
+ * @typedef {import("../node")} Node
  */
 
 /**
@@ -47,6 +48,7 @@ class LocalDiscoverer extends BaseDiscoverer {
 	 * Discover a new or old node.
 	 *
 	 * @param {String} nodeID
+	 * @returns {Promise<Node | void>}
 	 */
 	discoverNode(nodeID) {
 		if (!this.transit) return this.Promise.resolve();
@@ -55,6 +57,7 @@ class LocalDiscoverer extends BaseDiscoverer {
 
 	/**
 	 * Discover all nodes (after connected)
+	 * @returns {Promise<Node[] | void>}
 	 */
 	discoverAllNodes() {
 		if (!this.transit) return this.Promise.resolve();
@@ -65,6 +68,7 @@ class LocalDiscoverer extends BaseDiscoverer {
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
 	 * @param {String=} nodeID
+	 * @returns {Promise<void>}
 	 */
 	sendLocalNodeInfo(nodeID) {
 		if (!this.transit) return this.Promise.resolve();

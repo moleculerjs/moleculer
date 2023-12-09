@@ -101,8 +101,7 @@ class PrometheusReporter extends BaseReporter {
 				);
 			}
 
-			/** @type import("net").AddressInfo */
-			const addr = this.server.address();
+			const addr = /** @type import("net").AddressInfo */ (this.server.address());
 			this.logger.info(
 				`Prometheus metric reporter listening on http://${addr.address}:${addr.port}${this.opts.path} address.`
 			);

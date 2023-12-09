@@ -1,5 +1,6 @@
-import Registry = require("../registry");
-import BaseDiscoverer = require("./base");
+import type Registry = require("../registry");
+import type BaseDiscoverer = require("./base");
+import type Node = require("../node");
 
 declare namespace Etcd3Discoverer {
 	export interface Etcd3DiscovererOptions extends BaseDiscoverer.DiscovererOptions {
@@ -20,14 +21,14 @@ declare class Etcd3Discoverer extends BaseDiscoverer {
 	leaseBeat: any;
 	leaseInfo: any;
 
-	constructor(opts?: Etcd3Discoverer.Etcd3DiscovererOptions);
+	constructor(opts?: Etcd3Discoverer.Etcd3DiscovererOptions|string);
 	init(registry: Registry): void;
 	stop(): Promise<void>;
 	registerMoleculerMetrics(): void;
 	sendHeartbeat(): Promise<void>;
 	collectOnlineNodes(): Promise<void>;
-	discoverNode(nodeID: string): Promise<void>;
-	discoverAllNodes(): Promise<void>;
+	discoverNode(nodeID: string): Promise<Node | void>;
+	discoverAllNodes(): Promise<Node[] | void>;
 	sendLocalNodeInfo(nodeID?: string): Promise<void>;
 	localNodeDisconnected(): Promise<void>;
 }

@@ -23,6 +23,7 @@ let Redis;
  *
  * @typedef {import("./redis")} RedisDiscovererClass
  * @typedef {import("./redis").RedisDiscovererOptions} RedisDiscovererOptions
+ * @typedef {import("../node")} Node
  */
 
 /**
@@ -359,6 +360,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	 * Discover a new or old node.
 	 *
 	 * @param {String} nodeID
+	 * @returns {Promise<Node | void>}
 	 */
 	discoverNode(nodeID) {
 		return this.client.getBuffer(`${this.PREFIX}-INFO:${nodeID}`).then(res => {
@@ -377,6 +379,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 
 	/**
 	 * Discover all nodes (after connected)
+	 * @returns {Promise<Node[] | void>}
 	 */
 	discoverAllNodes() {
 		return this.collectOnlineNodes();
@@ -385,6 +388,7 @@ class RedisDiscoverer extends BaseDiscoverer {
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 * @param {String=} nodeID
+	 * @returns {Promise<void>}
 	 */
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();

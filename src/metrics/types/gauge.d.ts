@@ -2,6 +2,11 @@ import BaseMetric = require("./base");
 import type MetricRegistry = require("../registry");
 
 declare namespace GaugeMetric {
+
+	export interface GaugeMetricOptions extends BaseMetric.BaseMetricOptions {
+		rate?: boolean;
+	}
+
 	export interface GaugeMetricSnapshot {
 		key: string;
 		value: number;
@@ -11,7 +16,7 @@ declare namespace GaugeMetric {
 }
 
 declare class GaugeMetric extends BaseMetric<GaugeMetric.GaugeMetricSnapshot> {
-	constructor(opts: BaseMetric.BaseMetricOptions, registry: MetricRegistry);
+	constructor(opts: GaugeMetric.GaugeMetricOptions, registry: MetricRegistry);
 
 	increment(labels?: Record<string, any>, value?: number, timestamp?: number): void;
 

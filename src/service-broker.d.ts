@@ -337,6 +337,8 @@ declare class ServiceBroker {
 
 	namespace: string;
 
+	metadata: Record<string, any>;
+
 	nodeID: string;
 
 	instanceID: string;

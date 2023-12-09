@@ -14,7 +14,7 @@ const METRIC = require("../constants");
  *
  * @typedef {import("../registry")} MetricRegistry
  * @typedef {import("./counter")} CounterMetricClass
- * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ * @typedef {import("./gauge").GaugeMetricOptions} GaugeMetricOptions
  */
 
 /**
@@ -27,7 +27,7 @@ const METRIC = require("../constants");
 class CounterMetric extends GaugeMetric {
 	/**
 	 * Creates an instance of CounterMetric.
-	 * @param {BaseMetricOptions} opts
+	 * @param {GaugeMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof CounterMetric
 	 */

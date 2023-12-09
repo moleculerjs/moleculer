@@ -1,5 +1,6 @@
-import Registry = require("../registry");
-import BaseDiscoverer = require("./base");
+import type Registry = require("../registry");
+import type BaseDiscoverer = require("./base");
+import type Node = require("../node");
 
 declare namespace RedisDiscoverer {
 	export interface RedisDiscovererOptions extends BaseDiscoverer.DiscovererOptions {
@@ -30,8 +31,8 @@ declare class RedisDiscoverer extends BaseDiscoverer {
 	recreateInfoUpdateTimer(): void;
 	sendHeartbeat(): Promise<void>;
 	collectOnlineNodes(): Promise<void>;
-	discoverNode(nodeID: string): Promise<void>;
-	discoverAllNodes(): Promise<void>;
+	discoverNode(nodeID: string): Promise<Node | void>;
+	discoverAllNodes(): Promise<Node[] | void>;
 	sendLocalNodeInfo(nodeID?: string): Promise<void>;
 	localNodeDisconnected(): Promise<void>;
 	scanClean(match: string): Promise<void>;

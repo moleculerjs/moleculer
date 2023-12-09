@@ -17,7 +17,7 @@ const MetricRate = require("../rates");
  * @typedef {import("../registry")} MetricRegistry
  * @typedef {import("./gauge")} GaugeMetricClass
  * @typedef {import("./gauge").GaugeMetricSnapshot} GaugeMetricSnapshot
- * @typedef {import("./base").BaseMetricOptions} BaseMetricOptions
+ * @typedef {import("./gauge").GaugeMetricOptions} GaugeMetricOptions
  */
 
 /**
@@ -30,7 +30,7 @@ const MetricRate = require("../rates");
 class GaugeMetric extends BaseMetric {
 	/**
 	 * Creates an instance of GaugeMetric.
-	 * @param {BaseMetricOptions} opts
+	 * @param {GaugeMetricOptions} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof GaugeMetric
 	 */

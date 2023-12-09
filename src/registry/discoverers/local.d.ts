@@ -1,5 +1,6 @@
-import Registry = require("../registry");
-import BaseDiscoverer = require("./base");
+import type Registry = require("../registry");
+import type BaseDiscoverer = require("./base");
+import type Node = require("../node");
 
 declare namespace LocalDiscoverer {
 	export interface LocalDiscovererOptions extends BaseDiscoverer.DiscovererOptions {}
@@ -8,8 +9,8 @@ declare namespace LocalDiscoverer {
 declare class LocalDiscoverer extends BaseDiscoverer {
 	constructor(opts?: LocalDiscoverer.LocalDiscovererOptions);
 	init(registry: Registry): void;
-	discoverNode(nodeID: string): Promise<void>;
-	discoverAllNodes(): Promise<void>;
-	sendLocalNodeInfo(nodeID?: string): Promise<void | void[]>;
+	discoverNode(nodeID: string): Promise<Node | void>;
+	discoverAllNodes(): Promise<Node[] | void>;
+	sendLocalNodeInfo(nodeID?: string): Promise<void>;
 }
 export = LocalDiscoverer;

@@ -15,6 +15,7 @@ const _ = require("lodash");
  *
  * @typedef {import("./base")} BaseDiscovererClass
  * @typedef {import("../registry")} ServiceRegistry
+ * @typedef {import("../node")} Node
  */
 
 /**
@@ -260,6 +261,7 @@ class BaseDiscoverer {
 	 * Discover a new or old node by nodeID
 	 *
 	 * @param {String} nodeID
+	 * @returns {Promise<Node | void>}
 	 */
 	discoverNode(nodeID) {
 		/* istanbul ignore next */
@@ -268,6 +270,7 @@ class BaseDiscoverer {
 
 	/**
 	 * Discover all nodes (after connected)
+	 * @returns {Promise<Node[] | void>}
 	 */
 	discoverAllNodes() {
 		/* istanbul ignore next */
@@ -278,6 +281,7 @@ class BaseDiscoverer {
 	 * Local service registry has been changed. We should notify remote nodes.
 	 *
 	 * @param {String=} nodeID
+	 * @returns {Promise<void>}
 	 */
 	sendLocalNodeInfo(nodeID) {
 		/* istanbul ignore next */

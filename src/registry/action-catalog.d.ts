@@ -1,13 +1,12 @@
 import type { ActionSchema } from "../service";
-import Endpoint = require("./endpoint");
-import EndpointList = require("./endpoint-list");
-import Node = require("./node");
-import ServiceItem = require("./service-item");
+import type EndpointList = require("./endpoint-list");
+import type Node = require("./node");
+import type ServiceItem = require("./service-item");
 
-import ServiceBroker = require("../service-broker");
-import Registry = require("./registry");
-import Strategy = require("../strategies/base");
-import ActionEndpoint = require("./endpoint-action");
+import type ServiceBroker = require("../service-broker");
+import type Registry = require("./registry");
+import type Strategy = require("../strategies/base");
+import type ActionEndpoint = require("./endpoint-action");
 
 declare namespace ActionCatalog {
 	export interface ActionCatalogListOptions {
@@ -37,7 +36,7 @@ declare class ActionCatalog {
 	registry: Registry;
 	broker: ServiceBroker;
 	actions: Map<string, any>;
-	StrategyFactory: Strategy;
+	StrategyFactory: typeof Strategy;
 	EndpointFactory: typeof ActionEndpoint;
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);

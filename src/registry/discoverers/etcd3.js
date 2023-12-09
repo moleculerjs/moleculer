@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -22,6 +22,7 @@ let ETCD3;
  *
  * @typedef {import("./etcd3")} Etcd3DiscovererClass
  * @typedef {import("./etcd3").Etcd3DiscovererOptions} Etcd3DiscovererOptions
+ * @typedef {import("../node")} Node
  */
 
 /**
@@ -290,6 +291,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	 * Discover a new or old node.
 	 *
 	 * @param {String} nodeID
+	 * @returns {Promise<Node | void>}
 	 */
 	discoverNode(nodeID) {
 		return this.client
@@ -311,6 +313,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 
 	/**
 	 * Discover all nodes (after connected)
+	 * @returns {Promise<Node[] | void>}
 	 */
 	discoverAllNodes() {
 		return this.collectOnlineNodes();
@@ -319,6 +322,7 @@ class Etcd3Discoverer extends BaseDiscoverer {
 	/**
 	 * Local service registry has been changed. We should notify remote nodes.
 	 * @param {String=} nodeID
+	 * @returns {Promise<void>}
 	 */
 	sendLocalNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();

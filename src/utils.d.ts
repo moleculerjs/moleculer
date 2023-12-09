@@ -48,7 +48,8 @@ export declare function makeDirs(path: string): void;
 
 export declare function parseByteString(value: string | number): number;
 
-export declare function uniq(arr: Array<String | Number>): Array<String | Number>;
+export declare function uniq(arr: string[]): string[];
+export declare function uniq(arr: number[]): number[];
 
 export declare function getConstructorName(obj: any): string;
 

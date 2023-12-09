@@ -121,7 +121,7 @@ declare class MetricRegistry {
 	timer(name: string, labels?: Record<string, any>, timestamp?: number): () => number;
 
 	changed(
-		metric: CounterMetric | GaugeMetric | HistogramMetric | InfoMetric,
+		metric: BaseMetric<any>,
 		value: any | null,
 		labels?: Record<string, any>,
 		timestamp?: number

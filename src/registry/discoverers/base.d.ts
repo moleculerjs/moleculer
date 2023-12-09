@@ -1,7 +1,7 @@
-import ServiceBroker = require("../../service-broker");
-import Transit = require("../../transit");
-import Registry = require("../registry");
-import Node = require("../node");
+import type ServiceBroker = require("../../service-broker");
+import type Transit = require("../../transit");
+import type Registry = require("../registry");
+import type Node = require("../node");
 import type { Logger } from "../../logger-factory";
 
 declare namespace BaseDiscoverer {
@@ -63,9 +63,7 @@ declare abstract class BaseDiscoverer {
 
 	abstract discoverAllNodes(): Promise<Node[] | void>;
 
-	localNodeReady(): Promise<void>;
-
-	abstract sendLocalNodeInfo(nodeID?: string): Promise<void | void[]>;
+	abstract sendLocalNodeInfo(nodeID?: string): Promise<void>;
 
 	localNodeDisconnected(): Promise<void>;
 

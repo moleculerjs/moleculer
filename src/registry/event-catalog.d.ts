@@ -38,15 +38,15 @@ declare namespace EventCatalog {
 declare class EventCatalog {
 	registry: Registry;
 	broker: ServiceBroker;
-	events: EndpointList[];
+	events: EndpointList<EventEndpoint>[];
 	StrategyFactory: typeof Strategy;
 	EndpointFactory: typeof EventEndpoint;
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
-	add(node: Node, service: ServiceItem, event: EventSchema): EndpointList;
+	add(node: Node, service: ServiceItem, event: EventSchema): EndpointList<EventEndpoint>;
 
-	get(eventName: string, groupName: string): EndpointList | null;
+	get(eventName: string, groupName: string): EndpointList<EventEndpoint> | null;
 
 	getBalancedEndpoints(
 		eventName: string,

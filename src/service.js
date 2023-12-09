@@ -13,10 +13,12 @@ const { isObject, isFunction, flatten, uniq } = require("./utils");
 /**
  * Import types
  *
+ * @typedef {import("./service")} ServiceClass
  * @typedef {import("./service-broker")} ServiceBroker
  * @typedef {import("./service").ServiceSchema} ServiceSchema
  * @typedef {import("./service").ServiceDependency} ServiceDependency
  * @typedef {import("./registry/endpoint-event")} EventEndpoint
+ * @typedef {import("./registry/service-item")} ServiceItem
  */
 
 /**
@@ -41,7 +43,6 @@ function wrapToArray(o) {
 /**
  * Service class
  *
- * @typedef {import("./service")} ServiceClass
  * @implements {ServiceClass}
  */
 class Service {
@@ -102,7 +103,7 @@ class Service {
 		this.version = schema.version;
 		this.settings = schema.settings || {};
 		this.metadata = schema.metadata || {};
-		this.schema = schema;
+		this.schema = /** @type {ServiceSchema} */ (schema);
 
 		this.fullName = Service.getVersionedFullName(
 			this.name,
@@ -210,8 +211,7 @@ class Service {
 						// Reused context (in case of retry)
 						ctx = opts.ctx;
 					} else {
-						/** @type {EventEndpoint} */
-						const ep = {
+						const ep = /** @type {EventEndpoint} */ ({
 							id: this.broker.nodeID,
 							event: innerEvent,
 							broker: this.broker,
@@ -219,7 +219,7 @@ class Service {
 							node: null,
 							local: true,
 							state: true
-						};
+						});
 						ctx = this.broker.ContextFactory.create(
 							this.broker,
 							ep,
@@ -257,8 +257,6 @@ class Service {
 
 	/**
 	 * Initialize service. It called `created` handler in schema
-	 *
-	 * @private
 	 */
 	_init() {
 		this.logger.debug(`Service '${this.fullName}' is creating...`);
@@ -278,7 +276,6 @@ class Service {
 	/**
 	 * Start service
 	 *
-	 * @private
 	 * @returns {Promise}
 	 */
 	_start() {
@@ -308,7 +305,9 @@ class Service {
 			})
 			.then(() => {
 				// Register service
-				return this.broker.registerLocalService(this._serviceSpecification);
+				return this.broker.registerLocalService(
+					/** @type {ServiceItem} */ (this._serviceSpecification)
+				);
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);
@@ -320,7 +319,6 @@ class Service {
 	 * Stop service
 	 *
 	 * @returns {Promise}
-	 * @private
 	 */
 	_stop() {
 		this.logger.debug(`Service '${this.fullName}' is stopping...`);

@@ -36,7 +36,7 @@ class ActionCatalog {
 	 *
 	 * @param {Registry} registry
 	 * @param {ServiceBroker} broker
-	 * @param {BaseStrategy} StrategyFactory
+	 * @param {typeof Strategies.Base} StrategyFactory
 	 * @memberof ActionCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
