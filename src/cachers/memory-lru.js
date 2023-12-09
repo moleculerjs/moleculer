@@ -31,7 +31,7 @@ class MemoryLRUCacher extends BaseCacher {
 	/**
 	 * Creates an instance of MemoryLRUCacher.
 	 *
-	 * @param {MemoryLRUCacherOptions} opts
+	 * @param {MemoryLRUCacherOptions?} opts
 	 *
 	 * @memberof MemoryLRUCacher
 	 */

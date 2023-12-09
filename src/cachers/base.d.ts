@@ -53,7 +53,12 @@ declare abstract class Cacher {
 
 	middlewareWithLock(ctx: Context, cacheKey: string, handler: Function, opts: any): Promise<any>;
 
-	middlewareWithoutLock(ctx: Context, cacheKey: string, handler: Function, opts: any): Promise<any>;
+	middlewareWithoutLock(
+		ctx: Context,
+		cacheKey: string,
+		handler: Function,
+		opts: any
+	): Promise<any>;
 
 	getCacheKeys(): Promise<Array<any>>;
 
