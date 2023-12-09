@@ -25,6 +25,7 @@ const Lock = require("../lock");
  * Cacher factory for memory cache
  *
  * @implements {MemoryCacherClass}
+ * @extends {BaseCacher<MemoryCacherOptions>}
  */
 class MemoryCacher extends BaseCacher {
 	/**
@@ -83,7 +84,7 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Get data from cache by key
 	 *
-	 * @param {any} key
+	 * @param {string} key
 	 * @returns {Promise}
 	 *
 	 * @memberof MemoryCacher

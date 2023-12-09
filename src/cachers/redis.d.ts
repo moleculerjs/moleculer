@@ -11,19 +11,15 @@ declare namespace RedisCacher {
 	}
 }
 
-declare class RedisCacher<TClient = any> extends BaseCacher {
-	opts: RedisCacher.RedisCacherOptions;
-
+declare class RedisCacher<TClient = any> extends BaseCacher<RedisCacher.RedisCacherOptions> {
 	client: TClient;
 
-	constructor(opts?: string | RedisCacher.RedisCacherOptions);
-
-	close(): Promise<unknown>;
+	close(): Promise<void>;
 	get(key: string): Promise<Record<string, unknown> | null>;
 	getWithTTL(key: string): Promise<Record<string, unknown> | null>;
-	set(key: string, data: any, ttl?: number): Promise<unknown>;
-	del(key: string | string[]): Promise<unknown>;
-	clean(match?: string | string[]): Promise<unknown>;
+	set(key: string, data: any, ttl?: number): Promise<void>;
+	del(key: string | string[]): Promise<void>;
+	clean(match?: string | string[]): Promise<void>;
 	tryLock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 	lock(key: string | string[], ttl?: number): Promise<() => Promise<void>>;
 }

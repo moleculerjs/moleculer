@@ -14,14 +14,14 @@ declare namespace BaseLogger {
 	// export const BaseLogger;
 }
 
-declare abstract class BaseLogger<T extends BaseLogger.LoggerOptions> {
-	constructor(opts?: T);
+declare abstract class BaseLogger<TOptions extends BaseLogger.LoggerOptions> {
 
 	loggerFactory: LoggerFactory;
 	broker: ServiceBroker;
 
-	opts: T;
+	opts: TOptions;
 
+	constructor(opts?: TOptions);
 	init(loggerFactory: LoggerFactory): void;
 
 	stop(): void;

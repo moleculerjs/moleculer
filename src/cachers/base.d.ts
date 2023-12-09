@@ -16,12 +16,17 @@ declare namespace Cacher {
 		maxParamsLength?: number;
 		missingResponse?: any;
 		prefix?: string;
-		// [key: string]: any;
+
+		lock?: boolean | {
+			enabled?: boolean;
+			staleTime?: number;
+			ttl?: number;
+		}
 	}
 }
 
-declare abstract class Cacher {
-	opts: Cacher.CacherOptions;
+declare abstract class Cacher<TOptions extends Cacher.CacherOptions> {
+	opts: TOptions;
 
 	connected: boolean | null;
 	broker: ServiceBroker;
@@ -29,21 +34,21 @@ declare abstract class Cacher {
 	logger: Logger;
 	prefix?: string;
 
-	constructor(opts?: Cacher.CacherOptions);
+	constructor(opts?: TOptions);
 
 	init(broker: ServiceBroker): void;
 
-	abstract close(): Promise<unknown>;
+	abstract close(): Promise<void>;
 
 	abstract get(key: string): Promise<Record<string, unknown> | null>;
 
 	abstract getWithTTL(key: string): Promise<Record<string, unknown> | null>;
 
-	abstract set(key: string, data: any, ttl?: number): Promise<unknown>;
+	abstract set(key: string, data: any, ttl?: number): Promise<void>;
 
-	abstract del(key: string | string[]): Promise<unknown>;
+	abstract del(key: string | string[]): Promise<void>;
 
-	abstract clean(match?: string | string[]): Promise<unknown>;
+	abstract clean(match?: string | string[]): Promise<void>;
 
 	getCacheKey(action: string, opts: object, ctx: Context): string;
 

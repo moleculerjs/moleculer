@@ -7,7 +7,8 @@
 "use strict";
 
 const _ = require("lodash");
-const utils = require("../utils");
+const { isObject } = require("../utils");
+const utilsMatch = require("../utils").match;
 const BaseCacher = require("./base");
 const { LRUCache } = require("lru-cache");
 const { METRIC } = require("../metrics");
@@ -26,6 +27,7 @@ const Lock = require("../lock");
  * Cacher factory for memory cache
  *
  * @implements {MemoryLRUCacherClass}
+ * @extends {BaseCacher<MemoryLRUCacherOptions>}
  */
 class MemoryLRUCacher extends BaseCacher {
 	/**
@@ -75,7 +77,11 @@ class MemoryLRUCacher extends BaseCacher {
 			return this.clean();
 		});
 
-		if (this.opts.lock && this.opts.lock.enabled !== false && this.opts.lock.staleTime) {
+		if (
+			isObject(this.opts.lock) &&
+			this.opts.lock?.enabled !== false &&
+			this.opts.lock.staleTime
+		) {
 			/* istanbul ignore next */
 			this.logger.warn("setting lock.staleTime with MemoryLRUCacher is not supported.");
 		}
@@ -185,7 +191,7 @@ class MemoryLRUCacher extends BaseCacher {
 		/** @type {any} */
 		let key = keys.next();
 		while (!key.done) {
-			if (matches.some(match => utils.match(key.value, match))) {
+			if (matches.some(m => utilsMatch(key.value, m))) {
 				this.logger.debug(`REMOVE ${key.value}`);
 				this.cache.delete(key.value);
 			}
