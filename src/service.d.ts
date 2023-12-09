@@ -165,6 +165,7 @@ declare namespace Service {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
+		service?: Service;
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;

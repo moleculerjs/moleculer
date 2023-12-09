@@ -149,7 +149,7 @@ declare namespace ServiceBroker {
 
 		errorHandler?: ((err: Error, info: Record<string, any>) => void) | null;
 
-		cacher?: boolean | BaseCacher | CacherType | CacherConfig | null;
+		cacher?: boolean | BaseCacher<any> | CacherType | CacherConfig | null;
 		serializer?: BaseSerializer | SerializerType | SerializerConfig | null;
 		validator?: boolean | BaseValidator | ValidatorNames | ValidatorOptions | null;
 		errorRegenerator?: ErrorRegenerator | null;
@@ -355,7 +355,7 @@ declare class ServiceBroker {
 
 	registry: ServiceRegistry;
 
-	cacher?: BaseCacher;
+	cacher?: BaseCacher<any>;
 
 	serializer?: BaseSerializer;
 
@@ -455,13 +455,9 @@ declare class ServiceBroker {
 	_getLocalActionEndpoint(actionName: string, ctx?: Context): ActionEndpoint;
 
 	mcall<TReturn>(
-		def: Record<string, ServiceBroker.MCallDefinition>,
+		def: Record<string, ServiceBroker.MCallDefinition> | ServiceBroker.MCallDefinition[],
 		opts?: ServiceBroker.MCallCallingOptions
-	): Promise<Record<string, TReturn>>;
-	mcall<TReturn>(
-		def: ServiceBroker.MCallDefinition[],
-		opts?: ServiceBroker.MCallCallingOptions
-	): Promise<TReturn[]>;
+	): Promise<Record<string, TReturn> | TReturn[]>;
 
 	emit<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;

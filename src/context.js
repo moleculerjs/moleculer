@@ -44,7 +44,7 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {ActionEndpoint|EventEndpoint} endpoint
+	 * @param {ActionEndpoint|EventEndpoint=} endpoint
 	 *
 	 * @memberof Context
 	 */
@@ -181,11 +181,15 @@ class Context {
 	/**
 	 * Copy itself without ID.
 	 *
-	 * @param {Endpoint} ep
+	 * @param {ActionEndpoint|EventEndpoint} ep
 	 * @returns {Context}
 	 */
 	copy(ep) {
-		const newCtx = new this.constructor(this.broker);
+		/** @type {any} */
+		const ctor = this.constructor;
+
+		/** @type {Context} */
+		const newCtx = new ctor(this.broker);
 
 		newCtx.nodeID = this.nodeID;
 		newCtx.setEndpoint(ep || this.endpoint);
@@ -214,6 +218,24 @@ class Context {
 	}
 
 	/**
+	 *
+	 * @param {ActionEndpoint|EventEndpoint} ep
+	 * @returns {ep is ActionEndpoint}
+	 */
+	isActionEndpoint(ep) {
+		return ep && "action" in ep && ep.action != null;
+	}
+
+	/**
+	 *
+	 * @param {ActionEndpoint|EventEndpoint} ep
+	 * @returns {ep is EventEndpoint}
+	 */
+	isEventEndpoint(ep) {
+		return ep && "event" in ep && ep.event != null;
+	}
+
+	/**
 	 * Set endpoint of context
 	 *
 	 * @param {ActionEndpoint|EventEndpoint} endpoint
@@ -223,11 +245,11 @@ class Context {
 		this.endpoint = endpoint;
 		if (endpoint) {
 			this.nodeID = endpoint.id;
-			if (endpoint.action) {
+			if (this.isActionEndpoint(endpoint)) {
 				this.action = endpoint.action;
 				this.service = this.action.service;
 				this.event = null;
-			} else if (endpoint.event) {
+			} else if (this.isEventEndpoint(endpoint)) {
 				this.event = endpoint.event;
 				this.service = this.event.service;
 				this.action = null;
@@ -314,9 +336,10 @@ class Context {
 	/**
 	 * Multiple action calls.
 	 *
+	 * @template TResult
 	 * @param {Record<string, MCallDefinition>|MCallDefinition[]} def
 	 * @param {MCallCallingOptions=} _opts
-	 * @returns {Promise<Record<string, any>>|Promise<any[]>}
+	 * @returns {Promise<Record<string, TResult> | TResult[]>}
 	 */
 	mcall(def, _opts) {
 		const opts = Object.assign(

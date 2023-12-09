@@ -94,6 +94,9 @@ declare class Context<
 
 	setParams(newParams: TParams, cloning?: boolean): void;
 
+	isActionEndpoint(ep: ActionEndpoint | EventEndpoint): ep is ActionEndpoint;
+	isEventEndpoint(ep: ActionEndpoint | EventEndpoint): ep is EventEndpoint;
+
 	call<TResult>(actionName: string): Promise<TResult>;
 	call<TResult, TParams>(
 		actionName: string,
@@ -101,11 +104,10 @@ declare class Context<
 		opts?: CallingOptions
 	): Promise<TResult>;
 
-	mcall<T>(
-		def: Record<string, MCallDefinition>,
+	mcall<TResult>(
+		def: Record<string, MCallDefinition> | MCallDefinition[],
 		opts?: MCallCallingOptions
-	): Promise<Record<string, T>>;
-	mcall<T>(def: MCallDefinition[], opts?: MCallCallingOptions): Promise<T[]>;
+	): Promise<Record<string, TResult> | TResult[]>;
 
 	emit<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	emit(eventName: string): Promise<void>;
@@ -113,8 +115,7 @@ declare class Context<
 	broadcast<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
-	copy(endpoint: ActionEndpoint | EventEndpoint): this;
-	copy(): this;
+	copy(endpoint?: ActionEndpoint | EventEndpoint): Context;
 
 	startSpan(name: string, opts?: Record<string, any>): Span;
 

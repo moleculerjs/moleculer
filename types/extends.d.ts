@@ -12,6 +12,7 @@ declare global {
 		method(fn: Function): Function;
 		mapSeries<T>(arr: Array<any>, fn: Function): Promise<T>;
 	}
+
 }
 
 declare module "net" {
