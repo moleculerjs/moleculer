@@ -157,3 +157,5 @@ declare namespace Moleculer {
 
 	export { Validators, ValidatorNames };
 }
+
+export = Moleculer;
