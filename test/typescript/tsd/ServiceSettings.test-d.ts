@@ -13,7 +13,7 @@ interface ExtendedSettings extends ServiceSettingSchema {
 }
 
 // test that ServiceSchema uses default service settings schema
-const testSettingsSchema1: ServiceSchema = {
+const testSettingsSchema1: ServiceSchema<ExtendedSettings> = {
 	name: 'testSchema1',
 	settings: {
 		foo: 'bar',
@@ -22,7 +22,7 @@ const testSettingsSchema1: ServiceSchema = {
 expectType<ServiceSettingSchema>(testSettingsSchema1.settings!); // assert non-null to avoid undefined check
 
 // test that service gets default service settings schema
-class TestService1 extends Service {
+class TestService1 extends Service<ExtendedSettings> {
 	constructor(broker: ServiceBroker) {
 		super(broker);
 
@@ -36,8 +36,8 @@ class TestService1 extends Service {
 }
 const testService1 = new TestService1(broker);
 expectType<ServiceSettingSchema>(testService1.settings);
-expectType<ServiceSchema>(testService1.schema);
-expectType<ServiceSchema<ServiceSettingSchema>>(testService1.schema);
+expectType<ServiceSchema<ExtendedSettings>>(testService1.schema);
+expectType<ServiceSchema<ExtendedSettings>>(testService1.schema);
 
 // test that ServiceSchema uses extended service settings schema
 const testSettingsSchema2: ServiceSchema<ExtendedSettings> = {
