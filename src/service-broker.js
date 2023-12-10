@@ -42,7 +42,7 @@ const C = require("./constants");
  * @typedef {import("./service").ServiceDependency} ServiceDependency
  * @typedef {import("./service").ActionHandler} ActionHandler
  * @typedef {import("./service-broker")} ServiceBrokerClass
- * @typedef {import("./service-broker").ServiceBrokerOptions} ServiceBrokerOptions
+ * @typedef {import("./service-broker").BrokerOptions} BrokerOptions
  * @typedef {import("./service-broker").CallingOptions} CallingOptions
  * @typedef {import("./service-broker").NodeHealthStatus} NodeHealthStatus
  * @typedef {import("./service-broker").MCallDefinition} MCallDefinition
@@ -55,7 +55,7 @@ const C = require("./constants");
 /**
  * Default broker options
  *
- * @type {ServiceBrokerOptions}
+ * @type {BrokerOptions}
  */
 const defaultOptions = {
 	namespace: "",
@@ -190,7 +190,7 @@ class ServiceBroker {
 	/**
 	 * Creates an instance of ServiceBroker.
 	 *
-	 * @param {ServiceBrokerOptions} options
+	 * @param {BrokerOptions} options
 	 *
 	 * @memberof ServiceBroker
 	 */

@@ -1,6 +1,6 @@
 import ServiceBroker = require("./service-broker");
 import Service = require("./service");
-import type { ServiceBrokerOptions } from "./service-broker";
+import type { BrokerOptions } from "./service-broker";
 import { Worker } from "cluster";
 
 declare namespace Runner {
@@ -72,12 +72,12 @@ declare class Runner {
 	/**
 	 * Loaded configuration file
 	 */
-	configFile: Partial<ServiceBrokerOptions>;
+	configFile: Partial<BrokerOptions>;
 
 	/**
 	 * Merged configuration
 	 */
-	config: Partial<ServiceBrokerOptions>;
+	config: Partial<BrokerOptions>;
 
 	/**
 	 * Process command line arguments

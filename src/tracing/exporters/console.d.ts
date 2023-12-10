@@ -8,7 +8,7 @@ import { Color } from "kleur";
 
 declare namespace ConsoleTraceExporter {
 	export interface ConsoleTraceExporterOptions extends BaseTraceExporterOptions {
-		logger?: Logger;
+		logger?: Logger | null;
 		colors?: boolean;
 		width?: number;
 		gaugeWidth?: number;

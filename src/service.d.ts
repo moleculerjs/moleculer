@@ -40,7 +40,7 @@ declare namespace Service {
 		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 
-		[name: string]: any;
+		// [key: string]: any;
 	}
 
 	export interface ServiceSettingSchema {
@@ -49,7 +49,7 @@ declare namespace Service {
 		$dependencyTimeout?: number;
 		$shutdownTimeout?: number;
 		$secureSettings?: string[];
-		[name: string]: any;
+		//[key: string]: any;
 	}
 
 	export type ServiceAction = <

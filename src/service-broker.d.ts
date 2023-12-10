@@ -118,7 +118,7 @@ declare namespace ServiceBroker {
 
 	type SerializerType = SerializerConfig["type"];
 
-	export interface ServiceBrokerOptions {
+	export interface BrokerOptions {
 		namespace?: string | null;
 		nodeID?: string | null;
 
@@ -322,13 +322,13 @@ declare class ServiceBroker {
 
 	static INTERNAL_MIDDLEWARES: string[];
 
-	static defaultOptions: ServiceBroker.ServiceBrokerOptions;
+	static defaultOptions: ServiceBroker.BrokerOptions;
 
 	MOLECULER_VERSION: string;
 
 	PROTOCOL_VERSION: string;
 
-	options: ServiceBroker.ServiceBrokerOptions;
+	options: ServiceBroker.BrokerOptions;
 
 	Promise: PromiseConstructor;
 
@@ -376,7 +376,7 @@ declare class ServiceBroker {
 
 	runner?: Runner;
 
-	constructor(options?: ServiceBroker.ServiceBrokerOptions);
+	constructor(options?: ServiceBroker.BrokerOptions);
 
 	registerMiddlewares(userMiddlewares: MiddlewareHandler.Middleware[]): void;
 	registerMoleculerMetrics(): void;
