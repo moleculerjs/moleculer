@@ -8,7 +8,7 @@
 		"strict": false,
 		"checkJs": true,
 		"declaration": true,
-		"skipLibCheck": false,
+		"skipLibCheck": true,
 		"declarationDir": "generated-types",
 		"outDir": "dist",
 		"noEmit": true,

@@ -16,6 +16,13 @@ function getAlpha(min) {
 }
 */
 
+/**
+ * @typedef {import("./rates")} MetricRateClass
+ */
+
+/**
+ * @implements {MetricRateClass}
+ */
 class MetricRate {
 	constructor(metric, item, min) {
 		this.metric = metric;
