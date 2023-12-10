@@ -30,12 +30,12 @@ declare namespace Service {
 		settings?: S;
 		dependencies?: string | ServiceDependency | (string | ServiceDependency)[];
 		metadata?: any;
-		actions?: ServiceActionsSchema;
+		actions?: ServiceActionsSchema<S>;
 		mixins?: Partial<ServiceSchema>[];
 		methods?: ServiceMethods;
 		hooks?: ServiceHooks;
 
-		events?: EventSchemas;
+		events?: EventSchemas<S>;
 		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
 		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
 		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
@@ -121,7 +121,7 @@ declare namespace Service {
 		// [key: string]: any;
 	}
 
-	export type ActionHandler<T = any> = (ctx: Context<any, any>) => Promise<T> | T;
+	export type ActionHandler = (ctx: Context<any, any>) => Promise<any> | any;
 
 	export type ServiceActionsSchema<S = ServiceSettingSchema> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;

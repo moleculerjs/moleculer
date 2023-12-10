@@ -1,8 +1,6 @@
 "use strict";
 
-import { Service } from "../../../";
-import { Context } from "../../../";
-import { ActionHooks, ServiceHooks, ServiceHooksAfter, ServiceSchema } from "../../../";
+import { Service, Context, ServiceHooksAfter, ServiceSchema } from "../../../";
 
 type GreeterWelcomeParams = {
 	name: string
@@ -14,6 +12,11 @@ export default class GreeterService extends Service {
 
 		this.parseServiceSchema({
 			name: "greeter",
+
+			dependencies: [
+				{ name: "posts", version: 2 }
+			],
+
 			hooks: {
 				before: {
 					welcome(ctx: Context<GreeterWelcomeParams>): void {
@@ -41,7 +44,7 @@ export default class GreeterService extends Service {
 						throw err;
 					}
 				}
-			} as ServiceHooks,
+			},
 			actions: {
 				hello: {
 					handler: this.hello,
@@ -57,9 +60,13 @@ export default class GreeterService extends Service {
 							},
 							"anotherHookAfter"
 						]
-					} as ActionHooks
+					}
 				},
 				welcome: this.welcome
+			},
+
+			started() {
+				this.logger.info(`Greeter service started on node ${this.broker.nodeID}!`);
 			}
 		} as ServiceSchema);
 	}

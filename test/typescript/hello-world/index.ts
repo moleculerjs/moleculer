@@ -4,7 +4,18 @@ import * as path from "path";
 import { ServiceBroker } from "../../../";
 
 const broker = new ServiceBroker({
-	logger: true,
+	logger: {
+		type: "Console",
+		options: {
+			formatter: "short"
+		}
+	},
+	cacher: {
+		type: "Memory",
+		options: {
+			ttl: 5
+		}
+	},
 	metrics: {
 		enabled: true,
 		reporter: {
@@ -28,11 +39,13 @@ const broker = new ServiceBroker({
 });
 
 broker.loadService(path.join(__dirname, "greeter.service.ts"));
+broker.loadService(path.join(__dirname, "posts.service.ts"));
 
 (async function() {
 	try {
 		await broker.start();
 
+		await broker.call("v2.posts.list", { limit: 10, sort: "title" });
 		await broker.call("greeter.hello");
 		const res = await broker.call("greeter.welcome", { name: "Typescript" });
 		broker.logger.info("");
