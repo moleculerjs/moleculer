@@ -1,10 +1,17 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
+
+/**
+ * @typedef {import("../registry/endpoint-action")} ActionEndpoint
+ * @typedef {import("../service")} Service
+ * @typedef {import("../context")} Context
+ * @typedef {import("../service").ActionSchema} ActionSchema
+ */
 
 const C = require("../constants");
 const { METRIC } = require("../metrics");
@@ -49,7 +56,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	/**
 	 * Get Endpoint state from store. If not exists, create it.
 	 *
-	 * @param {Endpoint} ep
+	 * @param {ActionEndpoint} ep
 	 * @param {Service} service
 	 * @param {Object} opts
 	 * @returns {Object}
@@ -170,7 +177,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function halfOpen(item) {
+	function halfOpen(item, ctx) {
 		item.state = C.CIRCUIT_HALF_OPEN;
 		item.ep.state = true;
 
@@ -227,7 +234,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function circuitClose(item) {
+	function circuitClose(item, ctx) {
 		item.state = C.CIRCUIT_CLOSE;
 		item.ep.state = true;
 		item.failures = 0;
@@ -269,7 +276,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 * Middleware wrapper function
 	 *
 	 * @param {Function} handler
-	 * @param {Action} action
+	 * @param {ActionSchema} action
 	 * @returns {Function}
 	 */
 	function wrapCBMiddleware(handler, action) {

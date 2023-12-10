@@ -9,6 +9,7 @@ import type { ActionSchema } from "../service";
 declare class ActionEndpoint extends Endpoint {
 	service: Service;
 	action: ActionSchema;
+	name: string;
 
 	constructor(
 		registry: Registry,

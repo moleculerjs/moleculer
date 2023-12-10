@@ -25,6 +25,7 @@ const { MoleculerServerError } = require("../errors");
 /**
  * Endpoint list class
  *
+ * @template TEndpoint
  * @class EndpointList
  * @implements {EndpointListClass}
  */
@@ -44,6 +45,7 @@ class EndpointList {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
+		// @ts-ignore
 		this.strategy = new StrategyFactory(registry, broker, strategyOptions);
 		this.name = name;
 		this.group = group;
@@ -72,6 +74,7 @@ class EndpointList {
 			return found;
 		}
 
+		// @ts-ignore
 		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, data);
 		this.endpoints.push(ep);
 

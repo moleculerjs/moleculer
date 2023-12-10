@@ -24,15 +24,15 @@ export declare function isPromise<T>(promise: unknown): promise is Promise<T>;
 
 export declare function polyfillPromise(P: typeof Promise): void;
 
-export declare function promiseAllControl(
-	promises: any[],
+export declare function promiseAllControl<T>(
+	promises: Promise<any>[],
 	settled?: boolean,
-	promise?: any
+	promise?: PromiseConstructor
 ):
 	| Promise<{
-			[p: string]: PromiseSettledResult<any>;
+			[key: string]: PromiseSettledResult<T>;
 	  }>
-	| Promise<unknown[]>;
+	| Promise<T[]>;
 
 export declare function clearRequireCache(filename: string): void;
 

@@ -75,6 +75,7 @@ const defaultOptions = {
 		delay: 100,
 		maxDelay: 1000,
 		factor: 2,
+		// @ts-ignore
 		check: err => err && !!err.retryable
 	},
 
@@ -103,6 +104,7 @@ const defaultOptions = {
 		windowTime: 60,
 		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
+		// @ts-ignore
 		check: err => err && err.code >= 500
 	},
 
@@ -1381,14 +1383,17 @@ class ServiceBroker {
 	mcall(def, opts = {}) {
 		const { settled, ...options } = opts;
 		if (Array.isArray(def)) {
-			return utils.promiseAllControl(
-				def.map(item => this.call(item.action, item.params, item.options || options)),
-				settled,
-				this.Promise
+			return /** @type {Promise<TResult[]>} */ (
+				utils.promiseAllControl(
+					def.map(item => this.call(item.action, item.params, item.options || options)),
+					settled,
+					this.Promise
+				)
 			);
 		} else if (utils.isObject(def)) {
-			let results = {};
-			let promises = Object.keys(def).map(name => {
+			/** @type {Record<string, TResult>} */
+			const results = {};
+			const promises = Object.keys(def).map(name => {
 				const item = def[name];
 				const callOptions = item.options || options;
 				return this.call(item.action, item.params, callOptions).then(
@@ -1396,9 +1401,10 @@ class ServiceBroker {
 				);
 			});
 
-			let p = utils.promiseAllControl(promises, settled, this.Promise);
+			const p = utils.promiseAllControl(promises, settled, this.Promise);
 
 			// Pointer to Context
+			// @ts-ignore
 			p.ctx = promises.map(promise => promise.ctx);
 
 			return p.then(() => results);

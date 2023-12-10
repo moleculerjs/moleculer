@@ -9,7 +9,7 @@ import type Registry = require("./registry");
 import type ServiceItem = require("./service-item");
 import type Context = require("../context");
 
-declare class EndpointList<TEndpoint extends Endpoint = Endpoint> {
+declare class EndpointList<TEndpoint extends Endpoint> {
 	registry: Registry;
 	broker: ServiceBroker;
 	strategy: typeof BaseStrategy;

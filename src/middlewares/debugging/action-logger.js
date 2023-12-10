@@ -97,7 +97,13 @@ module.exports = function ActionLoggerMiddleware(opts) {
 		call(next) {
 			return (actionName, params, callingOpts) => {
 				// Whitelist filtering
-				if (!isWhiteListed(isObject(actionName) ? actionName.action.name : actionName)) {
+				if (
+					!isWhiteListed(
+						isObject(actionName)
+							? /** @type {Record<string, any>} */ (actionName).action.name
+							: actionName
+					)
+				) {
 					return next(actionName, params, callingOpts);
 				}
 

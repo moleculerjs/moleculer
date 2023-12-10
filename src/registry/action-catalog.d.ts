@@ -41,9 +41,9 @@ declare class ActionCatalog {
 
 	constructor(registry: Registry, broker: ServiceBroker, StrategyFactory: typeof Strategy);
 
-	add(node: Node, service: ServiceItem, action: ActionSchema): EndpointList;
+	add(node: Node, service: ServiceItem, action: ActionSchema): EndpointList<ActionEndpoint>;
 
-	get(actionName: string): EndpointList | undefined;
+	get(actionName: string): EndpointList<ActionEndpoint> | undefined;
 
 	isAvailable(actionName: string): boolean;
 

@@ -385,7 +385,7 @@ class Registry {
 	 *
 	 * @param {String} actionName
 	 * @param {String} nodeID
-	 * @returns {Endpoint}
+	 * @returns {ActionEndpoint}
 	 * @memberof Registry
 	 */
 	getActionEndpointByNodeId(actionName, nodeID) {

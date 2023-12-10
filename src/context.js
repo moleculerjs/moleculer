@@ -390,7 +390,7 @@ class Context {
 			);
 		}
 
-		let p = this.broker.mcall(def, opts);
+		let p = this.broker.mcall(/** @type {MCallDefinition[]} */ (def), opts);
 
 		// Merge metadata with sub context metadata
 		return p

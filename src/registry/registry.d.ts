@@ -94,9 +94,9 @@ declare class ServiceRegistry {
 
 	hasService(fullName: string, nodeID: string): boolean;
 
-	getActionEndpoints(actionName: string): EndpointList;
+	getActionEndpoints(actionName: string): EndpointList<ActionEndpoint>;
 
-	getActionEndpointByNodeId(actionName: string, nodeID: string): Endpoint;
+	getActionEndpointByNodeId(actionName: string, nodeID: string): ActionEndpoint;
 
 	unregisterService(fullName: string, nodeID?: string | null): void;
 	unregisterServicesByNode(nodeID: string): void;

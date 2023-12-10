@@ -57,6 +57,8 @@ declare class Runner {
 	worker: Worker | null;
 	broker: ServiceBroker | null;
 
+	folders?: string[];
+
 	/**
 	 * Watch folders for hot reload
 	 */
@@ -152,5 +154,7 @@ declare class Runner {
 	/**
 	 * Start runner
 	 */
-	start(args: string[]): Promise<void>;
+	start(args: string[]): Promise<void|ServiceBroker>;
 }
+
+export = Runner;

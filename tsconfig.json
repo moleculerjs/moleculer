@@ -4,6 +4,7 @@
 		"strict": false,
 		"checkJs": true,
 		"declaration": true,
+		"skipLibCheck": false,
 		"declarationDir": "generated-types",
 		"outDir": "dist",
 		"target": "ES2022",

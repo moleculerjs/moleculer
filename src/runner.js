@@ -1,9 +1,16 @@
 /* moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
+
+/**
+ * Import types
+ *
+ * @typedef {import("./service")} Service
+ * @typedef {import("cluster").Cluster} Cluster
+ */
 
 const ServiceBroker = require("./service-broker");
 const utils = require("./utils");
@@ -13,6 +20,8 @@ const { globSync } = require("glob");
 const _ = require("lodash");
 const Args = require("args");
 const os = require("os");
+/** @type {Cluster} */
+// @ts-ignore
 const cluster = require("cluster");
 const kleur = require("kleur");
 
@@ -542,7 +551,7 @@ class MoleculerRunner {
 			return this.broker
 				.stop()
 				.catch(err => {
-					logger.error("Error while stopping ServiceBroker", err);
+					logger.error(err);
 				})
 				.then(() => this._run());
 		} else {
@@ -550,15 +559,20 @@ class MoleculerRunner {
 		}
 	}
 
+	/**
+	 *
+	 * @param {string[]} args
+	 * @returns {Promise<void|ServiceBroker>}
+	 */
 	start(args) {
 		return Promise.resolve()
 			.then(() => this.processFlags(args))
 			.then(() => {
-				if (this.flags.instances !== undefined && cluster.isMaster) {
-					return this.startWorkers(this.flags.instances);
+				if (this.flags.instances !== undefined && cluster.isPrimary) {
+					this.startWorkers(this.flags.instances);
+				} else {
+					return this._run();
 				}
-
-				return this._run();
 			});
 	}
 }

@@ -23,6 +23,7 @@ import type MiddlewareHandler = require("./middleware");
 import type ActionEndpoint = require("./registry/endpoint-action");
 import type EventEndpoint = require("./registry/endpoint-event");
 import type Service = require("./service");
+import type Runner = require("./runner");
 import type { ServiceDependency } from "./service";
 import type { LoggerOptions } from "./loggers/base";
 import type { TcpTransporterOptions } from "./transporters/tcp";
@@ -372,6 +373,8 @@ declare class ServiceBroker {
 	started: boolean;
 	servicesStarting: boolean;
 	stopping: boolean;
+
+	runner?: Runner;
 
 	constructor(options?: ServiceBroker.ServiceBrokerOptions);
 
