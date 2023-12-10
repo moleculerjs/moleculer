@@ -223,7 +223,8 @@ class Context {
 	 * @returns {ep is ActionEndpoint}
 	 */
 	isActionEndpoint(ep) {
-		return ep && "action" in ep && ep.action != null;
+		// @ts-ignore
+		return ep?.action != null;
 	}
 
 	/**
@@ -232,7 +233,8 @@ class Context {
 	 * @returns {ep is EventEndpoint}
 	 */
 	isEventEndpoint(ep) {
-		return ep && "event" in ep && ep.event != null;
+		// @ts-ignore
+		return ep?.event != null;
 	}
 
 	/**

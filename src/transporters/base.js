@@ -336,7 +336,7 @@ class BaseTransporter {
 			}
 		}
 
-		if (packet.type === P.PACKET_EVENT && packet.target == null && "groups" in packet.payload) {
+		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
 			const groups = /** @type {PacketEventPayload} */ (packet.payload).groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues

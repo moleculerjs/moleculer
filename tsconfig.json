@@ -1,5 +1,9 @@
 {
 	"compilerOptions": {
+		"lib": ["ES2023"],
+		"moduleResolution": "node",
+		"target": "ES2022",
+
 		"allowJs": true,
 		"strict": false,
 		"checkJs": true,
@@ -7,12 +11,9 @@
 		"skipLibCheck": false,
 		"declarationDir": "generated-types",
 		"outDir": "dist",
-		"target": "ES2022",
-		"moduleResolution": "node",
 		"noEmit": true,
-		"lib": ["ES2022"],
 		"resolveJsonModule": true
 	},
-	"include": ["types/extends.d.ts", "src/**/*.js"],
+	"include": ["types/extends.d.ts", "src/**/*.js", "src/**/*.d.ts"],
 	"exclude": ["node_modules", ".eslintrc.js", "prettier.config.js"]
 }

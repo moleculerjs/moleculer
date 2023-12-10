@@ -224,7 +224,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		/* @ts-ignore */
+		// @ts-ignore
 		return ctx.endpoint.event.handler(ctx);
 	}
 
