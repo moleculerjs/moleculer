@@ -2,7 +2,7 @@ import type { Redis, Cluster, ClusterNode, ClusterOptions, RedisOptions } from "
 import BaseTransporter = require("./base");
 
 declare namespace RedisTransporter {
-	export interface RedisTransporterOptions {
+	export interface RedisTransporterOptions extends RedisOptions {
 		cluster?: {
 			nodes?: ClusterNode[];
 			clusterOptions?: ClusterOptions;

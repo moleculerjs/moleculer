@@ -121,16 +121,20 @@ import * as Validators from "./src/validators";
 import type { ValidatorNames } from "./src/validators";
 
 declare namespace Moleculer {
-	export { 	BrokerOptions,
+	export {
+		ServiceBroker,
+		BrokerOptions,
 		CallingOptions,
 		TransporterConfig,
 		CacherConfig,
 		SerializerConfig,
 		ReplOptions,
 		NodeHealthStatus,
-		MCallCallingOptions };
+		MCallCallingOptions
+	};
 
 	export {
+		Service,
 		ActionSchema,
 		ActionHooks,
 		ActionHandler,
