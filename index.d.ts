@@ -1,7 +1,16 @@
 // --- SERVICE BROKER ---
 
 import ServiceBroker = require("./src/service-broker");
-import type { BrokerOptions, CallingOptions } from "./src/service-broker";
+import type {
+	BrokerOptions,
+	CallingOptions,
+	TransporterConfig,
+	CacherConfig,
+	SerializerConfig,
+	ReplOptions,
+	NodeHealthStatus,
+	MCallCallingOptions
+} from "./src/service-broker";
 
 // --- SERVICE ---
 
@@ -12,12 +21,18 @@ import type {
 	ActionHandler,
 	ActionParams,
 	ActionVisibility,
+	ActionParamTypes,
+	ActionCacheOptions,
+	EventSchema,
+	EventSchemas,
 	ServiceHooks,
 	ServiceHooksAfter,
+	ServiceSearchObj,
 	ServiceSchema,
 	ServiceSettingSchema,
 	ServiceAction,
-	ServiceActions
+	ServiceActions,
+	ServiceMethods
 } from "./src/service";
 
 // --- CONTEXT ---
@@ -106,21 +121,33 @@ import * as Validators from "./src/validators";
 import type { ValidatorNames } from "./src/validators";
 
 declare namespace Moleculer {
-	export { ServiceBroker, BrokerOptions, CallingOptions };
+	export { 	BrokerOptions,
+		CallingOptions,
+		TransporterConfig,
+		CacherConfig,
+		SerializerConfig,
+		ReplOptions,
+		NodeHealthStatus,
+		MCallCallingOptions };
 
 	export {
-		Service,
 		ActionSchema,
 		ActionHooks,
 		ActionHandler,
 		ActionParams,
 		ActionVisibility,
+		ActionParamTypes,
+		ActionCacheOptions,
+		EventSchema,
+		EventSchemas,
 		ServiceHooks,
 		ServiceHooksAfter,
+		ServiceSearchObj,
 		ServiceSchema,
 		ServiceSettingSchema,
 		ServiceAction,
-		ServiceActions
+		ServiceActions,
+		ServiceMethods
 	};
 
 	export { Context };
