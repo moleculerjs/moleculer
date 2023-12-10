@@ -18,7 +18,7 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	transporter: "TCP",
+	transporter: "Redis",
 	//transporter: "kafka://localhost:9093",
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "AMQP10",
@@ -125,9 +125,9 @@ broker.createService({
 broker.createService({
 	name: "metrics",
 	events: {
-		"$node.pong"({ nodeID, elapsedTime, timeDiff }) {
+		"$node.pong"({ params }) {
 			this.logger.info(
-				`PING '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`
+				`PING '${params.nodeID}' - Time: ${params.elapsedTime}ms, Time difference: ${params.timeDiff}ms`
 			);
 		}
 		/*"metrics.circuit-breaker.opened"(payload, sender) {

@@ -193,9 +193,9 @@ class RedisTransporter extends Transporter {
 	 */
 	getRedisClient(opts) {
 		let client;
-		let Redis;
+		let R;
 		try {
-			Redis = require("ioredis").Redis;
+			R = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal(
@@ -209,10 +209,10 @@ class RedisTransporter extends Transporter {
 				throw new BrokerOptionsError("No nodes defined for cluster");
 			}
 			this.logger.info("Setting Redis.Cluster transporter");
-			client = new Redis.Cluster(opts.cluster.nodes, opts.cluster.clusterOptions);
+			client = new R.Cluster(opts.cluster.nodes, opts.cluster.clusterOptions);
 		} else {
 			this.logger.info("Setting Redis transporter");
-			client = new Redis(/** @type {any} */ (opts));
+			client = new R.Redis(/** @type {any} */ (opts));
 		}
 		return client;
 	}

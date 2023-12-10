@@ -6,7 +6,8 @@
 
 "use strict";
 
-let Redis;
+let R;
+
 const BaseCacher = require("./base");
 const _ = require("lodash");
 const { METRIC } = require("../metrics");
@@ -65,7 +66,7 @@ class RedisCacher extends BaseCacher {
 	init(broker) {
 		super.init(broker);
 		try {
-			Redis = require("ioredis");
+			R = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal(
@@ -84,9 +85,9 @@ class RedisCacher extends BaseCacher {
 				throw new BrokerOptionsError("There is no 'nodes' configuration for cluster.");
 			}
 
-			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
+			this.client = new R.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
 		} else {
-			this.client = new Redis(this.opts.redis);
+			this.client = new R.Redis(this.opts.redis);
 		}
 
 		this.connected = false;
@@ -459,7 +460,7 @@ class RedisCacher extends BaseCacher {
 	}
 
 	_scanDel(pattern) {
-		if (this.client instanceof Redis.Cluster) {
+		if (this.client instanceof R.Cluster) {
 			return this._clusterScanDel(pattern);
 		} else {
 			return this._nodeScanDel(this.client, pattern);

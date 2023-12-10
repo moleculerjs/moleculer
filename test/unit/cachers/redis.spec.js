@@ -4,10 +4,10 @@ const { protectReject } = require("../utils");
 const C = require("../../../src/constants");
 
 jest.mock("ioredis");
-const Redis = require("ioredis");
+const R = require("ioredis");
 const BaseLogger = require("../../../src/loggers/base");
 
-Redis.mockImplementation(() => {
+R.Redis = jest.fn(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
@@ -21,7 +21,7 @@ Redis.mockImplementation(() => {
 	};
 });
 
-Redis.Cluster = jest.fn(() => {
+R.Cluster = jest.fn(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
@@ -89,14 +89,14 @@ describe("Test RedisCacher init", () => {
 	it("should create Redis client with default options", () => {
 		const cacher = new RedisCacher();
 
-		Redis.mockClear();
+		R.Redis.mockClear();
 		cacher.init(broker);
 
 		// expect(cacher.client).toBeInstanceOf(Redis);
 		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
 
-		expect(Redis).toHaveBeenCalledTimes(1);
-		expect(Redis).toHaveBeenCalledWith(undefined);
+		expect(R.Redis).toHaveBeenCalledTimes(1);
+		expect(R.Redis).toHaveBeenCalledWith(undefined);
 	});
 
 	it("should create Redis client with default options", () => {
@@ -104,14 +104,14 @@ describe("Test RedisCacher init", () => {
 		const cacher = new RedisCacher(opts);
 
 		jest.spyOn(Serializers.JSON.prototype, "init");
-		Redis.mockClear();
+		R.Redis.mockClear();
 		cacher.init(broker);
 
 		// expect(cacher.client).toBeInstanceOf(Redis);
 		expect(cacher.serializer).toBeInstanceOf(Serializers.JSON);
 
-		expect(Redis).toHaveBeenCalledTimes(1);
-		expect(Redis).toHaveBeenCalledWith(opts.redis);
+		expect(R.Redis).toHaveBeenCalledTimes(1);
+		expect(R.Redis).toHaveBeenCalledWith(opts.redis);
 
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledTimes(1);
 		expect(Serializers.JSON.prototype.init).toHaveBeenCalledWith(broker);
@@ -122,7 +122,7 @@ describe("Test RedisCacher init", () => {
 
 		const cacher = new RedisCacher();
 
-		Redis.mockClear();
+		R.Redis.mockClear();
 		cacher.init(broker);
 
 		cacher.client.onCallbacks.error(new Error("Ups!"));

@@ -8,9 +8,9 @@ const { protectReject } = require("../utils");
 
 jest.mock("ioredis");
 
-const Redis = require("ioredis");
+const R = require("ioredis");
 
-Redis.mockImplementation(() => {
+R.Redis = jest.fn(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),
@@ -22,7 +22,7 @@ Redis.mockImplementation(() => {
 	};
 });
 
-Redis.Cluster = jest.fn(() => {
+R.Cluster = jest.fn(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => (onCallbacks[event] = cb)),

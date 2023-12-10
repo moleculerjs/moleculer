@@ -20,7 +20,7 @@ const broker = new ServiceBroker({
 		}
 	},
 	*/
-	transporter: "TCP",
+	transporter: "Redis",
 	//transporter: "kafka://127.0.0.1:9093",
 	//transporter: "amqp://192.168.0.181:5672",
 	//transporter: "NATS",
@@ -34,7 +34,7 @@ const broker = new ServiceBroker({
 		//discoverer: "Etcd3"
 	},
 
-	//cacher: true,
+	cacher: "Redis",
 
 	metrics: {
 		enabled: false,
