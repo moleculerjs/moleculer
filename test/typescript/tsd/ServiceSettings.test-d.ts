@@ -19,7 +19,7 @@ const testSettingsSchema1: ServiceSchema<ExtendedSettings> = {
 		foo: 'bar',
 	},
 };
-expectType<ServiceSettingSchema>(testSettingsSchema1.settings!); // assert non-null to avoid undefined check
+expectType<ExtendedSettings>(testSettingsSchema1.settings!); // assert non-null to avoid undefined check
 
 // test that service gets default service settings schema
 class TestService1 extends Service<ExtendedSettings> {
@@ -35,7 +35,7 @@ class TestService1 extends Service<ExtendedSettings> {
 	}
 }
 const testService1 = new TestService1(broker);
-expectType<ServiceSettingSchema>(testService1.settings);
+expectType<ExtendedSettings>(testService1.settings);
 expectType<ServiceSchema<ExtendedSettings>>(testService1.schema);
 expectType<ServiceSchema<ExtendedSettings>>(testService1.schema);
 
