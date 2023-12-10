@@ -7,6 +7,7 @@ import type { BrokerOptions, CallingOptions } from "./src/service-broker";
 
 import Service = require("./src/service");
 import type {
+	ActionSchema,
 	ActionHooks,
 	ActionHandler,
 	ActionParams,
@@ -109,6 +110,7 @@ declare namespace Moleculer {
 
 	export {
 		Service,
+		ActionSchema,
 		ActionHooks,
 		ActionHandler,
 		ActionParams,
