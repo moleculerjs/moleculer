@@ -47,6 +47,29 @@ module.exports = {
 };
 ```
 
+### Deprecated `broker.createService` signature removed
+
+Before mixin implementation if you wanted to extend a service, you had to use the following function call:
+
+```js
+broker.createService(ApiGateway, {
+    settings: {
+        // ...
+    }
+});
+```
+
+Now the second argument signature is removed, you should use the `mixins` feature in service schema:
+
+```js
+broker.createService({
+    mixins: [ApiGateway],
+    settings: {
+        // ...
+    }
+});
+```
+
 ## EventLegacy tracing export is removed
 
 The `EventLegacy` tracing exporter is removed. Use the `Event` tracing exporter instead.

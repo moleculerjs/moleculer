@@ -126,6 +126,10 @@ module.exports = {
 
 ## Removed deprecated functions and signatures
 
+### Removed deprecated `broker.createService` signature
+
+The `broker.createService` second argument (for service schema extending) is removed. You should use the `mixins` in service schema.
+
 ### Removed deprecated event sending method signature
 
 In previous versions, the `emit`, `broadcast` and `broadcastLocal` methods accept a group `String` or groups as `Array<String>` as third arguments, instead of an `opts`.
