@@ -42,13 +42,13 @@ class RedisTransporter extends Transporter {
 			let clientSub = this.getRedisClient(this.opts);
 			this._clientSub = clientSub; // For tests
 
-			clientSub.on("connect", () => {
+			clientSub.on("ready", () => {
 				this.logger.info("Redis-sub client is connected.");
 
 				let clientPub = this.getRedisClient(this.opts);
 				this._clientPub = clientPub; // For tests
 
-				clientPub.on("connect", () => {
+				clientPub.on("ready", () => {
 					this.clientSub = clientSub;
 					this.clientPub = clientPub;
 
