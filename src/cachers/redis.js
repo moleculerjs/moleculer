@@ -82,7 +82,7 @@ class RedisCacher extends BaseCacher {
 
 		this.connected = false;
 
-		this.client.on("connect", () => {
+		this.client.on("ready", () => {
 			this.connected = true;
 
 			/* istanbul ignore next */
