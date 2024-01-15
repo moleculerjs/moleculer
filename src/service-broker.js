@@ -238,6 +238,7 @@ class ServiceBroker {
 
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);
+			this.middlewares.middlewareInterceptors["call"] = this.interceptCallMiddleware;
 
 			// Service registry
 			this.registry = new Registry(this);
@@ -381,6 +382,21 @@ class ServiceBroker {
 		this.broadcastLocal = this.wrapMethod("broadcastLocal", this.broadcastLocal);
 
 		this.metrics.set(METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, this.middlewares.count());
+	}
+
+	/**
+	 * It is necessary to keep the context of the call when using call middleware.
+	 */
+	interceptCallMiddleware(createMiddleware) {
+		return next => {
+			let result = null;
+			const call = createMiddleware((...args) => (result = next(...args)));
+			return (...args) => {
+				const promise = call(...args);
+				if (result) promise.ctx = result.ctx;
+				return promise;
+			};
+		};
 	}
 
 	/**
