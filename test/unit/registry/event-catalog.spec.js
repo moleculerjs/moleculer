@@ -7,7 +7,6 @@ let EventCatalog = require("../../../src/registry/event-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let EventEndpoint = require("../../../src/registry/endpoint-event");
 let ServiceBroker = require("../../../src/service-broker");
-const { protectReject } = require("../utils");
 
 describe("Test EventCatalog constructor", () => {
 	let broker = new ServiceBroker({ logger: false });
@@ -521,11 +520,13 @@ describe("Test EventCatalog.callEventHandler", () => {
 	ctx.eventGroups = ["mail", "payment"];
 	ctx.eventType = "emit";
 
-	it("should add catch handler to result", () => {
+	it("should add catch handler to result", async () => {
 		let resolver;
 		ctx.endpoint.event.handler = jest.fn(() => new Promise(res => (resolver = res)));
 
-		const p = catalog.callEventHandler(ctx);
+		catalog.callEventHandler(ctx);
+
+		await broker.Promise.delay(10);
 
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
@@ -533,16 +534,16 @@ describe("Test EventCatalog.callEventHandler", () => {
 		expect(errorHandler).toHaveBeenCalledTimes(0);
 
 		resolver();
-
-		return p;
 	});
 
-	it("should catch error", () => {
+	it("should catch error", async () => {
 		let rejecter;
+
+		const spy = jest.spyOn(broker.localBus, "emit");
 		ctx.endpoint.event.handler = jest.fn(() => new Promise((res, rej) => (rejecter = rej)));
 		broker.logger.error = jest.fn();
 
-		const p = catalog.callEventHandler(ctx);
+		catalog.callEventHandler(ctx);
 
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
@@ -550,9 +551,10 @@ describe("Test EventCatalog.callEventHandler", () => {
 		const err = new Error("Something went wrong");
 		rejecter(err);
 
-		return p.then(protectReject).catch(e => {
-			expect(e).toBe(err);
-		});
+		await broker.Promise.delay(10);
+		expect(spy.mock.calls[0][1].error).toBe(err);
+
+		spy.mockRestore();
 	});
 });
 
