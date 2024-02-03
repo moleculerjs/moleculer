@@ -17,6 +17,15 @@ describe("Test middleware system", () => {
 							});
 						};
 					}
+				},
+				{
+					call(next) {
+						return (actionName, params, opts) => {
+							return next(actionName, params, opts).then(res => {
+								return Promise.resolve(res + "!");
+							});
+						};
+					}
 				}
 			]
 		});
@@ -48,7 +57,10 @@ describe("Test middleware system", () => {
 		afterAll(() => broker.stop());
 
 		it("The context is passed through the call middlware.", async () => {
-			await expect(broker.call("test.testAction")).resolves.toBe("testmeta");
+			const p = broker.call("test.testAction");
+			await expect(p).resolves.toBe("testmeta!");
+			expect(p.ctx).toBeDefined();
+			expect(p.ctx.meta.$metainfo).toBe("testmeta");
 		});
 	});
 
