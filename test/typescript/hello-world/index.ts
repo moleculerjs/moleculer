@@ -29,10 +29,8 @@ broker.loadService(path.join(__dirname, "greeter.service.ts"));
 
 		await broker.call("greeter.hello");
 		const res = await broker.call("greeter.welcome", { name: "Typescript" });
-		broker.logger.info("");
-		broker.logger.info("Result: ", res);
-		broker.logger.info("");
-		if (res != "Welcome, TYPESCRIPT!")
+		broker.logger.info(`Result: ${res}`);
+		if (res != "Welcome, Typescript")
 			throw new Error("Result is mismatch!");
 		else
 			await broker.stop();

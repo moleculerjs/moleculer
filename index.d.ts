@@ -720,12 +720,14 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
-	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
-		this: Service<S>
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
+		this: T
+	) => void;
+	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
+		this: T
 	) => void | Promise<void>;
 
-	interface ServiceSchema<S = ServiceSettingSchema> {
+	interface ServiceSchema<S = ServiceSettingSchema, T = void> {
 		name: string;
 		version?: string | number;
 		settings?: S;
@@ -737,9 +739,9 @@ declare namespace Moleculer {
 		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
-		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
-		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
-		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		created?: ServiceSyncLifecycleHandler<S, T> | ServiceSyncLifecycleHandler<S, T>[];
+		started?: ServiceAsyncLifecycleHandler<S, T> | ServiceAsyncLifecycleHandler<S, T>[];
+		stopped?: ServiceAsyncLifecycleHandler<S, T> | ServiceAsyncLifecycleHandler<S, T>[];
 
 		[name: string]: any;
 	}
