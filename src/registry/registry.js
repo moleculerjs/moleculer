@@ -300,28 +300,31 @@ class Registry {
 		_.forIn(actions, action => {
 			if (!this.checkActionVisibility(action, node)) return;
 
+			// Clone fields to have independent action object
+			const serviceAction = { ...action };
+
 			if (node.local) {
-				action.handler = this.broker.middlewares.wrapHandler(
+				serviceAction.handler = this.broker.middlewares.wrapHandler(
 					"localAction",
 					action.handler,
 					action
 				);
 			} else if (this.broker.transit) {
-				action.handler = this.broker.middlewares.wrapHandler(
+				serviceAction.handler = this.broker.middlewares.wrapHandler(
 					"remoteAction",
 					this.broker.transit.request.bind(this.broker.transit),
 					{ ...action, service }
 				);
 			}
 			if (this.broker.options.disableBalancer && this.broker.transit)
-				action.remoteHandler = this.broker.middlewares.wrapHandler(
+				serviceAction.remoteHandler = this.broker.middlewares.wrapHandler(
 					"remoteAction",
 					this.broker.transit.request.bind(this.broker.transit),
 					{ ...action, service }
 				);
 
-			this.actions.add(node, service, action);
-			service.addAction(action);
+			this.actions.add(node, service, serviceAction);
+			service.addAction(serviceAction);
 		});
 	}
 

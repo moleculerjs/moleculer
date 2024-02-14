@@ -6,8 +6,6 @@
 
 "use strict";
 
-const _ = require("lodash");
-
 /**
  * Node class
  *
