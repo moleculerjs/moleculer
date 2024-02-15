@@ -434,8 +434,8 @@ class Registry {
 			if (node.local)
 				serviceEvent.handler = this.broker.middlewares.wrapHandler(
 					"localEvent",
-					event.handler,
-					event
+					serviceEvent.handler,
+					serviceEvent
 				);
 
 			this.events.add(node, service, serviceEvent);
