@@ -429,15 +429,17 @@ class Registry {
 	 */
 	registerEvents(node, service, events) {
 		_.forIn(events, event => {
+			const serviceEvent = { ...event };
+
 			if (node.local)
-				event.handler = this.broker.middlewares.wrapHandler(
+				serviceEvent.handler = this.broker.middlewares.wrapHandler(
 					"localEvent",
 					event.handler,
 					event
 				);
 
-			this.events.add(node, service, event);
-			service.addEvent(event);
+			this.events.add(node, service, serviceEvent);
+			service.addEvent(serviceEvent);
 		});
 	}
 
