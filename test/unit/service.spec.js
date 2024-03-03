@@ -3,6 +3,8 @@
 const Service = require("../../src/service");
 const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
+const { ValidationError } = require("../../src/errors");
+
 
 describe("Test Service class", () => {
 	describe("Test constructor", () => {
@@ -486,6 +488,74 @@ describe("Test Service class", () => {
 				},
 				x: "x"
 			});
+		});
+	});
+
+	describe("Test service settings validation", () => {
+		const broker = new ServiceBroker({ logger: false });
+
+		const svc = new Service(broker);
+
+		jest.spyOn(broker.validator, "validate");
+
+		const $validationSchema = {
+			$$strict: false,
+			someSetting: {
+				props: { someString: { type: "string" } },
+				strict: true,
+				type: "object"
+			}
+		};
+
+		const validSettings = {
+			$validationSchema,
+			someSetting: {
+				someString: "someString"
+			}
+		};
+
+		const invalidSettings = {
+			$validationSchema,
+			someSetting: {
+				someAnotherString: "someString"
+			}
+		};
+
+		it("should validate service settings correctly", () => {
+			const validationResult = svc._validateSettings(validSettings);
+
+			expect(validationResult).toEqual(true);
+		});
+
+		it("should validate service settings correctly", () => {
+			const merged = svc.mergeSchemaSettings;
+			svc.parseServiceSchema({ settings: validSettings, merged, name: "posts" });
+
+			broker.validator.validate.mockClear();
+
+			svc._init();
+
+			expect(broker.validator.validate).toBeCalledTimes(1);
+		});
+
+		it("should throw validation error", () => {
+			const merged = svc.mergeSchemaSettings;
+
+			try {
+				svc.parseServiceSchema({ settings: invalidSettings, merged, name: "posts" });
+			} catch (error) {
+				expect(error).toBeInstanceOf(ValidationError);
+			}
+		});
+
+		it("should not validate service settings", () => {
+			broker.validator = null;
+
+			const merged = svc.mergeSchemaSettings;
+
+			expect(() => {
+				svc.parseServiceSchema({ settings: validSettings, merged, name: "posts" });
+			}).not.toThrow();
 		});
 	});
 

@@ -1,6 +1,7 @@
 import type { EventEmitter2 } from "eventemitter2";
 import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from 'crypto'
 import type { Worker } from "cluster";
+import { ValidationSchema } from "fastest-validator";
 
 declare namespace Moleculer {
 	/**
@@ -628,6 +629,7 @@ declare namespace Moleculer {
 		$dependencyTimeout?: number;
 		$shutdownTimeout?: number;
 		$secureSettings?: string[];
+		$validationSchema?: ValidationSchema | GenericObject;
 		[name: string]: any;
 	}
 
