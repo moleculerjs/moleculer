@@ -5,7 +5,6 @@ const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
 const { ValidationError } = require("../../src/errors");
 
-
 describe("Test Service class", () => {
 	describe("Test constructor", () => {
 		const broker = new ServiceBroker({ logger: false });
