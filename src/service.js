@@ -253,12 +253,31 @@ class Service {
 	}
 
 	/**
+	 * Validate service settings by provided validation schema.
+	 *
+	 * @param {Object} settings
+	 * @memberof Service
+	 */
+	_validateSettings(settings) {
+		return this.broker.validator.validate(settings, settings.$validationSchema);
+	}
+
+	/**
 	 * Initialize service. It called `created` handler in schema
 	 *
 	 * @private
 	 * @memberof Service
 	 */
 	_init() {
+		if (this.settings && this.settings.$validationSchema) {
+			this.logger.debug("Service settings validation schema found. Try to use it...");
+			if (this.broker.validator) {
+				this._validateSettings(this.settings);
+			} else {
+				this.logger.warn("Validator not enabled. Skip service settings validation.");
+			}
+		}
+
 		this.logger.debug(`Service '${this.fullName}' is creating...`);
 		if (isFunction(this.schema.created)) {
 			this.schema.created.call(this);
