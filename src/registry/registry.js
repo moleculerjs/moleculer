@@ -300,28 +300,31 @@ class Registry {
 		_.forIn(actions, action => {
 			if (!this.checkActionVisibility(action, node)) return;
 
+			// Clone fields to have independent action object
+			const serviceAction = { ...action };
+
 			if (node.local) {
-				action.handler = this.broker.middlewares.wrapHandler(
+				serviceAction.handler = this.broker.middlewares.wrapHandler(
 					"localAction",
 					action.handler,
 					action
 				);
 			} else if (this.broker.transit) {
-				action.handler = this.broker.middlewares.wrapHandler(
+				serviceAction.handler = this.broker.middlewares.wrapHandler(
 					"remoteAction",
 					this.broker.transit.request.bind(this.broker.transit),
 					{ ...action, service }
 				);
 			}
 			if (this.broker.options.disableBalancer && this.broker.transit)
-				action.remoteHandler = this.broker.middlewares.wrapHandler(
+				serviceAction.remoteHandler = this.broker.middlewares.wrapHandler(
 					"remoteAction",
 					this.broker.transit.request.bind(this.broker.transit),
 					{ ...action, service }
 				);
 
-			this.actions.add(node, service, action);
-			service.addAction(action);
+			this.actions.add(node, service, serviceAction);
+			service.addAction(serviceAction);
 		});
 	}
 
@@ -426,15 +429,17 @@ class Registry {
 	 */
 	registerEvents(node, service, events) {
 		_.forIn(events, event => {
+			const serviceEvent = { ...event };
+
 			if (node.local)
-				event.handler = this.broker.middlewares.wrapHandler(
+				serviceEvent.handler = this.broker.middlewares.wrapHandler(
 					"localEvent",
-					event.handler,
-					event
+					serviceEvent.handler,
+					serviceEvent
 				);
 
-			this.events.add(node, service, event);
-			service.addEvent(event);
+			this.events.add(node, service, serviceEvent);
+			service.addEvent(serviceEvent);
 		});
 	}
 
