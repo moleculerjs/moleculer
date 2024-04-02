@@ -395,7 +395,27 @@ These changes means the 0.15 cachers create different cache keys than 0.14 cache
 
 --------------------------------------------------
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.29...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.33...master)
+
+--------------------------------------------------
+<a name="0.14.33"></a>
+# [0.14.33](https://github.com/moleculerjs/moleculer/compare/v0.14.32...v0.14.33) (2024-04-02)
+
+## Changes
+- autodetect Redis type discoverer when using redis SSL URI [#1260](https://github.com/moleculerjs/moleculer/pull/1260)
+- change redis client events [#1269](https://github.com/moleculerjs/moleculer/pull/1269)  
+- fix transit connecting state flag [#1258](https://github.com/moleculerjs/moleculer/pull/1258)  
+- add hook middlewares interceptors to preserve call context with call middlewares [#1270](https://github.com/moleculerjs/moleculer/pull/1270)  
+- remove unnecessary clone in node update method [#1274](https://github.com/moleculerjs/moleculer/pull/1274)  
+
+--------------------------------------------------
+<a name="0.14.32"></a>
+# [0.14.32](https://github.com/moleculerjs/moleculer/compare/v0.14.31...v0.14.32) (2023-11-12)
+
+## Changes
+- update peer dependency for mqtt to 5.0.2 [#1236](https://github.com/moleculerjs/moleculer/pull/1236)
+- update d.ts [#1245](https://github.com/moleculerjs/moleculer/pull/1245), [#1246](https://github.com/moleculerjs/moleculer/pull/1246), [#1248](https://github.com/moleculerjs/moleculer/pull/1248)
+- fix stream sending logic to avoid memory leak [#1243](https://github.com/moleculerjs/moleculer/pull/1243)  
 
 --------------------------------------------------
 <a name="0.14.31"></a>

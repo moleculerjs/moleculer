@@ -141,7 +141,7 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 		let p = transporter.connect().then(() => {
 			expect(transporter.clientSub).toBeDefined();
 			expect(transporter.clientSub.on).toHaveBeenCalledTimes(4);
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("ready", expect.any(Function));
 			expect(transporter.clientSub.on).toHaveBeenCalledWith("error", expect.any(Function));
 			expect(transporter.clientSub.on).toHaveBeenCalledWith("close", expect.any(Function));
 			expect(transporter.clientSub.on).toHaveBeenCalledWith(
@@ -151,13 +151,13 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 
 			expect(transporter.clientPub).toBeDefined();
 			expect(transporter.clientPub.on).toHaveBeenCalledTimes(3);
-			expect(transporter.clientPub.on).toHaveBeenCalledWith("connect", expect.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("ready", expect.any(Function));
 			expect(transporter.clientPub.on).toHaveBeenCalledWith("error", expect.any(Function));
 			expect(transporter.clientPub.on).toHaveBeenCalledWith("close", expect.any(Function));
 		});
 
-		transporter._clientSub.onCallbacks.connect();
-		transporter._clientPub.onCallbacks.connect();
+		transporter._clientSub.onCallbacks.ready();
+		transporter._clientPub.onCallbacks.ready();
 
 		return p;
 	});
@@ -182,8 +182,8 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 			});
 		});
 
-		transporter._clientSub.onCallbacks.connect();
-		transporter._clientPub.onCallbacks.connect();
+		transporter._clientSub.onCallbacks.ready();
+		transporter._clientPub.onCallbacks.ready();
 		// Trigger an error
 		transporter._clientPub.onCallbacks.error(new Error("Ups"));
 		transporter._clientSub.onCallbacks.error(new Error("Ups"));
@@ -198,8 +198,8 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 			expect(transporter.onConnected).toHaveBeenCalledWith();
 		});
 
-		transporter._clientSub.onCallbacks.connect();
-		transporter._clientPub.onCallbacks.connect();
+		transporter._clientSub.onCallbacks.ready();
+		transporter._clientPub.onCallbacks.ready();
 
 		return p;
 	});
@@ -215,8 +215,8 @@ function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
 			expect(cbPub).toHaveBeenCalledTimes(1);
 		});
 
-		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
-		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
+		transporter._clientSub.onCallbacks.ready(); // Trigger the `resolve`
+		transporter._clientPub.onCallbacks.ready(); // Trigger the `resolve`
 		return p;
 	});
 }
@@ -247,8 +247,8 @@ function itShouldTestRedisTransportPublishSubscribe(clusterMode = false) {
 		transporter.incomingMessage = jest.fn();
 
 		let p = transporter.connect();
-		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
-		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
+		transporter._clientSub.onCallbacks.ready(); // Trigger the `resolve`
+		transporter._clientPub.onCallbacks.ready(); // Trigger the `resolve`
 		return p;
 	});
 

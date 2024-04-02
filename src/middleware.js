@@ -30,6 +30,8 @@ class MiddlewareHandler {
 		this.list = [];
 
 		this.registeredHooks = {};
+
+		this.middlewareInterceptors = {};
 	}
 
 	add(mw) {
@@ -55,9 +57,14 @@ class MiddlewareHandler {
 
 		Object.keys(mw).forEach(key => {
 			if (isFunction(mw[key])) {
-				if (Array.isArray(this.registeredHooks[key]))
-					this.registeredHooks[key].push(mw[key]);
-				else this.registeredHooks[key] = [mw[key]];
+				const handle = isFunction(this.middlewareInterceptors[key])
+					? this.middlewareInterceptors[key](mw[key])
+					: mw[key];
+				if (Array.isArray(this.registeredHooks[key])) {
+					this.registeredHooks[key].push(handle);
+				} else {
+					this.registeredHooks[key] = [handle];
+				}
 			}
 		});
 

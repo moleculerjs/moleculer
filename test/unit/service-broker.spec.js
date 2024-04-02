@@ -521,6 +521,32 @@ describe("Test ServiceBroker constructor", () => {
 	});
 });
 
+describe("Test broker.interceptCallMiddleware", () => {
+	const broker = new ServiceBroker({
+		logger: false,
+		transporter: null
+	});
+
+	it("should preserve the context of the call", async () => {
+		const next = () => {
+			const promise = Promise.resolve("next-result");
+			promise.ctx = { test: "test" };
+			return promise;
+		};
+
+		const createMiddleware = jest.fn(next => (...args) => {
+			return next(...args).then(() => "middleware-result");
+		});
+
+		const createInterceptedMiddleware = broker.interceptCallMiddleware(createMiddleware);
+
+		const result = createInterceptedMiddleware(next)();
+
+		expect(result.ctx).toEqual({ test: "test" });
+		await expect(result).resolves.toBe("middleware-result");
+	});
+});
+
 describe("Test broker.start", () => {
 	describe("without transporter", () => {
 		let schema;

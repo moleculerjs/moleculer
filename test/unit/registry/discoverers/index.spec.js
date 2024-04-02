@@ -60,6 +60,12 @@ describe("Test Discoverers resolver", () => {
 		expect(discoverer.opts.redis).toEqual("redis://redis-server:6379");
 	});
 
+	it("should resolve Redis reporter from SSL connection string", () => {
+		const discoverer = Discoverers.resolve("rediss://redis-server:6379");
+		expect(discoverer).toBeInstanceOf(Discoverers.Redis);
+		expect(discoverer.opts.redis).toEqual("rediss://redis-server:6379");
+	});
+
 	it("should resolve Redis discoverer from obj", () => {
 		const options = { heartbeatInterval: 8 };
 		const discoverer = Discoverers.resolve({ type: "Redis", options });

@@ -3,6 +3,67 @@ const utils = require("../../src/utils");
 const { protectReject } = require("../unit/utils");
 
 describe("Test middleware system", () => {
+	describe("Test hook middleware interceptors.", () => {
+		const broker = new ServiceBroker({
+			logger: false,
+			validator: false,
+			internalMiddlewares: false,
+			middlewares: [
+				{
+					call(next) {
+						return (actionName, params, opts) => {
+							return next(actionName, params, opts).then(res => {
+								return res;
+							});
+						};
+					}
+				},
+				{
+					call(next) {
+						return (actionName, params, opts) => {
+							return next(actionName, params, opts).then(res => {
+								return Promise.resolve(res + "!");
+							});
+						};
+					}
+				}
+			]
+		});
+
+		broker.createService({
+			name: "contextDataPassedTest",
+			actions: {
+				setContextMeta: {
+					handler(ctx) {
+						ctx.meta.$metainfo = "testmeta";
+					}
+				}
+			}
+		});
+
+		broker.createService({
+			name: "test",
+			actions: {
+				testAction: {
+					async handler(ctx) {
+						await ctx.call("contextDataPassedTest.setContextMeta");
+						return ctx.meta.$metainfo;
+					}
+				}
+			}
+		});
+
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
+		it("The context is passed through the call middlware.", async () => {
+			const p = broker.call("test.testAction");
+			await expect(p).resolves.toBe("testmeta!");
+			expect(p.ctx).toBeDefined();
+			expect(p.ctx.meta.$metainfo).toBe("testmeta");
+		});
+	});
+
 	describe("Test with sync & async middlewares", () => {
 		let flow = [];
 		let mw1Sync = {

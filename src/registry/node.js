@@ -6,8 +6,6 @@
 
 "use strict";
 
-const _ = require("lodash");
-
 /**
  * Import types
  *
@@ -70,8 +68,7 @@ class Node {
 		this.client = payload.client || {};
 		this.config = payload.config || {};
 
-		// Process services & events (should make a clone because it will manipulate the objects (add handlers))
-		this.services = _.cloneDeep(payload.services);
+		this.services = payload.services;
 		this.rawInfo = payload;
 
 		const newSeq = payload.seq || 1;
