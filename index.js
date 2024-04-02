@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2024 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -12,6 +12,12 @@ const {
 	CIRCUIT_HALF_OPEN_WAIT,
 	CIRCUIT_OPEN
 } = require("./src/constants");
+
+/**
+ * !!! PLEASE NOTE !!!
+ *
+ * !! If you update this file, don't forget to update the same in the index.mjs file.
+ */
 
 module.exports = {
 	ServiceBroker: require("./src/service-broker"),
