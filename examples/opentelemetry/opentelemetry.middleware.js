@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const { isFunction, isPlainObject, safetyObject } = require("moleculer").Utils;
 const { api } = require("@opentelemetry/sdk-node");
-const { SemanticResourceAttributes } = require("@opentelemetry/semantic-conventions");
+const { SEMRESATTRS_SERVICE_NAME } = require("@opentelemetry/semantic-conventions");
 
 const tracer = api.trace.getTracer("moleculer-otel");
 
@@ -109,7 +109,7 @@ module.exports = {
 					{ attributes: flattenTags(tags), kind: api.SpanKind.CONSUMER },
 					parentCtx
 				);
-				span.setAttribute(SemanticResourceAttributes.SERVICE_NAME, action.service.fullName);
+				span.setAttribute(SEMRESATTRS_SERVICE_NAME, action.service.fullName);
 				const spanContext = api.trace.setSpan(api.context.active(), span);
 				return api.context.with(spanContext, () => {
 					// Call the handler
@@ -166,7 +166,7 @@ module.exports = {
 				},
 				parentContext
 			);
-			span.setAttribute(SemanticResourceAttributes.SERVICE_NAME, action.service.fullName);
+			span.setAttribute(SEMRESATTRS_SERVICE_NAME, action.service.fullName);
 
 			const spanContext = api.trace.setSpan(api.context.active(), span);
 			ctx.meta.$otel = {};
