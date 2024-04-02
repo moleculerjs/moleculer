@@ -1,5 +1,16 @@
 <a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.32...master)
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.33...master)
+
+--------------------------------------------------
+<a name="0.14.33"></a>
+# [0.14.33](https://github.com/moleculerjs/moleculer/compare/v0.14.32...v0.14.33) (2024-04-02)
+
+## Changes
+- autodetect Redis type discoverer when using redis SSL URI [#1260](https://github.com/moleculerjs/moleculer/pull/1260)
+- change redis client events [#1269](https://github.com/moleculerjs/moleculer/pull/1269)  
+- fix transit connecting state flag [#1258](https://github.com/moleculerjs/moleculer/pull/1258)  
+- add hook middlewares interceptors to preserve call context with call middlewares [#1270](https://github.com/moleculerjs/moleculer/pull/1270)  
+- remove unnecessary clone in node update method [#1274](https://github.com/moleculerjs/moleculer/pull/1274)  
 
 --------------------------------------------------
 <a name="0.14.32"></a>
