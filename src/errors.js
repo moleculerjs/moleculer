@@ -410,7 +410,7 @@ class GracefulStopTimeoutError extends MoleculerError {
 					? {
 							name: data.service.name,
 							version: data.service.version
-					  }
+						}
 					: null
 			);
 		} else {

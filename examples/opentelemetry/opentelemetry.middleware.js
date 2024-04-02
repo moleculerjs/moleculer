@@ -44,7 +44,7 @@ module.exports = {
 					? {
 							name: ctx.action.name,
 							rawName: ctx.action.rawName
-					  }
+						}
 					: null;
 				let tags = {
 					callingLevel: ctx.level,

@@ -86,7 +86,7 @@ module.exports = function actionHookMiddleware(broker) {
 				beforeHookMatches && beforeHookMatches.length > 0
 					? beforeHookMatches.map(hookName =>
 							sanitizeHooks(hooks.before[hookName], action.service)
-					  )
+						)
 					: null;
 
 			/** @type {Array<String>?} List of hooks names that match the action name */
@@ -98,7 +98,7 @@ module.exports = function actionHookMiddleware(broker) {
 				afterHookMatches && afterHookMatches.length > 0
 					? afterHookMatches.map(hookName =>
 							sanitizeHooks(hooks.after[hookName], action.service)
-					  )
+						)
 					: null;
 
 			/** @type {Array<String>?} List of hooks names that match the action name */
@@ -110,7 +110,7 @@ module.exports = function actionHookMiddleware(broker) {
 				errorHookMatches && errorHookMatches.length > 0
 					? errorHookMatches.map(hookName =>
 							sanitizeHooks(hooks.error[hookName], action.service)
-					  )
+						)
 					: null;
 
 			// Hooks in action definition

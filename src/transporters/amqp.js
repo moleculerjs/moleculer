@@ -80,17 +80,17 @@ class AmqpTransporter extends Transporter {
 			opts.autoDeleteQueues === true
 				? autoDeleteQueuesAfterDefault
 				: typeof opts.autoDeleteQueues === "number"
-				  ? opts.autoDeleteQueues
-				  : opts.autoDeleteQueues === false
-				    ? -1
-				    : autoDeleteQueuesAfterDefault;
+					? opts.autoDeleteQueues
+					: opts.autoDeleteQueues === false
+						? -1
+						: autoDeleteQueuesAfterDefault;
 
 		// Support for multiple URLs (clusters)
 		opts.url = Array.isArray(opts.url)
 			? opts.url
 			: !opts.url
-			  ? [""]
-			  : opts.url.split(";").filter(s => !!s);
+				? [""]
+				: opts.url.split(";").filter(s => !!s);
 
 		super(opts);
 

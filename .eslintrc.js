@@ -9,7 +9,11 @@ module.exports = {
 		jest: true,
 		jasmine: false
 	},
-	extends: ["eslint:recommended", "plugin:security/recommended", "plugin:prettier/recommended"],
+	extends: [
+		"eslint:recommended",
+		"plugin:security/recommended-legacy",
+		"plugin:prettier/recommended"
+	],
 	parserOptions: {
 		sourceType: "module",
 		ecmaVersion: "2023"

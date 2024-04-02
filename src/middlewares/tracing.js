@@ -28,7 +28,7 @@ module.exports = function TracingMiddleware(broker) {
 						? {
 								name: ctx.action.name,
 								rawName: ctx.action.rawName
-						  }
+							}
 						: null,
 					remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 					callerNodeID: ctx.nodeID,
