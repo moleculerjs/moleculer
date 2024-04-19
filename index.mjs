@@ -1,4 +1,5 @@
 import mod from "./index.js";
+import runner from './src/runner-esm.mjs'
 
 export default mod;
 export const CIRCUIT_CLOSE = mod.CIRCUIT_CLOSE;
@@ -18,7 +19,7 @@ export const MetricTypes = mod.MetricTypes;
 export const Middlewares = mod.Middlewares;
 export const PROTOCOL_VERSION = mod.PROTOCOL_VERSION;
 export const Registry = mod.Registry;
-export const Runner = mod.Runner;
+export const Runner = runner;
 export const Serializers = mod.Serializers;
 export const Service = mod.Service;
 export const ServiceBroker = mod.ServiceBroker;
