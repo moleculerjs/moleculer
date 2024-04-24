@@ -38,11 +38,11 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 		after: {
 			hello: "anotherHookAfter",
 			welcome: [
-				function (ctx: Context<ActionWelcomeParams>, res: any): any {
+				function (this: GreeterThis, ctx: Context<ActionWelcomeParams>, res: any): any {
 					// console.log(`Service sync hook "after".`);
 					return res;
 				},
-				async (ctx: Context<ActionWelcomeParams>, res: any): Promise<any> => {
+				async function (this: GreeterThis, ctx: Context<ActionWelcomeParams>, res: any): Promise<any> {
 					// console.log(`Service async hook "after".`);
 					return await Promise.resolve(res);
 				},
@@ -50,7 +50,7 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 			],
 		},
 		error: {
-			welcome(ctx: Context<ActionWelcomeParams>, err: Error): void {
+			welcome(this: GreeterThis, ctx: Context<ActionWelcomeParams>, err: Error): void {
 				// console.log(`Service hook "error".`);
 				throw err;
 			}
@@ -83,11 +83,11 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 			},
 			hooks: {
 				after: [
-					(ctx: Context, res: any): any => {
+					function (this: GreeterThis, ctx: Context, res: any): any {
 						// console.log(`Action sync hook "after".`);
 						return res;
 					},
-					async (ctx: Context, res: any): Promise<any> => {
+					async function (ctx: Context, res: any): Promise<any> {
 						// console.log(`Action async hook "after".`);
 						return await Promise.resolve(res);
 					},
