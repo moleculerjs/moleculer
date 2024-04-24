@@ -30,9 +30,9 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 	 */
 	hooks: {
 		before: {
-			welcome(ctx: Context<ActionWelcomeParams>): void {
+			welcome(this: GreeterThis, ctx: Context<ActionWelcomeParams>): void {
 				// console.log(`Service hook "before".`);
-				ctx.params.name = ctx.params.name.toUpperCase();
+				ctx.params.name = this.uppercase(ctx.params.name);
 			}
 		},
 		after: {
@@ -116,7 +116,11 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 	 * Methods
 	 */
 	methods: {
-		async anotherHookAfter(ctx: Context, res: any): Promise<void> {
+		uppercase(this: GreeterThis, str: string): string {
+			return str.toUpperCase();
+		},
+
+		async anotherHookAfter(this: GreeterThis, ctx: Context, res: any): Promise<void> {
 			return await Promise.resolve(res);
 		}
 	},
