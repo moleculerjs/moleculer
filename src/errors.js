@@ -556,7 +556,7 @@ class Regenerator {
 	 *
 	 * @memberof Regenerator
 	 */
-	extractPlainError(plainErr, payload) {
+	extractPlainError(plainErr /*, payload*/) {
 		return {
 			name: plainErr.name,
 			message: plainErr.message,
@@ -578,7 +578,7 @@ class Regenerator {
 	 *
 	 * @memberof Regenerator
 	 */
-	restoreCustomError(plainError, payload) {
+	restoreCustomError(/*plainError, payload*/) {
 		return undefined;
 	}
 

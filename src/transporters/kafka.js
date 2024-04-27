@@ -64,7 +64,7 @@ class KafkaTransporter extends Transporter {
 							: null,
 					logLevel: 1,
 					logCreator:
-						logLevel =>
+						(/*logLevel*/) =>
 						({ level, log }) => {
 							const { message, ...extra } = log;
 							if (log.error == "Topic creation errors") return;

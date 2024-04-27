@@ -117,7 +117,7 @@ class RedisCacher extends BaseCacher {
 			let Redlock;
 			try {
 				Redlock = require("redlock");
-			} catch (err) {
+			} catch {
 				Redlock = null;
 			}
 			if (Redlock != null) {

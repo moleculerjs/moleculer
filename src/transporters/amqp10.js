@@ -617,7 +617,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @returns {Promise}
 	 */
-	send(topic, data, { balanced, packet }) {
+	send(/*topic, data, { balanced, packet }*/) {
 		// Doesn't used
 		return this.broker.Promise.resolve();
 	}

@@ -42,7 +42,7 @@ module.exports = function TransitLoggerMiddleware(opts) {
 				payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,
 				4
 			);
-		} catch (err) {
+		} catch {
 			data = JSON.stringify(
 				safetyObject(payload),
 				payload instanceof Error ? Object.getOwnPropertyNames(payload) : null,

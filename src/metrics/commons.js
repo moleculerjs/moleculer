@@ -15,7 +15,7 @@ let v8;
 // Load `v8` module for heap metrics.
 try {
 	v8 = require("v8");
-} catch (e) {
+} catch {
 	// silent
 }
 
@@ -476,7 +476,7 @@ function updateCommonMetrics() {
 						this.set(METRIC.OS_CPU_INFO_TIMES_USER, cpu.times.user, { index });
 						this.set(METRIC.OS_CPU_INFO_TIMES_SYS, cpu.times.sys, { index });
 					});
-				} catch (err) {
+				} catch {
 					// silent
 				}
 			})
@@ -497,7 +497,7 @@ function updateCommonMetrics() {
 function getUserInfo() {
 	try {
 		return os.userInfo();
-	} catch (e) {
+	} catch {
 		/* istanbul ignore next */
 		return {};
 	}

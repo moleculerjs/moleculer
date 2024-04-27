@@ -117,7 +117,7 @@ class DatadogSimpleTraceExporter extends BaseTraceExporter {
 
 		try {
 			return parseInt(str.substring(0, 8), 16);
-		} catch (err) {
+		} catch {
 			this.logger.warn(`Unable to convert '${str}' to number.`);
 			return null;
 		}

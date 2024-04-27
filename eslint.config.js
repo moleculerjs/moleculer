@@ -1,13 +1,13 @@
 const js = require("@eslint/js");
 const globals = require("globals");
-const pluginSecurity = require('eslint-plugin-security');
+const pluginSecurity = require("eslint-plugin-security");
+const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
 	js.configs.recommended,
 	pluginSecurity.configs.recommended,
-	//"plugin:security/recommended-legacy",
-	//"plugin:prettier/recommended",
+	eslintPluginPrettierRecommended,
 	{
 		files: ["**/*.js", "**/*.mjs"],
 		languageOptions: {
@@ -39,8 +39,9 @@ module.exports = [
 			"no-process-exit": ["off"],
 			"node/no-unpublished-require": 0
 		},
-		ignores: ["benchmark/test.js", "test/typescript/hello-world/out/*.js"],
-	}, {
+		ignores: ["benchmark/test.js", "test/typescript/hello-world/out/*.js"]
+	},
+	{
 		files: ["test/typescript/hello-world/out/*.js"],
 		languageOptions: {
 			globals: {
@@ -48,19 +49,22 @@ module.exports = [
 				require: "readonly",
 				__dirname: "readonly",
 				console: "readonly",
-				process: "readonly",
+				process: "readonly"
 			}
 		},
 		rules: {
-			"no-unused-vars": ["off"]
+			"no-unused-vars": ["off"],
+			"prettier/prettier": ["off"]
 		}
-	}, {
+	},
+	{
 		files: ["test/**/*.js"],
 		rules: {
 			"no-console": ["off"],
 			"no-unused-vars": ["off"]
 		}
-	}, {
+	},
+	{
 		files: ["dev/**/*.js", "benchmark/**/*.js", "examples/**/*.js"],
 		rules: {
 			"no-console": ["off"],

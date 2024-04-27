@@ -57,7 +57,7 @@ const getMemoryInfo = () => {
 const getUserInfo = () => {
 	try {
 		return os.userInfo();
-	} catch (e) {
+	} catch {
 		return {};
 	}
 };

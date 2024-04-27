@@ -18,7 +18,7 @@ class Lock {
 		this.locked = new Map();
 	}
 
-	acquire(key, ttl) {
+	acquire(key /*, ttl*/) {
 		let locked = this.locked.get(key);
 		if (!locked) {
 			// not locked
