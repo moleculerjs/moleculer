@@ -392,8 +392,9 @@ class MetricRegistry {
 	 *
 	 * @param {MetricListOptions?} opts
 	 */
-	list(opts = {}) {
+	list(opts) {
 		const res = [];
+		opts = opts ?? {};
 
 		const types =
 			opts.types != null ? (isString(opts.types) ? [opts.types] : opts.types) : null;
