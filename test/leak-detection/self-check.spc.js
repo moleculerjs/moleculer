@@ -16,7 +16,7 @@ describe("leak detector", function () {
 			if (iterations >= 10) {
 				memwatch.gc();
 				const diff = hd.end();
-				console.log(diff); // eslint-disable-line no-console
+				console.log(diff);
 				expect(diff.change.size_bytes).toBeGreaterThan(50 * 1024 * 1024);
 				clearInterval(interval);
 				return done();

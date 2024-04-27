@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let { times, random, padStart } = require("lodash");

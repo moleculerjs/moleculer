@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 const _ = require("lodash");
 const kleur = require("kleur");
 const cluster = require("cluster");

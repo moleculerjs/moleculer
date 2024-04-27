@@ -82,7 +82,7 @@ describe("Test Tracing feature with actions", () => {
 						await Promise.all(
 							posts.map(async post => {
 								const author = await ctx.call("users.get", { id: post.author });
-								post.author = author; //eslint-disable-line
+								post.author = author;
 								return post;
 							})
 						);

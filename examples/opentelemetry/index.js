@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 // Instead use `-r ./tracing.js` // require("./tracing");

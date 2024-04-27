@@ -128,7 +128,7 @@ class MoleculerRunner {
 
 				if (this.flags.envfile) dotenv.config({ path: this.flags.envfile });
 				else dotenv.config();
-			} catch (err) {
+			} catch {
 				throw new Error(
 					"The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command."
 				);
@@ -227,7 +227,7 @@ class MoleculerRunner {
 
 		try {
 			return require.resolve(configPath, resolveOptions);
-		} catch (_) {
+		} catch {
 			return null;
 		}
 	}
@@ -331,7 +331,7 @@ class MoleculerRunner {
 	isDirectory(p) {
 		try {
 			return fs.lstatSync(p).isDirectory();
-		} catch (_) {
+		} catch {
 			// ignore
 		}
 		return false;
@@ -346,7 +346,7 @@ class MoleculerRunner {
 	isServiceFile(p) {
 		try {
 			return !fs.lstatSync(p).isDirectory();
-		} catch (_) {
+		} catch {
 			// ignore
 		}
 		return false;

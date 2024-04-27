@@ -4,8 +4,6 @@
  * MIT Licensed
  */
 
-/* eslint-disable no-console */
-
 "use strict";
 
 const BaseLogger = require("./base");

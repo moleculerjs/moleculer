@@ -62,7 +62,7 @@ describe("Moleculer memory leak test", () => {
 
 			memwatch.gc();
 			const diff = hd.end();
-			if (diff.change.size_bytes >= ACCEPTABLE_LIMIT) console.log("Diff:", diff); // eslint-disable-line no-console
+			if (diff.change.size_bytes >= ACCEPTABLE_LIMIT) console.log("Diff:", diff);
 
 			expect(diff.change.size_bytes).toBeLessThan(ACCEPTABLE_LIMIT);
 		}

@@ -496,7 +496,6 @@ class Transit {
 			let stream;
 			if (payload.stream !== undefined) {
 				stream = this._handleIncomingRequestStream(payload);
-				// eslint-disable-next-line security/detect-possible-timing-attacks
 				if (stream === null) return this.Promise.resolve();
 			}
 

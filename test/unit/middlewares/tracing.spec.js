@@ -1503,9 +1503,7 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			await newHandler(ctx);
 
-			// eslint-disable-next-line
 			ctx.params.a = 10;
-			// eslint-disable-next-line
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);

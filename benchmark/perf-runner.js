@@ -1,5 +1,3 @@
-/* eslint-disable no-console, no-unused-vars */
-
 "use strict";
 
 const fs = require("fs");

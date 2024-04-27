@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 let nc1 = require("nats").connect();
 let nc2 = require("nats").connect();
 
