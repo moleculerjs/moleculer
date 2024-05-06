@@ -84,13 +84,13 @@ In order to the REPL options can be more extensible, a new `replOptions` broker 
 module.exports = {
     replDelimiter: "mol # ",
     replCommands: [
-		{
-			command: "hello <name>",			
-			action(broker, args) {
-				// ...
-			}
-		}
-	]
+        {
+            command: "hello <name>",			
+            action(broker, args) {
+                // ...
+            }
+        }
+    ]
 }
 ```
 
