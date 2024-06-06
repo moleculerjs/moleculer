@@ -985,7 +985,11 @@ declare namespace Moleculer {
 		nodeId?: string;
 	}
 	type BrokerErrorHandlerInfo = BrokerErrorHandlerInfoAction | BrokerErrorHandlerInfoBroker;
-	type BrokerErrorHandler = (err: Error, info: BrokerErrorHandlerInfo) => void;
+	type BrokerErrorHandler = (
+		this: ServiceBroker,
+		err: Error,
+		info: BrokerErrorHandlerInfo
+	) => void;
 
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
 	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
