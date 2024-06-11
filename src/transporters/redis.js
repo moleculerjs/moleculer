@@ -164,7 +164,6 @@ class RedisTransporter extends Transporter {
 		let Redis;
 		try {
 			Redis = require("ioredis");
-			Redis.Promise = this.broker.Promise;
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal(
