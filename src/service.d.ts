@@ -162,9 +162,9 @@ declare namespace Service {
 		error?: ServiceHooksError;
 	}
 
-	export type EventSchemaHandler = (ctx: Context) => void | Promise<void>;
+	export type EventSchemaHandler<S=ServiceSettingSchema, T=Service<S>> = (this:T, ctx: Context) => void | Promise<void>;
 
-	export interface EventSchema {
+	export interface EventSchema<S=ServiceSettingSchema, T=Service<S>> {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -174,13 +174,13 @@ declare namespace Service {
 		throttle?: number;
 		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
-		handler?: EventSchemaHandler;
+		handler?: EventSchemaHandler<S,T>;
 
 		// [key: string]: any;
 	}
 
 	export type EventSchemas<S = ServiceSettingSchema, T = Service<S>> = {
-		[key: string]: EventSchemaHandler | EventSchema;
+		[key: string]: EventSchemaHandler<S,T> | (EventSchema<S,T> & ThisType<T>);
 	} & ThisType<T>;
 
 	export interface WaitForServicesResult {
