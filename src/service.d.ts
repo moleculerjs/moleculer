@@ -14,9 +14,9 @@ import type {
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
-	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
-	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
-		this: Service<S>
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (this: T) => void;
+	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
+		this: T
 	) => void | Promise<void>;
 
 	export interface ServiceSearchObj {
@@ -123,11 +123,11 @@ declare namespace Service {
 
 	export type ActionHandler = (ctx: Context<any, any>) => Promise<any> | any;
 
-	export type ServiceActionsSchema<S = ServiceSettingSchema> = {
+	export type ServiceActionsSchema<S = ServiceSettingSchema, T = Service<S>> = {
 		[key: string]: ActionSchema | ActionHandler | boolean;
-	} & ThisType<Service<S>>;
+	} & ThisType<T>;
 
-	export type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
+	export type ServiceMethods<S = ServiceSettingSchema, T = Service<S>> = { [key: string]: (...args: any[]) => any } & ThisType<T>;
 
 	export interface ServiceDependency {
 		name: string;
@@ -179,9 +179,9 @@ declare namespace Service {
 		// [key: string]: any;
 	}
 
-	export type EventSchemas<S = ServiceSettingSchema> = {
+	export type EventSchemas<S = ServiceSettingSchema, T = Service<S>> = {
 		[key: string]: EventSchemaHandler | EventSchema;
-	} & ThisType<Service<S>>;
+	} & ThisType<T>;
 
 	export interface WaitForServicesResult {
 		services: string[];
