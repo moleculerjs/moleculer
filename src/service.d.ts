@@ -99,13 +99,13 @@ declare namespace Service {
 		};
 	}
 
-	export interface ActionSchema {
+	export interface ActionSchema<S=ServiceSettingSchema, T=Service<S>> {
 		name?: string;
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler?: ActionHandler;
+		handler?: ActionHandler<S,T>;
 		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
@@ -121,10 +121,10 @@ declare namespace Service {
 		// [key: string]: any;
 	}
 
-	export type ActionHandler = (ctx: Context<any, any>) => Promise<any> | any;
+	export type ActionHandler<S=ServiceSettingSchema, T=Service<S>> = (this: T,ctx: Context<any, any>) => Promise<any> | any;
 
 	export type ServiceActionsSchema<S = ServiceSettingSchema, T = Service<S>> = {
-		[key: string]: ActionSchema | ActionHandler | boolean;
+		[key: string]: ActionSchema<S,T>  & ThisType<T> | ActionHandler<S,T> | boolean;
 	} & ThisType<T>;
 
 	export type ServiceMethods<S = ServiceSettingSchema, T = Service<S>> = { [key: string]: (...args: any[]) => any } & ThisType<T>;
