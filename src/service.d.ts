@@ -24,21 +24,21 @@ declare namespace Service {
 		version?: string | number;
 	}
 
-	export interface ServiceSchema<S = ServiceSettingSchema> {
+	export interface ServiceSchema<S = ServiceSettingSchema, T = Service<S>> {
 		name: string;
 		version?: string | number;
 		settings?: S;
 		dependencies?: string | ServiceDependency | (string | ServiceDependency)[];
 		metadata?: any;
-		actions?: ServiceActionsSchema<S>;
+		actions?: ServiceActionsSchema<S, T>;
 		mixins?: Partial<ServiceSchema>[];
-		methods?: ServiceMethods;
+		methods?: ServiceMethods<S, T>;
 		hooks?: ServiceHooks;
 
-		events?: EventSchemas<S>;
-		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
-		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
-		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		events?: EventSchemas<S, T>;
+		created?: ServiceSyncLifecycleHandler<S, T> | ServiceSyncLifecycleHandler<S, T>[];
+		started?: ServiceAsyncLifecycleHandler<S,T> | ServiceAsyncLifecycleHandler<S,T>[];
+		stopped?: ServiceAsyncLifecycleHandler<S,T> | ServiceAsyncLifecycleHandler<S,T>[];
 
 		// [key: string]: any;
 	}
