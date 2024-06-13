@@ -2,6 +2,9 @@ import type ServiceBroker = require("../service-broker");
 import type MetricRegistry = require("../metrics/registry");
 import type BaseStrategy = require("../strategies/base");
 import type { ActionCatalogListOptions } from "./action-catalog";
+import type { ServiceCatalogListOptions } from "./service-catalog";
+import type { NodeCatalogListOptions } from "./node-catalog";
+import type { EventCatalogListOptions } from "./event-catalog";
 import type { Logger } from "../logger-factory";
 import type { ActionSchema, EventSchema } from "../service";
 import type ServiceItem = require("./service-item");
@@ -111,10 +114,10 @@ declare class ServiceRegistry {
 	getNodeInfo(nodeID: string): ServiceRegistry.NodeRawInfo;
 	processNodeInfo(payload: any): any;
 
-	getNodeList(opts?: ActionCatalogListOptions): ReturnType<NodeCatalog["list"]>;
-	getServiceList(opts?: ActionCatalogListOptions): ReturnType<ServiceCatalog["list"]>;
+	getNodeList(opts?: NodeCatalogListOptions): ReturnType<NodeCatalog["list"]>;
+	getServiceList(opts?: ServiceCatalogListOptions): ReturnType<ServiceCatalog["list"]>;
 	getActionList(opts?: ActionCatalogListOptions): ReturnType<ActionCatalog["list"]>;
-	getEventList(opts?: ActionCatalogListOptions): ReturnType<EventCatalog["list"]>;
+	getEventList(opts?: EventCatalogListOptions): ReturnType<EventCatalog["list"]>;
 
 	getNodeRawList(): Array<ServiceRegistry.NodeRawInfo>;
 }
