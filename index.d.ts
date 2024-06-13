@@ -1,5 +1,5 @@
 import type { EventEmitter2 } from "eventemitter2";
-import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from 'crypto'
+import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from "crypto";
 import type { Worker } from "cluster";
 
 declare namespace Moleculer {
@@ -720,9 +720,7 @@ declare namespace Moleculer {
 		version?: string | number;
 	}
 
-	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
-		this: T
-	) => void;
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (this: T) => void;
 	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
 		this: T
 	) => void | Promise<void>;
@@ -975,6 +973,24 @@ declare namespace Moleculer {
 		options?: GenericObject;
 	}
 
+	interface BrokerErrorHandlerInfoAction {
+		ctx: Context;
+		service: Context["service"];
+		action: Context["action"];
+	}
+	interface BrokerErrorHandlerInfoBroker {
+		actionName: string;
+		params: unknown;
+		opts: CallingOptions;
+		nodeId?: string;
+	}
+	type BrokerErrorHandlerInfo = BrokerErrorHandlerInfoAction | BrokerErrorHandlerInfoBroker;
+	type BrokerErrorHandler = (
+		this: ServiceBroker,
+		err: Error,
+		info: BrokerErrorHandlerInfo
+	) => void;
+
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
 	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
 
@@ -1008,7 +1024,7 @@ declare namespace Moleculer {
 
 		uidGenerator?: () => string;
 
-		errorHandler?: ((err: Error, info: any) => void) | null;
+		errorHandler?: BrokerErrorHandler;
 
 		cacher?: boolean | Cacher | string | GenericObject | null;
 		serializer?: Serializer | string | GenericObject | null;
@@ -1201,7 +1217,7 @@ declare namespace Moleculer {
 		start(): Promise<void>;
 		stop(): Promise<void>;
 
-		errorHandler(err: Error, info: GenericObject): void;
+		errorHandler(err: Error, info: BrokerErrorHandlerInfo): void;
 
 		wrapMethod(
 			method: string,
@@ -1844,7 +1860,6 @@ declare namespace Moleculer {
 	 * Parsed CLI flags
 	 */
 	interface RunnerFlags {
-
 		/**
 		 * Path to load configuration from a file
 		 */
@@ -1884,7 +1899,6 @@ declare namespace Moleculer {
 		 * File mask for loading services
 		 */
 		mask?: string;
-
 	}
 
 	/**
@@ -2011,12 +2025,16 @@ declare namespace Moleculer {
 			 *   ]
 			 * };
 			 */
-			Encryption: (key: CipherKey, algorithm?: CipherCCMTypes|CipherOCBTypes|CipherGCMTypes|string, iv?: BinaryLike | null)=> Middleware,
+			Encryption: (
+				key: CipherKey,
+				algorithm?: CipherCCMTypes | CipherOCBTypes | CipherGCMTypes | string,
+				iv?: BinaryLike | null
+			) => Middleware;
 			Compression: (opts?: {
 				/**
 				 * @default deflate
 				 */
-				method?: 'gzip' | 'deflate' | 'deflateRaw'
+				method?: "gzip" | "deflate" | "deflateRaw";
 				/**
 				 * Compression middleware reduces the size of the messages that go through the transporter module.
 				 * This middleware uses built-in Node zlib lib.
@@ -2037,11 +2055,11 @@ declare namespace Moleculer {
 				 *   ]
 				 * };
 				 */
-				threshold?: number | string
-			}) => Middleware,
-		}
+				threshold?: number | string;
+			}) => Middleware;
+		};
 	}
-	const Middlewares: MoleculerMiddlewares
+	const Middlewares: MoleculerMiddlewares;
 }
 
 export = Moleculer;
