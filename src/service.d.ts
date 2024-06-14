@@ -14,9 +14,9 @@ import type {
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
-	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
-	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
-		this: Service<S>
+	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (this: T) => void;
+	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema, T = Service<S>> = (
+		this: T
 	) => void | Promise<void>;
 
 	export interface ServiceSearchObj {
@@ -24,21 +24,21 @@ declare namespace Service {
 		version?: string | number;
 	}
 
-	export interface ServiceSchema<S = ServiceSettingSchema> {
+	export interface ServiceSchema<S = ServiceSettingSchema, T = Service<S>> {
 		name: string;
 		version?: string | number;
 		settings?: S;
 		dependencies?: string | ServiceDependency | (string | ServiceDependency)[];
 		metadata?: any;
-		actions?: ServiceActionsSchema<S>;
+		actions?: ServiceActionsSchema<S, T>;
 		mixins?: Partial<ServiceSchema>[];
-		methods?: ServiceMethods;
+		methods?: ServiceMethods<S, T>;
 		hooks?: ServiceHooks;
 
-		events?: EventSchemas<S>;
-		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
-		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
-		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		events?: EventSchemas<S, T>;
+		created?: ServiceSyncLifecycleHandler<S, T> | ServiceSyncLifecycleHandler<S, T>[];
+		started?: ServiceAsyncLifecycleHandler<S,T> | ServiceAsyncLifecycleHandler<S,T>[];
+		stopped?: ServiceAsyncLifecycleHandler<S,T> | ServiceAsyncLifecycleHandler<S,T>[];
 
 		// [key: string]: any;
 	}
@@ -99,13 +99,13 @@ declare namespace Service {
 		};
 	}
 
-	export interface ActionSchema {
+	export interface ActionSchema<S=ServiceSettingSchema, T=Service<S>> {
 		name?: string;
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler?: ActionHandler;
+		handler?: ActionHandler<S,T>;
 		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
@@ -121,13 +121,13 @@ declare namespace Service {
 		// [key: string]: any;
 	}
 
-	export type ActionHandler = (ctx: Context<any, any>) => Promise<any> | any;
+	export type ActionHandler<S=ServiceSettingSchema, T=Service<S>> = (this: T,ctx: Context<any, any>) => Promise<any> | any;
 
-	export type ServiceActionsSchema<S = ServiceSettingSchema> = {
-		[key: string]: ActionSchema | ActionHandler | boolean;
-	} & ThisType<Service<S>>;
+	export type ServiceActionsSchema<S = ServiceSettingSchema, T = Service<S>> = {
+		[key: string]: ActionSchema<S,T>  & ThisType<T> | ActionHandler<S,T> | boolean;
+	} & ThisType<T>;
 
-	export type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
+	export type ServiceMethods<S = ServiceSettingSchema, T = Service<S>> = { [key: string]: (...args: any[]) => any } & ThisType<T>;
 
 	export interface ServiceDependency {
 		name: string;
@@ -162,9 +162,9 @@ declare namespace Service {
 		error?: ServiceHooksError;
 	}
 
-	export type EventSchemaHandler = (ctx: Context) => void | Promise<void>;
+	export type EventSchemaHandler<S=ServiceSettingSchema, T=Service<S>> = (this:T, ctx: Context) => void | Promise<void>;
 
-	export interface EventSchema {
+	export interface EventSchema<S=ServiceSettingSchema, T=Service<S>> {
 		name?: string;
 		group?: string;
 		params?: ActionParams;
@@ -174,14 +174,14 @@ declare namespace Service {
 		throttle?: number;
 		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
-		handler?: EventSchemaHandler;
+		handler?: EventSchemaHandler<S,T>;
 
 		// [key: string]: any;
 	}
 
-	export type EventSchemas<S = ServiceSettingSchema> = {
-		[key: string]: EventSchemaHandler | EventSchema;
-	} & ThisType<Service<S>>;
+	export type EventSchemas<S = ServiceSettingSchema, T = Service<S>> = {
+		[key: string]: EventSchemaHandler<S,T> | (EventSchema<S,T> & ThisType<T>);
+	} & ThisType<T>;
 
 	export interface WaitForServicesResult {
 		services: string[];
