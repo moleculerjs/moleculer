@@ -11,13 +11,15 @@ const utils = require("../utils");
 const Strategies = require("../strategies");
 const EndpointList = require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
+const EventEmitter = require("events");
+const { FAILED_HANDLER_BROADCAST_EVENT } = require("../constants");
 
 /**
  * Catalog for events
  *
  * @class EventCatalog
  */
-class EventCatalog {
+class EventCatalog extends EventEmitter {
 	/**
 	 * Creates an instance of EventCatalog.
 	 *
@@ -27,6 +29,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	constructor(registry, broker, StrategyFactory) {
+		super();
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
@@ -35,6 +38,20 @@ class EventCatalog {
 		this.events = [];
 
 		this.EndpointFactory = EventEndpoint;
+
+		this.on("broker.event", ctx => {
+			ctx.endpoint.event
+				.handler(ctx)
+				.catch(error =>
+					this.broker.broadcastLocal("$broker.error", {
+						error,
+						module: "broker",
+						type: FAILED_HANDLER_BROADCAST_EVENT
+					})
+				)
+				// catch unresolved error
+				.catch(err => this.logger.error(err));
+		});
 	}
 
 	/**
@@ -153,11 +170,7 @@ class EventCatalog {
 	/**
 	 * Call local service handlers
 	 *
-	 * @param {String} eventName
-	 * @param {any} payload
-	 * @param {Array<String>?} groupNames
-	 * @param {String} nodeID
-	 * @param {boolean} broadcast
+	 * @param {Context} ctx
 	 * @returns {Promise<any>}
 	 *
 	 * @memberof EventCatalog
@@ -171,8 +184,9 @@ class EventCatalog {
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
 			if (
+				// null or undefined
 				ctx.eventGroups == null ||
-				ctx.eventGroups.length == 0 ||
+				ctx.eventGroups.length === 0 ||
 				ctx.eventGroups.indexOf(list.group) !== -1
 			) {
 				if (isBroadcast) {
@@ -205,7 +219,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		return ctx.endpoint.event.handler(ctx);
+		return this.emit("broker.event", ctx);
 	}
 
 	/**
@@ -229,7 +243,7 @@ class EventCatalog {
 	 */
 	remove(eventName, nodeID) {
 		this.events.forEach(list => {
-			if (list.name == eventName) list.removeByNodeID(nodeID);
+			if (list.name === eventName) list.removeByNodeID(nodeID);
 		});
 	}
 
