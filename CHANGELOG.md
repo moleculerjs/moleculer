@@ -2,6 +2,17 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.33...master)
 
 --------------------------------------------------
+<a name="0.14.34"></a>
+# [0.14.34](https://github.com/moleculerjs/moleculer/compare/v0.14.33...v0.14.34) (2024-07-28)
+
+## Changes
+- expand the type for ServiceSchema to allow for typed lifecycle handlers [#1272](https://github.com/moleculerjs/moleculer/pull/1272)
+- fix runner use of moleculer.config function with default export [#1284](https://github.com/moleculerjs/moleculer/pull/1284)  
+- improve broker error handler types [#1286](https://github.com/moleculerjs/moleculer/pull/1286)  
+- don't plugging third-party Promise library for ioredis in RedisTransporter [#1290](https://github.com/moleculerjs/moleculer/pull/1290)  
+- fixed numeric cache key issue [#1289](https://github.com/moleculerjs/moleculer/issues/1289)  
+
+--------------------------------------------------
 <a name="0.14.33"></a>
 # [0.14.33](https://github.com/moleculerjs/moleculer/compare/v0.14.32...v0.14.33) (2024-04-02)
 
