@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2024 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -38,7 +38,7 @@ class RedisTransporter extends Transporter {
 	 * @memberof RedisTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let clientSub = this.getRedisClient(this.opts);
 			this._clientSub = clientSub; // For tests
 
@@ -164,7 +164,6 @@ class RedisTransporter extends Transporter {
 		let Redis;
 		try {
 			Redis = require("ioredis");
-			Redis.Promise = this.broker.Promise;
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal(
