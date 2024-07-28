@@ -294,6 +294,18 @@ describe("Test BaseCacher", () => {
 			["id", "token"]
 		);
 		expect(res).toBe("users.list:jVksjHDWP+LfXPCxdnQC9Sa10+12yis9AhWmSOwCWfY=");
+
+		cacher.opts.maxParamsLength = 100;
+		res = cacher.getCacheKey(
+			"users.list",
+			{
+				id: 123,
+				token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ"
+			},
+			{},
+			["id"]
+		);
+		expect(res).toBe("users.list:123");
 	});
 
 	it("check getCacheKey with custom keygen", () => {

@@ -262,6 +262,8 @@ class Cacher {
 	}
 
 	_hashedKey(key) {
+		if (typeof key !== "string") key = String(key);
+
 		const maxParamsLength = this.opts.maxParamsLength;
 		if (!maxParamsLength || maxParamsLength < 44 || key.length <= maxParamsLength) return key;
 
