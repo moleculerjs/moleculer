@@ -73,7 +73,7 @@
     "avsc": "^5.7.7",
     "benchmarkify": "^3.0.0",
     "bunyan": "^1.8.15",
-    "cbor-x": "^1.5.9",
+    "cbor-x": "1.5.0",
     "coveralls": "^3.1.1",
     "dd-trace": "^0.36.3",
     "debug": "^4.3.6",
