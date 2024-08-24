@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -44,6 +44,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Publish
         run: npx pkg-pr-new publish
