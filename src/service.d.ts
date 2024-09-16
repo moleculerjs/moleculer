@@ -127,6 +127,7 @@ declare namespace Service {
 		[key: string]: ActionSchema | ActionHandler | boolean;
 	} & ThisType<Service<S>>;
 
+	export type ServiceMethod = (...args: any[]) => any & ThisType<Service>;
 	export type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
 
 	export interface ServiceDependency {
