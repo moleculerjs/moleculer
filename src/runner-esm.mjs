@@ -8,6 +8,7 @@ import utils from "./utils.js";
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
+import { inspect } from "util";
 import glob from "glob";
 import _ from "lodash";
 import Args from "args";
@@ -47,7 +48,7 @@ const logger = {
 	error(err) {
 		if (err instanceof Error)
 			console.error(kleur.grey("[Runner]"), kleur.red().bold(err.message), err);
-		else console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
+		else console.error(kleur.grey("[Runner]"), kleur.red().bold(inspect(err)));
 	}
 };
 
