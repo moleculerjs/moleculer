@@ -10,6 +10,7 @@ const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
 const glob = require("glob").sync;
+const inspect = require("util").inspect;
 const _ = require("lodash");
 const Args = require("args");
 const os = require("os");
@@ -44,7 +45,7 @@ const logger = {
 	error(err) {
 		if (err instanceof Error)
 			console.error(kleur.grey("[Runner]"), kleur.red().bold(err.message), err);
-		else console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
+		else console.error(kleur.grey("[Runner]"), kleur.red().bold(inspect(err)));
 	}
 };
 
