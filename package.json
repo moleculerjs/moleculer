@@ -2,6 +2,7 @@
   "name": "@moleculer/monorepo",
   "version": "1.0.0",
   "description": "Monorepo for Moleculer framework",
+  "type": "module",
   "scripts": {},
   "repository": {
     "type": "git",
@@ -14,6 +15,7 @@
     "node": ">= 20.x.x"
   },
   "devDependencies": {
+    "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
