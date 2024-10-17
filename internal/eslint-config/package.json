@@ -1,0 +1,23 @@
+{
+  "name": "@moleculer/eslint-config",
+  "version": "1.0.0",
+  "description": "ESLint configuration of Moleculer framework packages",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "prettier": "prettier . --ignore-unknown --check",
+    "prettier:fix": "prettier . --ignore-unknown --write"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@moleculer/prettier-config": "workspace:*",
+    "@moleculer/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  },
+  "prettier": "@moleculer/prettier-config"
+}

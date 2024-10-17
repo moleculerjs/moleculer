@@ -1,0 +1,43 @@
+{
+  "name": "@moleculer/core",
+  "version": "1.0.0",
+  "description": "Core package of Moleculer framework",
+  "type": "module",
+  "scripts": {
+    "prettier": "prettier . --ignore-unknown --check",
+    "prettier:fix": "prettier . --ignore-unknown --write",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "microservice",
+    "microservices",
+    "framework",
+    "backend",
+    "messagebus",
+    "rpc",
+    "services",
+    "micro",
+    "pubsub",
+    "scalable",
+    "distributed"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moleculerjs/moleculer.git"
+  },
+  "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
+  "author": "MoleculerJS",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 20.x.x"
+  },
+  "devDependencies": {
+    "@moleculer/eslint-config": "workspace:*",
+    "@moleculer/prettier-config": "workspace:*",
+    "@moleculer/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@moleculer/prettier-config"
+}

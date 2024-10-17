@@ -1,0 +1,18 @@
+{
+  "name": "@moleculer/prettier-config",
+  "version": "1.0.0",
+  "description": "ESLint configuration of Moleculer framework packages",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {},
+  "dependencies": {
+    "prettier": "catalog:"
+  },
+  "devDependencies": {
+    "@moleculer/tsconfig": "workspace:*",
+    "typescript": "catalog:"
+  },
+  "prettier": "@moleculer/prettier-config"
+}

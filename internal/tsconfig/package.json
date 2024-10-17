@@ -1,0 +1,6 @@
+{
+  "name": "@moleculer/tsconfig",
+  "version": "1.0.0",
+  "description": "TSConfig of Moleculer framework packages",
+  "scripts": {}
+}
