@@ -1,0 +1,31 @@
+{
+  "name": "@moleculer/monorepo",
+  "version": "1.0.0",
+  "description": "Monorepo for Moleculer framework",
+  "scripts": {    
+  },
+  "keywords": [
+    "microservice",
+    "microservices",
+    "framework",
+    "backend",
+    "messagebus",
+    "rpc",
+    "services",
+    "micro",
+    "pubsub",
+    "scalable",
+    "distributed"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moleculerjs/moleculer.git"
+  },
+  "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
+  "author": "MoleculerJS",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 20.x.x"
+  },
+  "packageManager": "pnpm@9.12.2"
+}
