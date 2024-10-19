@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"name": "✨ @moleculer/monorepo",
+			"path": "..",
+		},
+		{
+			"name": "🛠️ @moleculer/eslint-config",
+			"path": "../internal/eslint-config",
+		},
+		{
+			"name": "🛠️ @moleculer/tsconfig",
+			"path": "../internal/tsconfig",
+		},
+		{
+			"name": "📦 @moleculer/core",
+			"path": "../packages/core",
+		},
+	],
+	"settings": {
+		"monorepoWorkspace.folders.regex.libs": "common|package|lib|private",
+		"monorepoWorkspace.folders.regex.apps": "app",
+		"monorepoWorkspace.folders.regex.tools": "internal",
+		"monorepoWorkspace.folders.prefix.tools": "🛠️ ",
+	},
+}
