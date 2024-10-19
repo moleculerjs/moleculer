@@ -10,6 +10,7 @@
     "./.*.mjs", // root esm config files
     "./.*.js", // root javascript config files
     "./*.js", // root javascript files
+    "./*.mjs", // root esm files
     "__mocks__/**/*" // jest mocks
   ]
 }

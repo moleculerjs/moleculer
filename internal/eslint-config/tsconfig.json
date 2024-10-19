@@ -6,6 +6,7 @@
   "include": [
     // add all typechecked paths here
     "**/*.js", // all javascript files
+    "**/*.mjs", // all esm files
     "./.*.cjs", // root commonjs config files
     "./.*.js" // root javascript config files
   ]

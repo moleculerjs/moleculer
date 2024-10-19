@@ -21,6 +21,7 @@
     "typescript-eslint": "8.10.0"
   },
   "devDependencies": {
+    "@types/eslint-config-prettier": "6.11.3",
     "@types/eslint__js": "8.42.3",
     "prettier": "catalog:"
   }
