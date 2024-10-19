@@ -18,6 +18,14 @@
 		},
 	],
 	"settings": {
+		"javascript.format.enable": false,
+		"typescript.format.enable": false,
+		"typescript.tsdk": "✨ @moleculer\\monorepo\\node_modules\\typescript\\lib",
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.fixAll": "explicit",
+		},
 		"monorepoWorkspace.folders.regex.libs": "common|package|lib|private",
 		"monorepoWorkspace.folders.regex.apps": "app",
 		"monorepoWorkspace.folders.regex.tools": "internal",
