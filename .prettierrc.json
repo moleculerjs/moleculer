@@ -1,7 +1,7 @@
 {
   "printWidth": 100,
-  "tabWidth": 4,
-  "useTabs": true,
+  "tabWidth": 2,
+  "useTabs": false,
   "semi": true,
   "singleQuote": false,
   "trailingComma": "all",
@@ -10,12 +10,8 @@
   "arrowParens": "always",
   "overrides": [
     {
-      "files": "*.md",
-      "options": { "useTabs": false }
-    },
-    {
-      "files": ["*.json", "*.jsonc"],
-      "options": { "tabWidth": 2, "useTabs": false }
+      "files": ["*.{cjs,mjs,js,jsx,ts,tsx,d.ts,css,html,graphql}"],
+      "options": { "tabWidth": 4, "useTabs": true }
     }
   ]
 }

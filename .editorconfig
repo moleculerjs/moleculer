@@ -5,29 +5,21 @@
 root = true
 
 [*]
-
-# Change these settings to your own preference
-indent_style = tab
-space_after_anon_function = true
-
-# We recommend you to keep these unchanged
+indent_style = space
+indent_size = 2
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+# file type specific overrides
+# unset will result in using the editor default
+
 [*.md]
 trim_trailing_whitespace = false
-indent_style = space
 indent_size = 4
 
-[{package,bower}.json]
-indent_style = space
-indent_size = 2
-
-[*.yml]
-indent_style = space
-indent_size = 2
-
-[*.js]
+[*.{cjs,mjs,js,jsx,ts,tsx,d.ts,css,html}]
+indent_style = tab
+indent_size = unset
 quote_type = "double"
