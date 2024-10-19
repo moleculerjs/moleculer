@@ -10,14 +10,18 @@
     "prettier": "prettier . --ignore-unknown --check",
     "prettier:fix": "prettier . --ignore-unknown --write"
   },
-  "devDependencies": {
-    "@eslint/js": "^9.12.0",
+  "peerDependencies": {
+    "eslint": "catalog:"
+  },
+  "dependencies": {
+    "@eslint/js": "9.13.0",
     "@moleculer/tsconfig": "workspace:*",
     "eslint": "catalog:",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "catalog:",
-    "typescript": "catalog:",
-    "typescript-eslint": "catalog:"
+    "eslint-config-prettier": "9.1.0",
+    "typescript-eslint": "8.10.0"
+  },
+  "devDependencies": {
+    "@types/eslint__js": "8.42.3",
+    "prettier": "catalog:"
   }
 }

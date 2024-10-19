@@ -35,7 +35,6 @@
     "@moleculer/eslint-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
     "eslint": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:"
+    "prettier": "catalog:"
   }
 }
