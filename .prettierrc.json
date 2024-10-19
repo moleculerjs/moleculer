@@ -1,0 +1,21 @@
+{
+  "printWidth": 100,
+  "tabWidth": 4,
+  "useTabs": true,
+  "semi": true,
+  "singleQuote": false,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "overrides": [
+    {
+      "files": "*.md",
+      "options": { "useTabs": false }
+    },
+    {
+      "files": ["*.json", "*.jsonc"],
+      "options": { "tabWidth": 2, "useTabs": false }
+    }
+  ]
+}

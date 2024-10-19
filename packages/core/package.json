@@ -33,11 +33,9 @@
   },
   "devDependencies": {
     "@moleculer/eslint-config": "workspace:*",
-    "@moleculer/prettier-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@moleculer/prettier-config"
+  }
 }
