@@ -1,3 +1,4 @@
-import nodejs from "./nodejs.mjs";
+import tseslint from "typescript-eslint";
+import nodejsConfig from "./nodejs.mjs";
 
-export default nodejs;
+export default tseslint.config(...nodejsConfig);

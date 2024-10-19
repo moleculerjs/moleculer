@@ -4,7 +4,7 @@
   "description": "ESLint configuration of Moleculer framework packages",
   "type": "module",
   "exports": {
-    ".": "./index.js"
+    "./nodejs.mjs": "./nodejs.mjs"
   },
   "scripts": {
     "prettier": "prettier . --ignore-unknown --check",

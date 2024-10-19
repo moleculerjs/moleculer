@@ -4,6 +4,13 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
 	eslint.configs.recommended,
-	...tseslint.configs.recommended,
+	...tseslint.configs.recommendedTypeChecked,
 	eslintConfigPrettier,
+	{
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+			},
+		},
+	},
 );
