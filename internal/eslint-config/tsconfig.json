@@ -1,0 +1,12 @@
+{
+  "extends": "@moleculer/tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": [
+    // add all typechecked paths here
+    "**/*.js", // all javascript files
+    "./.*.cjs", // root commonjs config files
+    "./.*.js" // root javascript config files
+  ]
+}

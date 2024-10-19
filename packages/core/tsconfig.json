@@ -1,0 +1,15 @@
+{
+  "extends": "@moleculer/tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": [
+    // add all typechecked paths here
+    "src/**/*", // source folder
+    "./.*.cjs", // root commonjs config files
+    "./.*.mjs", // root esm config files
+    "./.*.js", // root javascript config files
+    "./*.js", // root javascript files
+    "__mocks__/**/*" // jest mocks
+  ]
+}
