@@ -6,3 +6,8 @@ npm-debug.log
 stats.json
 yarn-error.log
 benchmark/results
+
+### turborepo
+.turbo
+# turborepo pruned folder
+out

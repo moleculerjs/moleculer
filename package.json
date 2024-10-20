@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Monorepo for Moleculer framework",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "format": "turbo run format --concurrency=${TURBO_CONCURRENCY:-90%} --global-deps=\".prettierrc.json\" --output-logs=${TURBO_OUTPUT_LOGS:-new-only}",
+    "lint": "turbo run lint --concurrency=${TURBO_CONCURRENCY:-90%} --output-logs=${TURBO_OUTPUT_LOGS:-new-only}",
+    "test": "pnpm run format && pnpm run lint"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/moleculerjs/moleculer.git"
@@ -16,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "20.16.13",
+    "turbo": "2.2.1",
     "typescript": "5.6.3"
   },
   "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"

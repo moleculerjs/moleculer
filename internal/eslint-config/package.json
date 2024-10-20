@@ -7,8 +7,8 @@
     "./nodejs.mjs": "./nodejs.mjs"
   },
   "scripts": {
-    "prettier": "prettier . --ignore-unknown --check",
-    "prettier:fix": "prettier . --ignore-unknown --write",
+    "format": "prettier . --ignore-unknown --check",
+    "format:fix": "prettier . --ignore-unknown --write",
     "lint": "TIMING=1 eslint ."
   },
   "peerDependencies": {
