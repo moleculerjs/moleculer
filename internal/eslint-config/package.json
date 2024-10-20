@@ -18,6 +18,7 @@
     "@moleculer/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.31.0",
     "typescript-eslint": "8.10.0"
   },
   "devDependencies": {
