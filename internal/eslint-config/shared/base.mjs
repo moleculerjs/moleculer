@@ -3,9 +3,14 @@ import eslintConfigPrettier from "eslint-config-prettier";
 // @ts-expect-error: No declaration file for eslint-plugin-import
 import importPlugin from "eslint-plugin-import";
 import tseslint from "typescript-eslint";
-import { tsGlobs } from "./globs.mjs";
+import { jsGlobs } from "./globs.mjs";
 
 export default tseslint.config(
+	eslint.configs.recommended,
+	...tseslint.configs.recommended,
+	...tseslint.configs.stylistic,
+	importPlugin.flatConfigs.recommendedTypeChecked,
+	importPlugin.flatConfigs.stylisticTypeChecked,
 	{
 		languageOptions: {
 			parserOptions: {
@@ -15,13 +20,8 @@ export default tseslint.config(
 		linterOptions: {
 			reportUnusedDisableDirectives: true,
 		},
-		extends: [
-			eslint.configs.recommended,
-			...tseslint.configs.recommended,
-			...tseslint.configs.stylistic,
-			importPlugin.flatConfigs.recommended,
-			importPlugin.flatConfigs.typescript,
-		],
+	},
+	{
 		rules: {
 			// enforce return statements in callbacks of array methods
 			// https://eslint.org/docs/latest/rules/array-callback-return
@@ -326,6 +326,19 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/yoda
 			yoda: "error",
 
+			// disallow @ts-<directive> comments or require descriptions after directives
+			// override recommended rule defaults to force specific description syntax for ts-expect-error
+			// https://typescript-eslint.io/rules/ban-ts-comment
+			"@typescript-eslint/ban-ts-comment": [
+				"error",
+				{
+					"ts-expect-error": { descriptionFormat: "^: " },
+					"ts-ignore": true,
+					"ts-nocheck": true,
+					"ts-check": false,
+				},
+			],
+
 			// enforce consistent usage of type exports
 			// https://typescript-eslint.io/rules/consistent-type-exports
 			"@typescript-eslint/consistent-type-exports": "error",
@@ -333,6 +346,56 @@ export default tseslint.config(
 			// enforce consistent usage of type imports
 			// https://typescript-eslint.io/rules/consistent-type-imports
 			"@typescript-eslint/consistent-type-imports": "error",
+
+			// enforce default parameters to be last
+			// https://typescript-eslint.io/rules/default-param-last
+			"@typescript-eslint/default-param-last": "error",
+
+			// require explicit accessibility modifiers on class properties and methods
+			// https://typescript-eslint.io/rules/explicit-member-accessibility
+			"@typescript-eslint/explicit-member-accessibility": "error",
+
+			// require explicit return and argument types on exported functions' and classes' public class methods
+			// https://typescript-eslint.io/rules/explicit-module-boundary-types
+			"@typescript-eslint/explicit-module-boundary-types": "error",
+
+			// enforce naming conventions for everything across a codebase
+			// https://typescript-eslint.io/rules/naming-convention
+			"@typescript-eslint/naming-convention": [
+				"error",
+				// camelCase for everything not otherwise indicated
+				{ selector: "default", format: ["camelCase"] },
+				// allow any naming convention for imports
+				{ selector: "import", format: null },
+				// allow unused parameters and variables that are only underscores
+				{
+					selector: ["parameter", "variable"],
+					filter: { regex: "^_+$", match: true },
+					modifiers: ["unused"],
+					format: null,
+				},
+				// do not enforce format on property names
+				{ selector: "property", format: null },
+				{
+					selector: ["class", "enum", "interface", "typeAlias"],
+					format: ["PascalCase"],
+				},
+				// Generic type parameters in format of:
+				// - Starts with T
+				// - Followed by a capital letter
+				// - Followed by any number of lowercase or uppercase letters, but never more than one consecutive uppercase letter
+				// - Ends with a lowercase letter or number
+				{
+					selector: "typeParameter",
+					format: null,
+					custom: {
+						regex: "^T[A-Z](?:[a-z]+[A-Z])*[a-z\\d]+$",
+						match: true,
+					},
+				},
+				// allow variables to be camelCase or UPPER_CASE
+				{ selector: "variable", format: ["camelCase", "UPPER_CASE"] },
+			],
 
 			// disallow generic Array constructors
 			// https://typescript-eslint.io/rules/no-array-constructor
@@ -342,9 +405,9 @@ export default tseslint.config(
 			// https://typescript-eslint.io/rules/no-import-type-side-effects
 			"@typescript-eslint/no-import-type-side-effects": "error",
 
-			// enforce default parameters to be last
-			// https://typescript-eslint.io/rules/default-param-last
-			"@typescript-eslint/default-param-last": "error",
+			// disallow non-null assertions using the ! postfix operator
+			// https://typescript-eslint.io/rules/no-non-null-assertion
+			"@typescript-eslint/no-non-null-assertion": "error",
 
 			// require a consistent member declaration order
 			// https://typescript-eslint.io/rules/member-ordering
@@ -400,6 +463,25 @@ export default tseslint.config(
 			// require or disallow parameter properties in class constructors
 			// https://typescript-eslint.io/rules/parameter-properties
 			"@typescript-eslint/parameter-properties": "error",
+
+			// enforce using the nullish coalescing operator instead of logical assignments or chaining
+			// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
+			// https://typescript-eslint.io/rules/prefer-nullish-coalescing
+			"@typescript-eslint/prefer-nullish-coalescing": [
+				"error",
+				{ ignorePrimitives: { boolean: true } },
+			],
+
+			// require private members to be marked as readonly if they're never modified outside of the constructor
+			// https://typescript-eslint.io/rules/prefer-readonly
+			"@typescript-eslint/prefer-readonly": "error",
+
+			// disallow certain types in boolean expressions
+			// https://typescript-eslint.io/rules/strict-boolean-expressions
+			"@typescript-eslint/strict-boolean-expressions": [
+				"error",
+				{ allowNullableBoolean: true },
+			],
 
 			// If a default import is requested, this rule will report if there is no default export in the imported module
 			// Disable rule from recommended
@@ -517,94 +599,8 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: tsGlobs,
-		extends: [
-			...tseslint.configs.recommendedTypeChecked,
-			...tseslint.configs.stylisticTypeChecked,
-		],
-		rules: {
-			// disallow @ts-<directive> comments or require descriptions after directives
-			// override recommended rule defaults to force specific description syntax for ts-expect-error
-			// https://typescript-eslint.io/rules/ban-ts-comment
-			"@typescript-eslint/ban-ts-comment": [
-				"error",
-				{
-					"ts-expect-error": { descriptionFormat: "^: " },
-					"ts-ignore": true,
-					"ts-nocheck": true,
-					"ts-check": false,
-				},
-			],
-
-			// require explicit accessibility modifiers on class properties and methods
-			// https://typescript-eslint.io/rules/explicit-member-accessibility
-			"@typescript-eslint/explicit-member-accessibility": "error",
-
-			// require explicit return and argument types on exported functions' and classes' public class methods
-			// https://typescript-eslint.io/rules/explicit-module-boundary-types
-			"@typescript-eslint/explicit-module-boundary-types": "error",
-
-			// enforce naming conventions for everything across a codebase
-			// https://typescript-eslint.io/rules/naming-convention
-			"@typescript-eslint/naming-convention": [
-				"error",
-				// camelCase for everything not otherwise indicated
-				{ selector: "default", format: ["camelCase"] },
-				// allow any naming convention for imports
-				{ selector: "import", format: null },
-				// allow unused parameters and variables that are only underscores
-				{
-					selector: ["parameter", "variable"],
-					filter: { regex: "^_+$", match: true },
-					modifiers: ["unused"],
-					format: null,
-				},
-				// do not enforce format on property names
-				{ selector: "property", format: null },
-				{
-					selector: ["class", "enum", "interface", "typeAlias"],
-					format: ["PascalCase"],
-				},
-				// Generic type parameters in format of:
-				// - Starts with T
-				// - Followed by a capital letter
-				// - Followed by any number of lowercase or uppercase letters, but never more than one consecutive uppercase letter
-				// - Ends with a lowercase letter or number
-				{
-					selector: "typeParameter",
-					format: null,
-					custom: {
-						regex: "^T[A-Z](?:[a-z]+[A-Z])*[a-z\\d]+$",
-						match: true,
-					},
-				},
-				// allow variables to be camelCase or UPPER_CASE
-				{ selector: "variable", format: ["camelCase", "UPPER_CASE"] },
-			],
-
-			// disallow non-null assertions using the ! postfix operator
-			// https://typescript-eslint.io/rules/no-non-null-assertion
-			"@typescript-eslint/no-non-null-assertion": "error",
-
-			// enforce using the nullish coalescing operator instead of logical assignments or chaining
-			// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
-			// https://typescript-eslint.io/rules/prefer-nullish-coalescing
-			"@typescript-eslint/prefer-nullish-coalescing": [
-				"error",
-				{ ignorePrimitives: { boolean: true } },
-			],
-
-			// require private members to be marked as readonly if they're never modified outside of the constructor
-			// https://typescript-eslint.io/rules/prefer-readonly
-			"@typescript-eslint/prefer-readonly": "error",
-
-			// disallow certain types in boolean expressions
-			// https://typescript-eslint.io/rules/strict-boolean-expressions
-			"@typescript-eslint/strict-boolean-expressions": [
-				"error",
-				{ allowNullableBoolean: true },
-			],
-		},
+		files: jsGlobs,
+		extends: [tseslint.configs.disableTypeChecked],
 	},
 	eslintConfigPrettier,
 );
