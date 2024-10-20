@@ -59,9 +59,21 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/max-classes-per-file
 			"max-classes-per-file": ["error", 1],
 
+			// disallow await inside of loops
+			// https://eslint.org/docs/latest/rules/no-await-in-loop
+			"no-await-in-loop": "error",
+
 			// disallow use of arguments.caller or arguments.callee
 			// https://eslint.org/docs/latest/rules/no-caller
 			"no-caller": "error",
+
+			// disallow assignment operators in conditional expressions
+			// https://eslint.org/docs/latest/rules/no-cond-assign
+			"no-cond-assign": ["error", "always"],
+
+			// disallow the use of console
+			// https://eslint.org/docs/latest/rules/no-console
+			"no-console": "warn",
 
 			// disallow returning value from constructor
 			// https://eslint.org/docs/latest/rules/no-constructor-return
@@ -78,6 +90,10 @@ export default tseslint.config(
 			// disallow unnecessary labels
 			// https://eslint.org/docs/latest/rules/no-extra-label
 			"no-extra-label": "error",
+
+			// disallow variable or function declarations in nested blocks
+			// https://eslint.org/docs/latest/rules/no-inner-declarations
+			"no-inner-declarations": "error",
 
 			// disallow use of labels for anything other than loops and switches
 			// https://eslint.org/docs/latest/rules/no-labels
@@ -108,6 +124,10 @@ export default tseslint.config(
 				},
 			],
 
+			// disallow returning values from Promise executor functions
+			// https://eslint.org/docs/latest/rules/no-promise-executor-return
+			"no-promise-executor-return": "error",
+
 			// disallow the use of the __proto__ property
 			// https://eslint.org/docs/latest/rules/no-proto
 			"no-proto": "error",
@@ -127,6 +147,19 @@ export default tseslint.config(
 			// disallow comma operators
 			// https://eslint.org/docs/latest/rules/no-sequences
 			"no-sequences": "error",
+
+			// disallow template literal placeholder syntax in regular strings
+			// https://eslint.org/docs/latest/rules/no-template-curly-in-string
+			"no-template-curly-in-string": "error",
+
+			// disallow loops with a body that allows only one iteration
+			// https://eslint.org/docs/latest/rules/no-unreachable-loop
+			"no-unreachable-loop": "error",
+
+			// disallow use of optional chaining in contexts where the undefined value is not allowed
+			// overrides recommended rule defaults to disallow arithmetic operators
+			// https://eslint.org/docs/latest/rules/no-unsafe-optional-chaining
+			"no-unsafe-optional-chaining": ["error", { disallowArithmeticOperators: true }],
 
 			// disallow unnecessary concatenation of literals or template literals
 			// https://eslint.org/docs/latest/rules/no-useless-concat
