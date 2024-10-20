@@ -131,6 +131,18 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/no-proto
 			"no-proto": "error",
 
+			// disallow specified names in exports
+			// https://eslint.org/docs/latest/rules/no-restricted-exports
+			"no-restricted-exports": [
+				"error",
+				{
+					restrictedNamedExports: [
+						"default", // use `export default` to provide a default export
+						"then", // this will cause tons of confusion when your module is dynamically `import()`ed, and will break in most node ESM versions
+					],
+				},
+			],
+
 			// disallow assignment operators in return statements
 			// https://eslint.org/docs/latest/rules/no-return-assign
 			"no-return-assign": ["error", "always"],
@@ -160,29 +172,94 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/no-unsafe-optional-chaining
 			"no-unsafe-optional-chaining": ["error", { disallowArithmeticOperators: true }],
 
+			// disallow unnecessary computed property keys in objects and classes
+			// https://eslint.org/docs/latest/rules/no-useless-computed-key
+			"no-useless-computed-key": "error",
+
 			// disallow unnecessary concatenation of literals or template literals
 			// https://eslint.org/docs/latest/rules/no-useless-concat
 			"no-useless-concat": "error",
+
+			// disallow renaming import, export, and destructured assignments to the same name
+			// https://eslint.org/docs/latest/rules/no-useless-rename
+			"no-useless-rename": [
+				"error",
+				{ ignoreDestructuring: false, ignoreImport: false, ignoreExport: false },
+			],
 
 			// disallow redundant return statements
 			// https://eslint.org/docs/latest/rules/no-useless-return
 			"no-useless-return": "error",
 
+			// require let or const instead of var
+			// https://eslint.org/docs/latest/rules/no-var
+			"no-var": "error",
+
 			// disallow void operators
 			// https://eslint.org/docs/latest/rules/no-void
 			"no-void": "error",
 
-			// enforce sorted import declarations within modules
-			// https://eslint.org/docs/latest/rules/sort-imports
-			"sort-imports": ["error", { ignoreCase: true, ignoreDeclarationSort: true }],
+			// require or disallow method and property shorthand syntax for object literals
+			// https://eslint.org/docs/latest/rules/object-shorthand
+			"object-shorthand": [
+				"error",
+				"always",
+				{ ignoreConstructors: false, avoidQuotes: true },
+			],
+
+			// require using arrow functions for callbacks
+			// https://eslint.org/docs/latest/rules/prefer-arrow-callback
+			"prefer-arrow-callback": [
+				"error",
+				{ allowNamedFunctions: false, allowUnboundThis: true },
+			],
+
+			// require const declarations for variables that are never reassigned after declared
+			// https://eslint.org/docs/latest/rules/prefer-const
+			"prefer-const": ["error", { destructuring: "any", ignoreReadBeforeAssign: true }],
+
+			// require destructuring from arrays and/or objects
+			// https://eslint.org/docs/latest/rules/prefer-destructuring
+			"prefer-destructuring": [
+				"error",
+				{
+					VariableDeclarator: { array: false, object: true },
+					AssignmentExpression: { array: true, object: false },
+				},
+				{ enforceForRenamedProperties: false },
+			],
+
+			// disallow parseInt() and Number.parseInt() in favor of binary, octal, and hexadecimal literals
+			// https://eslint.org/docs/latest/rules/prefer-numeric-literals
+			"prefer-numeric-literals": "error",
 
 			// disallow use of the RegExp constructor in favor of regular expression literals
 			// https://eslint.org/docs/latest/rules/prefer-regex-literals
 			"prefer-regex-literals": ["error", { disallowRedundantWrapping: true }],
 
+			// require rest parameters instead of arguments
+			// https://eslint.org/docs/latest/rules/prefer-rest-params
+			"prefer-rest-params": "error",
+
+			// require spread operators instead of .apply()
+			// https://eslint.org/docs/latest/rules/prefer-spread
+			"prefer-spread": "error",
+
+			// require template literals instead of string concatenation
+			// https://eslint.org/docs/latest/rules/prefer-template
+			"prefer-template": "error",
+
 			// enforce the consistent use of the radix argument when using parseInt()
 			// https://eslint.org/docs/latest/rules/radix
 			radix: "error",
+
+			// enforce sorted import declarations within modules
+			// https://eslint.org/docs/latest/rules/sort-imports
+			"sort-imports": ["error", { ignoreCase: true, ignoreDeclarationSort: true }],
+
+			// require symbol descriptions
+			// https://eslint.org/docs/latest/rules/symbol-description
+			"symbol-description": "error",
 
 			// require or disallow "Yoda" conditions
 			// https://eslint.org/docs/latest/rules/yoda
@@ -227,6 +304,10 @@ export default tseslint.config(
 			// disallow function declarations that contain unsafe references inside loop statements
 			// https://typescript-eslint.io/rules/no-loop-func
 			"@typescript-eslint/no-loop-func": "error",
+
+			// disallow unnecessary constructors
+			// https://typescript-eslint.io/rules/no-useless-constructor
+			"@typescript-eslint/no-useless-constructor": "error",
 
 			// disallow throwing non-Error values as exceptions
 			// https://typescript-eslint.io/rules/only-throw-error
