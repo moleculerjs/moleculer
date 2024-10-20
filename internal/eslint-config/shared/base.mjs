@@ -1,8 +1,8 @@
 import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
 // @ts-expect-error: No declaration file for eslint-plugin-import
 import importPlugin from "eslint-plugin-import";
+import tseslint from "typescript-eslint";
 import { tsGlobs } from "./globs.mjs";
 
 export default tseslint.config(
@@ -19,6 +19,7 @@ export default tseslint.config(
 			eslint.configs.recommended,
 			...tseslint.configs.recommended,
 			...tseslint.configs.stylistic,
+			importPlugin.flatConfigs.recommended,
 			importPlugin.flatConfigs.typescript,
 		],
 		rules: {
@@ -400,9 +401,10 @@ export default tseslint.config(
 			// https://typescript-eslint.io/rules/parameter-properties
 			"@typescript-eslint/parameter-properties": "error",
 
-			// reports funny business with exports, like repeated exports of names or defaults.
-			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/export.md
-			"import/export": "error",
+			// If a default import is requested, this rule will report if there is no default export in the imported module
+			// Disable rule from recommended
+			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/default.md
+			"import/default": "off",
 
 			// report on improper use of extensions when importing
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/extensions.md
@@ -423,6 +425,11 @@ export default tseslint.config(
 			// this rule reports any imports that come after non-import statements
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/first.md
 			"import/first": "error",
+
+			// Enforces names exist at the time they are dereferenced, when imported as a full namespace (i.e. import * as foo from './foo'; foo.bar(); will report if bar is not exported by ./foo.)
+			// Disable rule from recommended
+			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/namespace.md
+			"import/namespace": "off",
 
 			// enforces having one or more empty lines after the last top-level import statement or require call
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/newline-after-import.md
@@ -446,16 +453,14 @@ export default tseslint.config(
 
 			// forbid the import of external modules that are not declared in the package.json's dependencies, devDependencies, optionalDependencies, peerDependencies, or bundledDependencies
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-extraneous-dependencies.md
-			// TODO come back to this one
 			"import/no-extraneous-dependencies": [
 				"error",
 				{
 					devDependencies: [
 						"**/__tests__/**", // jest pattern
 						"**/__mocks__/**", // jest pattern
-						"**/*.{test,spec}.[cm]?[jt]sx?", // tests where the extension or filename suffix denotes that it is a test
-						"**/jest.config.[cm]?js", // jest config
-						"**/eslint.config.[cm]?js", // eslint config
+						"**/*.{test,spec}.{c,m,}[jt]s{x,}", // tests where the extension or filename suffix denotes that it is a test
+						"**/{jest,eslint}.config.{c,m,}js", // jest or eslint config
 					],
 					optionalDependencies: false,
 				},
@@ -473,6 +478,11 @@ export default tseslint.config(
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-as-default.md
 			"import/no-named-as-default": "error",
 
+			// Reports use of an exported name as a property on the default export
+			// Disable rule from recommended
+			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-as-default-member.md
+			"import/no-named-as-default-member": "off",
+
 			// reports use of a default export as a locally named import
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-default.md
 			"import/no-named-default": "error",
@@ -484,6 +494,11 @@ export default tseslint.config(
 			// forbid a module from importing itself
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-self-import.md
 			"import/no-self-import": "error",
+
+			// Ensures an imported module can be resolved to a module on the local filesystem, as defined by standard Node require.resolve behavior
+			// Disable rule from recommended
+			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-unresolved.md
+			"import/no-unresolved": "off",
 
 			// tse this rule to prevent unnecessary path segments in import and require statements
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-useless-path-segments.md

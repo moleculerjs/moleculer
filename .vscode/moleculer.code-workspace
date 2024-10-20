@@ -1,34 +1,35 @@
 {
-	"folders": [
-		{
-			"name": "✨ @moleculer/monorepo",
-			"path": "..",
-		},
-		{
-			"name": "🛠️ @moleculer/eslint-config",
-			"path": "../internal/eslint-config",
-		},
-		{
-			"name": "🛠️ @moleculer/tsconfig",
-			"path": "../internal/tsconfig",
-		},
-		{
-			"name": "📦 @moleculer/core",
-			"path": "../packages/core",
-		},
-	],
-	"settings": {
-		"javascript.format.enable": false,
-		"typescript.format.enable": false,
-		"typescript.tsdk": "✨ @moleculer\\monorepo\\node_modules\\typescript\\lib",
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true,
-		"editor.codeActionsOnSave": {
-			"source.fixAll": "explicit",
-		},
-		"monorepoWorkspace.folders.regex.libs": "common|package|lib|private",
-		"monorepoWorkspace.folders.regex.apps": "app",
-		"monorepoWorkspace.folders.regex.tools": "internal",
-		"monorepoWorkspace.folders.prefix.tools": "🛠️ ",
-	},
+  "folders": [
+    {
+      "name": "✨ @moleculer/monorepo",
+      "path": "..",
+    },
+    {
+      "name": "🛠️ @moleculer/eslint-config",
+      "path": "../internal/eslint-config",
+    },
+    {
+      "name": "🛠️ @moleculer/tsconfig",
+      "path": "../internal/tsconfig",
+    },
+    {
+      "name": "📦 @moleculer/core",
+      "path": "../packages/core",
+    },
+  ],
+  "settings": {
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "typescript.tsdk": "✨ @moleculer\\monorepo\\node_modules\\typescript\\lib",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+    },
+    "eslint.useFlatConfig": true,
+    "monorepoWorkspace.folders.regex.libs": "common|package|lib|private",
+    "monorepoWorkspace.folders.regex.apps": "app",
+    "monorepoWorkspace.folders.regex.tools": "internal",
+    "monorepoWorkspace.folders.prefix.tools": "🛠️ ",
+  },
 }

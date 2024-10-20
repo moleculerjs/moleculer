@@ -6,7 +6,7 @@
   "scripts": {
     "prettier": "prettier . --ignore-unknown --check",
     "prettier:fix": "prettier . --ignore-unknown --write",
-    "lint": "eslint ."
+    "lint": "TIMING=1 eslint ."
   },
   "keywords": [
     "microservice",
