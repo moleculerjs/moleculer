@@ -23,21 +23,185 @@ export default tseslint.config(
 			eslintConfigPrettier,
 		],
 		rules: {
-			// enforce curly brace usage
+			// enforce return statements in callbacks of array methods
+			// https://eslint.org/docs/latest/rules/array-callback-return
+			"array-callback-return": ["error", { allowImplicit: true }],
+
+			// require return statements to either always or never specify values
+			// https://eslint.org/docs/latest/rules/consistent-return
+			"consistent-return": "error",
+
+			// enforce consistent brace style for all control statements
+			// https://eslint.org/docs/latest/rules/curly
 			curly: ["error", "all"],
 
-			// enforce consistent import sort order
+			// require default case in switch statements
+			// https://eslint.org/docs/latest/rules/default-case
+			"default-case": ["error", { commentPattern: "^no default$" }],
+
+			// enforce default clauses in switch statements to be last
+			// https://eslint.org/docs/latest/rules/default-case-last
+			"default-case-last": "error",
+
+			// require the use of === and !==
+			// https://eslint.org/docs/latest/rules/eqeqeq
+			eqeqeq: ["error", "always", { null: "ignore" }],
+
+			// require grouped accessor pairs in object literals and classes
+			// https://eslint.org/docs/latest/rules/grouped-accessor-pairs
+			"grouped-accessor-pairs": "error",
+
+			// require for-in loops to include an if statement
+			// https://eslint.org/docs/latest/rules/guard-for-in
+			"guard-for-in": "error",
+
+			// enforce a maximum number of classes per file
+			// https://eslint.org/docs/latest/rules/max-classes-per-file
+			"max-classes-per-file": ["error", 1],
+
+			// disallow use of arguments.caller or arguments.callee
+			// https://eslint.org/docs/latest/rules/no-caller
+			"no-caller": "error",
+
+			// disallow returning value from constructor
+			// https://eslint.org/docs/latest/rules/no-constructor-return
+			"no-constructor-return": "error",
+
+			// disallow else blocks after return statements in if statements
+			// https://eslint.org/docs/latest/rules/no-else-return
+			"no-else-return": ["error", { allowElseIf: false }],
+
+			// disallow the use of eval()
+			// https://eslint.org/docs/latest/rules/no-eval
+			"no-eval": "error",
+
+			// disallow unnecessary labels
+			// https://eslint.org/docs/latest/rules/no-extra-label
+			"no-extra-label": "error",
+
+			// disallow use of labels for anything other than loops and switches
+			// https://eslint.org/docs/latest/rules/no-labels
+			"no-labels": ["error", { allowLoop: false, allowSwitch: false }],
+
+			// disallow multiline strings
+			// https://eslint.org/docs/latest/rules/no-multi-str
+			"no-multi-str": "error",
+
+			// disallow new operators outside of assignments or comparisons
+			// https://eslint.org/docs/latest/rules/no-new
+			"no-new": "error",
+
+			// disallow new operators with the String, Number, and Boolean objects
+			// https://eslint.org/docs/latest/rules/no-new-wrappers
+			"no-new-wrappers": "error",
+
+			// disallow reassigning function parameters
+			// disallow parameter object manipulation except for specific exclusions
+			// https://eslint.org/docs/latest/rules/no-param-reassign
+			"no-param-reassign": [
+				"error",
+				{
+					props: true,
+					ignorePropertyModificationsFor: [
+						"acc", // for reduce accumulators
+					],
+				},
+			],
+
+			// disallow the use of the __proto__ property
+			// https://eslint.org/docs/latest/rules/no-proto
+			"no-proto": "error",
+
+			// disallow assignment operators in return statements
+			// https://eslint.org/docs/latest/rules/no-return-assign
+			"no-return-assign": ["error", "always"],
+
+			// disallow javascript: urls
+			// https://eslint.org/docs/latest/rules/no-script-url
+			"no-script-url": "error",
+
+			// disallow comparisons where both sides are exactly the same
+			// https://eslint.org/docs/latest/rules/no-self-compare
+			"no-self-compare": "error",
+
+			// disallow comma operators
+			// https://eslint.org/docs/latest/rules/no-sequences
+			"no-sequences": "error",
+
+			// disallow unnecessary concatenation of literals or template literals
+			// https://eslint.org/docs/latest/rules/no-useless-concat
+			"no-useless-concat": "error",
+
+			// disallow redundant return statements
+			// https://eslint.org/docs/latest/rules/no-useless-return
+			"no-useless-return": "error",
+
+			// disallow void operators
+			// https://eslint.org/docs/latest/rules/no-void
+			"no-void": "error",
+
+			// enforce sorted import declarations within modules
+			// https://eslint.org/docs/latest/rules/sort-imports
 			"sort-imports": ["error", { ignoreCase: true, ignoreDeclarationSort: true }],
 
-			// prefer type imports and exports
+			// disallow use of the RegExp constructor in favor of regular expression literals
+			// https://eslint.org/docs/latest/rules/prefer-regex-literals
+			"prefer-regex-literals": ["error", { disallowRedundantWrapping: true }],
+
+			// enforce the consistent use of the radix argument when using parseInt()
+			// https://eslint.org/docs/latest/rules/radix
+			radix: "error",
+
+			// require or disallow "Yoda" conditions
+			// https://eslint.org/docs/latest/rules/yoda
+			yoda: "error",
+
+			// enforce consistent usage of type exports
+			// https://typescript-eslint.io/rules/consistent-type-exports
 			"@typescript-eslint/consistent-type-exports": "error",
+
+			// enforce consistent usage of type imports
+			// https://typescript-eslint.io/rules/consistent-type-imports
 			"@typescript-eslint/consistent-type-imports": "error",
+
+			// enforce the use of top-level import type qualifier when an import only has specifiers with inline type qualifiers
+			// https://typescript-eslint.io/rules/no-import-type-side-effects
 			"@typescript-eslint/no-import-type-side-effects": "error",
 
-			// enforce consistent order of class members
+			// enforce default parameters to be last
+			// https://typescript-eslint.io/rules/default-param-last
+			"@typescript-eslint/default-param-last": "error",
+
+			// require a consistent member declaration order
+			// https://typescript-eslint.io/rules/member-ordering
 			"@typescript-eslint/member-ordering": "error",
 
-			// disallow parameter properties in favor of explicit class declarations
+			// disallow empty functions
+			// https://typescript-eslint.io/rules/no-empty-function
+			"@typescript-eslint/no-empty-function": [
+				"error",
+				{
+					allow: [
+						"arrowFunctions",
+						"functions",
+						"methods",
+						"private-constructors",
+						"protected-constructors",
+						"overrideMethods",
+					],
+				},
+			],
+
+			// disallow function declarations that contain unsafe references inside loop statements
+			// https://typescript-eslint.io/rules/no-loop-func
+			"@typescript-eslint/no-loop-func": "error",
+
+			// disallow throwing non-Error values as exceptions
+			// https://typescript-eslint.io/rules/only-throw-error
+			"@typescript-eslint/only-throw-error": "error",
+
+			// require or disallow parameter properties in class constructors
+			// https://typescript-eslint.io/rules/parameter-properties
 			"@typescript-eslint/parameter-properties": "error",
 		},
 	},
@@ -48,7 +212,9 @@ export default tseslint.config(
 			...tseslint.configs.stylisticTypeChecked,
 		],
 		rules: {
-			// ban ts-comment except with description
+			// disallow @ts-<directive> comments or require descriptions after directives
+			// override recommended rule defaults to force specific description syntax for ts-expect-error
+			// https://typescript-eslint.io/rules/ban-ts-comment
 			"@typescript-eslint/ban-ts-comment": [
 				"error",
 				{
@@ -59,13 +225,16 @@ export default tseslint.config(
 				},
 			],
 
-			// force explicit member accessibility modifiers
+			// require explicit accessibility modifiers on class properties and methods
+			// https://typescript-eslint.io/rules/explicit-member-accessibility
 			"@typescript-eslint/explicit-member-accessibility": "error",
 
-			// enforce return types on module boundaries
+			// require explicit return and argument types on exported functions' and classes' public class methods
+			// https://typescript-eslint.io/rules/explicit-module-boundary-types
 			"@typescript-eslint/explicit-module-boundary-types": "error",
 
-			// naming convention rules
+			// enforce naming conventions for everything across a codebase
+			// https://typescript-eslint.io/rules/naming-convention
 			"@typescript-eslint/naming-convention": [
 				"error",
 				// camelCase for everything not otherwise indicated
@@ -102,20 +271,24 @@ export default tseslint.config(
 				{ selector: "variable", format: ["camelCase", "UPPER_CASE"] },
 			],
 
-			// ban non-null assertions
+			// disallow non-null assertions using the ! postfix operator
+			// https://typescript-eslint.io/rules/no-non-null-assertion
 			"@typescript-eslint/no-non-null-assertion": "error",
 
+			// enforce using the nullish coalescing operator instead of logical assignments or chaining
 			// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
-			// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
+			// https://typescript-eslint.io/rules/prefer-nullish-coalescing
 			"@typescript-eslint/prefer-nullish-coalescing": [
 				"error",
 				{ ignorePrimitives: { boolean: true } },
 			],
 
-			// prefer readonly modifier for unmodified private properties
+			// require private members to be marked as readonly if they're never modified outside of the constructor
+			// https://typescript-eslint.io/rules/prefer-readonly
 			"@typescript-eslint/prefer-readonly": "error",
 
-			// disallow boolean comparisons against non-boolean values
+			// disallow certain types in boolean expressions
+			// https://typescript-eslint.io/rules/strict-boolean-expressions
 			"@typescript-eslint/strict-boolean-expressions": [
 				"error",
 				{ allowNullableBoolean: true },
