@@ -46,6 +46,10 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/eqeqeq
 			eqeqeq: ["error", "always", { null: "ignore" }],
 
+			// require or disallow named function expressions
+			// https://eslint.org/docs/latest/rules/func-names
+			"func-names": "warn",
+
 			// require grouped accessor pairs in object literals and classes
 			// https://eslint.org/docs/latest/rules/grouped-accessor-pairs
 			"grouped-accessor-pairs": "error",
@@ -58,9 +62,17 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/max-classes-per-file
 			"max-classes-per-file": ["error", 1],
 
+			// require constructor names to begin with a capital letter
+			// https://eslint.org/docs/latest/rules/new-cap
+			"new-cap": ["error", { newIsCap: true, capIsNew: false }],
+
 			// disallow await inside of loops
 			// https://eslint.org/docs/latest/rules/no-await-in-loop
 			"no-await-in-loop": "error",
+
+			// disallow bitwise operators
+			// https://eslint.org/docs/latest/rules/no-bitwise
+			"no-bitwise": "error",
 
 			// disallow use of arguments.caller or arguments.callee
 			// https://eslint.org/docs/latest/rules/no-caller
@@ -78,6 +90,10 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/no-constructor-return
 			"no-constructor-return": "error",
 
+			// disallow continue statements
+			// https://eslint.org/docs/latest/rules/no-continue
+			"no-continue": "error",
+
 			// disallow else blocks after return statements in if statements
 			// https://eslint.org/docs/latest/rules/no-else-return
 			"no-else-return": ["error", { allowElseIf: false }],
@@ -94,13 +110,29 @@ export default tseslint.config(
 			// https://eslint.org/docs/latest/rules/no-inner-declarations
 			"no-inner-declarations": "error",
 
+			// disallow labels that share a name with a variable
+			// https://eslint.org/docs/latest/rules/no-label-var
+			"no-label-var": "error",
+
 			// disallow use of labels for anything other than loops and switches
 			// https://eslint.org/docs/latest/rules/no-labels
 			"no-labels": ["error", { allowLoop: false, allowSwitch: false }],
 
+			// disallow if statements as the only statement in else blocks
+			// https://eslint.org/docs/latest/rules/no-lonely-if
+			"no-lonely-if": "error",
+
+			// disallow use of chained assignment expressions
+			// https://eslint.org/docs/latest/rules/no-multi-assign
+			"no-multi-assign": "error",
+
 			// disallow multiline strings
 			// https://eslint.org/docs/latest/rules/no-multi-str
 			"no-multi-str": "error",
+
+			// disallow nested ternary expressions
+			// https://eslint.org/docs/latest/rules/no-nested-ternary
+			"no-nested-ternary": "error",
 
 			// disallow new operators outside of assignments or comparisons
 			// https://eslint.org/docs/latest/rules/no-new
@@ -109,6 +141,10 @@ export default tseslint.config(
 			// disallow new operators with the String, Number, and Boolean objects
 			// https://eslint.org/docs/latest/rules/no-new-wrappers
 			"no-new-wrappers": "error",
+
+			// disallow calls to the Object constructor without an argument
+			// https://eslint.org/docs/latest/rules/no-object-constructor
+			"no-object-constructor": "error",
 
 			// disallow reassigning function parameters
 			// disallow parameter object manipulation except for specific exclusions
@@ -122,6 +158,10 @@ export default tseslint.config(
 					],
 				},
 			],
+
+			// disallow the unary operators ++ and --
+			// https://eslint.org/docs/latest/rules/no-plusplus
+			"no-plusplus": "error",
 
 			// disallow returning values from Promise executor functions
 			// https://eslint.org/docs/latest/rules/no-promise-executor-return
@@ -162,6 +202,14 @@ export default tseslint.config(
 			// disallow template literal placeholder syntax in regular strings
 			// https://eslint.org/docs/latest/rules/no-template-curly-in-string
 			"no-template-curly-in-string": "error",
+
+			// disallow initializing variables to undefined
+			// https://eslint.org/docs/latest/rules/no-undef-init
+			"no-undef-init": "error",
+
+			// disallow ternary operators when simpler alternatives exist
+			// https://eslint.org/docs/latest/rules/no-unneeded-ternary
+			"no-unneeded-ternary": ["error", { defaultAssignment: false }],
 
 			// disallow loops with a body that allows only one iteration
 			// https://eslint.org/docs/latest/rules/no-unreachable-loop
@@ -207,6 +255,10 @@ export default tseslint.config(
 				{ ignoreConstructors: false, avoidQuotes: true },
 			],
 
+			// this rule requires or disallows assignment operator shorthand where possible.
+			// https://eslint.org/docs/latest/rules/operator-assignment
+			"operator-assignment": "error",
+
 			// require using arrow functions for callbacks
 			// https://eslint.org/docs/latest/rules/prefer-arrow-callback
 			"prefer-arrow-callback": [
@@ -229,9 +281,17 @@ export default tseslint.config(
 				{ enforceForRenamedProperties: false },
 			],
 
+			// disallow the use of Math.pow in favor of the ** operator
+			// https://eslint.org/docs/latest/rules/prefer-exponentiation-operator
+			"prefer-exponentiation-operator": "error",
+
 			// disallow parseInt() and Number.parseInt() in favor of binary, octal, and hexadecimal literals
 			// https://eslint.org/docs/latest/rules/prefer-numeric-literals
 			"prefer-numeric-literals": "error",
+
+			// disallow using Object.assign with an object literal as the first argument and prefer the use of object spread instead
+			// https://eslint.org/docs/latest/rules/prefer-object-spread
+			"prefer-object-spread": "error",
 
 			// disallow use of the RegExp constructor in favor of regular expression literals
 			// https://eslint.org/docs/latest/rules/prefer-regex-literals
@@ -273,6 +333,10 @@ export default tseslint.config(
 			// https://typescript-eslint.io/rules/consistent-type-imports
 			"@typescript-eslint/consistent-type-imports": "error",
 
+			// disallow generic Array constructors
+			// https://typescript-eslint.io/rules/no-array-constructor
+			"@typescript-eslint/no-array-constructor": "error",
+
 			// enforce the use of top-level import type qualifier when an import only has specifiers with inline type qualifiers
 			// https://typescript-eslint.io/rules/no-import-type-side-effects
 			"@typescript-eslint/no-import-type-side-effects": "error",
@@ -304,6 +368,25 @@ export default tseslint.config(
 			// disallow function declarations that contain unsafe references inside loop statements
 			// https://typescript-eslint.io/rules/no-loop-func
 			"@typescript-eslint/no-loop-func": "error",
+
+			// disallow variable declarations from shadowing variables declared in the outer scope
+			// https://typescript-eslint.io/rules/no-shadow
+			"@typescript-eslint/no-shadow": "error",
+
+			// disallow unused variables
+			// override the ignoreRestSiblings default option to true
+			// https://typescript-eslint.io/rules/no-unused-vars
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{ vars: "all", args: "after-used", ignoreRestSiblings: true },
+			],
+
+			// disallow the use of variables before they are defined
+			// https://typescript-eslint.io/rules/no-use-before-define
+			"@typescript-eslint/no-use-before-define": [
+				"error",
+				{ functions: true, classes: true, variables: true },
+			],
 
 			// disallow unnecessary constructors
 			// https://typescript-eslint.io/rules/no-useless-constructor
