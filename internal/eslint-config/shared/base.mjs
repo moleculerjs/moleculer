@@ -7,10 +7,10 @@ import { jsGlobs } from "./globs.mjs";
 
 export default tseslint.config(
 	eslint.configs.recommended,
-	...tseslint.configs.recommended,
-	...tseslint.configs.stylistic,
-	importPlugin.flatConfigs.recommendedTypeChecked,
-	importPlugin.flatConfigs.stylisticTypeChecked,
+	...tseslint.configs.recommendedTypeChecked,
+	...tseslint.configs.stylisticTypeChecked,
+	importPlugin.flatConfigs.recommended,
+	importPlugin.flatConfigs.typescript,
 	{
 		languageOptions: {
 			parserOptions: {
