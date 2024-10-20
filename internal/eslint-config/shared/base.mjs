@@ -65,6 +65,43 @@ export default tseslint.config(
 			// enforce return types on module boundaries
 			"@typescript-eslint/explicit-module-boundary-types": "error",
 
+			// naming convention rules
+			"@typescript-eslint/naming-convention": [
+				"error",
+				// camelCase for everything not otherwise indicated
+				{ selector: "default", format: ["camelCase"] },
+				// allow any naming convention for imports
+				{ selector: "import", format: null },
+				// allow unused parameters and variables that are only underscores
+				{
+					selector: ["parameter", "variable"],
+					filter: { regex: "^_+$", match: true },
+					modifiers: ["unused"],
+					format: null,
+				},
+				// do not enforce format on property names
+				{ selector: "property", format: null },
+				{
+					selector: ["class", "enum", "interface", "typeAlias"],
+					format: ["PascalCase"],
+				},
+				// Generic type parameters in format of:
+				// - Starts with T
+				// - Followed by a capital letter
+				// - Followed by any number of lowercase or uppercase letters, but never more than one consecutive uppercase letter
+				// - Ends with a lowercase letter or number
+				{
+					selector: "typeParameter",
+					format: null,
+					custom: {
+						regex: "^T[A-Z](?:[a-z]+[A-Z])*[a-z\\d]+$",
+						match: true,
+					},
+				},
+				// allow variables to be camelCase or UPPER_CASE
+				{ selector: "variable", format: ["camelCase", "UPPER_CASE"] },
+			],
+
 			// ban non-null assertions
 			"@typescript-eslint/no-non-null-assertion": "error",
 
