@@ -20,7 +20,6 @@ export default tseslint.config(
 			eslint.configs.recommended,
 			...tseslint.configs.recommended,
 			...tseslint.configs.stylistic,
-			eslintConfigPrettier,
 		],
 		rules: {
 			// enforce return statements in callbacks of array methods
@@ -328,4 +327,5 @@ export default tseslint.config(
 			],
 		},
 	},
+	eslintConfigPrettier,
 );
