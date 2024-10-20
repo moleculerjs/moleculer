@@ -1,7 +1,7 @@
 {
   "extends": "@moleculer/tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "types": []
+    "types": ["node"]
   },
   "include": [
     // add all typechecked paths here
