@@ -11,3 +11,5 @@ benchmark/results
 .turbo
 # turborepo pruned folder
 out
+
+dist/

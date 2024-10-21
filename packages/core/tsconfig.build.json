@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    // add all typechecked paths here
+    "src/**/*" // source folder
+  ],
+  "exclude": ["**/*.test.ts", "**/__tests__/**"],
+  "compilerOptions": {
+    "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
+    "noEmit": false /* Do not emit outputs. */,
+    "outDir": "./dist"
+  }
+}
