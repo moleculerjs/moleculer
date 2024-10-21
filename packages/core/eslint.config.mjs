@@ -6,4 +6,14 @@ export default [
 		ignores: ["dist/**"],
 	},
 	...nodejsConfig,
+
+	// Override for example files
+	{
+		files: ["examples/**/*.{ts,js}"],
+		rules: {
+			"no-undef": "off",
+			"no-unused-vars": "off",
+			"no-console": "off",
+		},
+	},
 ];

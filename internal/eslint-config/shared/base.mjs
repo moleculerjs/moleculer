@@ -162,7 +162,7 @@ export default tseslint.config(
 
 			// disallow the unary operators ++ and --
 			// https://eslint.org/docs/latest/rules/no-plusplus
-			"no-plusplus": "error",
+			"no-plusplus": "off",
 
 			// disallow returning values from Promise executor functions
 			// https://eslint.org/docs/latest/rules/no-promise-executor-return
@@ -380,6 +380,7 @@ export default tseslint.config(
 					selector: ["class", "enum", "interface", "typeAlias"],
 					format: ["PascalCase"],
 				},
+				{ selector: "enumMember", format: ["UPPER_CASE"] },
 				// Generic type parameters in format of:
 				// - Starts with T
 				// - Followed by a capital letter

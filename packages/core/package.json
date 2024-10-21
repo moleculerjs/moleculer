@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
+    "dev": "tsx watch examples/broker/create-broker.ts",
     "format": "prettier . --ignore-unknown --check",
     "format:fix": "prettier . --ignore-unknown --write",
     "lint": "TIMING=1 eslint ."
@@ -36,6 +37,8 @@
     "@moleculer/eslint-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
     "eslint": "catalog:",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.1"
   }
 }
