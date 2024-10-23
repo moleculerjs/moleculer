@@ -26,11 +26,11 @@ class MyNativeService extends Service {
 
 async function start() {
 	const broker = new ServiceBroker({ namespace: "my-namespace" });
-	assert(broker.getLocalServiceCount() === 0, "Invalid services length");
+	assert(broker.getLocalServiceCount() === 0, "Invalid services length (0)");
 
 	const myNativeService = new MyNativeService();
 	await broker.loadService(myNativeService);
-	assert(broker.getLocalServiceCount() === 1, "Invalid services length");
+	assert(broker.getLocalServiceCount() === 1, "Invalid services length (1)");
 	assert(
 		broker.getLocalService("my-native-service") === myNativeService,
 		"Not found service by name",
@@ -44,9 +44,8 @@ async function start() {
 		"Found service by version but it has no version",
 	);
 
-	/*await broker.createService({
-
-	})*/
+	await broker.createService({ name: "posts" });
+	assert(broker.getLocalServiceCount() === 2, "Invalid services length (2)");
 
 	assert(broker.state === BrokerState.CREATED, "Wrong broker state");
 	await broker.start();

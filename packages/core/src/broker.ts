@@ -107,8 +107,13 @@ export class ServiceBroker {
 	 * @returns Instance of the created service
 	 */
 	public async createService(schema: ServiceSchema): Promise<Service> {
-		// Create a new service instance based on schema
-		return Promise.resolve(Service.createFromSchema(schema));
+		// Create from schema
+		const svc = Service.createFromSchema(schema);
+
+		// Load the service
+		await this.loadService(svc);
+
+		return svc;
 	}
 
 	/**
@@ -120,6 +125,10 @@ export class ServiceBroker {
 		if (isString(service)) {
 			// Load a service from a file
 		} else if (service instanceof Service) {
+			this.logger.debug(`Service '${service.fullName}' is creating...`);
+			await service.init(this);
+			this.logger.debug(`Service '${service.fullName}' created.`);
+
 			// Load a service instance
 			this.services.push(service);
 		} else {
@@ -183,7 +192,13 @@ export class ServiceBroker {
 		this.serviceStarting = true;
 
 		let shouldFatal = false;
-		const res = await Promise.allSettled(this.services.map((service) => service.start(this)));
+		const res = await Promise.allSettled(
+			this.services.map(async (svc) => {
+				this.logger.debug(`Service '${svc.fullName}' is starting...`);
+				await svc.start();
+				this.logger.debug(`Service '${svc.fullName}' started.`);
+			}),
+		);
 		for (const item of res) {
 			if (item.status === "rejected") {
 				this.logger.error("Unable to start service", item.reason);
@@ -221,7 +236,13 @@ export class ServiceBroker {
 
 			await this.callMiddlewareHook("stopping", [this], { reverse: true });
 
-			const res = await Promise.allSettled(this.services.map((service) => service.stop()));
+			const res = await Promise.allSettled(
+				this.services.map(async (svc) => {
+					this.logger.debug(`Service '${svc.fullName}' is stopping...`);
+					await svc.stop();
+					this.logger.debug(`Service '${svc.fullName}' stopped.`);
+				}),
+			);
 			for (const item of res) {
 				if (item.status === "rejected") {
 					this.logger.error("Unable to stop service", item.reason);
@@ -262,7 +283,7 @@ export class ServiceBroker {
 	 * Graceful stop function, It is called from process SIG... events
 	 */
 	private brokerClose(): void {
-		if (this.state === BrokerState.STOPPING || this.state === BrokerState.STOPPED) {
+		if ([BrokerState.CREATED, BrokerState.STOPPING, BrokerState.STOPPED].includes(this.state)) {
 			return;
 		}
 

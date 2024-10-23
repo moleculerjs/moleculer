@@ -1,6 +1,8 @@
+import type { Nullable } from "./helperTypes";
+
 export interface ServiceSchema {
 	name: string;
-	version: string;
+	version?: Nullable<string>;
 	// metadata?: Record<string, unknown>;
 	// settings?: Record<string, unknown>;
 	// actions?: Record<string, unknown>;
