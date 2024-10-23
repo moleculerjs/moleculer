@@ -6,6 +6,6 @@ export abstract class MoleculerComponent {
 	public init(broker: ServiceBroker): void {
 		this.broker = broker;
 	}
-	public abstract started(broker: ServiceBroker): Promise<void>;
-	public abstract stopped(broker: ServiceBroker): Promise<void>;
+	// public abstract started(broker: ServiceBroker): Promise<void>;
+	// public abstract stopped(broker: ServiceBroker): Promise<void>;
 }

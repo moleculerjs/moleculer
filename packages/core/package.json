@@ -3,9 +3,18 @@
   "version": "1.0.0-alpha.1",
   "description": "Core package of Moleculer framework",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      }
+    }
+  },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "dev": "tsx watch examples/broker/create-broker.ts",
+    "dev": "tsx watch examples/index.ts",
     "format": "prettier . --ignore-unknown --check",
     "format:fix": "prettier . --ignore-unknown --write",
     "lint": "TIMING=1 eslint ."
@@ -13,6 +22,7 @@
   "keywords": [
     "microservice",
     "microservices",
+    "moleculer",
     "framework",
     "backend",
     "messagebus",

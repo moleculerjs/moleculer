@@ -2,7 +2,8 @@ import os from "node:os";
 import pkg from "../package.json";
 import type { BrokerOptions } from "./brokerOptions";
 import { Service } from "./service";
-import { generateUUID } from "./utils";
+import type { ServiceSchema } from "./serviceSchema";
+import { generateUUID, isPlainObject, isString } from "./utils";
 
 export enum BrokerState {
 	CREATED = 1,
@@ -38,7 +39,8 @@ export class ServiceBroker {
 	// Store local service instances
 	protected services: Service[];
 
-	// Service starting flag
+	// Service starting flag. It's need when a service load another service in started
+	// handler beccause in this case we should start the newly loaded service as well.
 	private serviceStarting = false;
 
 	/**
@@ -99,14 +101,14 @@ export class ServiceBroker {
 	}
 
 	/**
-	 * Create a local services based on ServiceSchema
+	 * Create a local service based on ServiceSchema
 	 *
 	 * @param schema Service schema
 	 * @returns Instance of the created service
 	 */
-	public async createService(schema: Service): Promise<Service> {
+	public async createService(schema: ServiceSchema): Promise<Service> {
 		// Create a new service instance based on schema
-		return Promise.resolve(new Service(schema.name));
+		return Promise.resolve(Service.createFromSchema(schema));
 	}
 
 	/**
@@ -115,13 +117,55 @@ export class ServiceBroker {
 	 * @param service file path or service instance
 	 */
 	public async loadService(service: Service | string): Promise<void> {
-		if (typeof service === "string") {
+		if (isString(service)) {
 			// Load a service from a file
-		} else {
+		} else if (service instanceof Service) {
 			// Load a service instance
+			this.services.push(service);
+		} else {
+			this.logger.error(
+				"Invalid parameter type for loadService. It accepts only Service instance of string",
+				{ type: typeof service },
+			);
 		}
 
 		return Promise.resolve();
+	}
+
+	/**
+	 * Find a local service instace by name or name+version object.
+	 *
+	 * Example:
+	 * 	broker.getLocalService("v2.posts");
+	 * 	broker.getLocalService({ name: "posts", version: 2 });
+	 * 	broker.getLocalService({ name: "posts" });
+	 *
+	 * @param name
+	 * @returns
+	 */
+	public getLocalService(
+		name: string | { name: string; version?: string | number },
+	): Service | undefined {
+		if (isString(name)) {
+			return this.services.find((service) => service.fullName === name);
+		}
+		if (isPlainObject(name)) {
+			return this.services.find(
+				// eslint-disable-next-line eqeqeq
+				(service) => service.name === name.name && service.version == name.version,
+			);
+		}
+
+		return undefined;
+	}
+
+	/**
+	 * Return the number of loaded local services.
+	 *
+	 * @returns
+	 */
+	public getLocalServiceCount(): number {
+		return this.services.length;
 	}
 
 	/**
@@ -133,20 +177,26 @@ export class ServiceBroker {
 		this.state = BrokerState.STARTING;
 		await this.callMiddlewareHook("starting", [this]);
 
-		// TODO: await transporter.connect();
+		// TODO: await this.transporter.connect();
 
 		// Start services
 		this.serviceStarting = true;
 
-		try {
-			await Promise.all(this.services.map((service) => service.init(this)));
-		} catch (err) {
-			this.logger.error("Error while starting services", err);
+		let shouldFatal = false;
+		const res = await Promise.allSettled(this.services.map((service) => service.start(this)));
+		for (const item of res) {
+			if (item.status === "rejected") {
+				this.logger.error("Unable to start service", item.reason);
+				shouldFatal = true;
+			}
+		}
+		if (shouldFatal) {
+			this.fatal("Some services are unable to start.", null, true);
 		}
 
 		this.serviceStarting = false;
 
-		// TODO: await transporter.ready();
+		// TODO: await this.transporter.ready();
 
 		this.state = BrokerState.STARTED;
 		await this.callMiddlewareHook("started", [this]);
@@ -171,10 +221,11 @@ export class ServiceBroker {
 
 			await this.callMiddlewareHook("stopping", [this], { reverse: true });
 
-			try {
-				await Promise.all(this.services.map((service) => service.stop()));
-			} catch (err) {
-				this.logger.error("Error while stopping services", err);
+			const res = await Promise.allSettled(this.services.map((service) => service.stop()));
+			for (const item of res) {
+				if (item.status === "rejected") {
+					this.logger.error("Unable to stop service", item.reason);
+				}
 			}
 
 			// TODO: await transporter.disconnect();
@@ -208,7 +259,7 @@ export class ServiceBroker {
 	}
 
 	/**
-	 * Graceful stop function
+	 * Graceful stop function, It is called from process SIG... events
 	 */
 	private brokerClose(): void {
 		if (this.state === BrokerState.STOPPING || this.state === BrokerState.STOPPED) {

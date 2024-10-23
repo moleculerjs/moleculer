@@ -24,3 +24,29 @@ export function generateUUID(): string {
 		lut[(d2 >> 24) & 0xff]
 	}${lut[d3 & 0xff]}${lut[(d3 >> 8) & 0xff]}${lut[(d3 >> 16) & 0xff]}${lut[(d3 >> 24) & 0xff]}`;
 }
+
+export function isFunction(fn: unknown): boolean {
+	return typeof fn === "function";
+}
+
+export function isString(s: unknown): s is string {
+	return typeof s === "string" || s instanceof String;
+}
+
+export function isObject(o: unknown): o is object {
+	return o !== null && typeof o === "object" && !(o instanceof String);
+}
+
+export function isPlainObject(o: unknown): o is object {
+	return o != null
+		? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null
+		: false;
+}
+
+export function isDate(d: unknown): d is Date {
+	return d instanceof Date && !Number.isNaN(d.getTime());
+}
+
+export function flatten<TArr>(arr: TArr[]): TArr[] {
+	return arr.reduce((a, b) => a.concat(b), [] as TArr[]);
+}

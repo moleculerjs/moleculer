@@ -1,13 +1,13 @@
 import type { ServiceBroker } from "./broker";
-import { MoleculerComponent } from "./moleculerComponent";
 
-export class Service extends MoleculerComponent {
+export class Service {
 	public name: string;
 	public version?: string | number;
 	public fullName: string;
 
+	protected broker!: ServiceBroker;
+
 	public constructor(name: string, version?: string) {
-		super();
 		this.name = name;
 		this.version = version;
 		this.fullName = Service.getVersionedFullName(name, version);
@@ -23,19 +23,12 @@ export class Service extends MoleculerComponent {
 		return name;
 	}
 
-	public override init(broker: ServiceBroker): void {
-		super.init(broker);
+	public async start(broker: ServiceBroker): Promise<void> {
+		this.broker = broker;
+		return Promise.resolve();
 	}
 
 	public async stop(): Promise<void> {
-		return Promise.resolve();
-	}
-
-	public override async started(): Promise<void> {
-		return Promise.resolve();
-	}
-
-	public override async stopped(): Promise<void> {
 		return Promise.resolve();
 	}
 }
