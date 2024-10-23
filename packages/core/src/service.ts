@@ -9,6 +9,9 @@ export class Service {
 	public version: ServiceVersion;
 	public fullName: string;
 
+	public metadata: Record<string, unknown> = {};
+	public settings: Record<string, unknown> = {};
+
 	protected broker!: ServiceBroker;
 
 	public constructor(name: string, version?: ServiceVersion) {
@@ -34,6 +37,8 @@ export class Service {
 				schema,
 			);
 		const svc = new Service(schema.name, schema.version);
+
+		if (schema.metadata) svc.metadata = schema.metadata;
 
 		return svc;
 	}
