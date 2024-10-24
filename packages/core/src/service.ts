@@ -6,6 +6,11 @@ import { isFunction } from "./utils";
 
 export type ServiceVersion = string | number | null;
 
+export type ServiceLocalActionHandler = (
+	params?: Record<string, unknown>,
+	opts?: unknown,
+) => Promise<unknown>;
+
 export class Service {
 	public name: string;
 	public version: ServiceVersion;
@@ -15,6 +20,9 @@ export class Service {
 
 	public metadata: Record<string, unknown> = {};
 	public settings: Record<string, unknown> = {};
+
+	protected actions: Record<string, ServiceLocalActionHandler> = {};
+	protected events: Record<string, unknown> = {};
 
 	protected broker!: ServiceBroker;
 	protected logger!: Console;
@@ -40,7 +48,7 @@ export class Service {
 		return name;
 	}
 
-	public static createFromSchema(schema: ServiceSchema): Service {
+	public static createFromSchema(schema: ServiceSchema, broker: ServiceBroker): Service {
 		if (!schema.name)
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Is it not a service schema?",
@@ -52,17 +60,30 @@ export class Service {
 		if (schema.metadata) svc.metadata = _.cloneDeep(schema.metadata);
 		if (schema.settings) svc.settings = _.cloneDeep(schema.settings);
 
+		if (schema.methods) {
+			for (const key in schema.methods) {
+				if (isFunction(schema.methods[key])) {
+					svc[key] = broker.wrapMiddlewareHandler("localMethod", schema.methods[key]);
+				}
+			}
+		}
+
 		return svc;
 	}
 
 	public async init(broker: ServiceBroker): Promise<void> {
 		this.broker = broker;
-		this.logger = broker.logger;
+		this.logger = broker.getLogger(this.fullName, {
+			svc: this.name,
+			ver: this.version,
+		});
 
 		if (this.schema.created) {
 			if (isFunction(this.schema.created)) {
 				await this.schema.created.call(this);
 			}
+
+			// TODO: Handle if array
 		}
 	}
 
@@ -71,6 +92,8 @@ export class Service {
 			if (isFunction(this.schema.started)) {
 				await this.schema.started.call(this);
 			}
+
+			// TODO: Handle if array
 		}
 	}
 
@@ -79,6 +102,8 @@ export class Service {
 			if (isFunction(this.schema.stopped)) {
 				await this.schema.stopped.call(this);
 			}
+
+			// TODO: Handle if array
 		}
 	}
 }

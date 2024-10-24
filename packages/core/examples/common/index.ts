@@ -17,14 +17,17 @@ class MyNativeService extends Service {
 
 	public constructor() {
 		super("my-native-service");
+		this.settings.a = 7;
 	}
 
 	public override async init(broker: ServiceBroker): Promise<void> {
 		await super.init(broker);
 
+		const region = this.uppercase(this.metadata.region);
 		this.broker.logger.info(
-			`${this.fullName} service initialized. settings.a: ${this.settings.a}, metadata.region: ${this.metadata.region}`,
+			`${this.fullName} service initialized. settings.a: ${this.settings.a}, metadata.region: ${region}`,
 		);
+		// this.schema.settings.a;
 
 		return Promise.resolve();
 	}
@@ -42,6 +45,10 @@ class MyNativeService extends Service {
 
 		this.broker.logger.info(`${this.fullName} service stopped.`);
 		return Promise.resolve();
+	}
+
+	private uppercase(str: string): string {
+		return str.toUpperCase();
 	}
 }
 
@@ -71,6 +78,7 @@ async function start() {
 	await broker.createService({
 		name: "posts",
 		version: 2,
+
 		metadata: {
 			region: "us-west",
 			zone: "b",
@@ -81,21 +89,31 @@ async function start() {
 			b: "Test2",
 		},
 
+		methods: {
+			uppercase(str: string): string {
+				return str.toUpperCase();
+			},
+		},
+
 		created() {
-			this.logger.info(`??? Service '${this.fullName}' created is called.`);
-			this.logger.info(
-				`??? settings.a: ${this.settings.a}, metadata.region: ${this.metadata.region}`,
-			);
+			assert(this.name === "posts", "Wrong service name");
+			assert(this.version === 2, "Wrong service version");
+			assert(this.fullName === "v2.posts", "Wrong service fullName");
+
+			this.logger.info(`??? '${this.fullName}' created is called.`);
+			const region = this.uppercase(this.metadata.region);
+
+			this.logger.info(`??? settings.a: ${this.settings.a}, metadata.region: ${region}`);
 			return Promise.resolve();
 		},
 
 		started() {
-			this.logger.info(`??? Service '${this.fullName}' started is called.`);
+			this.logger.info(`??? '${this.fullName}' started is called.`);
 			return Promise.resolve();
 		},
 
 		stopped() {
-			this.logger.info(`??? Service '${this.fullName}' stopped is called.`);
+			this.logger.info(`??? '${this.fullName}' stopped is called.`);
 			return Promise.resolve();
 		},
 	});
@@ -108,7 +126,13 @@ async function start() {
 	assert(broker.namespace === "my-namespace", "Invalid namespace");
 	assert(!!broker.instanceID, "Missing instanceID");
 	assert(!!broker.nodeID, "Missing nodeID");
-	console.log("Broker started. Node ID:", broker.nodeID, "InstanceID:", broker.instanceID);
+	console.log(
+		"Broker started. Node ID:",
+		broker.nodeID,
+		", InstanceID:",
+		broker.instanceID,
+		`, Version: ${broker.MOLECULER_VERSION}`,
+	);
 
 	// --- STOP BROKER ---
 	await broker.stop();

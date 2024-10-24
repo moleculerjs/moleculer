@@ -2,7 +2,7 @@ import os from "node:os";
 import pkg from "../package.json";
 import type { BrokerOptions } from "./brokerOptions";
 import { Service } from "./service";
-import type { ServiceSchema } from "./serviceSchema";
+import type { ServiceDependencies, ServiceSchema } from "./serviceSchema";
 import { generateUUID, isPlainObject, isString } from "./utils";
 
 export enum BrokerState {
@@ -16,6 +16,9 @@ export enum BrokerState {
 const MOLECULER_VERSION = pkg.version;
 
 export class ServiceBroker {
+	public static MOLECULER_VERSION = MOLECULER_VERSION;
+	public MOLECULER_VERSION = MOLECULER_VERSION;
+
 	// Broker options
 	public options: BrokerOptions;
 
@@ -101,6 +104,14 @@ export class ServiceBroker {
 	}
 
 	/**
+	 * TODO:
+	 * @returns
+	 */
+	public getLogger(name: string, bindings?: Record<string, unknown>): Console {
+		return this.logger;
+	}
+
+	/**
 	 * Create a local service based on ServiceSchema
 	 *
 	 * @param schema Service schema
@@ -108,7 +119,7 @@ export class ServiceBroker {
 	 */
 	public async createService(schema: ServiceSchema): Promise<Service> {
 		// Create from schema
-		const svc = Service.createFromSchema(schema);
+		const svc = Service.createFromSchema(schema, this);
 
 		// Load the service
 		await this.loadService(svc);
@@ -179,6 +190,21 @@ export class ServiceBroker {
 	 */
 	public getLocalServiceCount(): number {
 		return this.services.length;
+	}
+
+	/**
+	 * TODO:
+	 *
+	 * @param serviceNames
+	 * @param timeout
+	 * @param interval
+	 */
+	public async waitForServices(
+		serviceNames: ServiceDependencies,
+		timeout?: number,
+		interval?: number,
+	): Promise<void> {
+		return Promise.reject(new Error("Method not implemented yet."));
 	}
 
 	/**
@@ -275,6 +301,14 @@ export class ServiceBroker {
 		);
 	}
 
+	/**
+	 * TODO:
+	 *
+	 * @param hookName
+	 * @param args
+	 * @param options
+	 * @returns
+	 */
 	public callMiddlewareHook(
 		hookName: string,
 		args: unknown[],
@@ -283,12 +317,35 @@ export class ServiceBroker {
 		return Promise.resolve();
 	}
 
+	/**
+	 * TODO:
+	 *
+	 * @param hookName
+	 * @param args
+	 * @param options
+	 */
 	public callMiddlewareHookSync(
 		hookName: string,
 		args: unknown[],
 		options: { reverse: boolean } = { reverse: false },
 	): void {
 		// Do nothing
+	}
+
+	/**
+	 * TODO:
+	 *
+	 * @param hookName
+	 * @param handler
+	 * @param def
+	 * @returns
+	 */
+	public wrapMiddlewareHandler<THandler extends (...args: unknown[]) => unknown>(
+		hookName: string,
+		handler: THandler,
+		def?: Record<string, unknown>,
+	): THandler {
+		return handler;
 	}
 
 	/**

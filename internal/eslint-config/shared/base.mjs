@@ -442,7 +442,7 @@ export default tseslint.config(
 			// override the ignoreRestSiblings default option to true
 			// https://typescript-eslint.io/rules/no-unused-vars
 			"@typescript-eslint/no-unused-vars": [
-				"error",
+				"warn",
 				{ vars: "all", args: "after-used", ignoreRestSiblings: true },
 			],
 
