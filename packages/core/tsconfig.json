@@ -1,7 +1,7 @@
 {
   "extends": "@moleculer/tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "types": ["node"],
+    "types": ["node", "lodash"],
     "resolveJsonModule": true
   },
   "include": [

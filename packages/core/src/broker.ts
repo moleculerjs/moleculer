@@ -126,7 +126,11 @@ export class ServiceBroker {
 			// Load a service from a file
 		} else if (service instanceof Service) {
 			this.logger.debug(`Service '${service.fullName}' is creating...`);
+			await this.callMiddlewareHook("serviceCreating", [service]);
+
 			await service.init(this);
+
+			await this.callMiddlewareHook("serviceCreated", [service]);
 			this.logger.debug(`Service '${service.fullName}' created.`);
 
 			// Load a service instance
@@ -195,7 +199,11 @@ export class ServiceBroker {
 		const res = await Promise.allSettled(
 			this.services.map(async (svc) => {
 				this.logger.debug(`Service '${svc.fullName}' is starting...`);
+				await this.callMiddlewareHook("serviceStarting", [svc]);
+
 				await svc.start();
+
+				await this.callMiddlewareHook("serviceStarted", [svc]);
 				this.logger.debug(`Service '${svc.fullName}' started.`);
 			}),
 		);
@@ -239,7 +247,11 @@ export class ServiceBroker {
 			const res = await Promise.allSettled(
 				this.services.map(async (svc) => {
 					this.logger.debug(`Service '${svc.fullName}' is stopping...`);
+					await this.callMiddlewareHook("serviceStopping", [svc]);
+
 					await svc.stop();
+
+					await this.callMiddlewareHook("serviceStopped", [svc]);
 					this.logger.debug(`Service '${svc.fullName}' stopped.`);
 				}),
 			);

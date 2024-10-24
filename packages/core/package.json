@@ -46,9 +46,13 @@
   "devDependencies": {
     "@moleculer/eslint-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
+    "@types/lodash": "^4.17.12",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }

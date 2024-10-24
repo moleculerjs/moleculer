@@ -31,5 +31,6 @@
     "monorepoWorkspace.folders.regex.apps": "app",
     "monorepoWorkspace.folders.regex.tools": "internal",
     "monorepoWorkspace.folders.prefix.tools": "🛠️ ",
+    "javascript.suggest.autoImports": true,
   },
 }
