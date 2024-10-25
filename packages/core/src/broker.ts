@@ -117,7 +117,9 @@ export class ServiceBroker {
 	 * @param schema Service schema
 	 * @returns Instance of the created service
 	 */
-	public async createService(schema: ServiceSchema): Promise<Service> {
+	public async createService(
+		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>, unknown>,
+	): Promise<Service> {
 		// Create from schema
 		const svc = Service.createFromSchema(schema, this);
 

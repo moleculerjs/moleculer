@@ -13,6 +13,12 @@ export interface ServiceDependencyItem {
 	version?: string | number;
 }
 
+type ServiceThis<
+	TMetadata extends Record<string, unknown>,
+	TSettings extends Record<string, unknown>,
+	TMethods,
+> = TMethods & Service<TMetadata, TSettings>;
+
 export type ServiceDependencies =
 	| string
 	| ServiceDependencyItem
@@ -30,9 +36,9 @@ export interface ServiceSchema<
 	dependencies?: ServiceDependencies;
 	// actions?: Record<string, unknown>;
 	// events?: Record<string, unknown>;
-	methods?: TMethods & ThisType<TMethods & Service<TMetadata, TSettings>>;
+	methods?: TMethods & ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;
 
-	created?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
-	started?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
-	stopped?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
+	created?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
+	started?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
+	stopped?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
 }
