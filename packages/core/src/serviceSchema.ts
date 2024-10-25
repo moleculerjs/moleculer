@@ -57,37 +57,23 @@ export interface ActionDefinition<TParams extends ParameterSchema> {
 }
 
 interface ParameterObject {
-	type: keyof TParamTypes;
+	type: ParamTypes;
 }
 
-type ParameterSchema = Record<string, keyof TParamTypes | ParameterObject>;
-declare function defineAction<TParams extends ParameterSchema>(
-	def: ActionDefinition<TParams>,
-): unknown;
-
-const a = defineAction({
-	params: {
-		name: "string",
-		age: "number",
-		status: "boolean",
-		city: { type: "string" },
-	},
-	handler(ctx) {
-		return `Hello ${ctx.params.name} ${ctx.params.age * 2} ${ctx.params.status ? "Active" : "Inactive"} ${ctx.params.city}!`;
-	},
-});
+export type ParameterSchema = Record<string, ParamTypes | ParameterObject>;
 
 export interface ServiceSchema<
 	TMetadata extends Record<string, unknown>,
 	TSettings extends Record<string, unknown>,
 	TMethods,
+	TParams extends ParameterSchema,
 > {
 	name: string;
 	version?: ServiceVersion;
 	metadata?: TMetadata;
 	settings?: TSettings;
 	dependencies?: ServiceDependencies;
-	actions?: Record<string, ActionDefinition<unknown> | ActionHandler<unknown>> &
+	actions?: Record<string, ActionDefinition<TParams> | ActionHandler<TParams>> &
 		ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;
 	// events?: Record<string, unknown>;
 	methods?: TMethods & ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;

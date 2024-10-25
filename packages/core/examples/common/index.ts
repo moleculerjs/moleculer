@@ -95,8 +95,16 @@ async function start() {
 				hello: {
 					params: {
 						name: "string",
+						age: "number",
+						active: { type: "boolean" },
+						city: { type: "string" },
 					},
 					handler(ctx): string {
+						assert(ctx.params.name === "John", "Invalid name");
+						assert(ctx.params.age === 25, "Invalid age");
+						assert(ctx.params.active === true, "Invalid active");
+						assert(ctx.params.city === "NY", "Invalid city");
+
 						return `Hello ${this.uppercase(ctx.params.name)}!`;
 					},
 				},

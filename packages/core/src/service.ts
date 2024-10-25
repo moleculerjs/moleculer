@@ -2,7 +2,7 @@ import _ from "lodash";
 import type { ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
 import type { Nullable } from "./helperTypes";
-import type { ServiceSchema } from "./serviceSchema";
+import type { ParameterSchema, ServiceSchema } from "./serviceSchema";
 import { isFunction } from "./utils";
 
 export type ServiceVersion = Nullable<string | number>;
@@ -23,7 +23,7 @@ export class Service<
 	public version: ServiceVersion;
 	public fullName: string;
 
-	public schema!: ServiceSchema<TMetadata, TSettings, unknown>;
+	public schema!: ServiceSchema<TMetadata, TSettings, unknown, unknown>;
 
 	public metadata: TMetadata = {} as TMetadata;
 	public settings: TSettings = {} as TSettings;
@@ -56,8 +56,9 @@ export class Service<
 		TMetadata extends Record<string, unknown>,
 		TSettings extends Record<string, unknown>,
 		TMethods,
+		TParams extends ParameterSchema,
 	>(
-		schema: ServiceSchema<TMetadata, TSettings, TMethods>,
+		schema: ServiceSchema<TMetadata, TSettings, TMethods, TParams>,
 		broker: ServiceBroker,
 	): Service<TMetadata, TSettings> & TMethods {
 		if (!schema.name)
