@@ -1,31 +1,35 @@
 import _ from "lodash";
 import type { ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
+import type { Nullable } from "./helperTypes";
 import type { ServiceSchema } from "./serviceSchema";
 import { isFunction } from "./utils";
 
-export type ServiceVersion = string | number | null;
+export type ServiceVersion = Nullable<string | number>;
 
 export type ServiceLocalActionHandler = (
 	params?: Record<string, unknown>,
 	opts?: unknown,
 ) => Promise<unknown>;
 
-export class Service {
+export class Service<
+	TMetadata extends Record<string, unknown> = Record<string, unknown>,
+	TSettings extends Record<string, unknown> = Record<string, unknown>,
+> {
+	public broker!: ServiceBroker;
+	public logger!: Console;
+
 	public name: string;
 	public version: ServiceVersion;
 	public fullName: string;
 
-	public schema!: ServiceSchema;
+	public schema!: ServiceSchema<TMetadata, TSettings, unknown>;
 
-	public metadata: Record<string, unknown> = {};
-	public settings: Record<string, unknown> = {};
+	public metadata: TMetadata = {} as TMetadata;
+	public settings: TSettings = {} as TSettings;
 
 	protected actions: Record<string, ServiceLocalActionHandler> = {};
 	protected events: Record<string, unknown> = {};
-
-	protected broker!: ServiceBroker;
-	protected logger!: Console;
 
 	public constructor(name: string, version?: ServiceVersion) {
 		this.name = name;
@@ -48,17 +52,24 @@ export class Service {
 		return name;
 	}
 
-	public static createFromSchema(schema: ServiceSchema, broker: ServiceBroker): Service {
+	public static createFromSchema<
+		TMetadata extends Record<string, unknown>,
+		TSettings extends Record<string, unknown>,
+		TMethods,
+	>(
+		schema: ServiceSchema<TMetadata, TSettings, TMethods>,
+		broker: ServiceBroker,
+	): Service<TMetadata, TSettings> & TMethods {
 		if (!schema.name)
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Is it not a service schema?",
 				schema,
 			);
-		const svc = new Service(schema.name, schema.version);
+		const svc = new Service<TMetadata, TSettings>(schema.name, schema.version);
 		svc.schema = schema;
 
-		if (schema.metadata) svc.metadata = _.cloneDeep(schema.metadata);
-		if (schema.settings) svc.settings = _.cloneDeep(schema.settings);
+		if (schema.metadata != null) svc.metadata = _.cloneDeep(schema.metadata);
+		if (schema.settings != null) svc.settings = _.cloneDeep(schema.settings);
 
 		if (schema.methods) {
 			for (const key in schema.methods) {
@@ -68,7 +79,7 @@ export class Service {
 			}
 		}
 
-		return svc;
+		return svc as Service<TMetadata, TSettings> & TMethods;
 	}
 
 	public async init(broker: ServiceBroker): Promise<void> {

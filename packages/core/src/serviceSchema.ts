@@ -1,7 +1,6 @@
-import type { Nullable } from "./helperTypes";
 import type { Service, ServiceVersion } from "./service";
 
-export type ServiceSchemaLifecycleHandler = (this: Service) => Promise<void>;
+export type ServiceSchemaLifecycleHandler<TThis> = (this: TThis) => Promise<void>;
 
 export interface ServiceSchemaInternalSettings {
 	$dependencyTimeout?: number;
@@ -19,16 +18,21 @@ export type ServiceDependencies =
 	| ServiceDependencyItem
 	| (string | ServiceDependencyItem)[];
 
-export interface ServiceSchema<TSettings = Record<string, unknown>> {
+export interface ServiceSchema<
+	TMetadata extends Record<string, unknown>,
+	TSettings extends Record<string, unknown>,
+	TMethods,
+> {
 	name: string;
-	version?: Nullable<ServiceVersion>;
-	metadata?: Record<string, unknown>;
+	version?: ServiceVersion;
+	metadata?: TMetadata;
 	settings?: TSettings;
 	dependencies?: ServiceDependencies;
 	// actions?: Record<string, unknown>;
 	// events?: Record<string, unknown>;
-	methods?: Record<string, (...args: unknown[]) => unknown>;
-	created?: ServiceSchemaLifecycleHandler;
-	started?: ServiceSchemaLifecycleHandler;
-	stopped?: ServiceSchemaLifecycleHandler;
+	methods?: TMethods & ThisType<TMethods & Service<TMetadata, TSettings>>;
+
+	created?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
+	started?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
+	stopped?: ServiceSchemaLifecycleHandler<TMethods & Service<TMetadata, TSettings>>;
 }

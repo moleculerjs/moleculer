@@ -75,48 +75,55 @@ async function start() {
 	);
 
 	// --- CREATE SERVICE FROM SCHEMA ---
-	await broker.createService({
-		name: "posts",
-		version: 2,
+	const svc = Service.createFromSchema(
+		{
+			name: "posts",
+			version: 2,
 
-		metadata: {
-			region: "us-west",
-			zone: "b",
-			cluster: false,
-		},
-		settings: {
-			a: 10,
-			b: "Test2",
-		},
+			metadata: {
+				region: "us-west",
+				zone: "b",
+				cluster: false,
+			},
+			settings: {
+				a: 10,
+				b: "Test2",
+			},
 
-		methods: {
-			uppercase(str: string): string {
-				return str.toUpperCase();
+			methods: {
+				uppercase(str: string): string {
+					console.log(this.name, this.version, this.settings.a, this.metadata.region);
+					return str.toUpperCase();
+				},
+			},
+
+			created() {
+				assert(this.name === "posts", "Wrong service name");
+				assert(this.version === 2, "Wrong service version");
+				assert(this.fullName === "v2.posts", "Wrong service fullName");
+
+				this.logger.info(`>>> '${this.fullName}' created is called.`);
+				const region = this.uppercase(this.metadata.region);
+
+				this.logger.info(`>>> settings.a: ${this.settings.a}, metadata.region: ${region}`);
+				return Promise.resolve();
+			},
+
+			started() {
+				this.logger.info(`>>> '${this.fullName}' started is called.`);
+				return Promise.resolve();
+			},
+
+			stopped() {
+				this.logger.info(`>>> '${this.fullName}' stopped is called.`);
+				return Promise.resolve();
 			},
 		},
+		broker,
+	);
 
-		created() {
-			assert(this.name === "posts", "Wrong service name");
-			assert(this.version === 2, "Wrong service version");
-			assert(this.fullName === "v2.posts", "Wrong service fullName");
+	await broker.loadService(svc);
 
-			this.logger.info(`??? '${this.fullName}' created is called.`);
-			const region = this.uppercase(this.metadata.region);
-
-			this.logger.info(`??? settings.a: ${this.settings.a}, metadata.region: ${region}`);
-			return Promise.resolve();
-		},
-
-		started() {
-			this.logger.info(`??? '${this.fullName}' started is called.`);
-			return Promise.resolve();
-		},
-
-		stopped() {
-			this.logger.info(`??? '${this.fullName}' stopped is called.`);
-			return Promise.resolve();
-		},
-	});
 	assert(broker.getLocalServiceCount() === 2, "Invalid services length (2)");
 
 	// --- START BROKER ---

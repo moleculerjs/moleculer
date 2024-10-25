@@ -25,7 +25,7 @@ export function generateUUID(): string {
 	}${lut[d3 & 0xff]}${lut[(d3 >> 8) & 0xff]}${lut[(d3 >> 16) & 0xff]}${lut[(d3 >> 24) & 0xff]}`;
 }
 
-export function isFunction(fn: unknown): boolean {
+export function isFunction(fn: unknown): fn is (...args: unknown[]) => unknown {
 	return typeof fn === "function";
 }
 
@@ -33,11 +33,11 @@ export function isString(s: unknown): s is string {
 	return typeof s === "string" || s instanceof String;
 }
 
-export function isObject(o: unknown): o is object {
+export function isObject(o: unknown): o is Record<string, unknown> {
 	return o !== null && typeof o === "object" && !(o instanceof String);
 }
 
-export function isPlainObject(o: unknown): o is object {
+export function isPlainObject(o: unknown): o is Record<string, unknown> {
 	return o != null
 		? Object.getPrototypeOf(o) === Object.prototype || Object.getPrototypeOf(o) === null
 		: false;

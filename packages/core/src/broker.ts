@@ -40,7 +40,7 @@ export class ServiceBroker {
 	public logger: Console; // TODO: Logger
 
 	// Store local service instances
-	protected services: Service[];
+	protected services: Service<Record<string, unknown>, Record<string, unknown>>[];
 
 	// Service starting flag. It's need when a service load another service in started
 	// handler beccause in this case we should start the newly loaded service as well.
@@ -340,6 +340,7 @@ export class ServiceBroker {
 	 * @param def
 	 * @returns
 	 */
+
 	public wrapMiddlewareHandler<THandler extends (...args: unknown[]) => unknown>(
 		hookName: string,
 		handler: THandler,
