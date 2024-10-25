@@ -1,6 +1,7 @@
 import { assert } from "node:console";
 import { ServiceBroker } from "../../src";
 import { BrokerState } from "../../src/broker";
+import type { Context } from "../../src/context";
 import { Service } from "../../src/service";
 
 class MyNativeService extends Service {
@@ -88,6 +89,21 @@ async function start() {
 			settings: {
 				a: 10,
 				b: "Test2",
+			},
+
+			actions: {
+				hello: {
+					params: {
+						name: "string",
+					},
+					handler(ctx): string {
+						return `Hello ${this.uppercase(ctx.params.name)}!`;
+					},
+				},
+
+				welcome(ctx): string {
+					return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
+				},
 			},
 
 			methods: {
