@@ -25,40 +25,55 @@ export type ServiceDependencies =
 	| ServiceDependencyItem
 	| (string | ServiceDependencyItem)[];
 
-export type ActionHandler<TParamTypes> = (ctx: Context<TParamTypes>) => unknown;
-
-export interface ActionDefinition<TParams> {
-	params?: TParams;
-	handler?: ActionHandler<ActionParamType<TParams>>;
+interface TParamTypes {
+	string: string;
+	number: number;
+	boolean: boolean;
 }
+type ParamTypes = keyof TParamTypes;
 
-type TParamType<TParam> = TParam extends "string"
-	? string
-	: TParam extends "number"
-		? number
-		: never;
+type ExtractParam<TParam extends ParamTypes | ParameterObject> = TParam extends ParameterObject
+	? TParam["type"]
+	: TParam;
 
-type ActionParamType<TParams> = {
-	[key in keyof TParams]: TParamType<TParams[key]>;
+type ParamType<TParam extends ParamTypes | ParameterObject> =
+	ExtractParam<TParam> extends "string"
+		? string
+		: ExtractParam<TParam> extends "number"
+			? number
+			: never;
+
+type ActionParamType<TParams extends ParameterSchema> = {
+	[key in keyof TParams]: ParamType<TParams[key]>;
 };
 
-type Bb = ActionParamType<{ name: "string"; age: "number" }>;
-type Cc = ActionDefinition<{
-	params: {
-		name: "string";
-		age: "number";
-	};
-}>;
+export type ActionHandler<TParams extends ParameterSchema> = (
+	ctx: Context<ActionParamType<TParams>>,
+) => unknown;
 
-declare function defineAction<TParams>(def: ActionDefinition<TParams>): unknown;
+export interface ActionDefinition<TParams extends ParameterSchema> {
+	params?: TParams;
+	handler?: ActionHandler<TParams>;
+}
+
+interface ParameterObject {
+	type: keyof TParamTypes;
+}
+
+type ParameterSchema = Record<string, keyof TParamTypes | ParameterObject>;
+declare function defineAction<TParams extends ParameterSchema>(
+	def: ActionDefinition<TParams>,
+): unknown;
 
 const a = defineAction({
 	params: {
 		name: "string",
 		age: "number",
+		status: "boolean",
+		city: { type: "string" },
 	},
 	handler(ctx) {
-		return `Hello ${ctx.params.name} ${ctx.params.age * 2}!`;
+		return `Hello ${ctx.params.name} ${ctx.params.age * 2} ${ctx.params.status ? "Active" : "Inactive"} ${ctx.params.city}!`;
 	},
 });
 
@@ -72,7 +87,7 @@ export interface ServiceSchema<
 	metadata?: TMetadata;
 	settings?: TSettings;
 	dependencies?: ServiceDependencies;
-	actions?: Record<string, ActionDefinition<unknown> | ActionHandler<Record<string, unknown>>> &
+	actions?: Record<string, ActionDefinition<unknown> | ActionHandler<unknown>> &
 		ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;
 	// events?: Record<string, unknown>;
 	methods?: TMethods & ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;

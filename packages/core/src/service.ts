@@ -74,8 +74,7 @@ export class Service<
 		if (schema.methods) {
 			for (const key in schema.methods) {
 				if (isFunction(schema.methods[key])) {
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					// @ts-ignore:next-line
+					// @ts-expect-error: No better way to extend a class with new methods
 					svc[key] = broker.wrapMiddlewareHandler("localMethod", schema.methods[key]);
 				}
 			}
