@@ -1033,7 +1033,9 @@ class Transit {
 		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
 			if (sender === nodeID) {
 				// Close the stream
-				stream.push(null);
+				if (!stream.readableEnded) {
+					stream.push(null);
+				}
 
 				this.pendingReqStreams.delete(id);
 			}
