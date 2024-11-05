@@ -548,7 +548,7 @@ class Transit {
 			pass.$prevSeq = -1;
 			pass.$pool = new Map();
 
-			this.pendingReqStreams.set(payload.id, pass);
+			this.pendingReqStreams.set(payload.id, { sender: payload.sender, stream: pass });
 		}
 
 		if (payload.seq > pass.$prevSeq + 1) {
@@ -1028,6 +1028,17 @@ class Transit {
 	 */
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
+
+		// Close pending request streams of the node
+		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
+			if (sender === nodeID) {
+				// Close the stream
+				stream.push(null);
+
+				this.pendingReqStreams.delete(id);
+			}
+		});
+
 		this.pendingRequests.forEach((req, id) => {
 			if (req.nodeID === nodeID) {
 				this.pendingRequests.delete(id);
