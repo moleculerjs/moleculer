@@ -53,6 +53,7 @@
     "tsx": "^4.19.1"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "reflect-metadata": "^0.2.2"
   }
 }

@@ -49,6 +49,6 @@ type GetComputed<TComputed> = {
   console.log(svc.name);
   console.log(svc.version);
   console.log(svc.broker);
-  console.log(svc.greetings(););
+  console.log(svc.greetings());
   console.log(svc.settings.a);
   console.log(svc.metadata.region);

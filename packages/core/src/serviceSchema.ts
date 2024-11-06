@@ -52,6 +52,7 @@ export type ActionHandler<TParams extends ParameterSchema> = (
 ) => unknown;
 
 export interface ActionDefinition<TParams extends ParameterSchema> {
+	name?: string;
 	params?: TParams;
 	handler?: ActionHandler<TParams>;
 }

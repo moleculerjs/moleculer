@@ -1,8 +1,10 @@
 {
   "extends": "@moleculer/tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "lodash"],
-    "resolveJsonModule": true
+    "types": ["node", "lodash", "reflect-metadata"],
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": [
     // add all typechecked paths here
