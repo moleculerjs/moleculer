@@ -2,6 +2,16 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.33...master)
 
 --------------------------------------------------
+<a name="0.14.35"></a>
+# [0.14.35](https://github.com/moleculerjs/moleculer/compare/v0.14.34...v0.14.35) (2024-11-06)
+
+## Changes
+- allow to work with pino v9 [#1282](https://github.com/moleculerjs/moleculer/pull/1282)
+- Runner: log runner error through util.inspect [#1304](https://github.com/moleculerjs/moleculer/pull/1304)  
+- Update default type for ServiceSchema generic to Service [#1299](https://github.com/moleculerjs/moleculer/pull/1299)  
+- fix: updated removePendingRequestByNodeID [#1306](https://github.com/moleculerjs/moleculer/pull/1306)  
+
+--------------------------------------------------
 <a name="0.14.34"></a>
 # [0.14.34](https://github.com/moleculerjs/moleculer/compare/v0.14.33...v0.14.34) (2024-07-28)
 
