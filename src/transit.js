@@ -520,7 +520,8 @@ class Transit {
 	 * @returns {Stream}
 	 */
 	_handleIncomingRequestStream(payload) {
-		let pass = this.pendingReqStreams.get(payload.id);
+		const reqStream = this.pendingReqStreams.get(payload.id);
+		let pass = reqStream ? reqStream.stream : undefined;
 		let isNew = false;
 
 		if (!payload.stream && !pass && !payload.seq) {
@@ -548,7 +549,7 @@ class Transit {
 			pass.$prevSeq = -1;
 			pass.$pool = new Map();
 
-			this.pendingReqStreams.set(payload.id, pass);
+			this.pendingReqStreams.set(payload.id, { sender: payload.sender, stream: pass });
 		}
 
 		if (payload.seq > pass.$prevSeq + 1) {
@@ -1028,6 +1029,19 @@ class Transit {
 	 */
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
+
+		// Close pending request streams of the node
+		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
+			if (sender === nodeID) {
+				// Close the stream with error
+				if (!stream.destroyed) {
+					stream.destroy(new Error(`Request stream closed by ${nodeID}`));
+				}
+
+				this.pendingReqStreams.delete(id);
+			}
+		});
+
 		this.pendingRequests.forEach((req, id) => {
 			if (req.nodeID === nodeID) {
 				this.pendingRequests.delete(id);
