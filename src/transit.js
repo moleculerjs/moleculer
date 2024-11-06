@@ -520,7 +520,8 @@ class Transit {
 	 * @returns {Stream}
 	 */
 	_handleIncomingRequestStream(payload) {
-		let pass = this.pendingReqStreams.get(payload.id);
+		const reqStream = this.pendingReqStreams.get(payload.id);
+		let pass = reqStream ? reqStream.stream : undefined;
 		let isNew = false;
 
 		if (!payload.stream && !pass && !payload.seq) {
