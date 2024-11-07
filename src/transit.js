@@ -1065,9 +1065,9 @@ class Transit {
 	 */
 	_softDeletePendingResStream(id) {
 		const stream = this.pendingResStreams.get(id);
+		this.pendingResStreams.delete(id);
 
 		if (stream) {
-			this.pendingResStreams.delete(id);
 			this._closeStreamIfPossible(stream);
 		}
 	}
@@ -1082,9 +1082,9 @@ class Transit {
 	 */
 	_deletePendingResStream(id, origin) {
 		const stream = this.pendingResStreams.get(id);
+		this.pendingResStreams.delete(id);
 
 		if (stream) {
-			this.pendingResStreams.delete(id);
 			this._destroyStreamIfPossible(stream, origin);
 		}
 	}
@@ -1098,15 +1098,11 @@ class Transit {
 	 */
 	_softDeletePendingReqStream(id) {
 		const reqStream = this.pendingReqStreams.get(id);
+		this.pendingReqStreams.delete(id);
 		const pass = reqStream ? reqStream.stream : undefined;
 
 		if (pass) {
-			this.pendingReqStreams.delete(id);
 			this._closeStreamIfPossible(pass);
-
-			if (!pass.readableEnded) {
-				pass.push(null);
-			}
 		}
 	}
 
@@ -1120,10 +1116,10 @@ class Transit {
 	 */
 	_deletePendingReqStream(id, origin) {
 		const reqStream = this.pendingReqStreams.get(id);
+		this.pendingReqStreams.delete(id);
 		const pass = reqStream ? reqStream.stream : undefined;
 
 		if (pass) {
-			this.pendingReqStreams.delete(id);
 			this._destroyStreamIfPossible(pass, origin);
 		}
 	}
@@ -1136,7 +1132,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_destroyStreamIfPossible(stream, origin) {
-		if (!stream.destroyed) {
+		if (!stream.destroyed && stream.destroy) {
 			const message = origin ? `Stream closed by ${origin}` : "Stream internal error";
 			stream.destroy(new Error(message));
 		}
@@ -1149,7 +1145,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_closeStreamIfPossible(stream) {
-		if (!stream.readableEnded) {
+		if (!stream.readableEnded && stream.push) {
 			stream.push(null);
 		}
 	}
