@@ -1016,8 +1016,8 @@ class Transit {
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
 
-		this.pendingReqStreams.delete(id);
-		this.pendingResStreams.delete(id);
+		this._softDeletePendingReqStream(id);
+		this._softDeletePendingResStream(id);
 	}
 
 	/**
@@ -1033,12 +1033,8 @@ class Transit {
 		// Close pending request streams of the node
 		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
 			if (sender === nodeID) {
-				// Close the stream with error
-				if (!stream.destroyed) {
-					stream.destroy(new Error(`Request stream closed by ${nodeID}`));
-				}
-
 				this.pendingReqStreams.delete(id);
+				this._destroyStreamIfPossible(stream, nodeID);
 			}
 		});
 
@@ -1054,10 +1050,108 @@ class Transit {
 					})
 				);
 
-				this.pendingReqStreams.delete(id);
-				this.pendingResStreams.delete(id);
+				this._deletePendingReqStream(id, nodeID);
+				this._deletePendingResStream(id, nodeID);
 			}
 		});
+	}
+
+	/**
+	 * Internal method to delete a pending response stream from `pendingResStreams`
+	 * and soft-end it (if not already ended) without error.
+	 *
+	 * @param {String} id ID of the stream in `pendingResStreams`
+	 * @memberof Transit
+	 */
+	_softDeletePendingResStream(id) {
+		const stream = this.pendingResStreams.get(id);
+
+		if (stream) {
+			this.pendingResStreams.delete(id);
+			this._closeStreamIfPossible(stream);
+		}
+	}
+
+	/**
+	 * Internal method to delete a pending response stream from `pendingResStreams`
+	 * and destroy it (if not already destroyed) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingResStreams`
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 * @memberof Transit
+	 */
+	_deletePendingResStream(id, origin) {
+		const stream = this.pendingResStreams.get(id);
+
+		if (stream) {
+			this.pendingResStreams.delete(id);
+			this._destroyStreamIfPossible(stream, origin);
+		}
+	}
+
+	/**
+	 * Internal method to delete a pending request stream from `pendingReqStreams`
+	 * and soft-end it (if not already ended) without error.
+	 *
+	 * @param {String} id ID of the stream in `pendingReqStreams`
+	 * @memberof Transit
+	 */
+	_softDeletePendingReqStream(id) {
+		const reqStream = this.pendingReqStreams.get(id);
+		const pass = reqStream ? reqStream.stream : undefined;
+
+		if (pass) {
+			this.pendingReqStreams.delete(id);
+			this._closeStreamIfPossible(pass);
+
+			if (!pass.readableEnded) {
+				pass.push(null);
+			}
+		}
+	}
+
+	/**
+	 * Internal method to delete a pending request stream from `pendingReqStreams`
+	 * and destroy it (if not already ended) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingReqStreams`
+	 * @param {String} origin Origin of the request
+	 * @memberof Transit
+	 */
+	_deletePendingReqStream(id, origin) {
+		const reqStream = this.pendingReqStreams.get(id);
+		const pass = reqStream ? reqStream.stream : undefined;
+
+		if (pass) {
+			this.pendingReqStreams.delete(id);
+			this._destroyStreamIfPossible(pass, origin);
+		}
+	}
+
+	/**
+	 * Internal method to destroy a stream (if not already destroyed) with error.
+	 *
+	 * @param {Stream} stream The stream to destroy.
+	 * @param {String} [origin] Optional origin of the request.
+	 * @memberof Transit
+	 */
+	_destroyStreamIfPossible(stream, origin) {
+		if (!stream.destroyed) {
+			const message = origin ? `Stream closed by ${origin}` : "Stream internal error";
+			stream.destroy(new Error(message));
+		}
+	}
+
+	/**
+	 * Internal method to close a stream (if not already closed) without error.
+	 *
+	 * @param {Stream} stream The stream to close.
+	 * @memberof Transit
+	 */
+	_closeStreamIfPossible(stream) {
+		if (!stream.readableEnded) {
+			stream.push(null);
+		}
 	}
 
 	/**
