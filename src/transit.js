@@ -1016,8 +1016,8 @@ class Transit {
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
 
-		this._softDeletePendingReqStream(id);
-		this._softDeletePendingResStream(id);
+		this.pendingReqStreams.delete(id);
+		this.pendingResStreams.delete(id);
 	}
 
 	/**
@@ -1058,22 +1058,6 @@ class Transit {
 
 	/**
 	 * Internal method to delete a pending response stream from `pendingResStreams`
-	 * and soft-end it (if not already ended) without error.
-	 *
-	 * @param {String} id ID of the stream in `pendingResStreams`
-	 * @memberof Transit
-	 */
-	_softDeletePendingResStream(id) {
-		const stream = this.pendingResStreams.get(id);
-		this.pendingResStreams.delete(id);
-
-		if (stream) {
-			this._destroyStreamIfPossible(stream);
-		}
-	}
-
-	/**
-	 * Internal method to delete a pending response stream from `pendingResStreams`
 	 * and destroy it (if not already destroyed) with error.
 	 *
 	 * @param {String} id ID of the stream in `pendingResStreams`
@@ -1091,23 +1075,6 @@ class Transit {
 
 	/**
 	 * Internal method to delete a pending request stream from `pendingReqStreams`
-	 * and soft-end it (if not already ended) without error.
-	 *
-	 * @param {String} id ID of the stream in `pendingReqStreams`
-	 * @memberof Transit
-	 */
-	_softDeletePendingReqStream(id) {
-		const reqStream = this.pendingReqStreams.get(id);
-		this.pendingReqStreams.delete(id);
-		const pass = reqStream ? reqStream.stream : undefined;
-
-		if (pass) {
-			this._destroyStreamIfPossible(pass);
-		}
-	}
-
-	/**
-	 * Internal method to delete a pending request stream from `pendingReqStreams`
 	 * and destroy it (if not already ended) with error.
 	 *
 	 * @param {String} id ID of the stream in `pendingReqStreams`
@@ -1116,8 +1083,8 @@ class Transit {
 	 */
 	_deletePendingReqStream(id, origin) {
 		const reqStream = this.pendingReqStreams.get(id);
-		this.pendingReqStreams.delete(id);
 		const pass = reqStream ? reqStream.stream : undefined;
+		this.pendingReqStreams.delete(id);
 
 		if (pass) {
 			this._destroyStreamIfPossible(pass, `Stream closed by ${origin}`);
@@ -1134,11 +1101,7 @@ class Transit {
 	 */
 	_destroyStreamIfPossible(stream, errorMessage) {
 		if (!stream.destroyed && stream.destroy) {
-			if (errorMessage) {
-				stream.destroy(new Error(errorMessage));
-			} else {
-				stream.destroy();
-			}
+			stream.destroy(new Error(errorMessage));
 		}
 	}
 
