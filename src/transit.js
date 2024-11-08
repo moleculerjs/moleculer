@@ -1062,6 +1062,7 @@ class Transit {
 	 *
 	 * @param {String} id ID of the stream in `pendingResStreams`
 	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
 	 * @memberof Transit
 	 */
 	_deletePendingResStream(id, origin) {
@@ -1078,7 +1079,8 @@ class Transit {
 	 * and destroy it (if not already ended) with error.
 	 *
 	 * @param {String} id ID of the stream in `pendingReqStreams`
-	 * @param {String} origin Origin of the request
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
 	 * @memberof Transit
 	 */
 	_deletePendingReqStream(id, origin) {
@@ -1095,8 +1097,8 @@ class Transit {
 	 * Internal method to destroy a stream if it is not already destroyed.
 	 *
 	 * @param {DuplexStream} stream - The stream to be destroyed.
-	 * @param {String} [errorMessage] - The error message to be used when destroying.
-	 *                                  If not provided, the stream will be destroyed without an error.
+	 * @param {String} errorMessage - The error message to be used when destroying.
+	 *
 	 * @memberof Transit
 	 */
 	_destroyStreamIfPossible(stream, errorMessage) {
