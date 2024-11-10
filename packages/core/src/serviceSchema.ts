@@ -15,10 +15,10 @@ export interface ServiceDependencyItem {
 }
 
 type ServiceThis<
-	TMetadata extends Record<string, unknown>,
 	TSettings extends Record<string, unknown>,
+	TMetadata extends Record<string, unknown>,
 	TMethods,
-> = TMethods & Service<TMetadata, TSettings>;
+> = TMethods & Service<TSettings, TMetadata>;
 
 export type ServiceDependencies =
 	| string
@@ -51,9 +51,10 @@ export type ActionHandler<TParams extends ParameterSchema> = (
 	ctx: Context<ActionParamType<TParams>>,
 ) => unknown;
 
-export interface ActionDefinition<TParams extends ParameterSchema> {
+export interface ActionDefinition<TParams extends ParameterSchema = ParameterSchema> {
 	name?: string;
 	params?: TParams;
+	skipHandler?: boolean;
 	handler?: ActionHandler<TParams>;
 }
 
@@ -64,22 +65,23 @@ interface ParameterObject {
 export type ParameterSchema = Record<string, ParamTypes | ParameterObject>;
 
 export interface ServiceSchema<
-	TMetadata extends Record<string, unknown>,
 	TSettings extends Record<string, unknown>,
-	TMethods,
-	TParams extends ParameterSchema,
+	TMetadata extends Record<string, unknown>,
+	TMethods extends Record<string, unknown> = Record<string, unknown>,
+	TParams extends ParameterSchema = ParameterSchema,
 > {
 	name: string;
 	version?: ServiceVersion;
-	metadata?: TMetadata;
 	settings?: TSettings;
+	metadata?: TMetadata;
 	dependencies?: ServiceDependencies;
 	actions?: Record<string, ActionDefinition<TParams> | ActionHandler<TParams>> &
-		ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;
+		ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;
 	// events?: Record<string, unknown>;
-	methods?: TMethods & ThisType<ServiceThis<TMetadata, TSettings, TMethods>>;
+	methods?: TMethods & ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;
 
-	created?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
-	started?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
-	stopped?: (this: ServiceThis<TMetadata, TSettings, TMethods>) => Promise<void>;
+	merged?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => void;
+	created?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
+	started?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
+	stopped?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
 }

@@ -69,7 +69,7 @@ export default tseslint.config(
 
 			// disallow await inside of loops
 			// https://eslint.org/docs/latest/rules/no-await-in-loop
-			"no-await-in-loop": "error",
+			"no-await-in-loop": "off",
 
 			// disallow bitwise operators
 			// https://eslint.org/docs/latest/rules/no-bitwise
@@ -452,6 +452,10 @@ export default tseslint.config(
 				"error",
 				{ functions: true, classes: true, variables: true },
 			],
+
+			// disallow using the unsafe built-in Function type.
+			// https://typescript-eslint.io/rules/no-unsafe-function-type/
+			"@typescript-eslint/no-unsafe-function-type": "off",
 
 			// disallow unnecessary constructors
 			// https://typescript-eslint.io/rules/no-useless-constructor

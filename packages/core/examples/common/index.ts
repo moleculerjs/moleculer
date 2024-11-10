@@ -3,8 +3,9 @@ import { ServiceBroker } from "../../src";
 import { BrokerState } from "../../src/broker";
 import type { Context } from "../../src/context";
 import { Service } from "../../src/service";
-import { Action, ActionParams } from "../../src/serviceDecorators";
+import { Action, MoleculerService } from "../../src/serviceDecorators";
 
+@MoleculerService("my-service")
 class MyNativeService extends Service {
 	public override metadata = {
 		region: "us-east",
@@ -24,9 +25,10 @@ class MyNativeService extends Service {
 		this.settings.a = 7;
 	}
 
-	@Action()
-	@ActionParams({
-		name: "string",
+	@Action({
+		params: {
+			name: "string",
+		},
 	})
 	public async hello(ctx: Context<{ name: string }>): Promise<string> {
 		return Promise.resolve(`Hello ${this.uppercase(ctx.params.name)}!`);
@@ -89,77 +91,74 @@ async function start() {
 	);
 
 	// --- CREATE SERVICE FROM SCHEMA ---
-	const svc = Service.createFromSchema(
-		{
-			name: "posts",
-			version: 2,
+	const svc = Service.createFromSchema({
+		name: "posts",
+		version: 2,
 
-			metadata: {
-				region: "us-west",
-				zone: "b",
-				cluster: false,
-			},
-			settings: {
-				a: 10,
-				b: "Test2",
-			},
+		metadata: {
+			region: "us-west",
+			zone: "b",
+			cluster: false,
+		},
+		settings: {
+			a: 10,
+			b: "Test2",
+		},
 
-			actions: {
-				hello: {
-					params: {
-						name: "string",
-						age: "number",
-						active: { type: "boolean" },
-						city: { type: "string" },
-					},
-					handler(ctx): string {
-						assert(ctx.params.name === "John", "Invalid name");
-						assert(ctx.params.age === 25, "Invalid age");
-						assert(ctx.params.active === true, "Invalid active");
-						assert(ctx.params.city === "NY", "Invalid city");
-
-						return `Hello ${this.uppercase(ctx.params.name)}!`;
-					},
+		actions: {
+			hello: {
+				params: {
+					name: "string",
+					age: "number",
+					active: { type: "boolean" },
+					city: { type: "string" },
 				},
+				handler(ctx): string {
+					assert(ctx.params.name === "John", "Invalid name");
+					assert(ctx.params.age === 25, "Invalid age");
+					assert(ctx.params.active === true, "Invalid active");
+					assert(ctx.params.city === "NY", "Invalid city");
 
-				welcome(ctx): string {
-					// @ts-expect-error: Params is not defined
-					assert(ctx.params.age !== 25, "Invalid age");
-					return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
+					return `Hello ${this.uppercase(ctx.params.name)}!`;
 				},
 			},
 
-			methods: {
-				uppercase(str: string): string {
-					console.log(this.name, this.version, this.settings.a, this.metadata.region);
-					return str.toUpperCase();
-				},
-			},
-
-			created() {
-				assert(this.name === "posts", "Wrong service name");
-				assert(this.version === 2, "Wrong service version");
-				assert(this.fullName === "v2.posts", "Wrong service fullName");
-
-				this.logger.info(`>>> '${this.fullName}' created is called.`);
-				const region = this.uppercase(this.metadata.region);
-
-				this.logger.info(`>>> settings.a: ${this.settings.a}, metadata.region: ${region}`);
-				return Promise.resolve();
-			},
-
-			started() {
-				this.logger.info(`>>> '${this.fullName}' started is called.`);
-				return Promise.resolve();
-			},
-
-			stopped() {
-				this.logger.info(`>>> '${this.fullName}' stopped is called.`);
-				return Promise.resolve();
+			welcome(ctx): string {
+				// @ts-expect-error: Params is not defined
+				assert(ctx.params.age !== 25, "Invalid age");
+				return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
 			},
 		},
-		broker,
-	);
+
+		methods: {
+			uppercase(str: string): string {
+				console.log(this.name, this.version, this.settings.a, this.metadata.region);
+				return str.toUpperCase();
+			},
+		},
+
+		created() {
+			assert(this.name === "posts", "Wrong service name");
+			assert(this.version === 2, "Wrong service version");
+			assert(this.fullName === "v2.posts", "Wrong service fullName");
+
+			this.logger.info(`>>> '${this.fullName}' created is called.`);
+			const region = this.uppercase(this.metadata.region);
+
+			this.logger.info(`>>> settings.a: ${this.settings.a}, metadata.region: ${region}`);
+			return Promise.resolve();
+		},
+
+		started() {
+			this.logger.info(`>>> '${this.fullName}' started is called.`);
+			return Promise.resolve();
+		},
+
+		stopped() {
+			this.logger.info(`>>> '${this.fullName}' stopped is called.`);
+			return Promise.resolve();
+		},
+	});
 
 	await broker.loadService(svc);
 

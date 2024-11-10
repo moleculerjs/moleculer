@@ -42,8 +42,8 @@ export class ServiceBroker {
 	// Store local service instances
 	protected services: Service<Record<string, unknown>, Record<string, unknown>>[];
 
-	// Service starting flag. It's need when a service load another service in started
-	// handler beccause in this case we should start the newly loaded service as well.
+	// Service starting flag. It's need when a service loads another service in started
+	// handler because in this case we should start the newly loaded service as well.
 	private serviceStarting = false;
 
 	/**
@@ -51,13 +51,13 @@ export class ServiceBroker {
 	 *
 	 * @param options Broker options
 	 */
-	public constructor(options: BrokerOptions) {
+	public constructor(options?: BrokerOptions) {
 		try {
-			this.options = options;
+			this.options = options ?? {};
 
-			this.namespace = options.namespace ?? "";
+			this.namespace = this.options.namespace ?? "";
 
-			this.nodeID = options.nodeID ?? this.generateNodeID();
+			this.nodeID = this.options.nodeID ?? this.generateNodeID();
 
 			this.instanceID = generateUUID();
 
@@ -118,10 +118,10 @@ export class ServiceBroker {
 	 * @returns Instance of the created service
 	 */
 	public async createService(
-		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>, unknown>,
+		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>>,
 	): Promise<Service> {
 		// Create from schema
-		const svc = Service.createFromSchema(schema, this);
+		const svc = Service.createFromSchema(schema);
 
 		// Load the service
 		await this.loadService(svc);

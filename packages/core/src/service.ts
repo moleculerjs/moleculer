@@ -2,8 +2,8 @@ import _ from "lodash";
 import type { ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
 import type { Nullable } from "./helperTypes";
-import type { ParameterSchema, ServiceSchema } from "./serviceSchema";
-import { isFunction } from "./utils";
+import type { ServiceSchema } from "./serviceSchema";
+import { isFunction, isObject } from "./utils";
 
 export type ServiceVersion = Nullable<string | number>;
 
@@ -12,34 +12,64 @@ export type ServiceLocalActionHandler = (
 	opts?: unknown,
 ) => Promise<unknown>;
 
+function callSyncLifecycleHandler(
+	func: Function | Function[],
+	svc: Service,
+	...args: unknown[]
+): void {
+	if (isFunction(func)) {
+		func.call(svc, ...args);
+	} else if (Array.isArray(func)) {
+		for (const fn of func) {
+			fn.call(svc, ...args);
+		}
+	}
+}
+
+async function callAsyncLifecycleHandler(
+	func: Function | Function[],
+	svc: Service,
+	...args: unknown[]
+): Promise<void> {
+	if (isFunction(func)) {
+		await func.call(svc, ...args);
+	} else if (Array.isArray(func)) {
+		for (const fn of func) {
+			await fn.call(svc, ...args);
+		}
+	}
+}
+
 export class Service<
-	TMetadata extends Record<string, unknown> = Record<string, unknown>,
 	TSettings extends Record<string, unknown> = Record<string, unknown>,
+	TMetadata extends Record<string, unknown> = Record<string, unknown>,
 > {
 	public broker!: ServiceBroker;
 	public logger!: Console;
 
-	public name: string;
+	public name!: string;
 	public version: ServiceVersion;
-	public fullName: string;
+	public fullName!: string;
 
-	public schema!: ServiceSchema<TMetadata, TSettings, unknown, unknown>;
+	public schema!: ServiceSchema<TSettings, TMetadata>;
+	public $originalSchema!: ServiceSchema<TSettings, TMetadata>;
 
-	public metadata: TMetadata = {} as TMetadata;
 	public settings: TSettings = {} as TSettings;
+	public metadata: TMetadata = {} as TMetadata;
 
 	protected actions: Record<string, ServiceLocalActionHandler> = {};
 	protected events: Record<string, unknown> = {};
 
-	public constructor(name: string, version?: ServiceVersion) {
-		this.name = name;
-		this.version = version ?? null;
-		this.fullName = Service.getVersionedFullName(name, version);
-
-		this.schema = {
-			name,
-			version,
-		};
+	public constructor(name?: string, version?: ServiceVersion) {
+		if (name != null) {
+			this.name = name;
+			this.version = version ?? null;
+			this.fullName = Service.getVersionedFullName(name, version);
+			this.schema = {
+				name,
+				version,
+			};
+		}
 	}
 
 	public static getVersionedFullName(name: string, version?: ServiceVersion): string {
@@ -53,35 +83,74 @@ export class Service<
 	}
 
 	public static createFromSchema<
-		TMetadata extends Record<string, unknown>,
-		TSettings extends Record<string, unknown>,
-		TMethods,
-		TParams extends ParameterSchema,
+		TSettings extends Record<string, unknown> = Record<string, unknown>,
+		TMetadata extends Record<string, unknown> = Record<string, unknown>,
+		TMethods extends Record<string, unknown> = Record<string, unknown>,
 	>(
-		schema: ServiceSchema<TMetadata, TSettings, TMethods, TParams>,
-		broker: ServiceBroker,
-	): Service<TMetadata, TSettings> & TMethods {
+		schema: ServiceSchema<TSettings, TMetadata, TMethods>,
+	): Service<TSettings, TMetadata> & TMethods {
 		if (!schema.name)
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Is it not a service schema?",
 				schema,
 			);
-		const svc = new Service<TMetadata, TSettings>(schema.name, schema.version);
-		svc.schema = schema;
+		const svc = new Service<TSettings, TMetadata>(schema.name, schema.version);
+		svc.parseServiceSchema(schema);
 
-		if (schema.metadata != null) svc.metadata = _.cloneDeep(schema.metadata);
-		if (schema.settings != null) svc.settings = _.cloneDeep(schema.settings);
+		return svc as Service<TSettings, TMetadata> & TMethods;
+	}
 
-		if (schema.methods) {
-			for (const key in schema.methods) {
-				if (isFunction(schema.methods[key])) {
-					// @ts-expect-error: No better way to extend a class with new methods
-					svc[key] = broker.wrapMiddlewareHandler("localMethod", schema.methods[key]);
-				}
-			}
+	/**
+	 * Parse service schema to Service class instance.
+	 *
+	 * @param schema
+	 */
+	public parseServiceSchema(schema: ServiceSchema<TSettings, TMetadata>): void {
+		if (!isObject(schema)) {
+			throw new ServiceSchemaError(
+				"The service schema can't be null. Maybe is it not a service schema?",
+				schema,
+			);
 		}
 
-		return svc as Service<TMetadata, TSettings> & TMethods;
+		this.$originalSchema = _.cloneDeep(schema);
+
+		// if (schema.mixins) {
+		// 	schema = this.applyMixins(schema);
+		// }
+
+		if (schema.merged != null) {
+			callSyncLifecycleHandler(schema.merged, this, schema);
+		}
+
+		if (!schema.name) {
+			/* eslint-disable-next-line no-console */
+			console.error(
+				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?",
+				{ schema },
+			);
+			throw new ServiceSchemaError(
+				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?",
+				{ schema },
+			);
+		}
+
+		if (schema.name != null) {
+			this.name = schema.name;
+		}
+
+		if (schema.version != null) {
+			this.version = schema.version;
+		}
+
+		this.settings = schema.settings ?? ({} as TSettings);
+		this.metadata = schema.metadata ?? ({} as TMetadata);
+		this.schema = schema;
+
+		this.fullName = Service.getVersionedFullName(this.name, this.version);
+
+		this.actions = {}; // external access to actions
+		this.events = {}; // external access to event handlers.
 	}
 
 	public async init(broker: ServiceBroker): Promise<void> {
@@ -92,31 +161,25 @@ export class Service<
 		});
 
 		if (this.schema.created) {
-			if (isFunction(this.schema.created)) {
-				await this.schema.created.call(this);
+			if (this.schema.created != null) {
+				await callAsyncLifecycleHandler(this.schema.created, this);
 			}
-
-			// TODO: Handle if array
 		}
 	}
 
 	public async start(): Promise<void> {
 		if (this.schema.started) {
-			if (isFunction(this.schema.started)) {
-				await this.schema.started.call(this);
+			if (this.schema.started != null) {
+				await callAsyncLifecycleHandler(this.schema.started, this);
 			}
-
-			// TODO: Handle if array
 		}
 	}
 
 	public async stop(): Promise<void> {
 		if (this.schema.stopped) {
-			if (isFunction(this.schema.stopped)) {
-				await this.schema.stopped.call(this);
+			if (this.schema.stopped != null) {
+				await callAsyncLifecycleHandler(this.schema.stopped, this);
 			}
-
-			// TODO: Handle if array
 		}
 	}
 }
