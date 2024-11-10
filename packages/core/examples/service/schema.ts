@@ -40,7 +40,6 @@ async function start() {
 			},
 
 			welcome(ctx): string {
-				// @ts-expect-error: Params is not defined
 				assert(ctx.params.age !== 25, "Invalid age");
 				return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
 			},

@@ -3,5 +3,6 @@
   "compilerOptions": {
     "sourceMap": true,
     "inlineSourceMap": true
-  }
+  },
+  "include": ["jest.config.ts"]
 }

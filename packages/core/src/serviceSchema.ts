@@ -47,7 +47,7 @@ type ActionParamType<TParams extends ParameterSchema> = {
 	[key in keyof TParams]: ParamType<TParams[key]>;
 };
 
-export type ActionHandler<TParams extends ParameterSchema> = (
+export type ActionHandler<TParams extends ParameterSchema = ParameterSchema> = (
 	ctx: Context<ActionParamType<TParams>>,
 ) => unknown;
 
@@ -68,14 +68,13 @@ export interface ServiceSchema<
 	TSettings extends Record<string, unknown>,
 	TMetadata extends Record<string, unknown>,
 	TMethods extends Record<string, unknown> = Record<string, unknown>,
-	TParams extends ParameterSchema = ParameterSchema,
 > {
 	name: string;
 	version?: ServiceVersion;
 	settings?: TSettings;
 	metadata?: TMetadata;
 	dependencies?: ServiceDependencies;
-	actions?: Record<string, ActionDefinition<TParams> | ActionHandler<TParams>> &
+	actions?: Record<string, ActionDefinition | ActionHandler> &
 		ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;
 	// events?: Record<string, unknown>;
 	methods?: TMethods & ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;

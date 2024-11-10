@@ -55,6 +55,7 @@ export function MoleculerService<
 
 		Reflect.defineMetadata(META_PREFIX, schema, constructor);
 
+		// @ts-expect-error: This is a hack to make the constructor type work
 		return class extends constructor {
 			public constructor(...args: unknown[]) {
 				super(...args);

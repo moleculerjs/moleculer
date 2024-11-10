@@ -131,7 +131,7 @@ export class Service<
 			);
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?",
-				{ schema },
+				schema,
 			);
 		}
 

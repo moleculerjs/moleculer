@@ -25,7 +25,10 @@ export class MoleculerError extends Error {
 }
 
 export class ServiceSchemaError extends MoleculerError {
-	public constructor(message: string, schema: ServiceSchema) {
+	public constructor(
+		message: string,
+		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>>,
+	) {
 		super(message, "SERVICE_SCHEMA_ERROR", 500, null, { schema });
 	}
 }

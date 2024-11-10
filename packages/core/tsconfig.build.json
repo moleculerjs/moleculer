@@ -2,8 +2,7 @@
   "extends": "./tsconfig.json",
   "include": [
     // add all typechecked paths here
-    "src/**/*", // source folder
-    "examples/**/*" // examples folder
+    "src/**/*" // source folder
   ],
   "exclude": ["**/*.spec.ts"],
   "compilerOptions": {
