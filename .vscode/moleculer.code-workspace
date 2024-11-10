@@ -9,6 +9,10 @@
       "path": "../internal/eslint-config",
     },
     {
+      "name": "🛠️ @moleculer/jest-config",
+      "path": "../internal/jest-config",
+    },
+    {
       "name": "🛠️ @moleculer/tsconfig",
       "path": "../internal/tsconfig",
     },

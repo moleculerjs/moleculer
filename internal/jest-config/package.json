@@ -1,0 +1,16 @@
+{
+  "name": "@moleculer/jest-config",
+  "description": "Jest config of Moleculer framework packages",
+  "private": true,
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "peerDependencies": {
+    "jest": "catalog:",
+    "ts-jest": "catalog:"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14"
+  }
+}

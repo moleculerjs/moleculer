@@ -17,7 +17,8 @@
     "dev": "tsx watch examples/index.ts",
     "format": "prettier . --ignore-unknown --check",
     "format:fix": "prettier . --ignore-unknown --write",
-    "lint": "TIMING=1 eslint ."
+    "lint": "TIMING=1 eslint .",
+    "test": "jest"
   },
   "keywords": [
     "microservice",
@@ -45,10 +46,14 @@
   },
   "devDependencies": {
     "@moleculer/eslint-config": "workspace:*",
+    "@moleculer/jest-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
+    "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.12",
     "eslint": "catalog:",
+    "jest": "catalog:",
     "prettier": "catalog:",
+    "ts-jest": "catalog:",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.1"
   },
