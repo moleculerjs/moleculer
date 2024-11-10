@@ -15,6 +15,7 @@
     "./.*.js", // root javascript config files
     "./*.js", // root javascript files
     "./*.mjs", // root esm files
-    "__mocks__/**/*" // jest mocks
+    "__mocks__/**/*", // jest mocks
+    "test/**/*" // test folder
   ]
 }

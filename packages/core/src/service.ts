@@ -89,6 +89,13 @@ export class Service<
 	>(
 		schema: ServiceSchema<TSettings, TMetadata, TMethods>,
 	): Service<TSettings, TMetadata> & TMethods {
+		if (!isObject(schema)) {
+			throw new ServiceSchemaError(
+				"The service schema can't be null. Maybe is it not a service schema?",
+				schema,
+			);
+		}
+
 		if (!schema.name)
 			throw new ServiceSchemaError(
 				"Service name can't be empty! Is it not a service schema?",

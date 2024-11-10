@@ -16,7 +16,7 @@ const config = {
 		"!**/dist/**/*", // ignore dist
 	],
 	collectCoverage: true,
-	coverageDirectory: "coverage",
+	coverageDirectory: "<rootDir>/../coverage",
 	collectCoverageFrom: ["src/**/*.ts"],
 	cache: false,
 	setupFiles: [],
