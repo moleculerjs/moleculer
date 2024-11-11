@@ -2,8 +2,34 @@ import _ from "lodash";
 import { MiddlewareHookNames, type ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
 import type { Nullable } from "./helperTypes";
-import type { ServiceSchema } from "./serviceSchema";
+import type { ActionDefinition, ActionHandler, ServiceSchema } from "./serviceSchema";
 import { isFunction, isObject } from "./utils";
+
+const INVALID_METHOD_NAMES = [
+	"name",
+	"version",
+	"fullName",
+	"settings",
+	"metadata",
+	"dependencies",
+	"schema",
+	"broker",
+	"actions",
+	"logger",
+	"schema",
+	"parseServiceSchema",
+	"created",
+	"started",
+	"stopped",
+	"start",
+	"stop",
+	"init",
+	"applyMixins",
+	"getServiceInfo",
+	"createMethod",
+	"createAction",
+	"createEvent",
+];
 
 export type ServiceVersion = Nullable<string | number>;
 
@@ -12,11 +38,24 @@ export type ServiceLocalActionHandler = (
 	opts?: unknown,
 ) => Promise<unknown>;
 
-export interface ServiceMethodDefinition {
+interface ServiceMethodDefinition {
 	name?: string;
 	service?: Service;
 	handler?: Function;
 }
+
+interface InnerActionDefinition extends ActionDefinition {
+	rawName: string;
+}
+
+export type ServiceInfo<
+	TSettings extends Record<string, unknown>,
+	TMetadata extends Record<string, unknown>,
+> = Pick<
+	ServiceSchema<TSettings, TMetadata>,
+	"name" | "version" | "settings" | "metadata" | "actions" | "events"
+> &
+	Pick<Service, "fullName">;
 
 function callSyncLifecycleHandler(
 	func: Function | Function[],
@@ -54,7 +93,7 @@ export class Service<
 	public logger!: Console;
 
 	public name!: string;
-	public version: ServiceVersion;
+	public version: ServiceVersion = null;
 	public fullName!: string;
 
 	public schema!: ServiceSchema<TSettings, TMetadata>;
@@ -66,7 +105,12 @@ export class Service<
 	public actions: Record<string, ServiceLocalActionHandler> = {};
 	public events: Record<string, unknown> = {};
 
-	public constructor(name?: string, version?: ServiceVersion) {
+	protected serviceInfo!: ServiceInfo<TSettings, TMetadata>;
+
+	public constructor(broker: ServiceBroker, name?: string, version?: ServiceVersion) {
+		this.broker = broker;
+
+		// TODO: can be removed?
 		if (name != null) {
 			this.name = name;
 			this.version = version ?? null;
@@ -94,6 +138,7 @@ export class Service<
 		TMethods extends Record<string, unknown> = Record<string, unknown>,
 	>(
 		schema: ServiceSchema<TSettings, TMetadata, TMethods>,
+		broker: ServiceBroker,
 	): Service<TSettings, TMetadata> & TMethods {
 		if (!isObject(schema)) {
 			throw new ServiceSchemaError(
@@ -102,12 +147,7 @@ export class Service<
 			);
 		}
 
-		if (!schema.name)
-			throw new ServiceSchemaError(
-				"Service name can't be empty! Is it not a service schema?",
-				schema,
-			);
-		const svc = new Service<TSettings, TMetadata>(schema.name, schema.version);
+		const svc = new Service<TSettings, TMetadata>(broker);
 		svc.parseServiceSchema(schema);
 
 		return svc as Service<TSettings, TMetadata> & TMethods;
@@ -165,10 +205,38 @@ export class Service<
 		this.actions = {}; // external access to actions
 		this.events = {}; // external access to event handlers.
 
+		// Initialize serviceInfo
+		this.serviceInfo = {
+			name: this.name,
+			version: this.version,
+			fullName: this.fullName,
+			settings: this.settings,
+			metadata: this.metadata,
+			actions: {},
+			events: {},
+		};
+
+		// Create methods
 		if (schema.methods != null) {
-			Object.entries(schema.methods).forEach((entry: [string, Function]) => {
-				this.createMethod(entry[0], entry[1]);
-			});
+			for (const [name, def] of Object.entries(schema.methods)) {
+				if (INVALID_METHOD_NAMES.includes(name) || name.startsWith("mergeSchema")) {
+					throw new ServiceSchemaError(
+						`Invalid method name '${name}' in '${this.fullName}' service!`,
+						this.schema,
+					);
+				}
+
+				this.createMethod(name, def as Function);
+			}
+		}
+
+		// Create actions
+		if (schema.actions != null) {
+			for (const [name, def] of Object.entries(schema.actions)) {
+				if (def === false) continue;
+
+				this.createAction(name, def);
+			}
 		}
 	}
 
@@ -196,6 +264,10 @@ export class Service<
 		}
 	}
 
+	public getServiceInfo(): ServiceInfo<TSettings, TMetadata> {
+		return this.serviceInfo;
+	}
+
 	protected createMethod(
 		name: string,
 		def: ServiceMethodDefinition | Function,
@@ -209,7 +281,7 @@ export class Service<
 				handler: def,
 			};
 		} else if (isObject<ServiceMethodDefinition>(def)) {
-			if (def.handler == null) {
+			if (!isFunction(def.handler)) {
 				throw new ServiceSchemaError(
 					`Missing method handler in '${this.fullName}.${name}' method definition!`,
 					this.schema,
@@ -217,7 +289,7 @@ export class Service<
 			}
 			methodDef = {
 				name,
-				...def,
+				..._.cloneDeep(def),
 				service: this,
 				handler: def.handler.bind(this) as Function,
 			};
@@ -236,5 +308,48 @@ export class Service<
 		);
 
 		return methodDef;
+	}
+
+	protected createAction(
+		name: string,
+		def: ActionDefinition | ActionHandler,
+	): InnerActionDefinition {
+		let actionDef: InnerActionDefinition;
+
+		if (isFunction(def)) {
+			actionDef = {
+				rawName: name,
+				name,
+				handler: def,
+			};
+		} else if (isObject<InnerActionDefinition>(def)) {
+			if (!isFunction(def.handler)) {
+				throw new ServiceSchemaError(
+					`Missing action handler in '${this.fullName}.${name}' action definition!`,
+					this.schema,
+				);
+			}
+			actionDef = {
+				name,
+				..._.cloneDeep(def),
+				rawName: def.name ?? name,
+				handler: def.handler.bind(this),
+			};
+		} else {
+			throw new ServiceSchemaError(
+				`Invalid action definition in '${this.fullName}.${name}' action!`,
+				this.schema,
+			);
+		}
+
+		actionDef.handler = this.broker.wrapMiddlewareHandler(
+			MiddlewareHookNames.LOCAL_ACTION,
+			actionDef.handler!,
+			{ ...actionDef, service: this },
+		);
+
+		this.serviceInfo.actions![name] = actionDef;
+
+		return actionDef;
 	}
 }

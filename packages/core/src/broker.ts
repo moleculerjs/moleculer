@@ -15,6 +15,7 @@ export enum BrokerState {
 
 export enum MiddlewareHookNames {
 	LOCAL_METHOD = "localMethod",
+	LOCAL_ACTION = "localAction",
 }
 
 const MOLECULER_VERSION = pkg.version;
@@ -125,7 +126,7 @@ export class ServiceBroker {
 		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>>,
 	): Promise<Service> {
 		// Create from schema
-		const svc = Service.createFromSchema(schema);
+		const svc = Service.createFromSchema(schema, this);
 
 		// Load the service
 		await this.loadService(svc);
@@ -147,11 +148,11 @@ export class ServiceBroker {
 
 			await service.init(this);
 
-			await this.callMiddlewareHook("serviceCreated", [service]);
-			this.logger.debug(`Service '${service.fullName}' created.`);
-
 			// Load a service instance
 			this.services.push(service);
+
+			await this.callMiddlewareHook("serviceCreated", [service]);
+			this.logger.debug(`Service '${service.fullName}' created.`);
 		} else {
 			this.logger.error(
 				"Invalid parameter type for loadService. It accepts only Service instance of string",

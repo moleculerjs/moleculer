@@ -38,6 +38,16 @@ describe("Service schema", () => {
 
 			expect(svc.broker).toBe(broker);
 			expect(svc.logger).toBeDefined();
+
+			expect(svc.getServiceInfo()).toStrictEqual({
+				name: "posts",
+				version: null,
+				fullName: "posts",
+				settings: {},
+				metadata: {},
+				actions: {},
+				events: {},
+			});
 		});
 
 		it("should create with full schema", async () => {
@@ -51,6 +61,14 @@ describe("Service schema", () => {
 				metadata: {
 					x: 100,
 					y: "Jane",
+				},
+
+				actions: {
+					get: jest.fn(),
+					find: {
+						//params: { limit: "number" },
+						handler: jest.fn(),
+					},
 				},
 
 				methods: {
@@ -79,13 +97,40 @@ describe("Service schema", () => {
 			expect(svc.schema).toStrictEqual(schema);
 
 			// @ts-expect-error: Need to fix
-			expect(svc.uppercase).toBe(Function);
+			expect(svc.uppercase).toBeInstanceOf(Function);
 
 			expect(svc.actions).toEqual({});
 			expect(svc.events).toEqual({});
 
 			expect(svc.broker).toBe(broker);
 			expect(svc.logger).toBeDefined();
+
+			expect(svc.getServiceInfo()).toStrictEqual({
+				name: "users",
+				version: 2,
+				fullName: "v2.users",
+				settings: {
+					a: 5,
+					b: "John",
+				},
+				metadata: {
+					x: 100,
+					y: "Jane",
+				},
+				actions: {
+					find: {
+						handler: expect.any(Function) as Function,
+						name: "find",
+						rawName: "find",
+					},
+					get: {
+						handler: expect.any(Function) as Function,
+						name: "get",
+						rawName: "get",
+					},
+				},
+				events: {},
+			});
 		});
 
 		it("should create with string version", async () => {
@@ -99,6 +144,16 @@ describe("Service schema", () => {
 			expect(svc.name).toBe("config");
 			expect(svc.version).toBe("stage");
 			expect(svc.fullName).toBe("stage.config");
+
+			expect(svc.getServiceInfo()).toStrictEqual({
+				name: "config",
+				version: "stage",
+				fullName: "stage.config",
+				settings: {},
+				metadata: {},
+				actions: {},
+				events: {},
+			});
 		});
 	});
 

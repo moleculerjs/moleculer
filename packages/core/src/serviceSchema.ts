@@ -87,8 +87,8 @@ export interface ServiceSchema<
 	settings?: TSettings;
 	metadata?: TMetadata;
 	dependencies?: ServiceDependencies;
-	actions?: Record<string, ActionDefinition | ActionHandler> & ThisType<TThis>;
-	// events?: Record<string, unknown>;
+	actions?: Record<string, ActionDefinition | ActionHandler | false> & ThisType<TThis>;
+	events?: Record<string, unknown>;
 	methods?: TMethods & ThisType<TThis>;
 
 	merged?:

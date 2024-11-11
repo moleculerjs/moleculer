@@ -93,7 +93,7 @@ export default tseslint.config(
 
 			// disallow continue statements
 			// https://eslint.org/docs/latest/rules/no-continue
-			"no-continue": "error",
+			"no-continue": "off",
 
 			// disallow else blocks after return statements in if statements
 			// https://eslint.org/docs/latest/rules/no-else-return
