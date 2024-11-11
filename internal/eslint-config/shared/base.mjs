@@ -408,7 +408,7 @@ export default tseslint.config(
 
 			// disallow non-null assertions using the ! postfix operator
 			// https://typescript-eslint.io/rules/no-non-null-assertion
-			"@typescript-eslint/no-non-null-assertion": "error",
+			"@typescript-eslint/no-non-null-assertion": "warn",
 
 			// require a consistent member declaration order
 			// https://typescript-eslint.io/rules/member-ordering

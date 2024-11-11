@@ -64,23 +64,43 @@ interface ParameterObject {
 
 export type ParameterSchema = Record<string, ParamTypes | ParameterObject>;
 
+export type ServiceSyncLifecycleFunction<
+	TSettings extends Record<string, unknown>,
+	TMetadata extends Record<string, unknown>,
+	TMethods,
+> = (this: ServiceThis<TSettings, TMetadata, TMethods>) => void;
+
+export type ServiceASyncLifecycleFunction<
+	TSettings extends Record<string, unknown>,
+	TMetadata extends Record<string, unknown>,
+	TMethods,
+> = (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
+
 export interface ServiceSchema<
 	TSettings extends Record<string, unknown>,
 	TMetadata extends Record<string, unknown>,
 	TMethods extends Record<string, unknown> = Record<string, unknown>,
+	TThis = ServiceThis<TSettings, TMetadata, TMethods>,
 > {
 	name: string;
 	version?: ServiceVersion;
 	settings?: TSettings;
 	metadata?: TMetadata;
 	dependencies?: ServiceDependencies;
-	actions?: Record<string, ActionDefinition | ActionHandler> &
-		ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;
+	actions?: Record<string, ActionDefinition | ActionHandler> & ThisType<TThis>;
 	// events?: Record<string, unknown>;
-	methods?: TMethods & ThisType<ServiceThis<TSettings, TMetadata, TMethods>>;
+	methods?: TMethods & ThisType<TThis>;
 
-	merged?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => void;
-	created?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
-	started?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
-	stopped?: (this: ServiceThis<TSettings, TMetadata, TMethods>) => Promise<void>;
+	merged?:
+		| ServiceSyncLifecycleFunction<TSettings, TMetadata, TMethods>
+		| ServiceSyncLifecycleFunction<TSettings, TMetadata, TMethods>[];
+	created?:
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>[];
+	started?:
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>[];
+	stopped?:
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>
+		| ServiceASyncLifecycleFunction<TSettings, TMetadata, TMethods>[];
 }

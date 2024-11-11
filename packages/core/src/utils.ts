@@ -33,7 +33,7 @@ export function isString(s: unknown): s is string {
 	return typeof s === "string" || s instanceof String;
 }
 
-export function isObject(o: unknown): o is Record<string, unknown> {
+export function isObject<TObj>(o: unknown): o is TObj {
 	return o !== null && typeof o === "object" && !(o instanceof String);
 }
 

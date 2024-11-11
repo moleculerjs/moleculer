@@ -13,6 +13,10 @@ export enum BrokerState {
 	STOPPED = 5,
 }
 
+export enum MiddlewareHookNames {
+	LOCAL_METHOD = "localMethod",
+}
+
 const MOLECULER_VERSION = pkg.version;
 
 export class ServiceBroker {
@@ -343,10 +347,10 @@ export class ServiceBroker {
 	 * @returns
 	 */
 
-	public wrapMiddlewareHandler<THandler extends (...args: unknown[]) => unknown>(
+	public wrapMiddlewareHandler<THandler extends Function>(
 		hookName: string,
 		handler: THandler,
-		def?: Record<string, unknown>,
+		def?: object,
 	): THandler {
 		return handler;
 	}

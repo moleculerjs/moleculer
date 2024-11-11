@@ -16,6 +16,7 @@
     "./*.js", // root javascript files
     "./*.mjs", // root esm files
     "__mocks__/**/*", // jest mocks
-    "test/**/*" // test folder
+    "test/**/*", // test folder
+    "jest.config.ts" // test config file
   ]
 }

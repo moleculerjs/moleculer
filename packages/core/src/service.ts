@@ -1,5 +1,5 @@
 import _ from "lodash";
-import type { ServiceBroker } from "./broker";
+import { MiddlewareHookNames, type ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
 import type { Nullable } from "./helperTypes";
 import type { ServiceSchema } from "./serviceSchema";
@@ -11,6 +11,12 @@ export type ServiceLocalActionHandler = (
 	params?: Record<string, unknown>,
 	opts?: unknown,
 ) => Promise<unknown>;
+
+export interface ServiceMethodDefinition {
+	name?: string;
+	service?: Service;
+	handler?: Function;
+}
 
 function callSyncLifecycleHandler(
 	func: Function | Function[],
@@ -57,8 +63,8 @@ export class Service<
 	public settings: TSettings = {} as TSettings;
 	public metadata: TMetadata = {} as TMetadata;
 
-	protected actions: Record<string, ServiceLocalActionHandler> = {};
-	protected events: Record<string, unknown> = {};
+	public actions: Record<string, ServiceLocalActionHandler> = {};
+	public events: Record<string, unknown> = {};
 
 	public constructor(name?: string, version?: ServiceVersion) {
 		if (name != null) {
@@ -158,6 +164,12 @@ export class Service<
 
 		this.actions = {}; // external access to actions
 		this.events = {}; // external access to event handlers.
+
+		if (schema.methods != null) {
+			Object.entries(schema.methods).forEach((entry: [string, Function]) => {
+				this.createMethod(entry[0], entry[1]);
+			});
+		}
 	}
 
 	public async init(broker: ServiceBroker): Promise<void> {
@@ -167,26 +179,62 @@ export class Service<
 			ver: this.version,
 		});
 
-		if (this.schema.created) {
-			if (this.schema.created != null) {
-				await callAsyncLifecycleHandler(this.schema.created, this);
-			}
+		if (this.schema.created != null) {
+			await callAsyncLifecycleHandler(this.schema.created, this);
 		}
 	}
 
 	public async start(): Promise<void> {
-		if (this.schema.started) {
-			if (this.schema.started != null) {
-				await callAsyncLifecycleHandler(this.schema.started, this);
-			}
+		if (this.schema.started != null) {
+			await callAsyncLifecycleHandler(this.schema.started, this);
 		}
 	}
 
 	public async stop(): Promise<void> {
-		if (this.schema.stopped) {
-			if (this.schema.stopped != null) {
-				await callAsyncLifecycleHandler(this.schema.stopped, this);
-			}
+		if (this.schema.stopped != null) {
+			await callAsyncLifecycleHandler(this.schema.stopped, this);
 		}
+	}
+
+	protected createMethod(
+		name: string,
+		def: ServiceMethodDefinition | Function,
+	): ServiceMethodDefinition {
+		let methodDef: ServiceMethodDefinition;
+
+		if (isFunction(def)) {
+			methodDef = {
+				name,
+				service: this,
+				handler: def,
+			};
+		} else if (isObject<ServiceMethodDefinition>(def)) {
+			if (def.handler == null) {
+				throw new ServiceSchemaError(
+					`Missing method handler in '${this.fullName}.${name}' method definition!`,
+					this.schema,
+				);
+			}
+			methodDef = {
+				name,
+				...def,
+				service: this,
+				handler: def.handler.bind(this) as Function,
+			};
+		} else {
+			throw new ServiceSchemaError(
+				`Invalid method definition in '${this.fullName}.${name}' method!`,
+				this.schema,
+			);
+		}
+
+		// @ts-expect-error: Dynamic method creation
+		this[name] = this.broker.wrapMiddlewareHandler(
+			MiddlewareHookNames.LOCAL_METHOD,
+			methodDef.handler!,
+			methodDef,
+		);
+
+		return methodDef;
 	}
 }
