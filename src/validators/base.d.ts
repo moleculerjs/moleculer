@@ -8,7 +8,8 @@ declare namespace BaseValidator {
 		paramName?: string;
 	}
 
-	export type CheckerFunction = Function & { async: boolean };
+	type CheckerFunctionBase = (params: Record<string, unknown>, opts?: { meta: { ctx: Context } }) => boolean | Promise<boolean>
+	export type CheckerFunction = CheckerFunctionBase & { async?: boolean };
 }
 
 declare abstract class BaseValidator {
