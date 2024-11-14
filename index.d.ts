@@ -935,6 +935,7 @@ declare namespace Moleculer {
 		strategyOptions?: GenericObject;
 		preferLocal?: boolean;
 		discoverer?: RegistryDiscovererOptions | BaseDiscoverer | string;
+		stopDelay?: number;
 	}
 
 	interface RegistryDiscovererOptions {
