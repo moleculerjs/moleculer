@@ -266,7 +266,8 @@ describe("Test ServiceBroker constructor", () => {
 				disableReconnect: false,
 				maxQueueSize: 50 * 1000,
 				maxChunkSize: 262144,
-				disableVersionCheck: false
+				disableVersionCheck: false,
+				serviceChangedDebounceTime: 1000
 			},
 
 			uidGenerator: null,
