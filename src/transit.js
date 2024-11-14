@@ -1033,12 +1033,8 @@ class Transit {
 		// Close pending request streams of the node
 		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
 			if (sender === nodeID) {
-				// Close the stream with error
-				if (!stream.destroyed) {
-					stream.destroy(new Error(`Request stream closed by ${nodeID}`));
-				}
-
 				this.pendingReqStreams.delete(id);
+				this._destroyStreamIfPossible(stream, `Stream closed by ${nodeID}`);
 			}
 		});
 
@@ -1054,10 +1050,61 @@ class Transit {
 					})
 				);
 
-				this.pendingReqStreams.delete(id);
-				this.pendingResStreams.delete(id);
+				this._deletePendingReqStream(id, nodeID);
+				this._deletePendingResStream(id, nodeID);
 			}
 		});
+	}
+
+	/**
+	 * Internal method to delete a pending response stream from `pendingResStreams`
+	 * and destroy it (if not already destroyed) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingResStreams`
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
+	 * @memberof Transit
+	 */
+	_deletePendingResStream(id, origin) {
+		const stream = this.pendingResStreams.get(id);
+		this.pendingResStreams.delete(id);
+
+		if (stream) {
+			this._destroyStreamIfPossible(stream, `Stream closed by ${origin}`);
+		}
+	}
+
+	/**
+	 * Internal method to delete a pending request stream from `pendingReqStreams`
+	 * and destroy it (if not already ended) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingReqStreams`
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
+	 * @memberof Transit
+	 */
+	_deletePendingReqStream(id, origin) {
+		const reqStream = this.pendingReqStreams.get(id);
+		const pass = reqStream ? reqStream.stream : undefined;
+		this.pendingReqStreams.delete(id);
+
+		if (pass) {
+			this._destroyStreamIfPossible(pass, `Stream closed by ${origin}`);
+		}
+	}
+
+	/**
+	 * Internal method to destroy a stream if it is not already destroyed.
+	 *
+	 * @param {DuplexStream} stream - The stream to be destroyed.
+	 * @param {String} errorMessage - The error message to be used when destroying.
+	 *
+	 * @memberof Transit
+	 */
+	_destroyStreamIfPossible(stream, errorMessage) {
+		if (!stream.destroyed && stream.destroy) {
+			stream.destroy(new Error(errorMessage));
+		}
 	}
 
 	/**
