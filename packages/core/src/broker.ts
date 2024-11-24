@@ -200,6 +200,15 @@ export class ServiceBroker {
 	}
 
 	/**
+	 * Register a local service instance
+	 *
+	 * @param svc
+	 */
+	public registerLocalService(svc: Service): void {
+		// this.services.push(svc);
+	}
+
+	/**
 	 * TODO:
 	 *
 	 * @param serviceNames
@@ -237,7 +246,9 @@ export class ServiceBroker {
 				await svc.start();
 
 				await this.callMiddlewareHook("serviceStarted", [svc]);
-				this.logger.debug(`Service '${svc.fullName}' started.`);
+				this.logger.info(`Service '${svc.fullName}' started.`);
+
+				this.registerLocalService(svc);
 			}),
 		);
 		for (const item of res) {
@@ -285,7 +296,7 @@ export class ServiceBroker {
 					await svc.stop();
 
 					await this.callMiddlewareHook("serviceStopped", [svc]);
-					this.logger.debug(`Service '${svc.fullName}' stopped.`);
+					this.logger.info(`Service '${svc.fullName}' stopped.`);
 				}),
 			);
 			for (const item of res) {

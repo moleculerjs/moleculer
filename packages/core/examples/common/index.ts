@@ -20,8 +20,8 @@ class MyNativeService extends Service {
 
 	private localVar?: number;
 
-	public constructor() {
-		super("my-native-service");
+	public constructor(broker: ServiceBroker) {
+		super(broker, "my-native-service");
 		this.settings.a = 7;
 	}
 
@@ -70,19 +70,20 @@ class MyNativeService extends Service {
 
 async function start() {
 	// --- CREATE BROKER ---
-	const broker = new ServiceBroker({ namespace: "my-namespace" });
+	const broker = new ServiceBroker({
+		namespace: "my-namespace",
+	});
 	assert(broker.getLocalServiceCount() === 0, "Invalid services length (0)");
 
 	// --- CREATE NATIVE CLASS SERVICE ---
-	const myNativeService = new MyNativeService();
-	await broker.loadService(myNativeService);
+	await broker.loadService(MyNativeService);
 	assert(broker.getLocalServiceCount() === 1, "Invalid services length (1)");
 	assert(
-		broker.getLocalService("my-native-service") === myNativeService,
+		broker.getLocalService("my-native-service") instanceof MyNativeService,
 		"Not found service by name",
 	);
 	assert(
-		broker.getLocalService({ name: "my-native-service" }) === myNativeService,
+		broker.getLocalService({ name: "my-native-service" }) instanceof MyNativeService,
 		"Not found service by name object",
 	);
 	assert(
@@ -91,74 +92,77 @@ async function start() {
 	);
 
 	// --- CREATE SERVICE FROM SCHEMA ---
-	const svc = Service.createFromSchema({
-		name: "posts",
-		version: 2,
+	const svc = Service.createFromSchema(
+		{
+			name: "posts",
+			version: 2,
 
-		metadata: {
-			region: "us-west",
-			zone: "b",
-			cluster: false,
-		},
-		settings: {
-			a: 10,
-			b: "Test2",
-		},
+			metadata: {
+				region: "us-west",
+				zone: "b",
+				cluster: false,
+			},
+			settings: {
+				a: 10,
+				b: "Test2",
+			},
 
-		actions: {
-			hello: {
-				params: {
-					name: "string",
-					age: "number",
-					active: { type: "boolean" },
-					city: { type: "string" },
+			actions: {
+				hello: {
+					params: {
+						name: "string",
+						age: "number",
+						active: { type: "boolean" },
+						city: { type: "string" },
+					},
+					handler(ctx): string {
+						assert(ctx.params.name === "John", "Invalid name");
+						assert(ctx.params.age === 25, "Invalid age");
+						assert(ctx.params.active === true, "Invalid active");
+						assert(ctx.params.city === "NY", "Invalid city");
+
+						return `Hello ${this.uppercase(ctx.params.name)}!`;
+					},
 				},
-				handler(ctx): string {
-					assert(ctx.params.name === "John", "Invalid name");
-					assert(ctx.params.age === 25, "Invalid age");
-					assert(ctx.params.active === true, "Invalid active");
-					assert(ctx.params.city === "NY", "Invalid city");
 
-					return `Hello ${this.uppercase(ctx.params.name)}!`;
+				welcome(ctx): string {
+					// @ts-expect-error: Params is not defined
+					assert(ctx.params.age !== 25, "Invalid age");
+					return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
 				},
 			},
 
-			welcome(ctx): string {
-				// @ts-expect-error: Params is not defined
-				assert(ctx.params.age !== 25, "Invalid age");
-				return `Welcome ${this.uppercase("Moleculer")}! ${this.metadata.region}`;
+			methods: {
+				uppercase(str: string): string {
+					console.log(this.name, this.version, this.settings.a, this.metadata.region);
+					return str.toUpperCase();
+				},
+			},
+
+			created() {
+				assert(this.name === "posts", "Wrong service name");
+				assert(this.version === 2, "Wrong service version");
+				assert(this.fullName === "v2.posts", "Wrong service fullName");
+
+				this.logger.info(`>>> '${this.fullName}' created is called.`);
+				const region = this.uppercase(this.metadata.region);
+
+				this.logger.info(`>>> settings.a: ${this.settings.a}, metadata.region: ${region}`);
+				return Promise.resolve();
+			},
+
+			started() {
+				this.logger.info(`>>> '${this.fullName}' started is called.`);
+				return Promise.resolve();
+			},
+
+			stopped() {
+				this.logger.info(`>>> '${this.fullName}' stopped is called.`);
+				return Promise.resolve();
 			},
 		},
-
-		methods: {
-			uppercase(str: string): string {
-				console.log(this.name, this.version, this.settings.a, this.metadata.region);
-				return str.toUpperCase();
-			},
-		},
-
-		created() {
-			assert(this.name === "posts", "Wrong service name");
-			assert(this.version === 2, "Wrong service version");
-			assert(this.fullName === "v2.posts", "Wrong service fullName");
-
-			this.logger.info(`>>> '${this.fullName}' created is called.`);
-			const region = this.uppercase(this.metadata.region);
-
-			this.logger.info(`>>> settings.a: ${this.settings.a}, metadata.region: ${region}`);
-			return Promise.resolve();
-		},
-
-		started() {
-			this.logger.info(`>>> '${this.fullName}' started is called.`);
-			return Promise.resolve();
-		},
-
-		stopped() {
-			this.logger.info(`>>> '${this.fullName}' stopped is called.`);
-			return Promise.resolve();
-		},
-	});
+		broker,
+	);
 
 	await broker.loadService(svc);
 

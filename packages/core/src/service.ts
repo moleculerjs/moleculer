@@ -2,7 +2,12 @@ import _ from "lodash";
 import { MiddlewareHookNames, type ServiceBroker } from "./broker";
 import { ServiceSchemaError } from "./errors";
 import type { Nullable } from "./helperTypes";
-import type { ActionDefinition, ActionHandler, ServiceSchema } from "./serviceSchema";
+import type {
+	ActionDefinition,
+	ActionHandler,
+	ServiceDependencies,
+	ServiceSchema,
+} from "./serviceSchema";
 import { isFunction, isObject } from "./utils";
 
 const INVALID_METHOD_NAMES = [
@@ -53,7 +58,7 @@ export type ServiceInfo<
 	TMetadata extends Record<string, unknown>,
 > = Pick<
 	ServiceSchema<TSettings, TMetadata>,
-	"name" | "version" | "settings" | "metadata" | "actions" | "events"
+	"name" | "version" | "settings" | "metadata" | "dependencies" | "actions" | "events"
 > &
 	Pick<Service, "fullName">;
 
@@ -101,6 +106,7 @@ export class Service<
 
 	public settings: TSettings = {} as TSettings;
 	public metadata: TMetadata = {} as TMetadata;
+	public dependencies?: ServiceDependencies;
 
 	public actions: Record<string, ServiceLocalActionHandler> = {};
 	public events: Record<string, unknown> = {};
@@ -253,6 +259,8 @@ export class Service<
 	}
 
 	public async start(): Promise<void> {
+		// TODO: Wait for dependencies call broker.waitForServices
+
 		if (this.schema.started != null) {
 			await callAsyncLifecycleHandler(this.schema.started, this);
 		}
