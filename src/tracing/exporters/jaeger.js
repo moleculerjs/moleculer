@@ -49,7 +49,10 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			tracerOptions: {},
 
 			/** @type {Object?} Default span tags */
-			defaultTags: null
+			defaultTags: null,
+
+			/** @type {boolean?} Use legacy mode with 64 bit trace ids*/
+			legacyMode: true
 		});
 
 		this.tracers = {};
@@ -199,8 +202,8 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		let parentCtx;
 		if (span.parentID) {
 			parentCtx = new Jaeger.SpanContext(
-				this.convertID(span.traceID), // traceId,
-				this.convertID(span.parentID), // spanId,
+				this.convertTraceID(span.traceID), // traceId,
+				this.convertSpanID(span.parentID), // spanId,
 				null, // parentId,
 				null, // traceIdStr
 				null, // spanIdStr
@@ -235,8 +238,8 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		);
 
 		const sc = jaegerSpan.context();
-		sc.traceId = this.convertID(span.traceID);
-		sc.spanId = this.convertID(span.id);
+		sc.traceId = this.convertTraceID(span.traceID);
+		sc.spanId = this.convertSpanID(span.id);
 
 		if (span.error) {
 			this.addTags(jaegerSpan, Jaeger.opentracing.Tags.ERROR, true);
@@ -291,8 +294,24 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @param {String} id
 	 * @returns {String}
 	 */
-	convertID(id) {
+	convertSpanID(id) {
 		if (id) return Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex");
+
+		return null;
+	}
+
+	/**
+	 * Convert Trace ID to Jaeger format. Return 128 bit IDs or 64 bit IDs if legacy is set.
+	 *
+	 * @param {String} id
+	 * @returns {String}
+	 */
+	convertTraceID(id) {
+		if (id)
+			return Buffer.from(
+				id.replace(/-/g, "").substring(0, this.opts.legacyMode ? 16 : 32),
+				"hex"
+			);
 
 		return null;
 	}
