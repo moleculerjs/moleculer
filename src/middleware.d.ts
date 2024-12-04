@@ -28,7 +28,7 @@ declare namespace MiddlewareHandler {
 		emit?: (next: ServiceBroker['emit']) => ServiceBroker['emit'];
 		broadcast?: (next: ServiceBroker['broadcast']) => ServiceBroker['broadcast'];
 		broadcastLocal?: (next: ServiceBroker['broadcastLocal']) => ServiceBroker['broadcastLocal'];
-		serviceCreating?: (service: Service, schema: Service.Schema) => void;
+		serviceCreating?: (service: Service, schema: Service.ServiceSchema) => void;
 		serviceCreated?: (service: Service) => void;
 		serviceStarting?: (service: Service) => Promise<void>;
 		serviceStarted?: (service: Service) => Promise<void>;

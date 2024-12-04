@@ -1,7 +1,7 @@
 "use strict";
 
 import * as path from "path";
-import { ServiceBroker } from "../../../";
+import { ServiceBroker, Service } from "../../../";
 
 const broker = new ServiceBroker({
 	logger: {
@@ -35,7 +35,17 @@ const broker = new ServiceBroker({
 				}
 			}
 		]
-	}
+	},
+	middlewares: [
+		{
+			localAction(this: Service, next, action) {
+				return ctx => {
+					this.logger.info("Local action middleware", action.name);
+					return next(ctx);
+				};
+			},
+		}
+	]
 });
 
 broker.loadService(path.join(__dirname, "greeter.service.ts"));
