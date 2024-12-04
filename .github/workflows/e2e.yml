@@ -27,7 +27,7 @@ jobs:
     #  cancel-in-progress: true
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         transporter: [NATS, Redis, MQTT, AMQP, AMQP10, Kafka, TCP]
         serializer: [JSON, JSONExt, MsgPack, Notepack, CBOR]
         discoverer: [Local, Etcd3, Redis]
