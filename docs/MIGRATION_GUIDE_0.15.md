@@ -245,7 +245,52 @@ module.exports = {
 
 About new configuration options, check this documentation: https://kafka.js.org/docs/configuration
 
-## The Fastest Validator options changed.
+## Custom cacher keygen signatire changed
+
+The old `(actionName, params, meta, keys, headers)` key generator function signature has been changed to `getCacheKey(action, opts, ctx)`. For old parameters, use `action.name`, `ctx.params`, `ctx.meta`, `opt.keys`, `ctx.headers` instead.
+
+### Old way in action definition
+
+```js
+module.exports = {
+    name: "posts",
+    actions: {
+        list: {
+            cache: {
+                keygen: (actionName, params, meta, keys, headers) => {
+                    return `${actionName}:${JSON.stringify(params)}`;
+                }
+            }
+            handler(ctx) {
+                // Do something...
+            }
+        }
+    }
+};
+```
+
+### New way to receive a stream
+
+```js
+module.exports = {
+    name: "posts",
+    actions: {
+        list: {
+            cache: {
+                keygen: (action, opts, ctx) => {
+                    return `${action.name}:${JSON.stringify(ctx.params)}`;
+                }
+            }
+            handler(ctx) {
+                // Do something...
+            }
+        }
+    }
+};
+```
+
+
+## The Fastest Validator options changed
 
 In 0.15 the `useNewCustomCheckFunction` default value is changed from `false` to `true`. It means, if you have old custom checker function in your parameter validation schemas, you should rewrite it to the new custom check function form.
 

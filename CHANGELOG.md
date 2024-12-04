@@ -352,9 +352,10 @@ The Moleculer protocol supports headers in response, as well (`ctx.responseHeade
 #### The `getCacheKey` and `opts.keygen` signature has been changed
 
 Old signature: `getCacheKey(actionName, params, meta, keys, actionKeygen)`
+Old signature: `keygen: (actionName, params, meta, keys, headers) => {}`
 
 New signature: `getCacheKey(action, opts, ctx)`
-
+New signature: `keygen: (action, opts, ctx) => {}`
 
 #### Added `missingResponse` option to cacher options
 
