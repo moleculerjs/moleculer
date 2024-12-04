@@ -45,7 +45,7 @@ const { isFunction } = require("../../utils");
  *
  *  Start containers:
  *
- * 		docker-compose up -d
+ * 		docker compose up -d
  *
  * Grafana dashboard: http://<docker-ip>:3000
  *

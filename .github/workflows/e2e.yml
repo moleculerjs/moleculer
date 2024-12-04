@@ -58,46 +58,46 @@ jobs:
       run: npm ci
 
     - name: Start NATS
-      run: docker-compose up -d nats && sleep 10
+      run: docker compose up -d nats && sleep 10
       if: ${{ matrix.transporter == 'NATS' }}
       working-directory: ./test
 
     - name: Start Redis
-      run: docker-compose up -d redis && sleep 10
+      run: docker compose up -d redis && sleep 10
       if: ${{ matrix.transporter == 'Redis' || matrix.discoverer == 'Redis' }}
       working-directory: ./test
 
     - name: Start MQTT
-      run: docker-compose up -d mqtt && sleep 10
+      run: docker compose up -d mqtt && sleep 10
       if: ${{ matrix.transporter == 'MQTT' }}
       working-directory: ./test
 
     - name: Start RabbitMQ
-      run: docker-compose up -d rabbitmq && sleep 10
+      run: docker compose up -d rabbitmq && sleep 10
       if: ${{ matrix.transporter == 'AMQP' }}
       working-directory: ./test
 
     - name: Start ActiveMQ
-      run: docker-compose up -d activemq && sleep 30
+      run: docker compose up -d activemq && sleep 30
       if: ${{ matrix.transporter == 'AMQP10' }}
       working-directory: ./test
 
     - name: Start Kafka
-      run: docker-compose up -d zookeeper kafka && sleep 60
+      run: docker compose up -d zookeeper kafka && sleep 60
       if: ${{ matrix.transporter == 'Kafka' }}
       working-directory: ./test
 
     - name: Start Etcd3
-      run: docker-compose up -d etcd3 && sleep 10
+      run: docker compose up -d etcd3 && sleep 10
       if: ${{ matrix.discoverer == 'Etcd3' }}
       working-directory: ./test
 
     - name: Check containers
-      run: docker-compose ps
+      run: docker compose ps
       working-directory: ./test
 
     - name: Check logs
-      run: docker-compose logs
+      run: docker compose logs
       working-directory: ./test
 
     - name: Execute E2E tests
@@ -110,5 +110,5 @@ jobs:
         # LOGLEVEL: "${{ matrix.transporter == 'Kafka' && 'debug' || 'warn' }}"
 
     - name: Stop containers
-      run: docker-compose down -v
+      run: docker compose down -v
       working-directory: ./test

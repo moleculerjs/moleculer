@@ -1,5 +1,6 @@
 import type ServiceBroker = require("../service-broker");
 import type { ActionHandler, ActionSchema } from "../service";
+import type Context from "../context";
 
 declare namespace BaseValidator {
 	export type ValidatorNames = "Fastest";
