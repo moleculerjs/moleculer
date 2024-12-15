@@ -6,6 +6,7 @@
 
 "use strict";
 
+const { Stream } = require("stream");
 const { RequestTimeoutError } = require("../errors");
 const { METRIC } = require("../metrics");
 
@@ -38,6 +39,11 @@ module.exports = function (broker) {
 							nodeID,
 							timeout: ctx.options.timeout
 						});
+
+						if (ctx.params instanceof Stream) {
+							ctx.params.emit('moleculer-timeout-middleware', ctx.options.timeout)
+						}
+
 						err = new RequestTimeoutError({ action: actionName, nodeID });
 
 						broker.metrics.increment(METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, {
