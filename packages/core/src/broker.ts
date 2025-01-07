@@ -155,7 +155,7 @@ export class ServiceBroker {
 			this.logger.debug(`Service '${service.fullName}' created.`);
 		} else {
 			this.logger.error(
-				"Invalid parameter type for loadService. It accepts only Service instance of string",
+				"Invalid parameter type for loadService. It accepts only Service instance or string",
 				{ type: typeof service },
 			);
 		}
