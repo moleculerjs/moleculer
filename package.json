@@ -63,7 +63,6 @@
   "author": "MoleculerJS",
   "license": "MIT",
   "devDependencies": {
-    "@icebob/node-memwatch": "^2.1.0",
     "@sinonjs/fake-timers": "^9.1.2",
     "@types/bunyan": "^1.8.11",
     "@types/ioredis": "^4.28.10",
