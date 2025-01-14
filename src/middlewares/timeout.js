@@ -42,7 +42,7 @@ module.exports = function (broker) {
 						});
 
 						if (ctx.params instanceof Stream) {
-							ctx.params.emit('moleculer-timeout-middleware', ctx.options.timeout)
+							ctx.params.emit("moleculer-timeout-middleware", ctx.options.timeout);
 						}
 
 						err = new RequestTimeoutError({ action: actionName, nodeID });

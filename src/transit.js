@@ -551,12 +551,12 @@ class Transit {
 
 			this.pendingReqStreams.set(payload.id, { sender: payload.sender, stream: pass });
 
-			pass.on('moleculer-timeout-middleware', (timeout) => {
+			pass.on("moleculer-timeout-middleware", (timeout) => {
 				setTimeout(() => {
 					this.pendingReqStreams.delete(payload.id);
-					this._destroyStreamIfPossible(pass, `Pending request stream ${payload.id} have been closed by timeout ${timeout} ms`)
+					this._destroyStreamIfPossible(pass, `Pending request stream ${payload.id} have been closed by timeout ${timeout} ms`);
 				}, 1000);
-			})
+			});
 		}
 
 		if (payload.seq > pass.$prevSeq + 1) {
@@ -872,11 +872,11 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		if (request.stream) {
-			const pass = request.ctx.params
+			const pass = request.ctx.params;
 
-			pass.on('moleculer-timeout-middleware', (timeout) => {
-				this._destroyStreamIfPossible(pass, `Request stream ${ctx.id} have been closed by timeout ${timeout} ms`)
-			})
+			pass.on("moleculer-timeout-middleware", (timeout) => {
+				this._destroyStreamIfPossible(pass, `Request stream ${ctx.id} have been closed by timeout ${timeout} ms`);
+			});
 		}
 
 		// Publish request
@@ -1118,7 +1118,7 @@ class Transit {
 	 */
 	_destroyStreamIfPossible(stream, errorMessage) {
 		if (!stream.destroyed && stream.destroy) {
-			stream.on('error', (err) => this.logger.error(err.message))
+			stream.on("error", (err) => this.logger.error(err.message));
 			stream.destroy(new Error(errorMessage));
 		}
 	}
