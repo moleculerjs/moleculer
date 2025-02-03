@@ -86,7 +86,8 @@ export default class MoleculerRunner {
 			.option("env", "Load .env file from the current directory")
 			.option("envfile", "Load a specified .env file")
 			.option("instances", "Launch [number] instances node (load balanced)")
-			.option("mask", "Filemask for service loading");
+			.option("mask", "Filemask for service loading")
+			.option("dependencies", "List of global dependencies for all services");
 
 		this.flags = Args.parse(procArgs, {
 			mri: {
@@ -98,12 +99,17 @@ export default class MoleculerRunner {
 					e: "env",
 					E: "envfile",
 					i: "instances",
-					m: "mask"
+					m: "mask",
+					d: "dependencies"
 				},
 				boolean: ["repl", "silent", "hot", "env"],
-				string: ["config", "envfile", "mask"]
+				string: ["config", "envfile", "mask", "dependencies"]
 			}
 		});
+
+		if (this.flags.dependencies) {
+			this.flags.dependencies = this.flags.dependencies.split(",").map(dep => dep.trim());
+		}
 
 		this.servicePaths = Args.sub;
 	}

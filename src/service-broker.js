@@ -46,6 +46,8 @@ const defaultOptions = {
 
 	errorRegenerator: null,
 
+	initialDependencies: [],
+
 	requestTimeout: 0 * 1000,
 	retryPolicy: {
 		enabled: false,
