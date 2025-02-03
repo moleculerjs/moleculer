@@ -550,6 +550,16 @@ class Transit {
 			pass.$pool = new Map();
 
 			this.pendingReqStreams.set(payload.id, { sender: payload.sender, stream: pass });
+
+			pass.on("moleculer-timeout-middleware", timeout => {
+				setTimeout(() => {
+					this.pendingReqStreams.delete(payload.id);
+					this._destroyStreamIfPossible(
+						pass,
+						`Pending request stream ${payload.id} have been closed by timeout ${timeout} ms`
+					);
+				}, 1000);
+			});
 		}
 
 		if (payload.seq > pass.$prevSeq + 1) {
@@ -864,6 +874,17 @@ class Transit {
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
+		if (request.stream) {
+			const pass = request.ctx.params;
+
+			pass.on("moleculer-timeout-middleware", timeout => {
+				this._destroyStreamIfPossible(
+					pass,
+					`Request stream ${ctx.id} have been closed by timeout ${timeout} ms`
+				);
+			});
+		}
+
 		// Publish request
 		return this.publish(packet)
 			.then(() => {
@@ -1103,6 +1124,7 @@ class Transit {
 	 */
 	_destroyStreamIfPossible(stream, errorMessage) {
 		if (!stream.destroyed && stream.destroy) {
+			stream.on("error", err => this.logger.error(err.message));
 			stream.destroy(new Error(errorMessage));
 		}
 	}
