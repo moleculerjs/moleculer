@@ -1,6 +1,7 @@
 import type { EventEmitter2 } from "eventemitter2";
 import type { BinaryLike, CipherCCMTypes, CipherGCMTypes, CipherKey, CipherOCBTypes } from "crypto";
 import type { Worker } from "cluster";
+import type { Kleur } from "kleur";
 
 declare namespace Moleculer {
 	/**
@@ -1350,21 +1351,23 @@ declare namespace Moleculer {
 			sender: string | null;
 		}
 
+		type PacketType =
+			| PACKET_UNKNOWN
+			| PACKET_EVENT
+			| PACKET_DISCONNECT
+			| PACKET_DISCOVER
+			| PACKET_INFO
+			| PACKET_HEARTBEAT
+			| PACKET_REQUEST
+			| PACKET_PING
+			| PACKET_PONG
+			| PACKET_RESPONSE
+			| PACKET_GOSSIP_REQ
+			| PACKET_GOSSIP_RES
+			| PACKET_GOSSIP_HELLO;
+
 		interface Packet {
-			type:
-				| PACKET_UNKNOWN
-				| PACKET_EVENT
-				| PACKET_DISCONNECT
-				| PACKET_DISCOVER
-				| PACKET_INFO
-				| PACKET_HEARTBEAT
-				| PACKET_REQUEST
-				| PACKET_PING
-				| PACKET_PONG
-				| PACKET_RESPONSE
-				| PACKET_GOSSIP_REQ
-				| PACKET_GOSSIP_RES
-				| PACKET_GOSSIP_HELLO;
+			type: PacketType
 			target?: string;
 			payload: PacketPayload;
 		}
@@ -2005,8 +2008,46 @@ declare namespace Moleculer {
 		start(args: string[]): Promise<void>;
 	}
 
+
+	/**
+	 * you can use multiple modifier with a dot
+	 * e.g. `black.bgRed.bold`
+	 */
+	type KleurColor = keyof Kleur | string;
+
+	type ActionLoggerOptions = {
+		logger?: LoggerInstance;
+		logLevel?: LogLevels;
+		logParams?: boolean;
+		logResponse?: boolean;
+		logMeta?: boolean;
+		folder?: string | null;
+		extension?: string;
+		colors?: {
+			request?: KleurColor;
+			response?: KleurColor;
+			error?: KleurColor;
+		};
+		whitelist?: Array<string>;
+	};
+	type TransitLoggerOptions = {
+		logger?: LoggerInstance;
+		logLevel?: LogLevels;
+		logPacketData?: boolean;
+		folder?: string | null;
+		extension?: string;
+		colors?: {
+			receive?: KleurColor;
+			send?: KleurColor;
+		};
+		packetFilter?: Array<Packets.PacketType>;
+	};
 	/* @private */
 	interface MoleculerMiddlewares {
+		Debugging: {
+			ActionLogger: (options?: ActionLoggerOptions) => Middleware;
+			TransitLogger: (options?: TransitLoggerOptions) => Middleware;
+		};
 		Transmit: {
 			/**
 			 * Encrypts the Transporter payload
