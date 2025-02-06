@@ -1240,12 +1240,31 @@ describe("Test loadServices", () => {
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
-	it("should load 1 services", () => {
+	it("should load 1 service", () => {
 		broker.loadService.mockClear();
 		const count = broker.loadServices("./test/services", "users.*.js");
 		expect(count).toBe(1);
 		expect(broker.loadService).toHaveBeenCalledTimes(1);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
+	});
+
+	it("should ignore 1 service and load 3 services", () => {
+		broker.loadService.mockClear();
+		const count = broker.loadServices("./test/services", "*.service.js", ["math.service.js"]);
+		expect(count).toBe(3);
+		expect(broker.loadService).toHaveBeenCalledTimes(3);
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+	});
+
+	it("should ignore 2 services and load 2 services", () => {
+		broker.loadService.mockClear();
+		const count = broker.loadServices("./test/services", "*.service.js", ["math.service.js", "users.service.js"]);
+		expect(count).toBe(2);
+		expect(broker.loadService).toHaveBeenCalledTimes(2);
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
 	it("should load 0 services", () => {
