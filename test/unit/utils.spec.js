@@ -174,7 +174,7 @@ describe("Test utils.isPromise", () => {
 		expect(utils.isPromise({})).toBe(false);
 		expect(utils.isPromise(new Promise(() => {}))).toBe(true);
 		expect(utils.isPromise(Promise.resolve())).toBe(true);
-		//expect(utils.isPromise(Promise.reject())).toBe(true); // node gives warning
+		expect(utils.isPromise(Promise.reject(new Error('...')).catch(() => {}))).toBe(true);
 	});
 });
 
