@@ -394,8 +394,10 @@ class ServiceBroker {
 	 * It is necessary to keep the context of the call when using call middleware.
 	 */
 	interceptCallMiddleware(createMiddleware) {
+		// We need to use ordinary function here, so "this" identifier can be bound to it later via call method.
 		return function (next) {
 			let result = null;
+			// Preserve "this" identifier inside intercepted middleware.
 			const call = createMiddleware.call(this, (...args) => (result = next(...args)));
 			return (...args) => {
 				const promise = call(...args);
