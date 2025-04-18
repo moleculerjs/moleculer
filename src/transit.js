@@ -914,8 +914,8 @@ class Transit {
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
-		if (request.stream) {
-			const pass = request.ctx.params;
+		if (isStream) {
+			const pass = ctx.options.stream;
 
 			pass.on("moleculer-timeout-middleware", timeout => {
 				this._destroyStreamIfPossible(
