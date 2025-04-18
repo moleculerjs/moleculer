@@ -14,17 +14,15 @@ import type {
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
-	type ServiceSyncLifecycleHandler<S = ServiceSettingSchema> = (this: Service<S>) => void;
-	type ServiceAsyncLifecycleHandler<S = ServiceSettingSchema> = (
-		this: Service<S>
-	) => void | Promise<void>;
+	export type ServiceSyncLifecycleHandler<T> = (this: T) => void;
+	export type ServiceAsyncLifecycleHandler<T> = (this: T) => void | Promise<void>;
 
 	export interface ServiceSearchObj {
 		name?: string;
 		version?: string | number;
 	}
 
-	export interface ServiceSchema<S = ServiceSettingSchema> {
+	export interface ServiceSchema<S = ServiceSettingSchema, T = Service<S>> {
 		name: string;
 		version?: string | number;
 		settings?: S;
@@ -36,9 +34,9 @@ declare namespace Service {
 		hooks?: ServiceHooks;
 
 		events?: EventSchemas<S>;
-		created?: ServiceSyncLifecycleHandler<S> | ServiceSyncLifecycleHandler<S>[];
-		started?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
-		stopped?: ServiceAsyncLifecycleHandler<S> | ServiceAsyncLifecycleHandler<S>[];
+		created?: ServiceSyncLifecycleHandler<T> | ServiceSyncLifecycleHandler<T>[];
+		started?: ServiceAsyncLifecycleHandler<T> | ServiceAsyncLifecycleHandler<T>[];
+		stopped?: ServiceAsyncLifecycleHandler<T> | ServiceAsyncLifecycleHandler<T>[];
 
 		// [key: string]: any;
 	}

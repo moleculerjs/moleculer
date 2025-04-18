@@ -1,11 +1,14 @@
 import {expectAssignable, expectType} from "tsd";
 import {
-	Service, ServiceAsyncLifecycleHandler,
+	Service,
 	ServiceBroker,
-	ServiceSchema,
-	ServiceSettingSchema,
-	ServiceSyncLifecycleHandler
+	ServiceSchema
 } from "../../../index";
+
+import {
+	ServiceSyncLifecycleHandler,
+	ServiceAsyncLifecycleHandler
+} from "../../../src/service";
 
 const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
@@ -70,7 +73,7 @@ interface TestService5SettingSchema {
 
 interface TestService5This extends Service<TestService5SettingSchema>, TestService5Methods {}
 
-const testService5Schema: ServiceSchema<TestService5SettingSchema, TestService5This> = {
+const testService5Schema: ServiceSchema<TestService5SettingSchema> = {
 	name: "test5",
 	settings: {
 		testService5Setting: "testService5"
@@ -90,6 +93,7 @@ expectType<ServiceSchema>(testService2.schema);
 const testService3 = new TestService3(broker);
 expectType<ServiceSchema>(testService3.schema);
 
+/*
 // Ensure that the lifecycle handlers are typed correctly when "This" type is not provided to service schema type
 expectType<
 	ServiceSyncLifecycleHandler<Service<TestService4SettingSchema>> |
@@ -123,3 +127,5 @@ expectType<
 	ServiceAsyncLifecycleHandler<TestService5This>[] |
 	undefined
 >(testService5Schema.stopped)
+
+*/

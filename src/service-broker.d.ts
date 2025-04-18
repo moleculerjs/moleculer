@@ -46,6 +46,24 @@ declare namespace ServiceBroker {
 	type BrokerSyncLifecycleHandler = (broker: ServiceBroker) => void;
 	type BrokerAsyncLifecycleHandler = (broker: ServiceBroker) => void | Promise<void>;
 
+	interface BrokerErrorHandlerInfoAction {
+		ctx: Context;
+		service: Context["service"];
+		action: Context["action"];
+	}
+	interface BrokerErrorHandlerInfoBroker {
+		actionName: string;
+		params: unknown;
+		opts: CallingOptions;
+		nodeId?: string;
+	}
+	type BrokerErrorHandlerInfo = BrokerErrorHandlerInfoAction | BrokerErrorHandlerInfoBroker;
+	type BrokerErrorHandler = (
+		this: ServiceBroker,
+		err: Error,
+		info: BrokerErrorHandlerInfo
+	) => void;
+
 	type TransporterConfig =
 		| {
 				type: "AMQP";
@@ -148,7 +166,7 @@ declare namespace ServiceBroker {
 
 		uidGenerator?: () => string;
 
-		errorHandler?: ((err: Error, info: Record<string, any>) => void) | null;
+		errorHandler?: BrokerErrorHandler;
 
 		cacher?: boolean | BaseCacher<any> | CacherType | CacherConfig | null;
 		serializer?: BaseSerializer | SerializerType | SerializerConfig | null;
@@ -387,7 +405,7 @@ declare class ServiceBroker {
 
 	repl(): void;
 
-	errorHandler(err: Error, info: Record<string, any>): void;
+	errorHandler(err: Error, info: ServiceBroker.BrokerErrorHandlerInfo): void;
 
 	wrapMethod(
 		name: string,
