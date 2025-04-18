@@ -1,12 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2025 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const { TimeoutError, RequestTimeoutError } = require("../errors");
+const { Stream } = require("stream");
 const { METRIC } = require("../metrics");
 
 module.exports = function (broker) {
@@ -38,6 +39,11 @@ module.exports = function (broker) {
 							nodeID,
 							timeout: ctx.options.timeout
 						});
+
+						if (ctx.params instanceof Stream) {
+							ctx.params.emit("moleculer-timeout-middleware", ctx.options.timeout);
+						}
+
 						err = new RequestTimeoutError({ action: actionName, nodeID });
 
 						broker.metrics.increment(METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, {

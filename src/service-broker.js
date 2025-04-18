@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2025 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -118,7 +118,8 @@ const defaultOptions = {
 		maxQueueSize: 50 * 1000, // 50k ~ 400MB,
 		maxChunkSize: 256 * 1024, // 256KB
 		disableReconnect: false,
-		disableVersionCheck: false
+		disableVersionCheck: false,
+		serviceChangedDebounceTime: 1000
 	},
 
 	uidGenerator: null,
@@ -329,9 +330,14 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
-			// Create debounced localServiceChanged
-			const origLocalServiceChanged = this.localServiceChanged;
-			this.localServiceChanged = _.debounce(() => origLocalServiceChanged.call(this), 1000);
+			if (this.options.transit.serviceChangedDebounceTime > 0) {
+				// Create debounced localServiceChanged
+				const origLocalServiceChanged = this.localServiceChanged;
+				this.localServiceChanged = _.debounce(
+					() => origLocalServiceChanged.call(this),
+					this.options.transit.serviceChangedDebounceTime
+				);
+			}
 
 			this.registry.init();
 

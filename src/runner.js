@@ -1,5 +1,5 @@
 /* moleculer
- * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2025 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -17,6 +17,7 @@ const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
 const { globSync } = require("glob");
+const inspect = require("util").inspect;
 const _ = require("lodash");
 const Args = require("args");
 const os = require("os");
@@ -57,7 +58,7 @@ const logger = {
 	error(err) {
 		if (err instanceof Error)
 			console.error(kleur.grey("[Runner]"), kleur.red().bold(err.message), err);
-		else console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
+		else console.error(kleur.grey("[Runner]"), kleur.red().bold(inspect(err)));
 	}
 };
 
@@ -66,7 +67,6 @@ class MoleculerRunner {
 		this.watchFolders = [];
 
 		this.flags = null;
-		this.configFile = null;
 		this.config = null;
 		this.servicePaths = null;
 		this.broker = null;
@@ -189,27 +189,29 @@ class MoleculerRunner {
 			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.json"));
 		}
 
-		if (filePath != null) {
-			const ext = path.extname(filePath);
-			switch (ext) {
-				case ".json":
-				case ".js":
-				case ".ts": {
-					const content = require(filePath);
-					return Promise.resolve()
-						.then(() => {
-							if (utils.isFunction(content)) return content.call(this);
-							else return content;
-						})
-						.then(
-							res =>
-								(this.configFile =
-									res.default != null && res.__esModule ? res.default : res)
-						);
-				}
-				default:
-					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
+		if (filePath == null) {
+			// no configuration file found
+			return Promise.resolve({});
+		}
+
+		const ext = path.extname(filePath);
+		switch (ext) {
+			case ".json":
+			case ".js":
+			case ".cjs":
+			case ".ts": {
+				return Promise.resolve(require(filePath))
+					.then(content => {
+						return content.default != null && content.__esModule
+							? content.default
+							: content;
+					})
+					.then(mod => {
+						return utils.isFunction(mod) ? mod.call(this) : mod;
+					});
 			}
+			default:
+				return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 		}
 	}
 
@@ -310,8 +312,8 @@ class MoleculerRunner {
 	 *  Env variable:			`CIRCUITBREAKER_ENABLED`
 	 *
 	 */
-	mergeOptions() {
-		this.config = _.defaultsDeep(this.configFile, ServiceBroker.defaultOptions);
+	mergeOptions(configFromFile) {
+		this.config = _.defaultsDeep(configFromFile, ServiceBroker.defaultOptions);
 
 		this.config = this.overwriteFromEnv(this.config);
 
@@ -538,7 +540,7 @@ class MoleculerRunner {
 		return Promise.resolve()
 			.then(() => this.loadEnvFile())
 			.then(() => this.loadConfigFile())
-			.then(() => this.mergeOptions())
+			.then(configFromFile => this.mergeOptions(configFromFile))
 			.then(() => this.startBroker())
 			.catch(err => {
 				logger.error(err);

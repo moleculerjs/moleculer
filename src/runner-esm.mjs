@@ -9,6 +9,7 @@ import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
 import { globSync } from "glob";
+import { inspect } from "util";
 import _ from "lodash";
 import Args from "args";
 import os from "os";
@@ -47,7 +48,7 @@ const logger = {
 	error(err) {
 		if (err instanceof Error)
 			console.error(kleur.grey("[Runner]"), kleur.red().bold(err.message), err);
-		else console.error(kleur.grey("[Runner]"), kleur.red().bold(err));
+		else console.error(kleur.grey("[Runner]"), kleur.red().bold(inspect(err)));
 	}
 };
 
@@ -56,7 +57,6 @@ export default class MoleculerRunner {
 		this.watchFolders = [];
 
 		this.flags = null;
-		this.configFile = null;
 		this.config = null;
 		this.servicePaths = null;
 		this.broker = null;
@@ -182,23 +182,24 @@ export default class MoleculerRunner {
 			filePath = this.tryConfigPath(path.resolve(process.cwd(), "moleculer.config.json"));
 		}
 
-		if (filePath != null) {
-			const ext = path.extname(filePath);
-			switch (ext) {
-				case ".json":
-				case ".js":
-				case ".mjs":
-				case ".ts": {
-					const mod = await import(filePath.startsWith("/") ? filePath : "/" + filePath);
-					let content = mod.default;
+		if (filePath == null) {
+			return Promise.resolve({});
+		}
 
-					if (utils.isFunction(content)) content = await content.call(this);
-					this.configFile = content;
-					break;
-				}
-				default:
-					return Promise.reject(new Error(`Not supported file extension: ${ext}`));
+		const ext = path.extname(filePath);
+		switch (ext) {
+			case ".json":
+			case ".js":
+			case ".mjs":
+			case ".ts":
+			case ".mts": {
+				const mod = await import(filePath.startsWith("/") ? filePath : "/" + filePath);
+				let content = mod.default;
+
+				return utils.isFunction(content) ? content.call(this) : content;
 			}
+			default:
+				return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 		}
 	}
 
@@ -299,8 +300,8 @@ export default class MoleculerRunner {
 	 *  Env variable:			`CIRCUITBREAKER_ENABLED`
 	 *
 	 */
-	mergeOptions() {
-		this.config = _.defaultsDeep(this.configFile, ServiceBroker.defaultOptions);
+	mergeOptions(configFromFile) {
+		this.config = _.defaultsDeep(configFromFile, ServiceBroker.defaultOptions);
 
 		this.config = this.overwriteFromEnv(this.config);
 
@@ -515,7 +516,7 @@ export default class MoleculerRunner {
 		return Promise.resolve()
 			.then(() => this.loadEnvFile())
 			.then(() => this.loadConfigFile())
-			.then(() => this.mergeOptions())
+			.then(configFromFile => this.mergeOptions(configFromFile))
 			.then(() => this.startBroker())
 			.catch(err => {
 				logger.error(err);

@@ -56,6 +56,7 @@ describe("Test Jaeger tracing exporter class", () => {
 					options: {}
 				},
 				tracerOptions: {},
+				legacyMode: true,
 				defaultTags: null
 			});
 
@@ -84,6 +85,7 @@ describe("Test Jaeger tracing exporter class", () => {
 				safetyTags: false,
 				endpoint: "http://jaeger:9411",
 				host: "127.0.0.1",
+				legacyMode: true,
 				port: 6832,
 				sampler: {
 					type: "Const",
@@ -481,22 +483,71 @@ describe("Test Jaeger tracing exporter class", () => {
 		});
 	});
 
-	describe("Test convertID method", () => {
+	describe("Test convert ids", () => {
 		const fakeTracer = { broker, logger: broker.logger };
-		const exporter = new JaegerTraceExporter({});
+		const legacyExporter = new JaegerTraceExporter({});
+		legacyExporter.init(fakeTracer);
+		const exporter = new JaegerTraceExporter({ legacyMode: false });
 		exporter.init(fakeTracer);
 
-		it("should truncate ID", () => {
-			expect(exporter.convertID()).toBeNull();
-			expect(exporter.convertID("")).toBeNull();
-			expect(exporter.convertID("12345678")).toEqual(Buffer.from([18, 52, 86, 120]));
-			expect(exporter.convertID("123456789-0123456")).toEqual(
+		it("should truncate trace ID to 64 bit in legacy mode", () => {
+			expect(legacyExporter.convertTraceID()).toBeNull();
+			expect(legacyExporter.convertTraceID("")).toBeNull();
+			expect(legacyExporter.convertTraceID("12345678")).toEqual(
+				Buffer.from([18, 52, 86, 120])
+			);
+			expect(legacyExporter.convertTraceID("123456789-0123456")).toEqual(
 				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
 			);
-			expect(exporter.convertID("123456789-0123456789-abcdef")).toEqual(
+			expect(legacyExporter.convertTraceID("123456789-0123456789-abcdef")).toEqual(
 				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
 			);
-			expect(exporter.convertID("abcdef")).toEqual(Buffer.from([171, 205, 239]));
+			expect(legacyExporter.convertTraceID("abcdef")).toEqual(Buffer.from([171, 205, 239]));
+		});
+
+		it("should truncate trace ID to 128bit in non legacy mode", () => {
+			expect(exporter.convertTraceID()).toBeNull();
+			expect(exporter.convertTraceID("")).toBeNull();
+			expect(exporter.convertTraceID("12345678")).toEqual(Buffer.from([18, 52, 86, 120]));
+			expect(exporter.convertTraceID("123456789-0123456")).toEqual(
+				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
+			);
+			expect(exporter.convertTraceID("123456789-0123456789-abcdef-abcdef-abcdef")).toEqual(
+				Buffer.from([
+					18, 52, 86, 120, 144, 18, 52, 86, 120, 154, 188, 222, 250, 188, 222, 250
+				])
+			);
+			expect(exporter.convertTraceID("abcdef")).toEqual(Buffer.from([171, 205, 239]));
+		});
+
+		it("should truncate span ID to 64 bit", () => {
+			expect(legacyExporter.convertSpanID()).toBeNull();
+			expect(exporter.convertSpanID()).toBeNull();
+
+			expect(legacyExporter.convertSpanID("")).toBeNull();
+			expect(exporter.convertSpanID("")).toBeNull();
+
+			expect(legacyExporter.convertSpanID("12345678")).toEqual(
+				Buffer.from([18, 52, 86, 120])
+			);
+			expect(exporter.convertSpanID("12345678")).toEqual(Buffer.from([18, 52, 86, 120]));
+
+			expect(legacyExporter.convertSpanID("123456789-0123456")).toEqual(
+				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
+			);
+			expect(exporter.convertSpanID("123456789-0123456")).toEqual(
+				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
+			);
+
+			expect(legacyExporter.convertSpanID("123456789-0123456789-abcdef")).toEqual(
+				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
+			);
+			expect(exporter.convertSpanID("123456789-0123456")).toEqual(
+				Buffer.from([18, 52, 86, 120, 144, 18, 52, 86])
+			);
+
+			expect(legacyExporter.convertSpanID("abcdef")).toEqual(Buffer.from([171, 205, 239]));
+			expect(exporter.convertSpanID("abcdef")).toEqual(Buffer.from([171, 205, 239]));
 		});
 	});
 

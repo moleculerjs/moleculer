@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2023 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2025 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -557,7 +557,8 @@ class Transit {
 	 * @returns {Stream|false|null}
 	 */
 	_handleIncomingRequestStream(payload) {
-		let stream = this.pendingReqStreams.get(payload.id);
+		const reqStream = this.pendingReqStreams.get(payload.id);
+		let stream = reqStream ? reqStream.stream : undefined;
 
 		if (!payload.stream && !stream && !payload.seq) {
 			// It is not a stream data
@@ -585,7 +586,17 @@ class Transit {
 			stream.$prevSeq = -1;
 			stream.$pool = new Map();
 
-			this.pendingReqStreams.set(payload.id, stream);
+			this.pendingReqStreams.set(payload.id, { sender: payload.sender, stream });
+
+			stream.on("moleculer-timeout-middleware", timeout => {
+				setTimeout(() => {
+					this.pendingReqStreams.delete(payload.id);
+					this._destroyStreamIfPossible(
+						stream,
+						`Pending request stream ${payload.id} have been closed by timeout ${timeout} ms`
+					);
+				}, 1000);
+			});
 		}
 
 		if (payload.seq > stream.$prevSeq + 1) {
@@ -903,6 +914,17 @@ class Transit {
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
+		if (request.stream) {
+			const pass = request.ctx.params;
+
+			pass.on("moleculer-timeout-middleware", timeout => {
+				this._destroyStreamIfPossible(
+					pass,
+					`Request stream ${ctx.id} have been closed by timeout ${timeout} ms`
+				);
+			});
+		}
+
 		// Publish request
 		return this.publish(packet)
 			.then(() => {
@@ -1070,6 +1092,15 @@ class Transit {
 	 */
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
+
+		// Close pending request streams of the node
+		this.pendingReqStreams.forEach(({ sender, stream }, id) => {
+			if (sender === nodeID) {
+				this.pendingReqStreams.delete(id);
+				this._destroyStreamIfPossible(stream, `Stream closed by ${nodeID}`);
+			}
+		});
+
 		this.pendingRequests.forEach((req, id) => {
 			if (req.nodeID === nodeID) {
 				this.pendingRequests.delete(id);
@@ -1082,10 +1113,62 @@ class Transit {
 					})
 				);
 
-				this.pendingReqStreams.delete(id);
-				this.pendingResStreams.delete(id);
+				this._deletePendingReqStream(id, nodeID);
+				this._deletePendingResStream(id, nodeID);
 			}
 		});
+	}
+
+	/**
+	 * Internal method to delete a pending response stream from `pendingResStreams`
+	 * and destroy it (if not already destroyed) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingResStreams`
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
+	 * @memberof Transit
+	 */
+	_deletePendingResStream(id, origin) {
+		const stream = this.pendingResStreams.get(id);
+		this.pendingResStreams.delete(id);
+
+		if (stream) {
+			this._destroyStreamIfPossible(stream, `Stream closed by ${origin}`);
+		}
+	}
+
+	/**
+	 * Internal method to delete a pending request stream from `pendingReqStreams`
+	 * and destroy it (if not already ended) with error.
+	 *
+	 * @param {String} id ID of the stream in `pendingReqStreams`
+	 * @param {String} origin NodeID of the origin of the destroy request
+	 *
+	 * @memberof Transit
+	 */
+	_deletePendingReqStream(id, origin) {
+		const reqStream = this.pendingReqStreams.get(id);
+		const pass = reqStream ? reqStream.stream : undefined;
+		this.pendingReqStreams.delete(id);
+
+		if (pass) {
+			this._destroyStreamIfPossible(pass, `Stream closed by ${origin}`);
+		}
+	}
+
+	/**
+	 * Internal method to destroy a stream if it is not already destroyed.
+	 *
+	 * @param {DuplexStream} stream - The stream to be destroyed.
+	 * @param {String} errorMessage - The error message to be used when destroying.
+	 *
+	 * @memberof Transit
+	 */
+	_destroyStreamIfPossible(stream, errorMessage) {
+		if (!stream.destroyed && stream.destroy) {
+			stream.on("error", err => this.logger.error(err.message));
+			stream.destroy(new Error(errorMessage));
+		}
 	}
 
 	/**
