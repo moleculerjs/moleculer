@@ -1503,7 +1503,7 @@ declare namespace Moleculer {
 	};
 
 	class BaseValidator {
-		constructor();
+		constructor(opts?: { paramName?: string });
 		init(broker: ServiceBroker): void;
 		compile(schema: GenericObject): Function;
 		validate(params: GenericObject, schema: GenericObject): boolean;
