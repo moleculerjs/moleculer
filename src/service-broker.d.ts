@@ -166,7 +166,7 @@ declare namespace ServiceBroker {
 
 		uidGenerator?: () => string;
 
-		errorHandler?: BrokerErrorHandler;
+		errorHandler?: BrokerErrorHandler | null;
 
 		cacher?: boolean | BaseCacher<any> | CacherType | CacherConfig | null;
 		serializer?: BaseSerializer | SerializerType | SerializerConfig | null;
