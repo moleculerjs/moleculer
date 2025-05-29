@@ -543,6 +543,24 @@ describe("Test broker.interceptCallMiddleware", () => {
 		expect(result.ctx).toEqual({ test: "test" });
 		await expect(result).resolves.toBe("middleware-result");
 	});
+
+	it("call interceptor should preserve this identifier", async () => {
+		const testThis = "test-this";
+
+		const createTestMiddleware = function (next) {
+			return async (...args) => {
+				await next(...args);
+				// This must be equal to testThis.
+				return this;
+			};
+		};
+
+		const createInterceptedMiddleware = broker.interceptCallMiddleware(createTestMiddleware);
+
+		const result = createInterceptedMiddleware.call(testThis, () => Promise.resolve())();
+
+		await expect(result).resolves.toBe(testThis);
+	});
 });
 
 describe("Test broker.start", () => {
