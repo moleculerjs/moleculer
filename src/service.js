@@ -287,13 +287,33 @@ class Service {
 				return this.broker.callMiddlewareHook("serviceStarting", [this]);
 			})
 			.then(() => {
-				// Wait for dependent services
-				if (this.schema.dependencies)
-					return this.waitForServices(
-						this.schema.dependencies,
-						this.settings.$dependencyTimeout || this.broker.options.dependencyTimeout,
-						this.settings.$dependencyInterval || this.broker.options.dependencyInterval
-					);
+				if (this.schema.dependencies) {
+					const dependencies = [];
+
+					if (this.broker.options.initialDependencies)
+						this.broker.options.initialDependencies.forEach(dependencie => {
+							if (dependencie !== this.name) dependencies.push(dependencie);
+						});
+
+					if (this.schema.dependencies)
+						Array.isArray(this.schema.dependencies)
+							? this.schema.dependencies.forEach(dependencie => {
+									if (dependencie !== this.name) dependencies.push(dependencie);
+							  })
+							: dependencies.push(this.schema.dependencies);
+
+					const uniqueDependencies = _.uniq(dependencies);
+
+					if (uniqueDependencies.length > 0) {
+						return this.waitForServices(
+							uniqueDependencies,
+							this.settings.$dependencyTimeout ||
+								this.broker.options.dependencyTimeout,
+							this.settings.$dependencyInterval ||
+								this.broker.options.dependencyInterval
+						);
+					}
+				}
 			})
 			.then(() => {
 				if (isFunction(this.schema.started))
