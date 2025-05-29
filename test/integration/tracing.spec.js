@@ -81,8 +81,7 @@ describe("Test Tracing feature with actions", () => {
 
 						await Promise.all(
 							posts.map(async post => {
-								const author = await ctx.call("users.get", { id: post.author });
-								post.author = author; //eslint-disable-line
+								post.author = await ctx.call("users.get", { id: post.author });
 								return post;
 							})
 						);
@@ -124,7 +123,7 @@ describe("Test Tracing feature with actions", () => {
 					},
 
 					async handler(ctx) {
-						let user = USERS.find(user => user.id == ctx.params.id);
+						let user = USERS.find(user => user.id === ctx.params.id);
 						if (user) {
 							const span = ctx.startSpan("cloning", {
 								tags: {
@@ -223,7 +222,8 @@ describe("Test Tracing feature with actions", () => {
 			}
 		});
 
-		await Promise.delay(500);
+		// event loop lag <10ms
+		await Promise.delay(510);
 
 		STORE.sort((a, b) => a.startTicks - b.startTicks);
 
