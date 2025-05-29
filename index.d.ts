@@ -1023,7 +1023,7 @@ declare namespace Moleculer {
 
 		uidGenerator?: () => string;
 
-		errorHandler?: BrokerErrorHandler;
+		errorHandler?: BrokerErrorHandler | null;
 
 		cacher?: boolean | Cacher | string | GenericObject | null;
 		serializer?: Serializer | string | GenericObject | null;
