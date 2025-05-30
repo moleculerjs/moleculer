@@ -661,12 +661,18 @@ declare namespace Moleculer {
 		params: any,
 		opts: CallingOptions
 	) => Promise<any>;
+	type MethodHandler = {
+		name: string;
+		service: Service;
+		handler: Function;
+		tracing?: boolean;
+	};
 	type Middleware = {
 		name?: string;
 		localAction?: ((this: ServiceBroker, next: ActionHandler, action: ActionSchema) => (...args : any[]) => ActionHandler);
 		remoteAction?: ((this: ServiceBroker, next: ActionHandler, action: ActionSchema) => (...args : any[]) => ActionHandler);
 		localEvent?: ((this: ServiceBroker, next: ActionHandler, event: ServiceEvent) => (...args : any[]) => ActionHandler);
-		localMethod?: ((this: ServiceBroker, next: ActionHandler, method: any) => (...args : any[]) => ActionHandler);
+		localMethod?: ((this: ServiceBroker, handler: MethodHandler['handler'], method: MethodHandler) => any);
 		createService?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
 		destroyService?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
 		call?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
