@@ -11,6 +11,7 @@
       "import": "./index.mjs"
     }
   },
+  "types": "./index.d.ts",
   "scripts": {
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
@@ -49,6 +50,16 @@
     "pubsub",
     "scalable",
     "distributed"
+  ],
+  "files": [
+    "bin",
+    "src",
+    "types",
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
@@ -206,7 +217,6 @@
   "engines": {
     "node": ">= 20.x.x"
   },
-  "types": "./index.d.ts",
   "tsd": {
     "directory": "test/typescript/tsd",
     "compilerOptions": {

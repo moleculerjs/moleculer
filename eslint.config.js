@@ -3,7 +3,7 @@ const globals = require("globals");
 const pluginSecurity = require("eslint-plugin-security");
 const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
 
-/** @type {import('eslint').Linter.FlatConfig[]} */
+/** @type {import('eslint').Linter.Config[]} */
 module.exports = [
 	{ ignores: ["test/typescript/hello-world/out/*.js"] },
 	js.configs.recommended,
