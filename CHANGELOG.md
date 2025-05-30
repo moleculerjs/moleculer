@@ -1,12 +1,12 @@
 <a name="0.15.0"></a>
-# [0.15.0](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.15.0) (2023-xx-xx)
+# [0.15.0](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.15.0) (2025-xx-xx)
 
 [**Migration guide from 0.14 to 0.15**](https://github.com/moleculerjs/moleculer/blob/next/docs/MIGRATION_GUIDE_0.15.md)
 
 # Breaking changes
 
-## Minimum Node 18
-The minimum supported Node version is changed from Node 10 to Node 18.
+## Minimum Node 20
+The minimum supported Node version is changed from Node 10 to Node 20.
 
 ## Communication protocol has been changed
 The Moleculer communication protocol has been changed. The new protocol version is `5`. However all schema-based serializer has been removed from the core repo. It means v0.15 Moleculer nodes will able to communicate with v0.14 nodes, if you disable version checking in broker options.

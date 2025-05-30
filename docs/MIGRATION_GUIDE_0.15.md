@@ -12,6 +12,9 @@ This documentation leads you how you can migrate your project to be compatible w
 >}
 >```
 
+## Minimum Node 20
+The minimum supported Node version is changed from Node 10 to Node 20.
+
 ## Legacy event handler is removed
 
 The legacy event handler signature (`user.created(payload, sender, eventName)`) is removed. You should use the new `Context` based signature which was introduced in version 0.14.

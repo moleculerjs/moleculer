@@ -3,6 +3,7 @@
   "version": "0.15.0-beta1",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
+  "type": "commonjs",
   "exports": {
     ".": {
       "types": "./index.d.ts",
@@ -51,7 +52,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/moleculerjs/moleculer.git"
+    "url": "git+https://github.com/moleculerjs/moleculer.git"
   },
   "funding": "https://github.com/moleculerjs/moleculer?sponsor=1",
   "bin": {
@@ -203,7 +204,7 @@
     }
   },
   "engines": {
-    "node": ">= 18.x.x"
+    "node": ">= 20.x.x"
   },
   "types": "./index.d.ts",
   "tsd": {
