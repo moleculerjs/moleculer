@@ -662,14 +662,35 @@ declare namespace Moleculer {
 		opts: CallingOptions
 	) => Promise<any>;
 	type Middleware = {
-		[name: string]:
-			| ((handler: ActionHandler, action: ActionSchema) => any)
-			| ((handler: ActionHandler, event: ServiceEvent) => any)
-			| ((handler: ActionHandler) => any)
-			| ((service: Service) => any)
-			| ((service: Service, serviceSchema: ServiceSchema) => any)
-			| ((broker: ServiceBroker) => any)
-			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler);
+		name?: string;
+		localAction?: ((this: ServiceBroker, next: ActionHandler, action: ActionSchema) => (...args : any[]) => ActionHandler);
+		remoteAction?: ((this: ServiceBroker, next: ActionHandler, action: ActionSchema) => (...args : any[]) => ActionHandler);
+		localEvent?: ((this: ServiceBroker, next: ActionHandler, event: ServiceEvent) => (...args : any[]) => ActionHandler);
+		localMethod?: ((this: ServiceBroker, next: ActionHandler, method: any) => (...args : any[]) => ActionHandler);
+		createService?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		destroyService?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		call?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		mcall?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		emit?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		broadcast?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		broadcastLocal?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		serviceCreated?: ((this: ServiceBroker, service: Service) => (...args : any[]) => void);
+		serviceStarting?: ((this: ServiceBroker, service: Service) => (...args : any[]) => void);
+		serviceStarted?: ((this: ServiceBroker, service: Service) => (...args : any[]) => void);
+		serviceStopping?: ((this: ServiceBroker, service: Service) => (...args : any[]) => void);
+		serviceStopped?: ((this: ServiceBroker, service: Service) => (...args : any[]) => void);
+		registerLocalService?: ((this: ServiceBroker, next: ActionHandler) => (...args : any[]) => Function);
+		serviceCreating?: ((this: ServiceBroker, service: Service, schema: ServiceSchema) => (...args : any[]) => void);
+		transitPublish?: ((this: ServiceBroker, next: ActionHandler) => (...args: any[]) => Function);
+		transitMessageHandler?: ((this: ServiceBroker, next: Function) => (...args: any[]) => Function);
+		transporterSend?: ((this: ServiceBroker, next: Function) => (...args: any[]) => Function);
+		transporterReceive?: ((this: ServiceBroker, next: Function) => (...args: any[]) => Function);
+		newLogEntry?: ((this: ServiceBroker, type: any, args: any, bindings: any) => void);
+		created?: ((broker: ServiceBroker) => void);
+		starting?: ((broker: ServiceBroker) => void);
+		started?: ((broker: ServiceBroker) => void);
+		stopping?: ((broker: ServiceBroker) => void);
+		stopped?: ((broker: ServiceBroker) => void);
 	};
 
 	type MiddlewareInit = (broker: ServiceBroker) => Middleware;
