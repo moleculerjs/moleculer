@@ -5,6 +5,7 @@ const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommen
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
+	{ ignores: ["test/typescript/hello-world/out/*.js"] },
 	js.configs.recommended,
 	pluginSecurity.configs.recommended,
 	eslintPluginPrettierRecommended,
@@ -39,23 +40,7 @@ module.exports = [
 			"no-process-exit": ["off"],
 			"node/no-unpublished-require": 0
 		},
-		ignores: ["benchmark/test.js", "test/typescript/hello-world/out/*.js"]
-	},
-	{
-		files: ["test/typescript/hello-world/out/*.js"],
-		languageOptions: {
-			globals: {
-				exports: "readonly",
-				require: "readonly",
-				__dirname: "readonly",
-				console: "readonly",
-				process: "readonly"
-			}
-		},
-		rules: {
-			"no-unused-vars": ["off"],
-			"prettier/prettier": ["off"]
-		}
+		ignores: ["benchmark/test.js"]
 	},
 	{
 		files: ["test/**/*.js"],

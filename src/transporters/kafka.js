@@ -63,13 +63,13 @@ class KafkaTransporter extends Transporter {
 							? [opts.brokers]
 							: null,
 					logLevel: 1,
-					logCreator:
-						(/*logLevel*/) =>
+					logCreator: () => {
 						({ level, log }) => {
 							const { message, ...extra } = log;
 							if (log.error == "Topic creation errors") return;
 							this.logger[toMoleculerLogLevel(level)](message, extra);
-						}
+						};
+					}
 				},
 
 				// KafkaProducer options. More info: https://kafka.js.org/docs/producing#options
