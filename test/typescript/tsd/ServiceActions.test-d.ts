@@ -18,14 +18,14 @@ class TestService extends Service {
 			actions: {
 				foo: {
 					async handler() {
-						expectType<Service<ServiceSettingSchema>>(this);
+						expectType<Service<ServiceSettingSchema> & Record<string, any>>(this);
 						expectType<ServiceActions>(testService.actions);
 					},
 				},
 				bar() {
 					this.actions.foo(); // check `this` ref in `foo`, should not throw error;
 
-					expectType<Service<ServiceSettingSchema>>(this);
+					expectType<Service<ServiceSettingSchema> & Record<string, any>>(this);
 					expectType<ServiceActions>(testService.actions);
 				},
 			},

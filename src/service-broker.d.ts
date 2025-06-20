@@ -434,7 +434,7 @@ declare class ServiceBroker {
 
 	getLocalService(name: string | ServiceDependency): Service;
 
-	createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
+	createService(schema: ServiceSchema, schemaMods?: Partial<ServiceSchema>): Service;
 
 	_restartService(service: Service): Promise<void>;
 
@@ -446,7 +446,7 @@ declare class ServiceBroker {
 	servicesChanged(localService?: boolean): void;
 	localServiceChanged(): void;
 
-	registerInternalServices(opts?: ServiceSchema): void;
+	registerInternalServices(opts?: object): void;
 
 	waitForServices(
 		serviceNames: string | ServiceDependency | (string | ServiceDependency)[],
