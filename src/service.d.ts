@@ -37,7 +37,7 @@ declare namespace Service {
 		metadata?: any;
 		actions?: ServiceActionsSchema<TThis>;
 		mixins?: Partial<ServiceSchema>[];
-		methods?: ServiceMethods<TThis>;
+		methods?: ServiceMethods & ThisType<TThis>;
 		hooks?: ServiceHooks<TThis>;
 
 		events?: EventSchemas<TThis>;
@@ -130,8 +130,8 @@ declare namespace Service {
 		[key: string]: ActionSchema<TThis> | ActionHandler<TThis> | boolean;
 	};
 
-	export type ServiceMethod<TThis = Service> = (...args: any[]) => any & ThisType<TThis>;
-	export type ServiceMethods<TThis = Service> = { [key: string]: ServiceMethod<TThis> };
+	export type ServiceMethod = (...args: any[]) => any;
+	export type ServiceMethods = { [key: string]: ServiceMethod };
 
 	export interface ServiceDependency {
 		name: string;

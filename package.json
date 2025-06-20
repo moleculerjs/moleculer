@@ -37,7 +37,9 @@
     "release": "npm publish --access public && git push --follow-tags",
     "release:beta": "npm publish --tag next --access public && git push --follow-tags",
     "tsc": "tsc",
-    "tsc:watch": "tsc --watch"
+    "tsc:watch": "tsc --watch",
+    "tsd": "tsd"
+
   },
   "keywords": [
     "microservice",

@@ -12,11 +12,11 @@ declare namespace MiddlewareHandler {
 		opts: CallingOptions
 	) => Promise<any>;
 
-	export interface Middleware<TThis = Service> {
+	export interface Middleware {
 		name?: string;
 		created?: (broker: ServiceBroker) => void;
-		localAction?: (this: TThis, next: ActionHandler<TThis>, action: ActionSchema) => ActionHandler<TThis>;
-		remoteAction?: (this: TThis, next: ActionHandler<TThis>, action: ActionSchema) => ActionHandler<TThis>;
+		localAction?: (this: ServiceBroker, next: ActionHandler<Service>, action: ActionSchema) => ActionHandler<Service>;
+		remoteAction?: (this: ServiceBroker, next: ActionHandler<Service>, action: ActionSchema) => ActionHandler<Service>;
 		localEvent?: (next: EventSchemaHandler, event: EventSchema) => EventSchemaHandler;
 		remoteEvent?: (next: EventSchemaHandler, event: EventSchema) => EventSchemaHandler;
 		localMethod?: (next: ServiceMethod, method: ServiceMethod) => ServiceMethod;

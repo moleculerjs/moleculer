@@ -8,9 +8,9 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	middlewares: [
 		{
-			localAction(this: Service & MixinMethods, next, action) {
+			localAction(next, action) {
 				return ctx => {
-					this.logger.info("Local action middleware", this.uppercase(action.name!));
+					this.logger.info("Local action middleware", action.name);
 					return next(ctx);
 				};
 			}
