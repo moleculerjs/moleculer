@@ -1,13 +1,13 @@
 import type Context = require("../context");
 import type { Logger } from "../logger-factory";
 import type ServiceBroker = require("../service-broker");
+import type Service = require("../service");
 
 declare namespace Cacher {
 	export type CacherKeygen<TParams = unknown, TMeta extends object = object> = (
-		actionName: string,
-		params: TParams,
-		meta: TMeta,
-		keys?: string[]
+		action: Service.ActionSchema,
+		opts: Service.ActionCacheOptions<TParams, TMeta>,
+		ctx: Context<TParams, TMeta>
 	) => string;
 
 	export interface CacherOptions {

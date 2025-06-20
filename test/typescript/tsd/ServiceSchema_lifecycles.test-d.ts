@@ -1,14 +1,9 @@
-import {expectAssignable, expectType} from "tsd";
+import {expectType} from "tsd";
 import {
 	Service,
 	ServiceBroker,
 	ServiceSchema
 } from "../../../index";
-
-import {
-	ServiceSyncLifecycleHandler,
-	ServiceAsyncLifecycleHandler
-} from "../../../src/service";
 
 const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
@@ -71,15 +66,17 @@ interface TestService5SettingSchema {
 	testService5Setting: string;
 }
 
-interface TestService5This extends Service<TestService5SettingSchema>, TestService5Methods {}
-
-const testService5Schema: ServiceSchema<TestService5SettingSchema> = {
+const testService5Schema: ServiceSchema<TestService5SettingSchema, TestService5Methods> = {
 	name: "test5",
 	settings: {
 		testService5Setting: "testService5"
 	},
 	methods: {
-		testsService5Method: () => {},
+		testsService5Method() {
+			expectType<Service<TestService5SettingSchema> & TestService5Methods & Record<string, any>>(this);
+			expectType<TestService5SettingSchema>(this.settings);
+			expectType<string>(this.settings.testService5Setting);
+		}
 	}
 }
 
@@ -93,39 +90,3 @@ expectType<ServiceSchema>(testService2.schema);
 const testService3 = new TestService3(broker);
 expectType<ServiceSchema>(testService3.schema);
 
-/*
-// Ensure that the lifecycle handlers are typed correctly when "This" type is not provided to service schema type
-expectType<
-	ServiceSyncLifecycleHandler<Service<TestService4SettingSchema>> |
-	ServiceSyncLifecycleHandler<Service<TestService4SettingSchema>>[] |
-	undefined
->(testService4Schema.created)
-expectType<
-	ServiceAsyncLifecycleHandler<Service<TestService4SettingSchema>> |
-	ServiceAsyncLifecycleHandler<Service<TestService4SettingSchema>>[] |
-	undefined
->(testService4Schema.started)
-expectType<
-	ServiceAsyncLifecycleHandler<Service<TestService4SettingSchema>> |
-	ServiceAsyncLifecycleHandler<Service<TestService4SettingSchema>>[] |
-	undefined
->(testService4Schema.stopped)
-
-// Ensure that the lifecycle handlers are typed correctly when "This" type is provided to service schema type
-expectType<
-	ServiceSyncLifecycleHandler<TestService5This> |
-	ServiceSyncLifecycleHandler<TestService5This>[] |
-	undefined
->(testService5Schema.created)
-expectType<
-	ServiceAsyncLifecycleHandler<TestService5This> |
-	ServiceAsyncLifecycleHandler<TestService5This>[] |
-	undefined
->(testService5Schema.started)
-expectType<
-	ServiceAsyncLifecycleHandler<TestService5This> |
-	ServiceAsyncLifecycleHandler<TestService5This>[] |
-	undefined
->(testService5Schema.stopped)
-
-*/
