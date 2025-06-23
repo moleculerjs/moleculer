@@ -14,31 +14,36 @@ import type {
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
-	export type ServiceSyncLifecycleHandler<T> = (this: T) => void;
-	export type ServiceAsyncLifecycleHandler<T> = (this: T) => void | Promise<void>;
+	export type ServiceSyncLifecycleHandler<TThis = Service> = (this: TThis) => void;
+	export type ServiceAsyncLifecycleHandler<TThis = Service> = (
+		this: TThis
+	) => void | Promise<void>;
 
 	export interface ServiceSearchObj {
 		name?: string;
 		version?: string | number;
 	}
 
-	export interface ServiceSchema<S = ServiceSettingSchema, T = Service<S>> {
+	export interface ServiceSchema<
+		TSettings = ServiceSettingSchema,
+		TMethods = Record<string, any>,
+		TVars = Record<string, any>,
+		TThis = Service<TSettings> & TVars & TMethods
+	> {
 		name: string;
 		version?: string | number;
-		settings?: S;
+		settings?: TSettings;
 		dependencies?: string | ServiceDependency | (string | ServiceDependency)[];
 		metadata?: any;
-		actions?: ServiceActionsSchema<S>;
+		actions?: ServiceActionsSchema<TThis>;
 		mixins?: Partial<ServiceSchema>[];
-		methods?: ServiceMethods;
-		hooks?: ServiceHooks;
+		methods?: ServiceMethods & ThisType<TThis>;
+		hooks?: ServiceHooks<TThis>;
 
-		events?: EventSchemas<S>;
-		created?: ServiceSyncLifecycleHandler<T> | ServiceSyncLifecycleHandler<T>[];
-		started?: ServiceAsyncLifecycleHandler<T> | ServiceAsyncLifecycleHandler<T>[];
-		stopped?: ServiceAsyncLifecycleHandler<T> | ServiceAsyncLifecycleHandler<T>[];
-
-		// [key: string]: any;
+		events?: EventSchemas<TThis>;
+		created?: ServiceSyncLifecycleHandler<TThis> | ServiceSyncLifecycleHandler<TThis>[];
+		started?: ServiceAsyncLifecycleHandler<TThis> | ServiceAsyncLifecycleHandler<TThis>[];
+		stopped?: ServiceAsyncLifecycleHandler<TThis> | ServiceAsyncLifecycleHandler<TThis>[];
 	}
 
 	export interface ServiceSettingSchema {
@@ -47,7 +52,6 @@ declare namespace Service {
 		$dependencyTimeout?: number;
 		$shutdownTimeout?: number;
 		$secureSettings?: string[];
-		//[key: string]: any;
 	}
 
 	export type ServiceAction = <
@@ -97,36 +101,37 @@ declare namespace Service {
 		};
 	}
 
-	export interface ActionSchema {
+	export interface ActionSchema<TThis = Service> {
 		name?: string;
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler?: ActionHandler;
+		handler?: ActionHandler<TThis>;
 		tracing?: boolean | TracingActionOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 		retryPolicy?: RetryPolicyOptions;
 		fallback?: string | FallbackHandler;
-		hooks?: ActionHooks;
+		hooks?: ActionHooks & ThisType<TThis>;
 		strategy?: string | typeof Strategy;
 		strategyOptions?: Record<string, any>;
 
 		// For internal purposes only!
-		remoteHandler?: ActionHandler;
-
-		// [key: string]: any;
+		remoteHandler?: ActionHandler<TThis>;
 	}
 
-	export type ActionHandler = (ctx: Context<any, any>) => Promise<any> | any;
+	export type ActionHandler<TThis = Service> = (
+		this: TThis,
+		ctx: Context<any, any>
+	) => Promise<any> | any;
 
-	export type ServiceActionsSchema<S = ServiceSettingSchema> = {
-		[key: string]: ActionSchema | ActionHandler | boolean;
-	} & ThisType<Service<S>>;
+	export type ServiceActionsSchema<TThis = Service> = {
+		[key: string]: ActionSchema<TThis> | ActionHandler<TThis> | boolean;
+	};
 
-	export type ServiceMethod = (...args: any[]) => any & ThisType<Service>;
-	export type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
+	export type ServiceMethod = (...args: any[]) => any;
+	export type ServiceMethods = { [key: string]: ServiceMethod };
 
 	export interface ServiceDependency {
 		name: string;
@@ -155,13 +160,13 @@ declare namespace Service {
 		[key: string]: string | ActionHookError | (string | ActionHookError)[];
 	}
 
-	export interface ServiceHooks {
-		before?: ServiceHooksBefore;
-		after?: ServiceHooksAfter;
-		error?: ServiceHooksError;
+	export interface ServiceHooks<TThis = Service> {
+		before?: ServiceHooksBefore & ThisType<TThis>;
+		after?: ServiceHooksAfter & ThisType<TThis>;
+		error?: ServiceHooksError & ThisType<TThis>;
 	}
 
-	export type EventSchemaHandler = (ctx: Context) => void | Promise<void>;
+	export type EventSchemaHandler = (ctx: Context<any, any>) => void | Promise<void>;
 
 	export interface EventSchema {
 		name?: string;
@@ -178,9 +183,9 @@ declare namespace Service {
 		// [key: string]: any;
 	}
 
-	export type EventSchemas<S = ServiceSettingSchema> = {
+	export type EventSchemas<TThis = Service> = {
 		[key: string]: EventSchemaHandler | EventSchema;
-	} & ThisType<Service<S>>;
+	} & ThisType<TThis>;
 
 	export interface WaitForServicesResult {
 		services: string[];

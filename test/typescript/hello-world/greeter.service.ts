@@ -1,8 +1,6 @@
 "use strict";
 
-import { Service } from "../../../";
-import { Context } from "../../../";
-import { ServiceSettingSchema, ServiceSchema } from "../../../";
+import { Context, ServiceSettingSchema, ServiceSchema } from "../../../";
 
 declare module "../../../src/service" {
 	interface ActionSchema {
@@ -29,9 +27,7 @@ interface GreeterLocalVars {
 	myVar: string;
 }
 
-type GreeterThis = Service<GreeterSettings> & GreeterMethods & GreeterLocalVars;
-
-const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
+const GreeterService: ServiceSchema<GreeterSettings, GreeterMethods & GreeterLocalVars> = {
 	name: "greeter",
 
 	/**
@@ -39,7 +35,7 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 	 */
 	hooks: {
 		before: {
-			welcome(this: GreeterThis, ctx: Context<ActionWelcomeParams>): void {
+			welcome(ctx: Context<ActionWelcomeParams>): void {
 				// console.log(`Service hook "before".`);
 				ctx.params.name = this.uppercase(ctx.params.name);
 			}
@@ -47,11 +43,11 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 		after: {
 			hello: "anotherHookAfter",
 			welcome: [
-				function (this: GreeterThis, ctx: Context<ActionWelcomeParams>, res: any): any {
+				function (ctx: Context<ActionWelcomeParams>, res: any): any {
 					// console.log(`Service sync hook "after".`);
 					return res;
 				},
-				async function (this: GreeterThis, ctx: Context<ActionWelcomeParams>, res: any): Promise<any> {
+				async function (ctx: Context<ActionWelcomeParams>, res: any): Promise<any> {
 					// console.log(`Service async hook "after".`);
 					return await Promise.resolve(res);
 				},
@@ -59,7 +55,7 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 			],
 		},
 		error: {
-			welcome(this: GreeterThis, ctx: Context<ActionWelcomeParams>, err: Error): void {
+			welcome(ctx: Context<ActionWelcomeParams>, err: Error): void {
 				// console.log(`Service hook "error".`);
 				throw err;
 			}
@@ -87,12 +83,12 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 				method: "GET",
 				path: "/hello",
 			},
-			handler(this: GreeterThis, ctx: Context): string {
+			handler(ctx: Context): string {
 				return `Hello ${this.settings.defaultName}`;
 			},
 			hooks: {
 				after: [
-					function (this: GreeterThis, ctx: Context, res: any): any {
+					function (ctx: Context, res: any): any {
 						// console.log(`Action sync hook "after".`);
 						return res;
 					},
@@ -110,7 +106,7 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 			params: {
 				name: "string",
 			},
-			handler(this: GreeterThis, ctx: Context<ActionWelcomeParams>): string {
+			handler(ctx: Context<ActionWelcomeParams>): string {
 				return `Welcome, ${ctx.params.name}`;
 			},
 		},
@@ -125,11 +121,11 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 	 * Methods
 	 */
 	methods: {
-		uppercase(this: GreeterThis, str: string): string {
+		uppercase(str: string): string {
 			return str.toUpperCase();
 		},
 
-		async anotherHookAfter(this: GreeterThis, ctx: Context, res: any): Promise<void> {
+		async anotherHookAfter(ctx: Context, res: any): Promise<void> {
 			return await Promise.resolve(res);
 		}
 	},
@@ -137,21 +133,21 @@ const GreeterService: ServiceSchema<GreeterSettings, GreeterThis> = {
 	/**
 	 * Service created lifecycle event handler
 	 */
-	created(this: GreeterThis) {
+	created() {
 		this.logger.info(`${this.name} service - lifecycle method "created" called.`);
 	},
 
 	/**
 	 * Service started lifecycle event handler
 	 */
-	async started(this: GreeterThis) {
+	async started() {
 		this.logger.info(`${this.name} service - lifecycle method "started" called.`);
 	},
 
 	/**
 	 * Service stopped lifecycle event handler
 	 */
-	async stopped(this: GreeterThis) {
+	async stopped() {
 		this.logger.info(`${this.name} service - lifecycle method "stopped" called.`);
 	},
 };

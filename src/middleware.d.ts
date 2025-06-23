@@ -15,19 +15,19 @@ declare namespace MiddlewareHandler {
 	export interface Middleware {
 		name?: string;
 		created?: (broker: ServiceBroker) => void;
-		localAction?: (next: ActionHandler, action: ActionSchema) => ActionHandler;
-		remoteAction?: (next: ActionHandler, action: ActionSchema) => ActionHandler;
+		localAction?: (this: ServiceBroker, next: ActionHandler<Service>, action: ActionSchema) => ActionHandler<Service>;
+		remoteAction?: (this: ServiceBroker, next: ActionHandler<Service>, action: ActionSchema) => ActionHandler<Service>;
 		localEvent?: (next: EventSchemaHandler, event: EventSchema) => EventSchemaHandler;
 		remoteEvent?: (next: EventSchemaHandler, event: EventSchema) => EventSchemaHandler;
 		localMethod?: (next: ServiceMethod, method: ServiceMethod) => ServiceMethod;
-		createService?: (next: ServiceBroker['createService']) => ServiceBroker['createService'];
-		registerLocalService?: (next: ServiceBroker['registerLocalService']) => ServiceBroker['registerLocalService'];
-		destroyService?: (next: ServiceBroker['destroyService']) => ServiceBroker['destroyService'];
-		call?: (next: ServiceBroker['call']) => ServiceBroker['call'];
-		mcall?: (next: ServiceBroker['mcall']) => ServiceBroker['mcall'];
-		emit?: (next: ServiceBroker['emit']) => ServiceBroker['emit'];
-		broadcast?: (next: ServiceBroker['broadcast']) => ServiceBroker['broadcast'];
-		broadcastLocal?: (next: ServiceBroker['broadcastLocal']) => ServiceBroker['broadcastLocal'];
+		createService?: (next: ServiceBroker['createService']) => ReturnType<ServiceBroker['createService']>;
+		registerLocalService?: (next: ServiceBroker['registerLocalService']) => ReturnType<ServiceBroker['registerLocalService']>;
+		destroyService?: (next: ServiceBroker['destroyService']) => ReturnType<ServiceBroker['destroyService']>;
+		call?: (next: ServiceBroker['call']) => ReturnType<ServiceBroker['call']>;
+		mcall?: (next: ServiceBroker['mcall']) => ReturnType<ServiceBroker['mcall']>;
+		emit?: (next: ServiceBroker['emit']) => ReturnType<ServiceBroker['emit']>;
+		broadcast?: (next: ServiceBroker['broadcast']) => ReturnType<ServiceBroker['broadcast']>;
+		broadcastLocal?: (next: ServiceBroker['broadcastLocal']) => ReturnType<ServiceBroker['broadcastLocal']>;
 		serviceCreating?: (service: Service, schema: Service.ServiceSchema) => void;
 		serviceCreated?: (service: Service) => void;
 		serviceStarting?: (service: Service) => Promise<void>;
@@ -38,10 +38,10 @@ declare namespace MiddlewareHandler {
 		started?: (broker: ServiceBroker) => Promise<void>;
 		stopping?: (broker: ServiceBroker) => Promise<void>;
 		stopped?: (broker: ServiceBroker) => Promise<void>;
-		transitPublish?(next: Transit['publish']): Transit['publish'];
-		transitMessageHandler?(next: Transit['messageHandler']): Transit['messageHandler'];
-		transporterSend?(next: Transporters.Base['send']): Transporters.Base['send'];
-		transporterReceive?(next: Transporters.Base['receive']): Transporters.Base['receive'];
+		transitPublish?(next: Transit['publish']): ReturnType<Transit['publish']>;
+		transitMessageHandler?(next: Transit['messageHandler']): ReturnType<Transit['messageHandler']>;
+		transporterSend?(next: Transporters.Base['send']): ReturnType<Transporters.Base['send']>;
+		transporterReceive?(next: Transporters.Base['receive']): ReturnType<Transporters.Base['receive']>;
 		newLogEntry?(type: string, args: unknown[], bindings: unknown): void;
 	}
 
