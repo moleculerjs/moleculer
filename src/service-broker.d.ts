@@ -206,8 +206,21 @@ declare namespace ServiceBroker {
 		maxSafeObjectSize?: number | null;
 	}
 
+	export interface ReplCustomCommand {
+		command: string;
+		description?: string | null;
+		alias?: string | string[] | null;
+		allowUnknownParams?: boolean | null;
+		parse?: Function | null;
+		options?: Array<{
+			option?: string | null;
+			description?: string | null;
+		}>;
+		action: (broker: ServiceBroker, args: string[], helpers: any) => Promise<void> | void;
+	}
+
 	export interface ReplOptions {
-		customCommands?: Record<string, any>[] | null;
+		customCommands?: ReplCustomCommand[];
 		delimiter?: string;
 	}
 
