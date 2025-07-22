@@ -79,7 +79,7 @@ declare namespace Moleculer {
 
 	interface TracerOptions {
 		enabled?: boolean;
-		exporter?: string | TracerExporterOptions | (TracerExporterOptions | string)[] | null;
+		exporter?: string | TracerExporterOptions | (TracerExporterOptions | string)[] | TracerExporters | TracerExporters[] | null;
 		sampling?: {
 			rate?: number | null;
 			tracesPerSecond?: number | null;
