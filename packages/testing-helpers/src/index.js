@@ -1,79 +1,93 @@
-// Minimal testing helpers for Moleculer (intentionally small & synchronous/async-friendly)
-//
-// Exports:
-//  - createBrokerHelper(opts?) => { broker, mockAction, mockEvent, restore }
-//  - mockAction(name, fn?) and mockEvent(name)
-//
+// packages/testing-helpers/src/index.js
+// Minimal testing helpers for Moleculer tests.
+// - createBrokerHelper(): crea un broker ligero y retorna helpers enlazados.
+// - mockAction(name, fn): registra un servicio/acción para tests.
+// - mockEvent(name, fn): registra un listener de evento para tests.
 
-function createBrokerHelper(opts = {}) {
-  const actions = new Map();
-  const events = new Map();
-  const calls = [];
+const { ServiceBroker } = require("moleculer");
 
-  const broker = {
-    // simulate broker.call(actionName, params)
-    async call(actionName, params) {
-      calls.push({ type: 'call', actionName, params });
-      const fn = actions.get(actionName);
-      if (!fn) {
-        throw new Error(`Action "${actionName}" not mocked`);
-      }
-      // support fn returning promise or value
-      return Promise.resolve(fn(params));
-    },
-
-    // simulate broker.emit(eventName, payload)
-    emit(eventName, payload) {
-      calls.push({ type: 'emit', eventName, payload });
-      const fn = events.get(eventName);
-      if (fn) {
-        try {
-          fn(payload);
-        } catch (e) {
-          // swallow to mimic emitter behaviour
-        }
-      }
-    },
-
-    // expose internals for assertions
-    __testing__: {
-      actions,
-      events,
-      calls,
-    },
-
-    // convenience stop
-    async stop() {
-      return Promise.resolve();
-    },
-  };
-
-  function mockAction(name, impl) {
-    // simple jest-like mock: if jest available, use jest.fn
-    const mockFn = (typeof global?.jest === 'function' && global.jest && global.jest.fn)
-      ? global.jest.fn(impl)
-      : function(...args) { return impl ? impl(...args) : undefined; };
-
-    actions.set(name, mockFn);
-    return mockFn;
-  }
-
-  function mockEvent(name, impl) {
-    const mockFn = (typeof global?.jest === 'function' && global.jest && global.jest.fn)
-      ? global.jest.fn(impl)
-      : function(...args) { return impl ? impl(...args) : undefined; };
-
-    events.set(name, mockFn);
-    return mockFn;
-  }
-
-  function restore() {
-    actions.clear();
-    events.clear();
-    calls.length = 0;
-  }
-
-  return { broker, mockAction, mockEvent, restore };
+function parseActionName(fullName = "") {
+  // "math.sum" -> { service: "math", action: "sum" }
+  const idx = fullName.indexOf(".");
+  if (idx === -1) return { service: fullName || "__mock__", action: "default" };
+  return { service: fullName.slice(0, idx), action: fullName.slice(idx + 1) };
 }
 
-module.exports = { createBrokerHelper };
+function createBrokerHelper(opts = {}) {
+  // Broker with minimal config for tests
+  const broker = new ServiceBroker({
+    logger: false,
+    transporter: null,
+    ...opts,
+  });
+
+  // Start/stop helpers (async)
+  async function start() {
+    await broker.start();
+    return broker;
+  }
+  async function stop() {
+    try {
+      await broker.stop();
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  // Register an action for tests.
+  // name e.g. "math.sum"
+  // handler(ctx) or handler(params) allowed
+  function mockAction(name, handler) {
+    const { service, action } = parseActionName(name);
+    const actions = {
+      [action]: function (ctx) {
+        // Accept handler as (ctx) or (params)
+        if (!handler) return null;
+        try {
+          // If handler expects ctx, call with ctx; if expects plain params call with ctx.params
+          return handler.length === 1 ? handler(ctx) : handler(ctx.params);
+        } catch (err) {
+          throw err;
+        }
+      },
+    };
+
+    // If service exists already, extend it; otherwise create new
+    // createService merges when same name appears in tests (moleculer allows multiple createService; it's ok)
+    broker.createService({
+      name: service || "__mock__",
+      actions,
+    });
+
+    return () => broker.call(name);
+  }
+
+  // Register an event listener for tests.
+  // name e.g. "user.created"
+  function mockEvent(name, handler) {
+    broker.createService({
+      name: "__event_mock__" + Math.random().toString(36).slice(2, 8),
+      events: {
+        [name]: function (payload) {
+          if (handler) return handler(payload);
+        },
+      },
+    });
+
+    return (payload) => broker.emit(name, payload);
+  }
+
+  return {
+    broker,
+    start,
+    stop,
+    mockAction,
+    mockEvent,
+  };
+}
+
+module.exports = {
+  createBrokerHelper,
+  // export convenience top-level helpers for backwards compat tests that might import them directly
+  createBrokerHelperDefault: (opts) => createBrokerHelper(opts),
+};
