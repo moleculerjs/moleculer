@@ -1,91 +1,79 @@
-// packages/testing-helpers/src/index.js
-// Minimal testing helpers for Moleculer tests.
-// - createBrokerHelper(): crea un broker ligero y retorna helpers enlazados.
-// - mockAction(name, handler): registra un servicio/acción para tests.
-// - mockEvent(name, handler): registra un listener de evento para tests.
-
-let ServiceBroker;
-try {
-  // Preferir paquete instalado si existe (normal npm install)
-  ({ ServiceBroker } = require("moleculer"));
-} catch (err) {
-  // Si no está instalado, usar la versión local del repo (subir tres niveles desde packages/testing-helpers/src)
-  // Esto hace que los tests que ejecutas en el repo usen el código fuente local.
-  ({ ServiceBroker } = require("../../../"));
-}
-
-function parseActionName(fullName = "") {
-  const idx = fullName.indexOf(".");
-  if (idx === -1) return { service: fullName || "__mock__", action: "default" };
-  return { service: fullName.slice(0, idx), action: fullName.slice(idx + 1) };
-}
+// Minimal testing helpers for Moleculer (intentionally small & synchronous/async-friendly)
+//
+// Exports:
+//  - createBrokerHelper(opts?) => { broker, mockAction, mockEvent, restore }
+//  - mockAction(name, fn?) and mockEvent(name)
+//
 
 function createBrokerHelper(opts = {}) {
-  const broker = new ServiceBroker({
-    logger: false,
-    transporter: null,
-    ...opts,
-  });
+  const actions = new Map();
+  const events = new Map();
+  const calls = [];
 
-  async function start() {
-    await broker.start();
-    return broker;
-  }
-  async function stop() {
-    try {
-      await broker.stop();
-    } catch (err) {
-      // ignore
-    }
-  }
+  const broker = {
+    // simulate broker.call(actionName, params)
+    async call(actionName, params) {
+      calls.push({ type: 'call', actionName, params });
+      const fn = actions.get(actionName);
+      if (!fn) {
+        throw new Error(`Action "${actionName}" not mocked`);
+      }
+      // support fn returning promise or value
+      return Promise.resolve(fn(params));
+    },
 
-  function mockAction(name, handler) {
-    const { service, action } = parseActionName(name);
-
-    const actions = {
-      [action]: function (ctx) {
-        if (!handler) return null;
-        // handler can accept ctx or params
-        // If handler expects 1 argument, pass ctx; otherwise pass ctx.params
+    // simulate broker.emit(eventName, payload)
+    emit(eventName, payload) {
+      calls.push({ type: 'emit', eventName, payload });
+      const fn = events.get(eventName);
+      if (fn) {
         try {
-          return handler.length === 1 ? handler(ctx) : handler(ctx.params);
-        } catch (err) {
-          throw err;
+          fn(payload);
+        } catch (e) {
+          // swallow to mimic emitter behaviour
         }
-      },
-    };
+      }
+    },
 
-    broker.createService({
-      name: service || "__mock__",
+    // expose internals for assertions
+    __testing__: {
       actions,
-    });
+      events,
+      calls,
+    },
 
-    return () => broker.call(name);
-  }
-
-  function mockEvent(name, handler) {
-    broker.createService({
-      name: "__event_mock__" + Math.random().toString(36).slice(2, 8),
-      events: {
-        [name]: function (payload) {
-          if (handler) return handler(payload);
-        },
-      },
-    });
-
-    return (payload) => broker.emit(name, payload);
-  }
-
-  return {
-    broker,
-    start,
-    stop,
-    mockAction,
-    mockEvent,
+    // convenience stop
+    async stop() {
+      return Promise.resolve();
+    },
   };
+
+  function mockAction(name, impl) {
+    // simple jest-like mock: if jest available, use jest.fn
+    const mockFn = (typeof global?.jest === 'function' && global.jest && global.jest.fn)
+      ? global.jest.fn(impl)
+      : function(...args) { return impl ? impl(...args) : undefined; };
+
+    actions.set(name, mockFn);
+    return mockFn;
+  }
+
+  function mockEvent(name, impl) {
+    const mockFn = (typeof global?.jest === 'function' && global.jest && global.jest.fn)
+      ? global.jest.fn(impl)
+      : function(...args) { return impl ? impl(...args) : undefined; };
+
+    events.set(name, mockFn);
+    return mockFn;
+  }
+
+  function restore() {
+    actions.clear();
+    events.clear();
+    calls.length = 0;
+  }
+
+  return { broker, mockAction, mockEvent, restore };
 }
 
-module.exports = {
-  createBrokerHelper,
-  createBrokerHelperDefault: (opts) => createBrokerHelper(opts),
-};
+module.exports = { createBrokerHelper };
