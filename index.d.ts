@@ -1962,7 +1962,7 @@ declare namespace Moleculer {
 		/**
 		 * Merge broker options from config file & env variables
 		 */
-		mergeOptions(): void;
+		mergeOptions(configFromFile: Partial<BrokerOptions>): void;
 
 		/**
 		 * Check if a path is a directory
