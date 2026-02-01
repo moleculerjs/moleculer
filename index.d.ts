@@ -472,6 +472,7 @@ declare namespace Moleculer {
 
 	interface RestSchema {
 		path?: string;
+		type?: 'stream' | 'multipart';
 		method?: "GET" | "POST" | "DELETE" | "PUT" | "PATCH";
 		fullPath?: string;
 		basePath?: string;
