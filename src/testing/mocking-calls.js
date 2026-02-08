@@ -15,7 +15,7 @@ module.exports = function MockingCallsMiddleware() {
 			if (mock.params !== undefined) {
 				try {
 					if (JSON.stringify(params) !== JSON.stringify(mock.params)) continue;
-				} catch {
+				} catch (_err) {
 					if (params !== mock.params) continue;
 				}
 			}
@@ -23,7 +23,7 @@ module.exports = function MockingCallsMiddleware() {
 			if (mock.meta !== undefined) {
 				try {
 					if (JSON.stringify(meta) !== JSON.stringify(mock.meta)) continue;
-				} catch {
+				} catch (_err) {
 					if (meta !== mock.meta) continue;
 				}
 			}
@@ -88,7 +88,7 @@ module.exports = function MockingCallsMiddleware() {
 					if (c.actionName !== actionName) return false;
 					try {
 						return JSON.stringify(c.params) === JSON.stringify(params);
-					} catch {
+					} catch (_err) {
 						return c.params === params;
 					}
 				});
