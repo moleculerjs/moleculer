@@ -60,7 +60,9 @@ module.exports = function EventCatcherMiddleware() {
 					}
 
 					const timer = setTimeout(() => {
-						reject(new Error(`Timeout waiting for event "${eventName}" (${timeout}ms)`));
+						reject(
+							new Error(`Timeout waiting for event "${eventName}" (${timeout}ms)`)
+						);
 					}, timeout);
 
 					const interval = setInterval(() => {

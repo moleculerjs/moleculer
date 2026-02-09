@@ -4,9 +4,7 @@ const { Testing } = require("../../index");
 const { createBroker, EventCatcher, MockingCalls } = Testing;
 
 describe("Testing helpers", () => {
-
 	describe("createBroker", () => {
-
 		it("should create a broker with test defaults", () => {
 			const broker = createBroker();
 			expect(broker).toBeDefined();
@@ -125,9 +123,9 @@ describe("Testing helpers", () => {
 		});
 
 		it("should timeout waitForEvent if event not emitted", async () => {
-			await expect(
-				broker.test.waitForEvent("never.happens", 100)
-			).rejects.toThrow("Timeout waiting for event");
+			await expect(broker.test.waitForEvent("never.happens", 100)).rejects.toThrow(
+				"Timeout waiting for event"
+			);
 		});
 	});
 
@@ -160,7 +158,8 @@ describe("Testing helpers", () => {
 		});
 
 		it("should mock action calls with return value", async () => {
-			broker.test.mockAction("users.get")
+			broker.test
+				.mockAction("users.get")
 				.withParams({ id: 5 })
 				.returnValue({ id: 5, name: "John", email: "john@moleculer.services" });
 
@@ -214,9 +213,7 @@ describe("Testing helpers", () => {
 		it("should reject with error", async () => {
 			broker.test.mockAction("users.get").rejectWith(new Error("User not found"));
 
-			await expect(
-				broker.call("posts.get", { id: 1 })
-			).rejects.toThrow("User not found");
+			await expect(broker.call("posts.get", { id: 1 })).rejects.toThrow("User not found");
 		});
 
 		it("should get all captured calls", async () => {

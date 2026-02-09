@@ -16,10 +16,7 @@ function createBroker(options, mockServices) {
 	const testDefaults = {
 		logger: false,
 		test: true,
-		middlewares: [
-			EventCatcher(),
-			MockingCalls()
-		]
+		middlewares: [EventCatcher(), MockingCalls()]
 	};
 
 	// Merge user middlewares with test middlewares
