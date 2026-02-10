@@ -33,7 +33,7 @@ module.exports = function MockingCallsMiddleware() {
 		return null;
 	}
 
-	return {
+	const middleware = {
 		name: "MockingCalls",
 
 		created(broker) {
@@ -144,4 +144,6 @@ module.exports = function MockingCallsMiddleware() {
 			};
 		}
 	};
+
+	return middleware;
 };
