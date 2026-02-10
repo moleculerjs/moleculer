@@ -37,7 +37,7 @@ module.exports = function EventCatcherMiddleware() {
 					if (e.eventName !== eventName) return false;
 					try {
 						return JSON.stringify(e.payload) === JSON.stringify(params);
-					} catch (_err) {
+					} catch {
 						return e.payload === params;
 					}
 				});
