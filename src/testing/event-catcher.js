@@ -18,7 +18,7 @@ module.exports = function EventCatcherMiddleware() {
 		});
 	}
 
-	return {
+	const middleware = {
 		name: "EventCatcher",
 
 		created(broker) {
@@ -102,4 +102,6 @@ module.exports = function EventCatcherMiddleware() {
 			};
 		}
 	};
+
+	return middleware;
 };
