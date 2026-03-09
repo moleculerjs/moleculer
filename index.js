@@ -42,6 +42,7 @@ module.exports = {
 
 	Runner: require("./src/runner"),
 	Utils: require("./src/utils"),
+	Testing: require("./src/testing"),
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,

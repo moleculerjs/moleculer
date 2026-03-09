@@ -2059,6 +2059,70 @@ declare namespace Moleculer {
 		};
 	}
 	const Middlewares: MoleculerMiddlewares;
+
+	// ─── Testing Helpers ────────────────────────────────────────────────────────
+
+	/** Entry recorded by EventCatcher for each intercepted event. */
+	interface CapturedEvent {
+		type: "emit" | "broadcast" | "broadcastLocal";
+		eventName: string;
+		payload: any;
+		opts: any;
+	}
+
+	/** Entry recorded by MockingCalls for each intercepted call. */
+	interface CapturedCall {
+		actionName: string;
+		params: any;
+		opts: any;
+	}
+
+	/** Fluent builder returned by broker.test.mockAction(). */
+	interface MockBuilder {
+		/** Constrain this mock to calls whose params deep-equals `params`. */
+		withParams(params: object): MockBuilder;
+		/** Constrain this mock to calls whose meta deep-equals `meta`. */
+		withMeta(meta: object): MockBuilder;
+		/** Resolve with `value` when a matching call is intercepted (registers mock). */
+		returnValue(value: any): MockBuilder;
+		/** Reject with `error` when a matching call is intercepted (registers mock). */
+		rejectWith(error: Error | string): MockBuilder;
+	}
+
+	/** Test helpers attached to the broker by EventCatcher and MockingCalls. */
+	interface BrokerTestHelper {
+		// ── EventCatcher ──────────────────────────────────────────────────────
+		eventEmitted(eventName: string): boolean;
+		eventEmittedTimes(eventName: string): number;
+		eventEmittedWithParams(eventName: string, params: object): boolean;
+		getEvents(eventName?: string): CapturedEvent[];
+		waitForEvent(eventName: string, timeout?: number): Promise<CapturedEvent>;
+		clearEvents(): void;
+
+		// ── MockingCalls ──────────────────────────────────────────────────────
+		mockAction(actionName: string): MockBuilder;
+		actionCalled(actionName: string): boolean;
+		actionCalledTimes(actionName: string): number;
+		actionCalledWithParams(actionName: string, params: object): boolean;
+		getCalls(actionName?: string): CapturedCall[];
+		clearActions(): void;
+		clearMocks(): void;
+		clearAll(): void;
+	}
+
+	/** `EventCatcher` middleware factory. Returned middleware records events. */
+	function EventCatcher(): Middleware;
+
+	/** `MockingCalls` middleware factory. Returned middleware intercepts calls. */
+	function MockingCalls(): Middleware;
+
+	interface TestingModule {
+		createBroker(options?: BrokerOptions, mockServices?: ServiceSchema[]): ServiceBroker;
+		EventCatcher: typeof EventCatcher;
+		MockingCalls: typeof MockingCalls;
+	}
+
+	const Testing: TestingModule;
 }
 
 export = Moleculer;
