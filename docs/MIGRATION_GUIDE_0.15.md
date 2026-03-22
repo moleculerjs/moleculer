@@ -213,9 +213,16 @@ module.exports = {
     ]
 }
 ```
-## Rewritten Kafka transporter (based on kafkajs)
+## Rewritten Kafka transporter (based on @platformatic/kafka)
 
-The previous `kafka-node` based transporter has been rewritten to a `kafkajs` based transporter. It means, you should migrate your Kafka Transporter options.
+The Kafka transporter has been migrated from `kafka-node` → `kafkajs` → `@platformatic/kafka`. The `kafkajs` library is no longer maintained, so the final implementation uses `@platformatic/kafka`.
+
+You need to install `@platformatic/kafka`:
+```bash
+npm install @platformatic/kafka
+```
+
+The configuration options have changed:
 
 ```js
 // moleculer.config.js
@@ -223,21 +230,25 @@ module.exports = {
     transporter: {
         type: "Kafka",
         options: {
-            // KafkaClient options. More info: https://kafka.js.org/docs/configuration
-            client: {
-                brokers: [/*...*/]
-            },
+            // Client ID for all clients
+            clientId: "moleculer-kafka",
 
-            // KafkaProducer options. More info: https://kafka.js.org/docs/producing#options
+            // Bootstrap brokers for connection
+            bootstrapBrokers: ["localhost:9092"],
+
+            // Producer options
             producer: {},
 
-            // ConsumerGroup options. More info: https://kafka.js.org/docs/consuming#a-name-options-a-options
+            // Consumer options
             consumer: {},
 
-            // Advanced options for `send`. More info: https://kafka.js.org/docs/producing#producing-messages
+            // Admin options
+            admin: {},
+
+            // Advanced options for `send`
             publish: {},
 
-            // Advanced message options for `send`. More info: https://kafka.js.org/docs/producing#message-structure
+            // Advanced message options for `send`
             publishMessage: {
                 partition: 0
             }
@@ -246,7 +257,11 @@ module.exports = {
 }
 ```
 
-About new configuration options, check this documentation: https://kafka.js.org/docs/configuration
+Key migration steps from `kafka-node` or `kafkajs`:
+- `client.brokers` → `bootstrapBrokers`
+- `client.clientId` → `clientId`
+- The `client` wrapper object is removed, options are now top-level
+- Install `@platformatic/kafka` instead of `kafkajs` or `kafka-node`
 
 ## Custom cacher keygen signatire changed
 

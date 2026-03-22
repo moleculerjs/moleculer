@@ -7,11 +7,14 @@
 
 ## Major Changes
 - **Minimum Node.js 22**: Updated minimum Node.js version from 18 to 22 for better performance and security
+- **Kafka transporter migrated from `kafkajs` to `@platformatic/kafka`**: The `kafkajs` library is no longer maintained. The Kafka transporter now uses `@platformatic/kafka`. Configuration options have changed (see breaking changes below).
+- **JSONExt serializer fix**: Fixed incorrect deserialization of plain strings starting with `[[` prefix (e.g. `[[something]]` was incorrectly treated as a special type marker)
 - **Stream handling improvements**: Fixed multiple stream-related issues including proper closing of dangling streams and enhanced safety for streaming operations
 - **Enhanced TypeScript support**: Added comprehensive typing improvements for service lifecycle handlers, middleware functions, and broker error handlers
 - **CI/CD modernization**: Updated GitHub Actions to ubuntu-22.04, expanded Node.js testing matrix (22.x, 24.x), and migrated to `docker compose` commands
 - **Registry improvements**: Added `stopDelay` option for graceful shutdown and `serviceChangedDebounceTime` for better service change handling
 - **Performance optimizations**: Fixed Redis transporter Promise library interference, improved cache key handling, and enhanced pending request cleanup
+- **Dependency updates**: Major bumps for eslint 9→10, glob 11→13, pino 9→10, globals 16→17, lockfile-lint 4→5
 
 # Breaking changes
 
@@ -174,9 +177,18 @@ Since `gc-stats` and `event-loop-stats` native libraries are not maintained and 
 
 The STAN (NATS Streaming) transporter has been removed while it's deprecated and not supported by the NATS.io, as well. More info: https://nats-io.gitbook.io/legacy-nats-docs/nats-streaming-server-aka-stan
 
-## Rewritten Kafka transporter (based on kafkajs)
+## Rewritten Kafka transporter (based on @platformatic/kafka)
 
-The previous `kafka-node` based transporter has been rewritten to a `kafkajs` based transporter. It means, you should migrate your Kafka Transporter options.
+The Kafka transporter has been rewritten twice during the 0.15 cycle:
+- In beta1, it was migrated from `kafka-node` to `kafkajs`.
+- In beta2+, it was migrated from `kafkajs` to `@platformatic/kafka`, because `kafkajs` is no longer maintained.
+
+You need to install `@platformatic/kafka` instead of `kafkajs`:
+```bash
+npm install @platformatic/kafka
+```
+
+The configuration options have changed:
 
 ```js
 // moleculer.config.js
@@ -184,21 +196,25 @@ module.exports = {
     transporter: {
         type: "Kafka",
         options: {
-            // KafkaClient options. More info: https://kafka.js.org/docs/configuration
-            client: {
-                brokers: [/*...*/]
-            },
+            // Client ID for all clients
+            clientId: "moleculer-kafka",
 
-            // KafkaProducer options. More info: https://kafka.js.org/docs/producing#options
+            // Bootstrap brokers for connection
+            bootstrapBrokers: ["localhost:9092"],
+
+            // Producer options
             producer: {},
 
-            // ConsumerGroup options. More info: https://kafka.js.org/docs/consuming#a-name-options-a-options
+            // Consumer options
             consumer: {},
 
-            // Advanced options for `send`. More info: https://kafka.js.org/docs/producing#producing-messages
+            // Admin options
+            admin: {},
+
+            // Advanced options for `send`
             publish: {},
 
-            // Advanced message options for `send`. More info: https://kafka.js.org/docs/producing#message-structure
+            // Advanced message options for `send`
             publishMessage: {
                 partition: 0
             }
@@ -207,7 +223,10 @@ module.exports = {
 }
 ```
 
-About new configuration options, check this documentation: https://kafka.js.org/docs/configuration
+Key migration steps from `kafkajs`:
+- `client.brokers` → `bootstrapBrokers`
+- `client.clientId` → `clientId`
+- The `client` wrapper object is removed, options are now top-level
 
 ## Removed legacy NATS library (nats@1.x.x) implementation
 
