@@ -43,7 +43,7 @@ module.exports = {
 
 	Middlewares: require("./src/middlewares"),
 
-	Errors: require("./src/errors"),
+        Testing: require("./src/testing"),
 
 	Runner: require("./src/runner"),
 	Utils: require("./src/utils"),

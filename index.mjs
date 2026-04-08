@@ -27,6 +27,7 @@ export const Strategies = mod.Strategies;
 export const TracerExporters = mod.TracerExporters;
 export const Transit = mod.Transit;
 export const Transporters = mod.Transporters;
+export const Testing = mod.Testing;
 export const Utils = mod.Utils;
 export const Validator = mod.Validator;
 export const Validators = mod.Validators;
