@@ -7,7 +7,9 @@ import ServiceBroker from "./service-broker.js";
 import utils from "./utils.js";
 import fs from "fs";
 import path from "path";
-import { createRequire } from "module";
+import { createRequire, register } from "module";
+import { pathToFileURL } from "url";
+import { MessageChannel } from "worker_threads";
 import { globSync } from "glob";
 import { inspect } from "util";
 import _ from "lodash";
@@ -61,6 +63,119 @@ export default class MoleculerRunner {
 		this.servicePaths = null;
 		this.broker = null;
 		this.worker = null;
+
+		// Register the ESM hot-reload loader. The loader runs on a
+		// dedicated thread and rewrites resolved file:// URLs with
+		// `?v=<n>` for files whose version has been bumped. This is what
+		// allows transitive imports (e.g. a `shared.mjs` consumed by
+		// several services) to be picked up after a change.
+		this._installLoader();
+
+		// Reload strategy used by the HotReload middleware. ESM exposes
+		// no module graph to user code, so we rely on the loader (see
+		// `_installLoader`) to track imports and apply cache-busting
+		// `?v=<n>` URLs on the next resolve.
+		// Trade-offs:
+		//   - Old module versions stay in memory (acceptable in dev,
+		//     do NOT enable hot-reload in production).
+		//   - Files never imported by any loaded service are unknown to
+		//     the loader; declare them in `extraFiles` if you need them
+		//     watched (e.g. JSON configs, i18n catalogs).
+		this.reloadStrategy = {
+			usesNodeModuleTree: false,
+			loadService: filename => this.importAndCreateService(filename),
+			reloadService: filename => this.importAndCreateService(filename),
+			invalidate: filename => this._postLoaderMessage({ type: "invalidate", path: filename }),
+			invalidateAll: () => this._postLoaderMessage({ type: "invalidateAll" }),
+			getAllUserFiles: () => this._postLoaderMessage({ type: "getAllUserFiles" }),
+			getImporters: filename =>
+				this._postLoaderMessage({ type: "getImporters", path: filename })
+		};
+	}
+
+	/**
+	 * Set up the loader-side `MessagePort` and register the loader.
+	 * Called once from the constructor.
+	 */
+	_installLoader() {
+		const { port1, port2 } = new MessageChannel();
+		this._loaderPort = port1;
+		this._loaderMsgId = 0;
+		this._loaderAcks = new Map();
+
+		port1.on("message", msg => {
+			if (msg && msg.type === "ack") {
+				const cb = this._loaderAcks.get(msg.id);
+				if (cb) {
+					this._loaderAcks.delete(msg.id);
+					cb(msg.result);
+				}
+			}
+		});
+		// Note: do NOT `port1.unref()`. Keeping the port ref'd is what
+		// keeps the main thread alive while the broker is running; with
+		// `unref()` Node fires `beforeExit` early and the broker stops
+		// itself right after start.
+
+		try {
+			register("./runner-esm-loader.mjs", import.meta.url, {
+				data: { port: port2 },
+				transferList: [port2]
+			});
+			this._loaderEnabled = true;
+		} catch (err) {
+			// `module.register` is available on every supported Node
+			// version (>= 22). This branch only triggers if the user
+			// runs an unsupported runtime; degrade to "service file
+			// changes only" instead of crashing.
+			this._loaderEnabled = false;
+			logger.error(
+				new Error(
+					`ESM hot-reload loader could not be registered (${err.message}). ` +
+						"Transitive module changes won't be picked up."
+				)
+			);
+		}
+	}
+
+	/**
+	 * Send a message to the loader and resolve with the loader's `result`
+	 * payload (or `undefined`) once it has been processed. Used by the
+	 * reload strategy and by `importAndCreateService` to fence imports.
+	 *
+	 * @param {object} msg
+	 * @returns {Promise<any>}
+	 */
+	_postLoaderMessage(msg) {
+		if (!this._loaderEnabled) return Promise.resolve();
+		return new Promise(resolve => {
+			const id = ++this._loaderMsgId;
+			this._loaderAcks.set(id, resolve);
+			this._loaderPort.postMessage({ ...msg, id });
+		});
+	}
+
+	/**
+	 * Import a service file and register it on the broker. Used both
+	 * for initial loading and for hot-reload.
+	 *
+	 * Before importing, we round-trip a "sync" message through the
+	 * loader so that any pending invalidations have been applied. The
+	 * MessageChannel is FIFO, so awaiting the sync ack guarantees that
+	 * earlier invalidate messages have been processed first.
+	 *
+	 * @param {string} filename Absolute path to the service file
+	 * @returns {Promise<import('./service.js')>}
+	 */
+	async importAndCreateService(filename) {
+		await this._postLoaderMessage({ type: "sync" });
+		const url = pathToFileURL(filename).href;
+		const mod = await import(url);
+		const content = mod.default;
+
+		const svc = this.broker.createService(content);
+		svc.__filename = filename;
+		return svc;
 	}
 
 	/**
@@ -307,7 +422,9 @@ export default class MoleculerRunner {
 
 		if (this.flags.silent) this.config.logger = false;
 
-		if (this.flags.hot) this.config.hotReload = true;
+		// `--hot` only enables hot reload; do not clobber an object
+		// `hotReload: { extraFiles, modules }` provided via the config file.
+		if (this.flags.hot && !this.config.hotReload) this.config.hotReload = true;
 
 		// console.log("Merged configuration", this.config);
 	}
@@ -429,15 +546,7 @@ export default class MoleculerRunner {
 					}
 				});
 
-			await Promise.all(
-				utils.uniq(serviceFiles).map(async f => {
-					const mod = await import(f.startsWith("/") ? f : "/" + f);
-					const content = mod.default;
-
-					const svc = this.broker.createService(content);
-					svc.__filename = f;
-				})
-			);
+			await Promise.all(utils.uniq(serviceFiles).map(f => this.importAndCreateService(f)));
 		}
 	}
 
