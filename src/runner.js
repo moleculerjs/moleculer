@@ -319,7 +319,9 @@ class MoleculerRunner {
 
 		if (this.flags.silent) this.config.logger = false;
 
-		if (this.flags.hot) this.config.hotReload = true;
+		// `--hot` only enables hot reload; do not clobber an object
+		// `hotReload: { extraFiles, modules }` provided via the config file.
+		if (this.flags.hot && !this.config.hotReload) this.config.hotReload = true;
 
 		// console.log("Merged configuration", this.config);
 	}
