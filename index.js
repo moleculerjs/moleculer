@@ -42,6 +42,7 @@ module.exports = {
 	Discoverers: require("./src/registry/discoverers"),
 
 	Middlewares: require("./src/middlewares"),
+	Testing: require("./src/testing"),
 
 	Errors: require("./src/errors"),
 

@@ -86,6 +86,7 @@ import * as METRIC from "./src/metrics/constants";
 // --- MIDDLEWARES ---
 
 import type { CallMiddlewareHandler, Middleware } from "./src/middleware";
+import * as Testing from "./src/testing";
 
 // --- SERVICE REGISTRY ---
 
@@ -177,6 +178,7 @@ declare namespace Moleculer {
 	export { MetricTypes, MetricReporters, MetricRegistry, METRIC };
 
 	export { CallMiddlewareHandler, Middleware };
+	export { Testing };
 
 	export { Registry, Discoverers, EndpointList, Endpoint, ActionEndpoint, EventEndpoint };
 
