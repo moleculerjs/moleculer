@@ -33,6 +33,11 @@ const Middlewares = {
 	Debugging: {
 		TransitLogger: require("./debugging/transit-logger"),
 		ActionLogger: require("./debugging/action-logger")
+	},
+
+	Testing: {
+		EventCatcher: require("./testing").EventCatcher,
+		MockingCalls: require("./testing").MockingCalls
 	}
 };
 

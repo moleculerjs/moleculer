@@ -17,6 +17,7 @@ export const MOLECULER_VERSION = mod.MOLECULER_VERSION;
 export const MetricReporters = mod.MetricReporters;
 export const MetricTypes = mod.MetricTypes;
 export const Middlewares = mod.Middlewares;
+export const Testing = mod.Testing;
 export const PROTOCOL_VERSION = mod.PROTOCOL_VERSION;
 export const Registry = mod.Registry;
 export const Runner = RunnerESM;
