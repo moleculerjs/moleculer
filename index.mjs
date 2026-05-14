@@ -30,3 +30,4 @@ export const Transporters = mod.Transporters;
 export const Utils = mod.Utils;
 export const Validator = mod.Validator;
 export const Validators = mod.Validators;
+export const Testing = mod.Testing;
