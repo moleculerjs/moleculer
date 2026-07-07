@@ -259,6 +259,52 @@ describe("Test ServiceCatalog methods", () => {
 		catalog.removeAllByNodeID("pod-NEW");
 	});
 
+	it("should not merge protected actions or internal events when grouping", () => {
+		const nodeA = { id: "nodeA", available: true };
+		const nodeB = { id: "nodeB", available: true };
+
+		const svcA = catalog.add(nodeA, { name: "guarded", fullName: "guarded", settings: {}, metadata: {} });
+		svcA.addAction({ name: "guarded.public" });
+
+		const svcB = catalog.add(nodeB, { name: "guarded", fullName: "guarded", settings: {}, metadata: {} });
+		svcB.addAction({ name: "guarded.public" });
+		svcB.addAction({ name: "guarded.secret", protected: true }); // must not appear
+		svcB.addEvent({ name: "$internal.event" });                  // must not appear
+		svcB.addEvent({ name: "guarded.visible" });
+
+		const res = catalog.list({ skipInternal: true, withActions: true, withEvents: true, grouping: true });
+		const item = res.find(r => r.fullName === "guarded");
+
+		expect(item).toBeDefined();
+		expect(Object.keys(item.actions)).not.toContain("guarded.secret");
+		expect(Object.keys(item.events)).not.toContain("$internal.event");
+		expect(Object.keys(item.events)).toContain("guarded.visible");
+
+		catalog.removeAllByNodeID("nodeA");
+		catalog.removeAllByNodeID("nodeB");
+	});
+
+	it("should not overwrite first-node action with second-node version when grouping", () => {
+		const nodeA = { id: "node-first", available: true };
+		const nodeB = { id: "node-second", available: true };
+
+		const svcA = catalog.add(nodeA, { name: "versioned", fullName: "versioned", settings: {}, metadata: {} });
+		svcA.addAction({ name: "versioned.op", version: 1 });
+
+		const svcB = catalog.add(nodeB, { name: "versioned", fullName: "versioned", settings: {}, metadata: {} });
+		svcB.addAction({ name: "versioned.op", version: 2 }); // same name, different version
+
+		const res = catalog.list({ skipInternal: true, withActions: true, grouping: true });
+		const item = res.find(r => r.fullName === "versioned");
+
+		expect(item).toBeDefined();
+		// First node's action wins — version must not be overwritten
+		expect(item.actions["versioned.op"].version).toBe(1);
+
+		catalog.removeAllByNodeID("node-first");
+		catalog.removeAllByNodeID("node-second");
+	});
+
 	it("should return with service list for info", () => {
 		let node2 = { id: "server-2", available: true };
 		catalog.add(node2, { name: "$node", fullName: "$node" });
