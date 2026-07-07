@@ -165,16 +165,24 @@ class ServiceCatalog {
 				// This prevents stale registry entries (e.g. a k8s zombie pod killed
 				// via SIGKILL) from shadowing newer actions of a replacement pod.
 				if (withActions && item.actions) {
-					_.forIn(service.actions, (action) => {
+					_.forIn(service.actions, action => {
 						if (action.protected || item.actions[action.name]) return;
-						item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
+						item.actions[action.name] = _.omit(action, [
+							"handler",
+							"remoteHandler",
+							"service"
+						]);
 					});
 				}
 
 				if (withEvents && item.events) {
-					_.forIn(service.events, (event) => {
+					_.forIn(service.events, event => {
 						if (/^\$/.test(event.name) || item.events[event.name]) return;
-						item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
+						item.events[event.name] = _.omit(event, [
+							"handler",
+							"remoteHandler",
+							"service"
+						]);
 					});
 				}
 			}

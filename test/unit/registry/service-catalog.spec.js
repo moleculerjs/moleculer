@@ -229,19 +229,34 @@ describe("Test ServiceCatalog methods", () => {
 		const zombieNode = { id: "pod-OLD", available: true };
 		const newNode = { id: "pod-NEW", available: true };
 
-		const zombieSvc = catalog.add(zombieNode, { name: "svc", fullName: "svc", settings: {}, metadata: {} });
+		const zombieSvc = catalog.add(zombieNode, {
+			name: "svc",
+			fullName: "svc",
+			settings: {},
+			metadata: {}
+		});
 		zombieSvc.addAction({ name: "svc.hello", rest: "GET /hello" });
 		zombieSvc.addAction({ name: "svc.world", rest: "GET /world" });
 		zombieSvc.addEvent({ name: "svc.started" });
 
-		const newSvc = catalog.add(newNode, { name: "svc", fullName: "svc", settings: {}, metadata: {} });
+		const newSvc = catalog.add(newNode, {
+			name: "svc",
+			fullName: "svc",
+			settings: {},
+			metadata: {}
+		});
 		newSvc.addAction({ name: "svc.hello", rest: "GET /hello" });
 		newSvc.addAction({ name: "svc.world", rest: "GET /world" });
 		newSvc.addAction({ name: "svc.newAction", rest: "GET /new" }); // only on new pod
 		newSvc.addEvent({ name: "svc.started" });
-		newSvc.addEvent({ name: "svc.newEvent" });                       // only on new pod
+		newSvc.addEvent({ name: "svc.newEvent" }); // only on new pod
 
-		const res = catalog.list({ skipInternal: true, withActions: true, withEvents: true, grouping: true });
+		const res = catalog.list({
+			skipInternal: true,
+			withActions: true,
+			withEvents: true,
+			grouping: true
+		});
 		const svcItem = res.find(r => r.fullName === "svc");
 
 		expect(svcItem).toBeDefined();
@@ -263,16 +278,31 @@ describe("Test ServiceCatalog methods", () => {
 		const nodeA = { id: "nodeA", available: true };
 		const nodeB = { id: "nodeB", available: true };
 
-		const svcA = catalog.add(nodeA, { name: "guarded", fullName: "guarded", settings: {}, metadata: {} });
+		const svcA = catalog.add(nodeA, {
+			name: "guarded",
+			fullName: "guarded",
+			settings: {},
+			metadata: {}
+		});
 		svcA.addAction({ name: "guarded.public" });
 
-		const svcB = catalog.add(nodeB, { name: "guarded", fullName: "guarded", settings: {}, metadata: {} });
+		const svcB = catalog.add(nodeB, {
+			name: "guarded",
+			fullName: "guarded",
+			settings: {},
+			metadata: {}
+		});
 		svcB.addAction({ name: "guarded.public" });
 		svcB.addAction({ name: "guarded.secret", protected: true }); // must not appear
-		svcB.addEvent({ name: "$internal.event" });                  // must not appear
+		svcB.addEvent({ name: "$internal.event" }); // must not appear
 		svcB.addEvent({ name: "guarded.visible" });
 
-		const res = catalog.list({ skipInternal: true, withActions: true, withEvents: true, grouping: true });
+		const res = catalog.list({
+			skipInternal: true,
+			withActions: true,
+			withEvents: true,
+			grouping: true
+		});
 		const item = res.find(r => r.fullName === "guarded");
 
 		expect(item).toBeDefined();
@@ -288,10 +318,20 @@ describe("Test ServiceCatalog methods", () => {
 		const nodeA = { id: "node-first", available: true };
 		const nodeB = { id: "node-second", available: true };
 
-		const svcA = catalog.add(nodeA, { name: "versioned", fullName: "versioned", settings: {}, metadata: {} });
+		const svcA = catalog.add(nodeA, {
+			name: "versioned",
+			fullName: "versioned",
+			settings: {},
+			metadata: {}
+		});
 		svcA.addAction({ name: "versioned.op", version: 1 });
 
-		const svcB = catalog.add(nodeB, { name: "versioned", fullName: "versioned", settings: {}, metadata: {} });
+		const svcB = catalog.add(nodeB, {
+			name: "versioned",
+			fullName: "versioned",
+			settings: {},
+			metadata: {}
+		});
 		svcB.addAction({ name: "versioned.op", version: 2 }); // same name, different version
 
 		const res = catalog.list({ skipInternal: true, withActions: true, grouping: true });
