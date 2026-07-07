@@ -225,6 +225,40 @@ describe("Test ServiceCatalog methods", () => {
 		]);
 	});
 
+	it("should merge actions/events when grouping multiple nodes for the same service", () => {
+		const zombieNode = { id: "pod-OLD", available: true };
+		const newNode = { id: "pod-NEW", available: true };
+
+		const zombieSvc = catalog.add(zombieNode, { name: "svc", fullName: "svc", settings: {}, metadata: {} });
+		zombieSvc.addAction({ name: "svc.hello", rest: "GET /hello" });
+		zombieSvc.addAction({ name: "svc.world", rest: "GET /world" });
+		zombieSvc.addEvent({ name: "svc.started" });
+
+		const newSvc = catalog.add(newNode, { name: "svc", fullName: "svc", settings: {}, metadata: {} });
+		newSvc.addAction({ name: "svc.hello", rest: "GET /hello" });
+		newSvc.addAction({ name: "svc.world", rest: "GET /world" });
+		newSvc.addAction({ name: "svc.newAction", rest: "GET /new" }); // only on new pod
+		newSvc.addEvent({ name: "svc.started" });
+		newSvc.addEvent({ name: "svc.newEvent" });                       // only on new pod
+
+		const res = catalog.list({ skipInternal: true, withActions: true, withEvents: true, grouping: true });
+		const svcItem = res.find(r => r.fullName === "svc");
+
+		expect(svcItem).toBeDefined();
+		expect(svcItem.nodes).toEqual(expect.arrayContaining(["pod-OLD", "pod-NEW"]));
+
+		expect(Object.keys(svcItem.actions)).toEqual(
+			expect.arrayContaining(["svc.hello", "svc.world", "svc.newAction"])
+		);
+
+		expect(Object.keys(svcItem.events)).toEqual(
+			expect.arrayContaining(["svc.started", "svc.newEvent"])
+		);
+
+		catalog.removeAllByNodeID("pod-OLD");
+		catalog.removeAllByNodeID("pod-NEW");
+	});
+
 	it("should return with service list for info", () => {
 		let node2 = { id: "server-2", available: true };
 		catalog.add(node2, { name: "$node", fullName: "$node" });

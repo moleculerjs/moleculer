@@ -203,6 +203,8 @@ class NodeCatalog {
 
 			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
 
+			this.broker.servicesChanged(false);
+
 			this.registry.updateMetrics();
 
 			if (isUnexpected) this.logger.warn(`Node '${node.id}' disconnected unexpectedly.`);

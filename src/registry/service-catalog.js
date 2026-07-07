@@ -159,6 +159,24 @@ class ServiceCatalog {
 				res.push(item);
 			} else {
 				if (item.nodes.indexOf(service.node.id) === -1) item.nodes.push(service.node.id);
+
+				// Merge actions from subsequent nodes so that autoAliases always
+				// sees the full union of actions across all nodes for this service.
+				// This prevents stale registry entries (e.g. a k8s zombie pod killed
+				// via SIGKILL) from shadowing newer actions of a replacement pod.
+				if (withActions && item.actions) {
+					_.forIn(service.actions, (action) => {
+						if (action.protected || item.actions[action.name]) return;
+						item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
+					});
+				}
+
+				if (withEvents && item.events) {
+					_.forIn(service.events, (event) => {
+						if (/^\$/.test(event.name) || item.events[event.name]) return;
+						item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
+					});
+				}
 			}
 		});
 
