@@ -1781,7 +1781,8 @@ describe("Test Service class", () => {
 					},
 					handler() {}
 				},
-				update: false
+				update: false,
+				customFind: false
 			};
 
 			const prev = {

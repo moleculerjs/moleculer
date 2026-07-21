@@ -716,7 +716,7 @@ class Service {
 	 */
 	mergeSchemaActions(src, target) {
 		Object.keys(src).forEach(k => {
-			if (src[k] === false && target[k]) {
+			if (src[k] === false) {
 				delete target[k];
 				return;
 			}
