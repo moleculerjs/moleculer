@@ -1,3 +1,13 @@
+<a name="0.15.1"></a>
+# [0.15.1](https://github.com/moleculerjs/moleculer/compare/v0.15.0...v0.15.1) (2026-07-21)
+
+## Changes
+- fix: merge grouped service actions from all nodes & regenerate service list on node disconnect (fixes API Gateway autoAliases 404 with zombie nodes) [#1362](https://github.com/moleculerjs/moleculer/pull/1362)
+- fix: allow to set `false` for actions without mixins [#1355](https://github.com/moleculerjs/moleculer/pull/1355)
+- fix: Runner forwards termination signals to cluster workers before disconnect (skipped on Windows) [#1342](https://github.com/moleculerjs/moleculer/pull/1342)
+- fix: correct `Runner.mergeOptions` typing [#1344](https://github.com/moleculerjs/moleculer/pull/1344)
+
+--------------------------------------------------
 <a name="0.15.0"></a>
 # [0.15.0](https://github.com/moleculerjs/moleculer/compare/v0.14.29...v0.15.0) (2026-03-28)
 
