@@ -195,7 +195,9 @@ describe("Test service registry", () => {
 				expect(H.getEventNodes(master, "user.created")).toEqual(["node-1"]);
 				expect(H.getEventNodes(master, "user.paid")).toEqual([]);
 
-				expect(servicesChanged).toHaveBeenCalledTimes(1);
+				// 1st call: INFO packet sent by node2 while stopping its services
+				// 2nd call: DISCONNECT packet processed — node fully removed from registry
+				expect(servicesChanged).toHaveBeenCalledTimes(2);
 			});
 	});
 

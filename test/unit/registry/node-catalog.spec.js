@@ -221,6 +221,7 @@ describe("Test NodeCatalog.disconnected", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.unregisterServicesByNode.mockClear();
 		broker.registry.updateMetrics.mockClear();
+		broker.servicesChanged.mockClear();
 
 		catalog.disconnected("node-11", false);
 
@@ -269,8 +270,8 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
-		// expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
-		// expect(broker.servicesChanged).toHaveBeenCalledWith(false);
+		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
 
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledTimes(1);
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);

@@ -474,6 +474,16 @@ export default class MoleculerRunner {
 			process.on(signal, () => {
 				logger.info(`Got ${signal}, stopping workers...`);
 				stopping = true;
+				// Forward termination signals to workers so they can cleanup gracefully.
+				// Skip on Windows: process.kill would terminate the workers immediately
+				// without running their signal handlers, and console events (Ctrl+C)
+				// reach the workers there anyway.
+				if (process.platform !== "win32") {
+					for (const id in cluster.workers) {
+						logger.info(`Forwarding ${signal} to worker ${id}...`);
+						cluster.workers[id].process.kill(signal);
+					}
+				}
 				cluster.disconnect(function () {
 					logger.info("All workers stopped, exiting.");
 					process.exit(0);
