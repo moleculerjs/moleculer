@@ -843,11 +843,11 @@ describe("Test middleware v2 system", () => {
 
 		return Promise.all([broker.start(), broker2.start()]).delay(
 			2000
-		) /*.catch(protectReject).then(() => {
+		); /*.catch(protectReject).then(() => {
 			expect(FLOW).toEqual([
 
 			]);
-		})*/;
+		})*/
 	});
 
 	it("should call 'remoteAction' ", () => {

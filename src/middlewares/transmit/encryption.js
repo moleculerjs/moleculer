@@ -14,7 +14,9 @@ const crypto = require("crypto");
  *
  * @param {String|Buffer} password
  * @param {String?} algorithm
- * @param {String|Buffer?} iv
+ * @param {String|Buffer?} iv Required for IV-based algorithms (e.g. CBC, CTR). If omitted,
+ *                            the algorithm must not use an IV (e.g. ECB) and the password
+ *                            must match the key length of the algorithm.
  */
 module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cbc", iv) {
 	if (!password || password.length === 0) {
@@ -35,9 +37,11 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 
 		transporterSend(next) {
 			return (topic, data, meta) => {
-				const encrypter = iv
-					? crypto.createCipheriv(algorithm, password, iv)
-					: crypto.createCipher(algorithm, password);
+				const encrypter = crypto.createCipheriv(
+					algorithm,
+					password,
+					iv != null ? iv : null
+				);
 				const res = Buffer.concat([encrypter.update(data), encrypter.final()]);
 				return next(topic, res, meta);
 			};
@@ -46,9 +50,11 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 		transporterReceive(next) {
 			return (cmd, data, s) => {
 				try {
-					const decrypter = iv
-						? crypto.createDecipheriv(algorithm, password, iv)
-						: crypto.createDecipher(algorithm, password);
+					const decrypter = crypto.createDecipheriv(
+						algorithm,
+						password,
+						iv != null ? iv : null
+					);
 					const res = Buffer.concat([decrypter.update(data), decrypter.final()]);
 					return next(cmd, res, s);
 				} catch (err) {

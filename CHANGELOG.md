@@ -6,6 +6,8 @@
 - fix: allow to set `false` for actions without mixins [#1355](https://github.com/moleculerjs/moleculer/pull/1355)
 - fix: Runner forwards termination signals to cluster workers before disconnect (skipped on Windows) [#1342](https://github.com/moleculerjs/moleculer/pull/1342)
 - fix: correct `Runner.mergeOptions` typing [#1344](https://github.com/moleculerjs/moleculer/pull/1344)
+- fix: Encryption middleware crashed with `TypeError` when no IV was provided, because `crypto.createCipher`/`createDecipher` were removed in Node 22. It now always uses `createCipheriv`/`createDecipheriv` (without IV the algorithm must not require one, e.g. ECB)
+- update dependencies (minor/patch bumps only)
 
 --------------------------------------------------
 <a name="0.15.0"></a>
