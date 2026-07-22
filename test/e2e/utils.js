@@ -121,6 +121,18 @@ function createNode(nodeID, brokerOpts = {}) {
 	return broker;
 }
 
+async function waitForResult(fn, predicate, timeout = 10 * 1000, interval = 200) {
+	const startTime = Date.now();
+	let res;
+	// eslint-disable-next-line no-constant-condition
+	while (true) {
+		res = await fn();
+		if (predicate(res)) return res;
+		if (Date.now() - startTime > timeout) return res;
+		await new Promise(resolve => setTimeout(resolve, interval));
+	}
+}
+
 function assert(actual, expected) {
 	if (!_.isEqual(actual, expected)) {
 		const err = new Error("Assertion error");
@@ -184,6 +196,7 @@ module.exports = {
 	executeScenarios,
 	logEventEmitting,
 	logActionCalling,
+	waitForResult,
 
 	getSHA,
 	getFileSHA,

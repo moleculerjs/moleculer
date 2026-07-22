@@ -58,37 +58,51 @@ jobs:
       run: npm ci
 
     - name: Start NATS
-      run: docker compose up -d nats && sleep 10
+      run: |
+        for i in 1 2 3; do docker compose pull -q nats && break || sleep 20; done
+        docker compose up -d nats && sleep 10
       if: ${{ matrix.transporter == 'NATS' }}
       working-directory: ./test
 
     - name: Start Redis
-      run: docker compose up -d redis && sleep 10
+      run: |
+        for i in 1 2 3; do docker compose pull -q redis && break || sleep 20; done
+        docker compose up -d redis && sleep 10
       if: ${{ matrix.transporter == 'Redis' || matrix.discoverer == 'Redis' }}
       working-directory: ./test
 
     - name: Start MQTT
-      run: docker compose up -d mqtt && sleep 10
+      run: |
+        for i in 1 2 3; do docker compose pull -q mqtt && break || sleep 20; done
+        docker compose up -d mqtt && sleep 10
       if: ${{ matrix.transporter == 'MQTT' }}
       working-directory: ./test
 
     - name: Start RabbitMQ
-      run: docker compose up -d rabbitmq && sleep 10
+      run: |
+        for i in 1 2 3; do docker compose pull -q rabbitmq && break || sleep 20; done
+        docker compose up -d rabbitmq && sleep 10
       if: ${{ matrix.transporter == 'AMQP' }}
       working-directory: ./test
 
     - name: Start ActiveMQ
-      run: docker compose up -d activemq && sleep 30
+      run: |
+        for i in 1 2 3; do docker compose pull -q activemq && break || sleep 20; done
+        docker compose up -d activemq && sleep 30
       if: ${{ matrix.transporter == 'AMQP10' }}
       working-directory: ./test
 
     - name: Start Kafka
-      run: docker compose up -d kafka && sleep 60
+      run: |
+        for i in 1 2 3; do docker compose pull -q zookeeper kafka && break || sleep 20; done
+        docker compose up -d kafka && sleep 60
       if: ${{ matrix.transporter == 'Kafka' }}
       working-directory: ./test
 
     - name: Start Etcd3
-      run: docker compose up -d etcd3 && sleep 10
+      run: |
+        for i in 1 2 3; do docker compose pull -q etcd3 && break || sleep 20; done
+        docker compose up -d etcd3 && sleep 10
       if: ${{ matrix.discoverer == 'Etcd3' }}
       working-directory: ./test
 

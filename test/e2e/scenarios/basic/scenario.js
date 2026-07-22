@@ -4,7 +4,8 @@ const {
 	executeScenarios,
 	addScenario,
 	getFileSHA,
-	getStreamSHA
+	getStreamSHA,
+	waitForResult
 } = require("../../utils");
 const path = require("path");
 const fs = require("fs");
@@ -103,7 +104,15 @@ addScenario("emit event", async () => {
 	};
 
 	broker.emit("sample.event", params, { meta });
-	await broker.Promise.delay(1000);
+
+	// Wait for the event round-trip (supervisor -> node1 -> supervisor).
+	// Fixed short delays are flaky on slow CI runners (especially with Kafka).
+	await waitForResult(
+		() => broker.call("$scenario.getEmittedEvents"),
+		events => events.length > 0
+	);
+	// Grace period to catch duplicated deliveries
+	await broker.Promise.delay(500);
 
 	// ---- ˇ ASSERTS ˇ ---
 	const events = await broker.call("$scenario.getEmittedEvents");
