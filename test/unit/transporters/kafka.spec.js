@@ -299,6 +299,56 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		transporter.admin.listTopics = jest.fn(() => Promise.resolve([]));
 	});
 
+	it("check makeSubscriptions - should ignore TOPIC_ALREADY_EXISTS errors", async () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		const origErr = new Error("Received response with error");
+		origErr.errors = [
+			{ apiId: "TOPIC_ALREADY_EXISTS", apiCode: 36 },
+			{ apiId: "TOPIC_ALREADY_EXISTS", apiCode: 36 }
+		];
+		transporter.admin.createTopics = jest.fn(() => Promise.reject(origErr));
+
+		await transporter.makeSubscriptions([
+			{ cmd: "REQ", nodeID: "node" },
+			{ cmd: "RES", nodeID: "node" }
+		]);
+
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(0);
+		expect(transporter.consumer).toBeDefined();
+
+		transporter.admin.createTopics = jest.fn(() => Promise.resolve([]));
+	});
+
+	it("check makeSubscriptions - should throw if not all errors are TOPIC_ALREADY_EXISTS", async () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		const origErr = new Error("Received response with error");
+		origErr.errors = [
+			{ apiId: "TOPIC_ALREADY_EXISTS", apiCode: 36 },
+			{ apiId: "INVALID_PARTITIONS", apiCode: 37 }
+		];
+		transporter.admin.createTopics = jest.fn(() => Promise.reject(origErr));
+
+		try {
+			await transporter.makeSubscriptions([
+				{ cmd: "REQ", nodeID: "node" },
+				{ cmd: "RES", nodeID: "node" }
+			]);
+			expect(1).toBe(2);
+		} catch (err) {
+			expect(err).toBe(origErr);
+			expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(transporter.broker.broadcastLocal).toHaveBeenCalledWith("$transporter.error", {
+				error: origErr,
+				module: "transporter",
+				type: C.FAILED_TOPIC_CREATION
+			});
+		}
+
+		transporter.admin.createTopics = jest.fn(() => Promise.resolve([]));
+	});
+
 	it("check makeSubscriptions - should broadcast an error", async () => {
 		transporter.broker.broadcastLocal = jest.fn();
 

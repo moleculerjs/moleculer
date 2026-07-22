@@ -181,9 +181,22 @@ class KafkaTransporter extends Transporter {
 					`Creating ${topicsToCreate.length} new topics...`,
 					topicsToCreate
 				);
-				await this.admin.createTopics({
-					topics: topicsToCreate
-				});
+				try {
+					await this.admin.createTopics({
+						topics: topicsToCreate
+					});
+				} catch (err) {
+					// Another node may have created the same topics in the meantime.
+					const subErrors = Array.isArray(err.errors) ? err.errors : [err];
+					const onlyAlreadyExists =
+						subErrors.length > 0 &&
+						subErrors.every(e => e.apiId === "TOPIC_ALREADY_EXISTS");
+					if (!onlyAlreadyExists) throw err;
+
+					this.logger.debug(
+						"Some topics have been created by another node in the meantime. Skipping topic creation."
+					);
+				}
 			} else {
 				this.logger.debug("All topics already exist, skipping creation.");
 			}
