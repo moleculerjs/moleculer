@@ -3,7 +3,7 @@
     "allow": [
       "Bash(gh pr:*)",
       "Bash(git fetch:*)",
-      "mcp__plugin_context7_*",
+      "mcp__plugin_context7_context7",
       "Bash(cd:*)",
       "WebFetch(*)"
     ]
