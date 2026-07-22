@@ -333,6 +333,31 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		transporter.admin.createTopics = jest.fn(() => Promise.resolve([]));
 	});
 
+	it("check makeSubscriptions - should ignore nested TOPIC_ALREADY_EXISTS errors (2.x error shape)", async () => {
+		transporter.broker.broadcastLocal = jest.fn();
+
+		// @platformatic/kafka 2.x wraps the ResponseError in an extra
+		// MultipleErrors("Creating topics failed.") layer
+		const responseErr = new Error("Received response with error");
+		responseErr.errors = [
+			{ apiId: "TOPIC_ALREADY_EXISTS", apiCode: 36 },
+			{ apiId: "TOPIC_ALREADY_EXISTS", apiCode: 36 }
+		];
+		const wrapperErr = new Error("Creating topics failed.");
+		wrapperErr.errors = [responseErr];
+		transporter.admin.createTopics = jest.fn(() => Promise.reject(wrapperErr));
+
+		await transporter.makeSubscriptions([
+			{ cmd: "REQ", nodeID: "node" },
+			{ cmd: "RES", nodeID: "node" }
+		]);
+
+		expect(transporter.broker.broadcastLocal).toHaveBeenCalledTimes(0);
+		expect(transporter.consumer).toBeDefined();
+
+		transporter.admin.createTopics = jest.fn(() => Promise.resolve([]));
+	});
+
 	it("check makeSubscriptions - should throw if not all errors are TOPIC_ALREADY_EXISTS", async () => {
 		transporter.broker.broadcastLocal = jest.fn();
 

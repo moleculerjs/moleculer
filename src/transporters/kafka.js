@@ -187,10 +187,16 @@ class KafkaTransporter extends Transporter {
 					});
 				} catch (err) {
 					// Another node may have created the same topics in the meantime.
-					const subErrors = Array.isArray(err.errors) ? err.errors : [err];
-					const onlyAlreadyExists =
-						subErrors.length > 0 &&
-						subErrors.every(e => e.apiId === "TOPIC_ALREADY_EXISTS");
+					// The error can be wrapped in multiple levels of AggregateErrors,
+					// so collect the leaf errors first.
+					const flattenErrors = e =>
+						Array.isArray(e.errors) && e.errors.length > 0
+							? e.errors.flatMap(flattenErrors)
+							: [e];
+					const leafErrors = flattenErrors(err);
+					const onlyAlreadyExists = leafErrors.every(
+						e => e.apiId === "TOPIC_ALREADY_EXISTS"
+					);
 					if (!onlyAlreadyExists) throw err;
 
 					this.logger.debug(
