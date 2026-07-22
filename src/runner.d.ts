@@ -5,6 +5,46 @@ import { Worker } from "cluster";
 
 declare namespace Runner {
 	/**
+	 * Pluggable strategy used by the HotReload middleware to load,
+	 * reload and invalidate service modules. Allows alternative module
+	 * systems (e.g. ESM) to plug their own loading mechanism.
+	 */
+	export interface ReloadStrategy {
+		/**
+		 * Whether the strategy relies on Node's CJS module tree
+		 * (`require.cache` / `module.children`) to discover service
+		 * dependencies. When `false` (e.g. ESM), the middleware uses
+		 * `getAllUserFiles` / `getImporters` instead.
+		 */
+		usesNodeModuleTree?: boolean;
+
+		/** Load a service file (used when a new file appears). */
+		loadService(filename: string): Service | Promise<Service>;
+
+		/** Reload a service file (called after destroyService). */
+		reloadService(filename: string): Service | Promise<Service>;
+
+		/** Drop a single file from the module cache (no-op if unsupported). */
+		invalidate(filename: string): void | Promise<void>;
+
+		/** Drop the whole module cache before a broker restart. */
+		invalidateAll(): void | Promise<void>;
+
+		/**
+		 * Optional. Return all user files known to the strategy. Used by
+		 * the HotReload middleware to discover transitive dependencies
+		 * when no native module graph is available.
+		 */
+		getAllUserFiles?(): Promise<string[]>;
+
+		/**
+		 * Optional. Return the transitive closure of files that import
+		 * `filename` (BFS, cycle-safe, excludes `filename` itself).
+		 */
+		getImporters?(filename: string): Promise<string[]>;
+	}
+
+	/**
 	 * Parsed CLI flags
 	 */
 	export interface RunnerFlags {
@@ -63,6 +103,12 @@ declare class Runner {
 	 * Watch folders for hot reload
 	 */
 	watchFolders: string[];
+
+	/**
+	 * Reload strategy used by the HotReload middleware (optional;
+	 * provided e.g. by the ESM runner).
+	 */
+	reloadStrategy?: Runner.ReloadStrategy;
 
 	/**
 	 * Parsed CLI flags

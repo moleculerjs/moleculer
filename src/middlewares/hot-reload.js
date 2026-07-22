@@ -23,18 +23,42 @@ module.exports = function HotReloadMiddleware(broker) {
 	let hotReloadModules = [];
 	let extraFiles = null;
 
+	/**
+	 * Resolve the active reload strategy.
+	 *
+	 * Defaults to a CommonJS strategy that uses Node's require cache and
+	 * the `module.children` tree to compute a service dependency graph.
+	 *
+	 * The runner can override this by exposing `broker.runner.reloadStrategy`
+	 * (e.g. the ESM runner provides an import()-based strategy without a
+	 * dependency graph).
+	 */
+	function getReloadStrategy() {
+		if (broker.runner && broker.runner.reloadStrategy) return broker.runner.reloadStrategy;
+
+		return {
+			usesNodeModuleTree: true,
+			loadService: filename => broker.loadService(filename),
+			reloadService: filename => broker.loadService(filename),
+			invalidate: filename => clearRequireCache(filename),
+			invalidateAll: () =>
+				Object.keys(require.cache).forEach(key => delete require.cache[key])
+		};
+	}
+
 	function hotReloadService(service) {
 		const relPath = path.relative(process.cwd(), service.__filename);
+		const strategy = getReloadStrategy();
 
 		broker.logger.info(`Hot reload '${service.name}' service...`, kleur.grey(relPath));
 
 		return broker.destroyService(service).then(() => {
 			if (fs.existsSync(service.__filename)) {
 				try {
-					return broker.loadService(service.__filename);
+					return strategy.reloadService(service.__filename);
 				} catch (err) {
 					broker.logger.error(`Failed to load service '${service.__filename}'`, err);
-					clearRequireCache(service.__filename);
+					strategy.invalidate(service.__filename);
 				}
 			}
 		});
@@ -44,18 +68,59 @@ module.exports = function HotReloadMiddleware(broker) {
 	 * Detect service dependency graph & watch all dependent files & services.
 	 *
 	 */
-	function watchProjectFiles() {
-		if (!broker.started || (!process.mainModule && !require.main)) return;
+	async function watchProjectFiles() {
+		if (!broker.started) return;
+
+		const strategy = getReloadStrategy();
+
+		// In CJS we walk the module tree to discover dependencies. In ESM
+		// (or any environment that does not expose a module graph) we only
+		// watch the service files we know about + any explicit `extraFiles`.
+		if (strategy.usesNodeModuleTree !== false && !process.mainModule && !require.main) return;
 
 		cache.clear();
 		prevProjectFiles = projectFiles;
 		projectFiles = new Map();
 
-		// Read the main module
-		const mainModule = process.mainModule || require.main;
+		if (strategy.usesNodeModuleTree !== false) {
+			// Read the main module
+			const mainModule = process.mainModule || require.main;
 
-		// Process the whole module tree
-		processModule(mainModule, null, 0, null);
+			// Process the whole module tree
+			processModule(mainModule, null, 0, null);
+		} else {
+			// No module graph available via Node primitives. Watch every
+			// loaded service file directly, and — if the strategy can
+			// expose a dependency graph itself (e.g. ESM loader) — also
+			// every transitively imported user file. For non-service
+			// files we mark `lookupImporters` so the change handler can
+			// resolve which services to reload at change time.
+			const serviceFiles = new Set();
+			broker.services.forEach(svc => {
+				if (!svc.__filename) return;
+				serviceFiles.add(svc.__filename);
+				const watchItem = getWatchItem(svc.__filename);
+				if (!watchItem.services.includes(svc.fullName)) {
+					watchItem.services.push(svc.fullName);
+				}
+			});
+
+			if (isFunction(strategy.getAllUserFiles)) {
+				try {
+					const allFiles = (await strategy.getAllUserFiles()) || [];
+					allFiles.forEach(f => {
+						if (serviceFiles.has(f)) return;
+						const watchItem = getWatchItem(f);
+						watchItem.lookupImporters = true;
+					});
+				} catch (err) {
+					broker.logger.warn(
+						"Hot-reload: failed to enumerate user files from loader.",
+						err
+					);
+				}
+			}
+		}
 
 		if (extraFiles != null) {
 			Object.entries(extraFiles).forEach(([fName, restartType]) => {
@@ -81,9 +146,10 @@ module.exports = function HotReloadMiddleware(broker) {
 				kleur.bgMagenta().white().bold(`Reload ${needToReloadDedup.length} service(s)`)
 			);
 
+			const loadStrategy = getReloadStrategy();
 			needToReloadDedup.forEach(svc => {
 				if (typeof svc == "string")
-					if (fs.existsSync(svc)) return broker.loadService(svc);
+					if (fs.existsSync(svc)) return loadStrategy.loadService(svc);
 					else return;
 
 				return hotReloadService(svc);
@@ -122,53 +188,110 @@ module.exports = function HotReloadMiddleware(broker) {
 				watchItem.others.forEach(filename =>
 					broker.logger.debug(kleur.grey(`    ${path.relative(process.cwd(), filename)}`))
 				);
-			}
-			// Create watcher
-			watchItem.watcher = fs.watch(fName, eventType => {
-				const relPath = path.relative(process.cwd(), fName);
-				broker.logger.info(
-					kleur.magenta().bold(`The '${relPath}' file is changed. (Event: ${eventType})`)
+			} else if (watchItem.lookupImporters)
+				broker.logger.debug(
+					`  ${relPath}:`,
+					kleur.grey("reload importing services on change.")
 				);
+			// Create watcher.
+			// `fs.watch` can fire multiple `change` events for a single
+			// edit (e.g. editors that save with truncate+write or
+			// write-tmp+rename). Debounce on the leading edge so we log &
+			// react once per burst.
+			watchItem.watcher = fs.watch(
+				fName,
+				_.debounce(
+					eventType => {
+						const relPath = path.relative(process.cwd(), fName);
+						broker.logger.info(
+							kleur
+								.magenta()
+								.bold(`The '${relPath}' file is changed. (Event: ${eventType})`)
+						);
 
-				// Clear from require cache
-				clearRequireCache(fName);
-				if (watchItem.others.length > 0) {
-					watchItem.others.forEach(f => clearRequireCache(f));
-				}
+						const watcherStrategy = getReloadStrategy();
 
-				if (
-					watchItem.brokerRestart &&
-					broker.runner &&
-					isFunction(broker.runner.restartBroker)
-				) {
-					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
-					stopAllFileWatcher(projectFiles);
-					// Clear the whole require cache
-					Object.keys(require.cache).forEach(key => delete require.cache[key]);
+						// Drop the file (and its known sibling deps) from the module cache
+						watcherStrategy.invalidate(fName);
+						if (watchItem.others.length > 0) {
+							watchItem.others.forEach(f => watcherStrategy.invalidate(f));
+						}
 
-					return broker.runner.restartBroker();
-				} else if (watchItem.allServices) {
-					// Reload all services
-					broker.services.forEach(svc => {
-						if (svc.__filename) needToReload.add(svc);
-					});
-					reloadServices();
-				} else if (watchItem.services.length > 0) {
-					// Reload certain services
-					broker.services.forEach(svc => {
-						if (watchItem.services.indexOf(svc.fullName) !== -1) needToReload.add(svc);
-					});
+						if (
+							watchItem.brokerRestart &&
+							broker.runner &&
+							isFunction(broker.runner.restartBroker)
+						) {
+							broker.logger.info(
+								kleur.bgMagenta().white().bold("Action: Restart broker...")
+							);
+							stopAllFileWatcher(projectFiles);
+							// Clear the whole module cache
+							watcherStrategy.invalidateAll();
 
-					if (needToReload.size === 0) {
-						// It means, it's a crashed reloaded service, so we
-						// didn't find it in the loaded services because
-						// the previous hot-reload failed. We should load it
-						// broker.loadService
-						needToReload.add(relPath);
-					}
-					reloadServices();
-				}
-			});
+							return broker.runner.restartBroker();
+						} else if (watchItem.allServices) {
+							// Reload all services
+							broker.services.forEach(svc => {
+								if (svc.__filename) needToReload.add(svc);
+							});
+							reloadServices();
+						} else if (watchItem.services.length > 0) {
+							// Reload certain services
+							broker.services.forEach(svc => {
+								if (watchItem.services.indexOf(svc.fullName) !== -1)
+									needToReload.add(svc);
+							});
+
+							if (needToReload.size === 0) {
+								// It means, it's a crashed reloaded service, so we
+								// didn't find it in the loaded services because
+								// the previous hot-reload failed. We should load it
+								// broker.loadService
+								needToReload.add(relPath);
+							}
+							reloadServices();
+						} else if (
+							watchItem.lookupImporters &&
+							isFunction(watcherStrategy.getImporters)
+						) {
+							// Transitive dep changed: ask the loader which
+							// user files import this one (transitively),
+							// then reload services among them. The loader
+							// already bumps `fName` + its importers on
+							// `invalidate`, so the next service import
+							// brings in the fresh dependency chain.
+							watcherStrategy
+								.getImporters(fName)
+								.then(importers => {
+									const set = new Set(importers || []);
+									let matched = 0;
+									broker.services.forEach(svc => {
+										if (svc.__filename && set.has(svc.__filename)) {
+											needToReload.add(svc);
+											matched++;
+										}
+									});
+									if (matched > 0) reloadServices();
+									else
+										broker.logger.debug(
+											kleur.grey(
+												`Hot-reload: '${relPath}' changed but no service imports it.`
+											)
+										);
+								})
+								.catch(err =>
+									broker.logger.warn(
+										"Hot-reload: failed to lookup importers.",
+										err
+									)
+								);
+						}
+					},
+					100,
+					{ leading: true, trailing: false }
+				)
+			);
 		});
 
 		if (projectFiles.size === 0) broker.logger.debug(kleur.grey("  No files."));
@@ -202,6 +325,7 @@ module.exports = function HotReloadMiddleware(broker) {
 			services: [],
 			allServices: false,
 			brokerRestart: false,
+			lookupImporters: false,
 			others: []
 		};
 		projectFiles.set(fName, watchItem);
@@ -287,16 +411,17 @@ module.exports = function HotReloadMiddleware(broker) {
 		// Debounced Service loader function
 		const needToLoad = new Set();
 		const loadServices = _.debounce(() => {
+			const strategy = getReloadStrategy();
 			broker.logger.info(
 				kleur.bgMagenta().white().bold(`Load ${needToLoad.size} service(s)...`)
 			);
 
 			needToLoad.forEach(filename => {
 				try {
-					broker.loadService(filename);
+					strategy.loadService(filename);
 				} catch (err) {
 					broker.logger.error(`Failed to load service '${filename}'`, err);
-					clearRequireCache(filename);
+					strategy.invalidate(filename);
 				}
 			});
 			needToLoad.clear();
