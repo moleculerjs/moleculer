@@ -124,7 +124,6 @@ function createNode(nodeID, brokerOpts = {}) {
 async function waitForResult(fn, predicate, timeout = 10 * 1000, interval = 200) {
 	const startTime = Date.now();
 	let res;
-	// eslint-disable-next-line no-constant-condition
 	while (true) {
 		res = await fn();
 		if (predicate(res)) return res;
