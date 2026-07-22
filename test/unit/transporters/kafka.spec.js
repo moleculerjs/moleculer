@@ -4,10 +4,23 @@ const P = require("../../../src/packets");
 const C = require("../../../src/constants");
 
 // Mock @platformatic/kafka before requiring it
+const createFakeMetadata = topics => ({
+	topics: new Map(
+		topics.map(topic => [
+			topic,
+			{
+				partitionsCount: 1,
+				partitions: [{ leader: 0 }]
+			}
+		])
+	)
+});
+
 const FakeKafkaAdmin = {
 	close: jest.fn(() => Promise.resolve()),
 	createTopics: jest.fn(() => Promise.resolve([])),
-	listTopics: jest.fn(() => Promise.resolve([]))
+	listTopics: jest.fn(() => Promise.resolve([])),
+	metadata: jest.fn(({ topics }) => Promise.resolve(createFakeMetadata(topics)))
 };
 
 const FakeKafkaProducer = {
@@ -401,6 +414,71 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		}
 
 		FakeKafkaConsumer.consume = jest.fn(() => Promise.resolve(FakeKafkaStream));
+	});
+});
+
+describe("Test KafkaTransporter waitForTopicsReady", () => {
+	let transporter;
+
+	beforeEach(async () => {
+		transporter = new KafkaTransporter({ bootstrapBrokers: ["kafka-server:1234"] });
+		transporter.init(
+			new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" })),
+			jest.fn()
+		);
+		await transporter.connect();
+	});
+
+	it("should resolve when all topics have partition leaders", async () => {
+		transporter.admin.metadata = jest.fn(({ topics }) =>
+			Promise.resolve(createFakeMetadata(topics))
+		);
+
+		await transporter.waitForTopicsReady(["topic1", "topic2"]);
+
+		expect(transporter.admin.metadata).toHaveBeenCalledTimes(1);
+		expect(transporter.admin.metadata).toHaveBeenCalledWith({
+			topics: ["topic1", "topic2"],
+			forceUpdate: true
+		});
+	});
+
+	it("should poll until the topic metadata becomes available", async () => {
+		transporter.admin.metadata = jest
+			.fn()
+			.mockResolvedValueOnce(createFakeMetadata(["topic1"]))
+			.mockResolvedValueOnce({
+				topics: new Map([
+					["topic1", { partitionsCount: 1, partitions: [{ leader: 0 }] }],
+					["topic2", { partitionsCount: 1, partitions: [{ leader: -1 }] }]
+				])
+			})
+			.mockResolvedValue(createFakeMetadata(["topic1", "topic2"]));
+
+		await transporter.waitForTopicsReady(["topic1", "topic2"]);
+
+		expect(transporter.admin.metadata).toHaveBeenCalledTimes(3);
+	});
+
+	it("should poll while the metadata request is rejected", async () => {
+		transporter.admin.metadata = jest
+			.fn()
+			.mockRejectedValueOnce(new Error("Unknown topic"))
+			.mockImplementation(({ topics }) => Promise.resolve(createFakeMetadata(topics)));
+
+		await transporter.waitForTopicsReady(["topic1"]);
+
+		expect(transporter.admin.metadata).toHaveBeenCalledTimes(2);
+	});
+
+	it("should give up after the timeout", async () => {
+		transporter.logger.warn = jest.fn();
+		transporter.admin.metadata = jest.fn(() => Promise.resolve({ topics: new Map() }));
+
+		await transporter.waitForTopicsReady(["topic1"], 0);
+
+		expect(transporter.admin.metadata).toHaveBeenCalledTimes(1);
+		expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
 	});
 });
 

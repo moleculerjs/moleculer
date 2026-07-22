@@ -211,6 +211,12 @@ class KafkaTransporter extends Transporter {
 			throw err;
 		}
 
+		// The broker propagates the metadata of freshly created topics asynchronously,
+		// so wait until every topic is visible with elected partition leaders. Otherwise
+		// the consumer may get no partition assignments for some topics and would
+		// silently never receive their messages.
+		await this.waitForTopicsReady(topicNames);
+
 		// Create Consumer
 		try {
 			const Consumer = require("@platformatic/kafka").Consumer;
@@ -259,6 +265,50 @@ class KafkaTransporter extends Transporter {
 			});
 
 			throw err;
+		}
+	}
+
+	/**
+	 * Wait until all topics are available in the broker metadata
+	 * with elected partition leaders.
+	 *
+	 * @param {Array<String>} topicNames
+	 * @param {Number} timeout
+	 *
+	 * @memberof KafkaTransporter
+	 */
+	async waitForTopicsReady(topicNames, timeout = 10000) {
+		const startTime = Date.now();
+		while (true) {
+			try {
+				const metadata = await this.admin.metadata({
+					topics: topicNames,
+					forceUpdate: true
+				});
+				const ready = topicNames.every(name => {
+					const topic = metadata.topics.get(name);
+					return (
+						topic &&
+						topic.partitionsCount > 0 &&
+						topic.partitions.every(p => p.leader >= 0)
+					);
+				});
+				if (ready) return;
+
+				this.logger.debug("Not all topics have partition leaders yet. Waiting...");
+			} catch (err) {
+				this.logger.debug("Topic metadata is not available yet. Waiting...", err.message);
+			}
+
+			if (Date.now() - startTime >= timeout) {
+				this.logger.warn(
+					"Some topics are still not available in the broker metadata. Continuing anyway.",
+					topicNames
+				);
+				return;
+			}
+
+			await this.broker.Promise.delay(500);
 		}
 	}
 
