@@ -68,6 +68,44 @@ describe("Test Parser write", () => {
 		expect(parser.buf).toBeNull();
 	});
 
+	it("should throw error on a negative length field without hanging", () => {
+		let cb = jest.fn();
+
+		// Craft a packet with the sign bit set in the length field (0x80000000 =>
+		// -2147483648 as signed int32) and a matching CRC. Without the length
+		// guard this would spin forever in `_write`.
+		let buf = Buffer.alloc(10, 0);
+		buf.writeInt32BE(-2147483648, 1);
+		buf[5] = 4; // PACKET_PING_ID
+		buf[0] = buf[1] ^ buf[2] ^ buf[3] ^ buf[4] ^ buf[5]; // valid CRC
+
+		parser._write(buf, null, cb);
+
+		expect(cb).toHaveBeenCalledTimes(1);
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
+		let err = cb.mock.calls[0][0];
+		expect(err.message).toBe("Invalid packet length! -2147483648");
+		expect(onData).not.toHaveBeenCalled();
+		expect(parser.buf).toBeNull();
+	});
+
+	it("should throw error on a length field smaller than the header", () => {
+		let cb = jest.fn();
+
+		// length = 3 (smaller than the 6-byte header) => slice(3) would not shrink
+		// enough to terminate the loop with a 6+ byte buffer.
+		let buf = Buffer.from([0, 0, 0, 0, 3, 6, 100, 97, 116, 97]);
+		buf[0] = buf[1] ^ buf[2] ^ buf[3] ^ buf[4] ^ buf[5]; // valid CRC
+
+		parser._write(buf, null, cb);
+
+		expect(cb).toHaveBeenCalledTimes(1);
+		expect(cb).toHaveBeenCalledWith(expect.any(Error));
+		let err = cb.mock.calls[0][0];
+		expect(err.message).toBe("Invalid packet length! 3");
+		expect(parser.buf).toBeNull();
+	});
+
 	it("should emit data with valid chunk", () => {
 		let cb = jest.fn();
 
