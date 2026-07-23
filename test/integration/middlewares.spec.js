@@ -11,6 +11,18 @@ describe("Test middleware system", () => {
 			middlewares: [
 				{
 					call(next) {
+						return (...args) => {
+							if (this.nodeID !== broker.nodeID) {
+								throw new Error(
+									"This identifier inside call middleware is incorrect."
+								);
+							}
+							return next(...args);
+						};
+					}
+				},
+				{
+					call(next) {
 						return (actionName, params, opts) => {
 							return next(actionName, params, opts).then(res => {
 								return res;
@@ -56,7 +68,7 @@ describe("Test middleware system", () => {
 		beforeAll(() => broker.start());
 		afterAll(() => broker.stop());
 
-		it("The context is passed through the call middlware.", async () => {
+		it("The context is passed through the call middleware.", async () => {
 			const p = broker.call("test.testAction");
 			await expect(p).resolves.toBe("testmeta!");
 			expect(p.ctx).toBeDefined();
