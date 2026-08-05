@@ -41,9 +41,9 @@ describe("Test MoleculerRunner worker node args", () => {
 		});
 
 		it("should split node args by whitespace", () => {
-			expect(
-				runner.parseNodeArgsString("--max-old-space-size=768 --trace-warnings")
-			).toEqual(["--max-old-space-size=768", "--trace-warnings"]);
+			expect(runner.parseNodeArgsString("--max-old-space-size=768 --trace-warnings")).toEqual(
+				["--max-old-space-size=768", "--trace-warnings"]
+			);
 		});
 
 		it("should keep quoted tokens intact", () => {
@@ -93,9 +93,7 @@ describe("Test MoleculerRunner worker node args", () => {
 				"services"
 			]);
 
-			expect(runner.flags.workerNodeArgs).toBe(
-				"--max-old-space-size=768 --trace-warnings"
-			);
+			expect(runner.flags.workerNodeArgs).toBe("--max-old-space-size=768 --trace-warnings");
 		});
 
 		it("should parse short -w alias", () => {
@@ -163,9 +161,7 @@ describe("Test MoleculerRunner worker node args", () => {
 			runner.flags = { autoWorkerHeapReserve: 4096 };
 			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(4096);
 
-			expect(() => runner.buildWorkerExecArgv(3)).toThrow(
-				/Cannot auto-balance worker heap/
-			);
+			expect(() => runner.buildWorkerExecArgv(3)).toThrow(/Cannot auto-balance worker heap/);
 		});
 	});
 
@@ -194,19 +190,14 @@ describe("Test MoleculerRunner worker node args", () => {
 		});
 
 		it("should apply MOLECULER_WORKER_NODE_OPTIONS via setupPrimary", () => {
-			process.env.MOLECULER_WORKER_NODE_OPTIONS =
-				"--max-old-space-size=256 --no-warnings";
+			process.env.MOLECULER_WORKER_NODE_OPTIONS = "--max-old-space-size=256 --no-warnings";
 			const runner = new MoleculerRunner();
 			runner.flags = {};
 
 			runner.startWorkers(1);
 
 			expect(cluster.setupPrimary).toHaveBeenCalledWith({
-				execArgv: [
-					...process.execArgv,
-					"--max-old-space-size=256",
-					"--no-warnings"
-				]
+				execArgv: [...process.execArgv, "--max-old-space-size=256", "--no-warnings"]
 			});
 		});
 

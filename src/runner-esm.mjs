@@ -136,18 +136,38 @@ export default class MoleculerRunner {
 		if (!str) return [];
 
 		const args = [];
-		const re = /(?:[^\s"']+|"[^"]*"|'[^']*')+/g;
-		let match;
-		while ((match = re.exec(str)) !== null) {
-			let token = match[0];
-			if (
-				(token.startsWith('"') && token.endsWith('"')) ||
-				(token.startsWith("'") && token.endsWith("'"))
-			) {
-				token = token.slice(1, -1);
+		let current = "";
+		let quote = null;
+
+		for (let i = 0; i < str.length; i++) {
+			const ch = str[i];
+
+			if (quote) {
+				if (ch === quote) {
+					quote = null;
+				} else {
+					current += ch;
+				}
+				continue;
 			}
-			if (token) args.push(token);
+
+			if (ch === '"' || ch === "'") {
+				quote = ch;
+				continue;
+			}
+
+			if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+				if (current) {
+					args.push(current);
+					current = "";
+				}
+				continue;
+			}
+
+			current += ch;
 		}
+
+		if (current) args.push(current);
 		return args;
 	}
 
