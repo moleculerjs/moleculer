@@ -47,6 +47,20 @@ declare namespace Runner {
 		 * File mask for loading services
 		 */
 		mask?: string;
+
+		/**
+		 * Node.js/V8 CLI args passed only to cluster workers via cluster.setupPrimary({ execArgv }).
+		 * Also configurable with MOLECULER_WORKER_NODE_OPTIONS env var.
+		 * Example: "--max-old-space-size=768 --trace-warnings"
+		 */
+		workerNodeArgs?: string;
+
+		/**
+		 * Auto-balance worker heaps: MB reserved for the primary process.
+		 * Remaining available RAM is split equally across workers as --max-old-space-size.
+		 * Also configurable with MOLECULER_AUTO_WORKER_HEAP_RESERVE env var.
+		 */
+		autoWorkerHeapReserve?: number;
 	}
 }
 
@@ -130,6 +144,31 @@ declare class Runner {
 	 * Load services from files or directories
 	 */
 	loadServices(): void;
+
+	/**
+	 * Parse a Node.js CLI args string into an argv array
+	 */
+	parseNodeArgsString(value: string | string[] | null | undefined): string[];
+
+	/**
+	 * Resolve MB to reserve for the primary process (--auto-worker-heap-reserve). Null when disabled.
+	 */
+	resolveAutoWorkerHeapReserve(): number | null;
+
+	/**
+	 * Available memory in MB (cgroup/container limit when present).
+	 */
+	getAvailableMemoryMb(): number;
+
+	/**
+	 * Resolve Node.js/V8 args for cluster workers from env + CLI flag
+	 */
+	resolveWorkerNodeArgs(): string[];
+
+	/**
+	 * Build final execArgv for cluster workers (applies --auto-worker-heap-reserve balancing).
+	 */
+	buildWorkerExecArgv(workerCount: number): string[];
 
 	/**
 	 * Start cluster workers
