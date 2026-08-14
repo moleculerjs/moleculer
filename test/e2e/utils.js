@@ -26,6 +26,28 @@ async function executeScenarios(broker, waitForServices, waitForNodeIDs) {
 		await broker.waitForServices(waitForServices, 30 * 1000);
 	}
 
+	// Registry sync is one-directional: waitForNodes/waitForServices only
+	// guarantee that THIS node sees the remote nodes. With slow transporters
+	// (e.g. Kafka, where INFO propagation takes seconds) the remote nodes may
+	// not know about this node yet, and events they emit towards it in the
+	// meantime are silently dropped. Wait until every remote node reports this
+	// node as available in its own registry.
+	const remoteNodeIDs = broker.registry.nodes
+		.list({ onlyAvailable: true })
+		.map(node => node.id)
+		.filter(nodeID => nodeID !== broker.nodeID);
+	for (const nodeID of remoteNodeIDs) {
+		broker.logger.info(`Waiting for node '${nodeID}' to see this node...`);
+		const nodes = await waitForResult(
+			() => broker.call("$node.list", { onlyAvailable: true }, { nodeID }).catch(() => []),
+			res => res.some(node => node.id === broker.nodeID && node.available),
+			30 * 1000
+		);
+		if (!nodes.some(node => node.id === broker.nodeID && node.available)) {
+			broker.logger.warn(`Node '${nodeID}' still does not see this node.`);
+		}
+	}
+
 	if (
 		!process.env.TRANSPORTER ||
 		process.env.TRANSPORTER == "TCP" ||
