@@ -18,7 +18,14 @@ import kleur from "kleur";
 
 // import.meta.resolve requires --experimental-import-meta-resolve flag: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaresolvespecifier-parent
 // createRequire is a workaround to allow require.resolve in esm modules: https://stackoverflow.com/a/62499498
-const require = createRequire(import.meta.url);
+// It is created lazily, because `import.meta.url` is not available in every ESM host
+// (e.g. bundled edge runtimes), and calling it at module scope would break the whole
+// `moleculer` ESM entry point, which re-exports this file as `Runner`.
+let _require;
+function getRequire() {
+	if (!_require) _require = createRequire(import.meta.url);
+	return _require;
+}
 
 const stopSignals = [
 	"SIGHUP",
@@ -216,7 +223,7 @@ export default class MoleculerRunner {
 		}
 
 		try {
-			return require.resolve(configPath, resolveOptions);
+			return getRequire().resolve(configPath, resolveOptions);
 		} catch {
 			return null;
 		}
