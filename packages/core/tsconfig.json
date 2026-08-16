@@ -1,7 +1,7 @@
 {
   "extends": "@moleculer/tsconfig/node24/tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "lodash", "reflect-metadata", "vitest/globals"],
+    "types": ["node", "reflect-metadata", "vitest/globals"],
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true

@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { cloneDeep } from "es-toolkit";
 import { MiddlewareHookNames, type ServiceBroker } from "./broker.ts";
 import { ServiceSchemaError } from "./errors.ts";
 import type { Nullable } from "./helperTypes.ts";
@@ -172,7 +172,7 @@ export class Service<
 			);
 		}
 
-		this.$originalSchema = _.cloneDeep(schema);
+		this.$originalSchema = cloneDeep(schema);
 
 		// if (schema.mixins) {
 		// 	schema = this.applyMixins(schema);
@@ -297,7 +297,7 @@ export class Service<
 			}
 			methodDef = {
 				name,
-				..._.cloneDeep(def),
+				...cloneDeep(def),
 				service: this,
 				handler: def.handler.bind(this),
 			};
@@ -339,7 +339,7 @@ export class Service<
 			}
 			actionDef = {
 				name,
-				..._.cloneDeep(def),
+				...cloneDeep(def),
 				rawName: def.name ?? name,
 				handler: def.handler.bind(this),
 			};

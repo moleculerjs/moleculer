@@ -49,7 +49,6 @@
     "@moleculer/eslint-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
     "@moleculer/vitest-config": "workspace:*",
-    "@types/lodash": "^4.17.25",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
@@ -57,7 +56,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "lodash": "^4.18.1",
+    "es-toolkit": "^1.50.0",
     "reflect-metadata": "^0.2.2"
   }
 }
