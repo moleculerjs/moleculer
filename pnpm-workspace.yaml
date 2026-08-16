@@ -5,5 +5,5 @@ packages:
 catalog:
   eslint: 10.8.1
   prettier: 3.9.6
-  jest: 30.4.2
-  ts-jest: 29.4.12
+  vitest: 4.1.10
+  "@vitest/coverage-v8": 4.1.10

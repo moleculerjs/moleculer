@@ -64,10 +64,10 @@ describe("Service schema", () => {
 				},
 
 				actions: {
-					get: jest.fn(),
+					get: vi.fn(),
 					find: {
 						//params: { limit: "number" },
-						handler: jest.fn(),
+						handler: vi.fn(),
 					},
 				},
 
@@ -163,10 +163,10 @@ describe("Service schema", () => {
 
 			const schema = {
 				name: "users",
-				merged: jest.fn(),
-				created: jest.fn(),
-				started: jest.fn(),
-				stopped: jest.fn(),
+				merged: vi.fn(),
+				created: vi.fn(),
+				started: vi.fn(),
+				stopped: vi.fn(),
 			};
 
 			await broker.createService(schema);
@@ -205,10 +205,10 @@ describe("Service schema", () => {
 
 			const schema = {
 				name: "users",
-				merged: [jest.fn(), jest.fn()],
-				created: [jest.fn(), jest.fn()],
-				started: [jest.fn(), jest.fn()],
-				stopped: [jest.fn(), jest.fn()],
+				merged: [vi.fn(), vi.fn()],
+				created: [vi.fn(), vi.fn()],
+				started: [vi.fn(), vi.fn()],
+				stopped: [vi.fn(), vi.fn()],
 			};
 
 			await broker.createService(schema);

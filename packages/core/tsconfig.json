@@ -1,7 +1,7 @@
 {
   "extends": "@moleculer/tsconfig/node24/tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "lodash", "reflect-metadata", "jest"],
+    "types": ["node", "lodash", "reflect-metadata", "vitest/globals"],
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
@@ -15,8 +15,7 @@
     "./.*.js", // root javascript config files
     "./*.js", // root javascript files
     "./*.mjs", // root esm files
-    "__mocks__/**/*", // jest mocks
     "test/**/*", // test folder
-    "jest.config.ts" // test config file
+    "vitest.config.ts" // test config file
   ]
 }

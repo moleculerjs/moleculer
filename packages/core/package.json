@@ -18,8 +18,8 @@
     "format": "prettier . --ignore-unknown --check",
     "format:fix": "prettier . --ignore-unknown --write",
     "lint": "TIMING=1 eslint .",
-    "ci": "jest --watch",
-    "test": "jest"
+    "ci": "vitest",
+    "test": "vitest run"
   },
   "keywords": [
     "microservice",
@@ -47,15 +47,14 @@
   },
   "devDependencies": {
     "@moleculer/eslint-config": "workspace:*",
-    "@moleculer/jest-config": "workspace:*",
     "@moleculer/tsconfig": "workspace:*",
-    "@types/jest": "^30.0.0",
+    "@moleculer/vitest-config": "workspace:*",
     "@types/lodash": "^4.17.25",
+    "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
-    "jest": "catalog:",
     "prettier": "catalog:",
-    "ts-jest": "catalog:",
-    "tsx": "^4.23.12"
+    "tsx": "^4.23.12",
+    "vitest": "catalog:"
   },
   "dependencies": {
     "lodash": "^4.18.1",

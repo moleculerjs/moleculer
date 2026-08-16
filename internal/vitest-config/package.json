@@ -1,0 +1,16 @@
+{
+  "name": "@moleculer/vitest-config",
+  "description": "Vitest config of Moleculer framework packages",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "peerDependencies": {
+    "vitest": "catalog:"
+  },
+  "devDependencies": {
+    "vitest": "catalog:"
+  }
+}
