@@ -1,7 +1,6 @@
 /* eslint-disable max-classes-per-file */
 
 import type { Nullable } from "./helperTypes";
-import type { ServiceSchema } from "./serviceSchema";
 
 export class MoleculerError extends Error {
 	public code?: string;
@@ -25,10 +24,7 @@ export class MoleculerError extends Error {
 }
 
 export class ServiceSchemaError extends MoleculerError {
-	public constructor(
-		message: string,
-		schema: ServiceSchema<Record<string, unknown>, Record<string, unknown>>,
-	) {
+	public constructor(message: string, schema: unknown) {
 		super(message, "SERVICE_SCHEMA_ERROR", 500, null, { schema });
 	}
 }

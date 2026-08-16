@@ -21,9 +21,7 @@ type ServiceThis<
 > = TMethods & Service<TSettings, TMetadata>;
 
 export type ServiceDependencies =
-	| string
-	| ServiceDependencyItem
-	| (string | ServiceDependencyItem)[];
+	string | ServiceDependencyItem | (string | ServiceDependencyItem)[];
 
 interface TParamTypes {
 	string: string;

@@ -15,7 +15,10 @@ import { Action, MoleculerService } from "../../src/serviceDecorators";
 		b: "Test",
 	},
 })
-class MyNativeService extends Service {
+class MyNativeService extends Service<
+	{ a: number; b: string },
+	{ region: string; zone: string; cluster: boolean }
+> {
 	private localVar?: number;
 
 	@Action({

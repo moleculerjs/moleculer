@@ -154,7 +154,7 @@ export class Service<
 		}
 
 		const svc = new Service<TSettings, TMetadata>(broker);
-		svc.parseServiceSchema(schema);
+		svc.parseServiceSchema(schema as ServiceSchema<TSettings, TMetadata>);
 
 		return svc as Service<TSettings, TMetadata> & TMethods;
 	}
@@ -299,7 +299,7 @@ export class Service<
 				name,
 				..._.cloneDeep(def),
 				service: this,
-				handler: def.handler.bind(this) as Function,
+				handler: def.handler.bind(this),
 			};
 		} else {
 			throw new ServiceSchemaError(

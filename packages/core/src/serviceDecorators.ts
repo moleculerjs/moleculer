@@ -45,9 +45,7 @@ export function MoleculerService<
 		} else if (isString(def) && def != null && def !== "") {
 			schema.name = def;
 		}
-		if (schema.name == null) {
-			schema.name = constructor.name;
-		}
+		schema.name ??= constructor.name;
 
 		if (version != null) {
 			schema.version = version;
@@ -88,9 +86,7 @@ export function Action(def?: string | ActionDefinition): MethodDecorator {
 			Record<string, unknown>
 		> = Reflect.getMetadata(META_PREFIX, target.constructor) ?? {};
 
-		if (!schema.actions) {
-			schema.actions = {};
-		}
+		schema.actions ??= {};
 
 		let actionSchema: ActionDefinition;
 		if (!(propertyKey in schema.actions)) {
@@ -106,9 +102,7 @@ export function Action(def?: string | ActionDefinition): MethodDecorator {
 			actionSchema.name = def;
 		}
 
-		if (actionSchema.name == null) {
-			actionSchema.name = propertyKey.toString();
-		}
+		actionSchema.name ??= propertyKey.toString();
 
 		if (actionSchema.skipHandler !== true) {
 			actionSchema.handler = handler;

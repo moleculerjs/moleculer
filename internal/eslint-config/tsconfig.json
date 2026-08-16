@@ -1,5 +1,5 @@
 {
-  "extends": "@moleculer/tsconfig/node20/tsconfig.json",
+  "extends": "@moleculer/tsconfig/node24/tsconfig.json",
   "compilerOptions": {
     "types": ["node"]
   },

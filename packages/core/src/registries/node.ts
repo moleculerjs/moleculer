@@ -34,7 +34,7 @@ export class Node {
 
 	public findAction(actionName: string): ActionDefinition | undefined {
 		return this.info?.services?.find((svc) => {
-			return svc.actions?.[actionName];
+			return svc.actions?.[actionName] != null;
 		});
 	}
 }

@@ -20,12 +20,12 @@ Since typescript is installed at the monorepo root, it is not necessary to insta
 
 ### Configuration
 
-#### Node 20 (CJS)
+#### Node 24 (CJS)
 
 Add the following to your typescript configuration file (e.g. `tsconfig.json`):
 
 ```
 {
-  "extends": "@moleculer/tsconfig/node20/tsconfig.json",
+  "extends": "@moleculer/tsconfig/node24/tsconfig.json",
 }
 ```

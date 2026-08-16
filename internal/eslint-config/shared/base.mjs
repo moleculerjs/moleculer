@@ -430,6 +430,12 @@ export default tseslint.config(
 				},
 			],
 
+			// disallow accidentally using the "empty object" type
+			// allow empty interfaces because they are used as declaration-merging augmentation points
+			// (e.g. RegistryTypes, StrategyTypes)
+			// https://typescript-eslint.io/rules/no-empty-object-type
+			"@typescript-eslint/no-empty-object-type": ["error", { allowInterfaces: "always" }],
+
 			// disallow function declarations that contain unsafe references inside loop statements
 			// https://typescript-eslint.io/rules/no-loop-func
 			"@typescript-eslint/no-loop-func": "error",
