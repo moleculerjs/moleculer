@@ -7,7 +7,7 @@
     "build": "turbo run build --concurrency=${TURBO_CONCURRENCY:-90%} --output-logs=${TURBO_OUTPUT_LOGS:-new-only}",
     "format": "turbo run format --concurrency=${TURBO_CONCURRENCY:-90%} --global-deps=\".prettierrc.json\" --output-logs=${TURBO_OUTPUT_LOGS:-new-only}",
     "lint": "turbo run lint --concurrency=${TURBO_CONCURRENCY:-90%} --output-logs=${TURBO_OUTPUT_LOGS:-new-only}",
-    "test": "pnpm run format && pnpm run lint"
+    "test": "turbo run format lint --force --concurrency=${TURBO_CONCURRENCY:-90%} --global-deps=\".prettierrc.json\" --output-logs=${TURBO_OUTPUT_LOGS:-new-only}"
   },
   "repository": {
     "type": "git",
