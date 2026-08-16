@@ -1,7 +1,7 @@
 import eslint from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
-// @ts-expect-error: No declaration file for eslint-plugin-import
-import importPlugin from "eslint-plugin-import";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
+import importPlugin from "eslint-plugin-import-x";
 import tseslint from "typescript-eslint";
 import { jsGlobs } from "./globs.mjs";
 
@@ -19,6 +19,12 @@ export default tseslint.config(
 		},
 		linterOptions: {
 			reportUnusedDisableDirectives: true,
+		},
+		settings: {
+			// use the maintained resolver interface instead of the legacy
+			// "import-x/resolver": { typescript: true } set by flatConfigs.typescript
+			"import-x/resolver": undefined,
+			"import-x/resolver-next": [createTypeScriptImportResolver()],
 		},
 	},
 	{
@@ -497,11 +503,11 @@ export default tseslint.config(
 			// If a default import is requested, this rule will report if there is no default export in the imported module
 			// Disable rule from recommended
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/default.md
-			"import/default": "off",
+			"import-x/default": "off",
 
 			// report on improper use of extensions when importing
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/extensions.md
-			"import/extensions": [
+			"import-x/extensions": [
 				"error",
 				{
 					mjs: "always",
@@ -513,48 +519,50 @@ export default tseslint.config(
 					tsx: "always",
 					cjs: "never",
 					cts: "never",
+					// JSON modules can only be imported with their extension
+					json: "always",
 				},
 			],
 
 			// this rule reports any imports that come after non-import statements
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/first.md
-			"import/first": "error",
+			"import-x/first": "error",
 
 			// Enforces names exist at the time they are dereferenced, when imported as a full namespace (i.e. import * as foo from './foo'; foo.bar(); will report if bar is not exported by ./foo.)
 			// Disable rule from recommended
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/namespace.md
-			"import/namespace": "off",
+			"import-x/namespace": "off",
 
 			// enforces having one or more empty lines after the last top-level import statement or require call
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/newline-after-import.md
-			"import/newline-after-import": "error",
+			"import-x/newline-after-import": "error",
 
 			// this rule forbids the import of modules using absolute paths
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-absolute-path.md
-			"import/no-absolute-path": "error",
+			"import-x/no-absolute-path": "error",
 
 			// reports require([array], ...) and define([array], ...) function calls at the module scope. Will not report if !=2 arguments, or first argument is not a literal array
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-amd.md
-			"import/no-amd": "error",
+			"import-x/no-amd": "error",
 
 			// reports if a resolved path is imported more than once
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-duplicates.md
-			"import/no-duplicates": "error",
+			"import-x/no-duplicates": "error",
 
 			// this rule forbids every call to require() that uses expressions for the module name argument
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-dynamic-require.md
-			"import/no-dynamic-require": "error",
+			"import-x/no-dynamic-require": "error",
 
 			// forbid the import of external modules that are not declared in the package.json's dependencies, devDependencies, optionalDependencies, peerDependencies, or bundledDependencies
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-extraneous-dependencies.md
-			"import/no-extraneous-dependencies": [
+			"import-x/no-extraneous-dependencies": [
 				"error",
 				{
 					devDependencies: [
 						"**/__tests__/**", // jest pattern
 						"**/__mocks__/**", // jest pattern
 						"**/*.{test,spec}.{c,m,}[jt]s{x,}", // tests where the extension or filename suffix denotes that it is a test
-						"**/{jest,eslint}.config.{c,m,}js", // jest or eslint config
+						"**/{jest,vitest,eslint}.config.{c,m,}[jt]s", // test runner or eslint config
 					],
 					optionalDependencies: false,
 				},
@@ -562,45 +570,45 @@ export default tseslint.config(
 
 			// reports the use of import declarations with CommonJS exports in any module except for the main module
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-import-module-exports.md
-			"import/no-import-module-exports": ["error", { exceptions: [] }],
+			"import-x/no-import-module-exports": ["error", { exceptions: [] }],
 
 			// forbids the use of mutable exports with var or let
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-mutable-exports.md
-			"import/no-mutable-exports": "error",
+			"import-x/no-mutable-exports": "error",
 
 			// reports use of an exported name as the locally imported name of a default export
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-as-default.md
-			"import/no-named-as-default": "error",
+			"import-x/no-named-as-default": "error",
 
 			// Reports use of an exported name as a property on the default export
 			// Disable rule from recommended
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-as-default-member.md
-			"import/no-named-as-default-member": "off",
+			"import-x/no-named-as-default-member": "off",
 
 			// reports use of a default export as a locally named import
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-default.md
-			"import/no-named-default": "error",
+			"import-x/no-named-default": "error",
 
 			// use this rule to prevent importing packages through relative paths
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-relative-packages.md
-			"import/no-relative-packages": "error",
+			"import-x/no-relative-packages": "error",
 
 			// forbid a module from importing itself
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-self-import.md
-			"import/no-self-import": "error",
+			"import-x/no-self-import": "error",
 
 			// Ensures an imported module can be resolved to a module on the local filesystem, as defined by standard Node require.resolve behavior
 			// Disable rule from recommended
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-unresolved.md
-			"import/no-unresolved": "off",
+			"import-x/no-unresolved": "off",
 
 			// tse this rule to prevent unnecessary path segments in import and require statements
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-useless-path-segments.md
-			"import/no-useless-path-segments": ["error", { commonjs: true }],
+			"import-x/no-useless-path-segments": ["error", { commonjs: true }],
 
 			// enforce a convention in the order of require() / import statements
 			// https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/order.md
-			"import/order": [
+			"import-x/order": [
 				"error",
 				{
 					"newlines-between": "never",

@@ -2,14 +2,8 @@ packages:
   - "packages/*"
   - "internal/*"
 
-# pnpm 10+ no longer public-hoists *eslint* packages by default;
-# eslint-plugin-import (eslint-module-utils) needs the parser in the root node_modules
-publicHoistPattern:
-  - "*eslint*"
-  - "*prettier*"
-
 catalog:
-  eslint: 9.39.5
+  eslint: 10.8.1
   prettier: 3.9.6
   jest: 30.4.2
   ts-jest: 29.4.12
