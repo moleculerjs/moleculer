@@ -1,8 +1,8 @@
-import type { Endpoint } from "../registries/base";
-import type { BaseStrategyOptions } from "./base";
-import { BaseStrategy } from "./base";
+import type { Endpoint } from "../registries/base.ts";
+import type { BaseStrategyOptions } from "./base.ts";
+import { BaseStrategy } from "./base.ts";
 
-declare module "../registries/base" {
+declare module "../registries/base.ts" {
 	interface StrategyTypes {
 		random: "Random";
 		randomObj: {

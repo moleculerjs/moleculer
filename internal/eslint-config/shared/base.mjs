@@ -508,8 +508,9 @@ export default tseslint.config(
 					mts: "always",
 					js: "never",
 					jsx: "never",
-					ts: "never",
-					tsx: "never",
+					// relative imports carry .ts extensions (rewriteRelativeImportExtensions)
+					ts: "always",
+					tsx: "always",
 					cjs: "never",
 					cts: "never",
 				},

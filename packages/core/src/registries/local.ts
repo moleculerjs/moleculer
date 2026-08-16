@@ -1,11 +1,11 @@
-import type { ServiceBroker } from "../broker";
-import type { Service } from "../service";
-import { BaseRegistry, type BaseRegistryOptions } from "./base";
-import { Node } from "./node";
+import type { ServiceBroker } from "../broker.ts";
+import type { Service } from "../service.ts";
+import { BaseRegistry, type BaseRegistryOptions } from "./base.ts";
+import { Node } from "./node.ts";
 
 // export interface LocalRegistryOptions extends BaseRegistryOptions {}
 
-declare module "../brokerOptions" {
+declare module "../brokerOptions.ts" {
 	interface RegistryTypes {
 		local: "Local";
 		localObj: {

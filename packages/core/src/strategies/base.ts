@@ -1,6 +1,6 @@
-import type { ServiceBroker } from "../broker";
-import type { Context } from "../context";
-import type { Endpoint } from "../registries/base";
+import type { ServiceBroker } from "../broker.ts";
+import type { Context } from "../context.ts";
+import type { Endpoint } from "../registries/base.ts";
 
 // It will be augmented by the strategies
 export interface StrategyTypes {}

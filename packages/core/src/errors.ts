@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 
-import type { Nullable } from "./helperTypes";
+import type { Nullable } from "./helperTypes.ts";
 
 export class MoleculerError extends Error {
 	public code?: string;

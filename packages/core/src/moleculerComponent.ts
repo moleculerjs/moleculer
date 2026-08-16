@@ -1,4 +1,4 @@
-import type { ServiceBroker } from "./broker";
+import type { ServiceBroker } from "./broker.ts";
 
 export abstract class MoleculerComponent {
 	protected broker!: ServiceBroker;

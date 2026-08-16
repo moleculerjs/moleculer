@@ -1,6 +1,6 @@
-import type { Nullable } from "../helperTypes";
-import type { ServiceInfo } from "../service";
-import type { ActionDefinition } from "../serviceSchema";
+import type { Nullable } from "../helperTypes.ts";
+import type { ServiceInfo } from "../service.ts";
+import type { ActionDefinition } from "../serviceSchema.ts";
 
 export interface NodeInfo {
 	instanceID: string;

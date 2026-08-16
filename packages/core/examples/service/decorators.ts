@@ -1,7 +1,7 @@
-import { ServiceBroker } from "../../src";
-import type { Context } from "../../src/context";
-import { Service } from "../../src/service";
-import { Action, MoleculerService } from "../../src/serviceDecorators";
+import type { Context } from "../../src/context.ts";
+import { ServiceBroker } from "../../src/index.ts";
+import { Service } from "../../src/service.ts";
+import { Action, MoleculerService } from "../../src/serviceDecorators.ts";
 
 @MoleculerService({
 	name: "decorator-service",

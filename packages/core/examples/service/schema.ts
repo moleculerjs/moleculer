@@ -1,6 +1,6 @@
 import { assert } from "node:console";
-import { ServiceBroker } from "../../src";
-import { Service } from "../../src/service";
+import { ServiceBroker } from "../../src/index.ts";
+import { Service } from "../../src/service.ts";
 
 async function start() {
 	// --- CREATE BROKER ---

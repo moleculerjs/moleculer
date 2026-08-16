@@ -1,5 +1,5 @@
-import { Service, ServiceBroker } from "../../src";
-import { ServiceSchemaError } from "../../src/errors";
+import { ServiceSchemaError } from "../../src/errors.ts";
+import { Service, ServiceBroker } from "../../src/index.ts";
 
 describe("Service schema", () => {
 	describe("Create service with schema", () => {

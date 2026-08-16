@@ -1,5 +1,5 @@
-import type { Context } from "./context";
-import type { Service, ServiceVersion } from "./service";
+import type { Context } from "./context.ts";
+import type { Service, ServiceVersion } from "./service.ts";
 
 export type ServiceSchemaLifecycleHandler<TThis> = (this: TThis) => Promise<void>;
 

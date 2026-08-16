@@ -11,6 +11,11 @@ const config = {
 			},
 		],
 	},
+	moduleNameMapper: {
+		// source files import with .ts extensions (rewriteRelativeImportExtensions);
+		// strip the extension so jest resolves the TypeScript sources
+		"^(\\.{1,2}/.*)\\.[tj]s$": "$1",
+	},
 	testMatch: [
 		"**/?(*.)+(spec|test).?([cm])[jt]s?(x)",
 		"!**/dist/**/*", // ignore dist

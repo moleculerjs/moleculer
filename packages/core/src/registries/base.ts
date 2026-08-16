@@ -1,5 +1,5 @@
-import type { ServiceBroker } from "../broker";
-import type { Service } from "../service";
+import type { ServiceBroker } from "../broker.ts";
+import type { Service } from "../service.ts";
 
 export interface StrategyTypes {}
 

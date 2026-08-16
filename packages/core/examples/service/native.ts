@@ -1,6 +1,6 @@
-import { ServiceBroker } from "../../src";
-import type { Context } from "../../src/context";
-import { Service } from "../../src/service";
+import type { Context } from "../../src/context.ts";
+import { ServiceBroker } from "../../src/index.ts";
+import { Service } from "../../src/service.ts";
 
 class MyNativeService extends Service {
 	public override metadata = {

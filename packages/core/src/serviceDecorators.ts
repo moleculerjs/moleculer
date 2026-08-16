@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import "reflect-metadata";
 
-import type { ServiceVersion } from "./service";
-import { Service as ServiceClass } from "./service";
-import type { ActionDefinition, ServiceSchema } from "./serviceSchema";
-import { isFunction, isObject, isString } from "./utils";
+import type { ServiceVersion } from "./service.ts";
+import { Service as ServiceClass } from "./service.ts";
+import type { ActionDefinition, ServiceSchema } from "./serviceSchema.ts";
+import { isFunction, isObject, isString } from "./utils.ts";
 
 export const META_PREFIX = "moleculer:decorators:service";
 

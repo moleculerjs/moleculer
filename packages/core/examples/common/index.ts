@@ -1,9 +1,9 @@
 import { assert } from "node:console";
-import { ServiceBroker } from "../../src";
-import { BrokerState } from "../../src/broker";
-import type { Context } from "../../src/context";
-import { Service } from "../../src/service";
-import { Action, MoleculerService } from "../../src/serviceDecorators";
+import { BrokerState } from "../../src/broker.ts";
+import type { Context } from "../../src/context.ts";
+import { ServiceBroker } from "../../src/index.ts";
+import { Service } from "../../src/service.ts";
+import { Action, MoleculerService } from "../../src/serviceDecorators.ts";
 
 @MoleculerService("my-service")
 class MyNativeService extends Service {

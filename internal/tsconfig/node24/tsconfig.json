@@ -3,6 +3,10 @@
   "compilerOptions": {
     "target": "es2024",
     "lib": ["es2024"],
-    "module": "commonjs"
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    // relative imports use .ts extensions in source (runnable by Node directly),
+    // tsc rewrites them to .js in the emitted output
+    "rewriteRelativeImportExtensions": true
   }
 }

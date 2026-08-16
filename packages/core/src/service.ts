@@ -1,14 +1,14 @@
 import _ from "lodash";
-import { MiddlewareHookNames, type ServiceBroker } from "./broker";
-import { ServiceSchemaError } from "./errors";
-import type { Nullable } from "./helperTypes";
+import { MiddlewareHookNames, type ServiceBroker } from "./broker.ts";
+import { ServiceSchemaError } from "./errors.ts";
+import type { Nullable } from "./helperTypes.ts";
 import type {
 	ActionDefinition,
 	ActionHandler,
 	ServiceDependencies,
 	ServiceSchema,
-} from "./serviceSchema";
-import { isFunction, isObject } from "./utils";
+} from "./serviceSchema.ts";
+import { isFunction, isObject } from "./utils.ts";
 
 const INVALID_METHOD_NAMES = [
 	"name",

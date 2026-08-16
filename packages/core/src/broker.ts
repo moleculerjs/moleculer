@@ -1,9 +1,9 @@
 import os from "node:os";
-import pkg from "../package.json";
-import type { BrokerOptions } from "./brokerOptions";
-import { Service } from "./service";
-import type { ServiceDependencies, ServiceSchema } from "./serviceSchema";
-import { generateUUID, isPlainObject, isString } from "./utils";
+import pkg from "../package.json" with { type: "json" };
+import type { BrokerOptions } from "./brokerOptions.ts";
+import { Service } from "./service.ts";
+import type { ServiceDependencies, ServiceSchema } from "./serviceSchema.ts";
+import { generateUUID, isPlainObject, isString } from "./utils.ts";
 
 export enum BrokerState {
 	CREATED = 1,

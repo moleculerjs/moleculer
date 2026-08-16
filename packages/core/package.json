@@ -6,12 +6,12 @@
   "exports": {
     ".": {
       "import": {
-        "default": "./dist/src/index.js",
-        "types": "./dist/src/index.d.ts"
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
       }
     }
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "dev": "tsx watch examples/index.ts",

@@ -1,5 +1,5 @@
-export * as Errors from "./errors";
+export * as Errors from "./errors.ts";
 
-export { ServiceBroker } from "./broker";
-export { Context } from "./context";
-export { Service } from "./service";
+export { ServiceBroker } from "./broker.ts";
+export { Context } from "./context.ts";
+export { Service } from "./service.ts";
