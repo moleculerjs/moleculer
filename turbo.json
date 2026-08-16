@@ -1,17 +1,21 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "concurrency": "90%",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "outputLogs": "new-only"
     },
     "format": {
       "dependsOn": ["transit"],
-      "outputs": []
+      "outputs": [],
+      "outputLogs": "new-only"
     },
     "lint": {
       "dependsOn": ["transit"],
-      "outputs": []
+      "outputs": [],
+      "outputLogs": "new-only"
     },
     "transit": {
       "dependsOn": ["^transit"]
