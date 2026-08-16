@@ -400,6 +400,12 @@ export default tseslint.config(
 						match: true,
 					},
 				},
+				// allow exported const objects to be PascalCase (enum-like const objects)
+				{
+					selector: "variable",
+					modifiers: ["const", "exported"],
+					format: ["camelCase", "UPPER_CASE", "PascalCase"],
+				},
 				// allow variables to be camelCase or UPPER_CASE
 				{ selector: "variable", format: ["camelCase", "UPPER_CASE"] },
 			],

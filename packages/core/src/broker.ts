@@ -5,18 +5,20 @@ import { Service } from "./service.ts";
 import type { ServiceDependencies, ServiceSchema } from "./serviceSchema.ts";
 import { generateUUID, isPlainObject, isString } from "./utils.ts";
 
-export enum BrokerState {
-	CREATED = 1,
-	STARTING = 2,
-	STARTED = 3,
-	STOPPING = 4,
-	STOPPED = 5,
-}
+export const BrokerState = {
+	CREATED: 1,
+	STARTING: 2,
+	STARTED: 3,
+	STOPPING: 4,
+	STOPPED: 5,
+} as const;
+export type BrokerState = (typeof BrokerState)[keyof typeof BrokerState];
 
-export enum MiddlewareHookNames {
-	LOCAL_METHOD = "localMethod",
-	LOCAL_ACTION = "localAction",
-}
+export const MiddlewareHookNames = {
+	LOCAL_METHOD: "localMethod",
+	LOCAL_ACTION: "localAction",
+} as const;
+export type MiddlewareHookNames = (typeof MiddlewareHookNames)[keyof typeof MiddlewareHookNames];
 
 const MOLECULER_VERSION = pkg.version;
 
@@ -371,7 +373,12 @@ export class ServiceBroker {
 	 * Graceful stop function, It is called from process SIG... events
 	 */
 	private brokerClose(): void {
-		if ([BrokerState.CREATED, BrokerState.STOPPING, BrokerState.STOPPED].includes(this.state)) {
+		const inactiveStates: BrokerState[] = [
+			BrokerState.CREATED,
+			BrokerState.STOPPING,
+			BrokerState.STOPPED,
+		];
+		if (inactiveStates.includes(this.state)) {
 			return;
 		}
 

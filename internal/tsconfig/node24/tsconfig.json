@@ -7,6 +7,9 @@
     "moduleResolution": "nodenext",
     // relative imports use .ts extensions in source (runnable by Node directly),
     // tsc rewrites them to .js in the emitted output
-    "rewriteRelativeImportExtensions": true
+    "rewriteRelativeImportExtensions": true,
+    // forbid TS-only runtime syntax (enums, namespaces, parameter properties)
+    // so the sources stay directly runnable by Node's native type stripping
+    "erasableSyntaxOnly": true
   }
 }

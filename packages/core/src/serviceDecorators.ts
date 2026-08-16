@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/naming-convention */
-import "reflect-metadata";
-
 import type { ServiceVersion } from "./service.ts";
 import { Service as ServiceClass } from "./service.ts";
 import type { ActionDefinition, ServiceSchema } from "./serviceSchema.ts";
@@ -9,8 +6,13 @@ import { isFunction, isObject, isString } from "./utils.ts";
 
 export const META_PREFIX = "moleculer:decorators:service";
 
+type DecoratableClass = abstract new (...args: never[]) => object;
+
 export type ServiceConstructor = new (...args: unknown[]) => ServiceClass;
-export type ServiceDecorator = <T extends ServiceConstructor>(constructor: T) => T;
+export type ServiceDecorator = <T extends DecoratableClass>(
+	target: T,
+	context: ClassDecoratorContext<T>,
+) => T;
 
 export function isServiceClass(constructor: unknown): constructor is ServiceConstructor {
 	return (
@@ -20,7 +22,28 @@ export function isServiceClass(constructor: unknown): constructor is ServiceCons
 }
 
 /**
- * Service decorator
+ * Get (or create) the service schema stored on the decorator metadata object.
+ * Method decorators run before the class decorator and share the same
+ * `context.metadata` object, so the schema accumulates across decorators.
+ *
+ * An own-property check is used because `context.metadata` inherits from the
+ * parent class metadata; a subclass must not mutate its parent's schema.
+ */
+function getSchemaFromMetadata(
+	metadata: DecoratorMetadataObject | undefined,
+): ServiceSchema<Record<string, unknown>, Record<string, unknown>> {
+	if (metadata == null) {
+		throw new TypeError("Decorator metadata is not available");
+	}
+	if (!Object.hasOwn(metadata, META_PREFIX)) {
+		// eslint-disable-next-line no-param-reassign -- decorator metadata is designed to be mutated
+		metadata[META_PREFIX] = {};
+	}
+	return metadata[META_PREFIX] as ServiceSchema<Record<string, unknown>, Record<string, unknown>>;
+}
+
+/**
+ * Service decorator (TC39 standard class decorator)
  *
  * @param def
  * @param version
@@ -30,70 +53,57 @@ export function MoleculerService<
 	TSettings extends Record<string, unknown>,
 	TMetadata extends Record<string, unknown>,
 >(def?: string | ServiceSchema<TSettings, TMetadata>, version?: ServiceVersion): ServiceDecorator {
-	return <T extends ServiceConstructor>(constructor: T) => {
-		if (!isServiceClass(constructor)) {
-			throw TypeError("Class must extend Service");
+	return <T extends DecoratableClass>(target: T, context: ClassDecoratorContext<T>): T => {
+		if (!isServiceClass(target)) {
+			throw new TypeError("Class must extend Service");
 		}
 
-		const schema: ServiceSchema<
-			Record<string, unknown>,
-			Record<string, unknown>
-		> = Reflect.getMetadata(META_PREFIX, constructor) ?? {};
+		const schema = getSchemaFromMetadata(context.metadata);
 
 		if (isObject(def)) {
 			Object.assign(schema, def);
 		} else if (isString(def) && def != null && def !== "") {
 			schema.name = def;
 		}
-		schema.name ??= constructor.name;
+		schema.name ??= target.name;
 
 		if (version != null) {
 			schema.version = version;
 		}
 
-		Reflect.defineMetadata(META_PREFIX, schema, constructor);
-
 		// @ts-expect-error: This is a hack to make the constructor type work
-		return class extends constructor {
-			public constructor(...args: unknown[]) {
+		return class extends target {
+			public constructor(...args: never[]) {
 				super(...args);
-				this.parseServiceSchema(schema);
+				(this as unknown as ServiceClass).parseServiceSchema(schema);
 			}
 		};
 	};
 }
 
 /**
- * Action decorator
+ * Action decorator (TC39 standard class method decorator)
  *
  * @param def
  * @returns
  */
-export function Action(def?: string | ActionDefinition): MethodDecorator {
-	return <T>(
-		target: object,
-		propertyKey: string | symbol,
-		descriptor: TypedPropertyDescriptor<T>,
-	) => {
-		const handler = descriptor.value;
-
-		if (!isFunction(handler)) {
+export function Action(def?: string | ActionDefinition) {
+	return (method: unknown, context: ClassMethodDecoratorContext): void => {
+		if (!isFunction(method)) {
 			throw new TypeError("Action must be a function");
 		}
 
-		const schema: ServiceSchema<
-			Record<string, unknown>,
-			Record<string, unknown>
-		> = Reflect.getMetadata(META_PREFIX, target.constructor) ?? {};
-
+		const schema = getSchemaFromMetadata(context.metadata);
 		schema.actions ??= {};
 
+		const methodName = context.name.toString();
+
 		let actionSchema: ActionDefinition;
-		if (!(propertyKey in schema.actions)) {
+		if (!(methodName in schema.actions)) {
 			actionSchema = {};
-			schema.actions[propertyKey.toString()] = actionSchema;
+			schema.actions[methodName] = actionSchema;
 		} else {
-			actionSchema = schema.actions[propertyKey.toString()] as ActionDefinition;
+			actionSchema = schema.actions[methodName] as ActionDefinition;
 		}
 
 		if (isObject(def)) {
@@ -102,15 +112,11 @@ export function Action(def?: string | ActionDefinition): MethodDecorator {
 			actionSchema.name = def;
 		}
 
-		actionSchema.name ??= propertyKey.toString();
+		actionSchema.name ??= methodName;
 
 		if (actionSchema.skipHandler !== true) {
-			actionSchema.handler = handler;
+			actionSchema.handler = method;
 		}
-
-		Reflect.defineMetadata(META_PREFIX, schema, target.constructor);
-
-		return descriptor;
 	};
 }
 

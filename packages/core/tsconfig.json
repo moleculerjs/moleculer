@@ -1,10 +1,8 @@
 {
   "extends": "@moleculer/tsconfig/node24/tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "reflect-metadata", "vitest/globals"],
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "types": ["node", "vitest/globals"],
+    "resolveJsonModule": true
   },
   "include": [
     // add all typechecked paths here

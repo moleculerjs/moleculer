@@ -56,7 +56,6 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "es-toolkit": "^1.50.0",
-    "reflect-metadata": "^0.2.2"
+    "es-toolkit": "^1.50.0"
   }
 }
