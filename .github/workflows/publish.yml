@@ -1,0 +1,27 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+
+      # No `npm ci` here: the package needs no build step (index.mjs is
+      # committed) and the 0.14 dev dependency tree contains old native
+      # modules that no longer compile on current runners.
+      - name: Publish
+        run: npm publish --provenance --access public --tag maintenance

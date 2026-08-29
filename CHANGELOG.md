@@ -2,6 +2,16 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.14.33...master)
 
 --------------------------------------------------
+<a name="0.14.36"></a>
+# [0.14.36](https://github.com/moleculerjs/moleculer/compare/v0.14.35...v0.14.36) (2026-08-29)
+
+## Security
+- fix(tcp): **unauthenticated Denial of Service in the TCP transporter packet parser** ([GHSA-h89v-g948-47vp](https://github.com/moleculerjs/moleculer/security/advisories/GHSA-h89v-g948-47vp), CWE-835, CVSS 3.1 7.5 High). A crafted packet with a negative length field caused an infinite synchronous loop in `Parser._write`, blocking the event loop of any node using the TCP transporter — reachable without authentication by a single 10-byte TCP packet. The parser now rejects packets whose length field is smaller than the header size. The 0.15.x line received the same fix in 0.15.2.
+
+## Changes
+- ci: remove unbuildable native dev dependencies (`@icebob/node-memwatch`, `gc-stats`, `event-loop-stats`) and the optional leak-detection suite; replace retired Bitnami Docker images in the E2E test setup
+
+--------------------------------------------------
 <a name="0.14.35"></a>
 # [0.14.35](https://github.com/moleculerjs/moleculer/compare/v0.14.34...v0.14.35) (2024-11-06)
 
