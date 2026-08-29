@@ -1,6 +1,9 @@
 <a name="0.15.2"></a>
 # [0.15.2](https://github.com/moleculerjs/moleculer/compare/v0.15.1...v0.15.2) (2026-08-29)
 
+## Security
+- fix(tcp): **unauthenticated Denial of Service in the TCP transporter packet parser** ([GHSA-h89v-g948-47vp](https://github.com/moleculerjs/moleculer/security/advisories/GHSA-h89v-g948-47vp), CWE-835, CVSS 3.1 7.5 High). A crafted packet with a negative length field caused an infinite synchronous loop in `Parser._write`, blocking the event loop of any node using the TCP transporter — reachable without authentication by a single 10-byte TCP packet. The parser now rejects packets whose length field is smaller than the header size. The 0.14.x line is also affected and receives the same fix in 0.14.36.
+
 ## Changes
 - fix(runner): ESM entrypoint crashed at import time in some bundler/loader setups because `require` was created eagerly. The ESM runner now creates its `require` lazily, on first use [#1366](https://github.com/moleculerjs/moleculer/pull/1366)
 - fix(kafka): upgrade `@platformatic/kafka` to 2.x (peer range is now `^1.18.0 || ^2.0.0`, so 1.x stays supported)
