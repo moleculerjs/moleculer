@@ -37,14 +37,14 @@ services:
       - "8161:8161"
 
   zookeeper:
-    image: bitnami/zookeeper
+    image: bitnamilegacy/zookeeper:3.9
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
       - "2181:2181"
 
   kafka:
-    image: bitnami/kafka
+    image: bitnamilegacy/kafka:3.9
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
@@ -60,10 +60,15 @@ services:
       - "9093:9093"
 
   etcd3:
-    image: 'bitnami/etcd:latest'
-    environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://127.0.0.1:2379
+    image: 'quay.io/coreos/etcd:v3.5.16'
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd0
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
     ports:
-      - 2379:2379
+      - "2379:2379"
+      - "2380:2380"
     restart: unless-stopped
