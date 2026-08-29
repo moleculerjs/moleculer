@@ -13,7 +13,6 @@
   "scripts": {
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
-    "ci:leak": "jest --testMatch \"**/leak-detection/index.spc.js\" --runInBand --watch",
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
@@ -30,7 +29,6 @@
     "test:unit": "jest --testMatch \"**/unit/**/*.spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**/*.spec.js\" --coverage",
     "test:e2e": "cd test/e2e && ./start.sh",
-    "test:leak": "jest --testMatch \"**/leak-detection/**/*.spc.js\" --runInBand",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "test:esm": "node bin/moleculer-runner.mjs -c test/esm/moleculer.config.mjs test/esm/*.service.*js",
     "esm-wrapper": "gen-esm-wrapper . ./index.mjs",
@@ -63,7 +61,6 @@
   "author": "MoleculerJS",
   "license": "MIT",
   "devDependencies": {
-    "@icebob/node-memwatch": "^2.1.0",
     "@sinonjs/fake-timers": "^9.1.2",
     "@types/bunyan": "^1.8.11",
     "@types/ioredis": "^4.28.10",
