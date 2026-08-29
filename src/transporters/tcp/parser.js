@@ -9,6 +9,9 @@
 const Writable = require("stream").Writable;
 const { resolvePacketType } = require("./constants");
 
+// Size of the packet header: 1 byte CRC + 4 bytes length + 1 byte type
+const HEADER_SIZE = 6;
+
 /**
  * Import types
  *
@@ -45,7 +48,7 @@ class Parser extends Writable {
 
 		// Find all messages from the chunk
 		while (packet.length > 0) {
-			if (packet.length < 6) {
+			if (packet.length < HEADER_SIZE) {
 				// Too short, waiting for the next chunk
 				this.buf = Buffer.from(packet);
 				return cb();
@@ -66,6 +69,14 @@ class Parser extends Writable {
 			}
 
 			const length = packet.readInt32BE(1);
+
+			// Guard against malformed length fields. A valid packet is always at
+			// least HEADER_SIZE bytes long. A negative value (the length is read as
+			// a signed int32) or a value smaller than the header would make the
+			// `packet.slice(length)` below a no-op, causing an infinite loop.
+			if (length < HEADER_SIZE) {
+				return cb(new Error("Invalid packet length! " + length));
+			}
 
 			// The chunk contain a message
 			if (packet.length >= length) {
