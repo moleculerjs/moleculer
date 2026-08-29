@@ -1,3 +1,14 @@
+<a name="0.15.2"></a>
+# [0.15.2](https://github.com/moleculerjs/moleculer/compare/v0.15.1...v0.15.2) (2026-08-29)
+
+## Changes
+- fix(runner): ESM entrypoint crashed at import time in some bundler/loader setups because `require` was created eagerly. The ESM runner now creates its `require` lazily, on first use [#1366](https://github.com/moleculerjs/moleculer/pull/1366)
+- fix(kafka): upgrade `@platformatic/kafka` to 2.x (peer range is now `^1.18.0 || ^2.0.0`, so 1.x stays supported)
+- fix(kafka): ignore `TOPIC_ALREADY_EXISTS` errors (including nested multi-topic errors from `@platformatic/kafka` 2.x) on concurrent topic creation
+- fix(kafka): wait for topic metadata before subscribing to avoid missed messages right after topic creation
+- test: E2E scenario stability fixes (registry sync race) [#1367](https://github.com/moleculerjs/moleculer/pull/1367)
+
+--------------------------------------------------
 <a name="0.15.1"></a>
 # [0.15.1](https://github.com/moleculerjs/moleculer/compare/v0.15.0...v0.15.1) (2026-07-21)
 
