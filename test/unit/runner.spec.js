@@ -15,16 +15,11 @@ const MoleculerRunner = require("../../src/runner");
 
 describe("Test MoleculerRunner worker node args", () => {
 	const originalNodeOptions = process.env.MOLECULER_WORKER_NODE_OPTIONS;
-	const originalReserveMb = process.env.MOLECULER_AUTO_WORKER_HEAP_RESERVE;
 
 	afterEach(() => {
 		delete process.env.MOLECULER_WORKER_NODE_OPTIONS;
-		delete process.env.MOLECULER_AUTO_WORKER_HEAP_RESERVE;
 		if (originalNodeOptions !== undefined) {
 			process.env.MOLECULER_WORKER_NODE_OPTIONS = originalNodeOptions;
-		}
-		if (originalReserveMb !== undefined) {
-			process.env.MOLECULER_AUTO_WORKER_HEAP_RESERVE = originalReserveMb;
 		}
 		jest.clearAllMocks();
 		jest.restoreAllMocks();
@@ -107,62 +102,6 @@ describe("Test MoleculerRunner worker node args", () => {
 
 			expect(runner.flags.workerNodeArgs).toBe("--max-old-space-size-percentage=25");
 		});
-
-		it("should parse --auto-worker-heap-reserve", () => {
-			const runner = new MoleculerRunner();
-			runner.processFlags([
-				"node",
-				"moleculer-runner",
-				"--instances",
-				"3",
-				"--auto-worker-heap-reserve",
-				"1024",
-				"services"
-			]);
-
-			expect(runner.flags.autoWorkerHeapReserve).toBe(1024);
-		});
-	});
-
-	describe("buildWorkerExecArgv with --auto-worker-heap-reserve", () => {
-		it("should split remaining memory equally across workers", () => {
-			const runner = new MoleculerRunner();
-			runner.flags = { autoWorkerHeapReserve: 1024 };
-			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(4096);
-
-			expect(runner.buildWorkerExecArgv(3)).toEqual(["--max-old-space-size=1024"]);
-		});
-
-		it("should override conflicting heap flags from worker-node-args", () => {
-			const runner = new MoleculerRunner();
-			runner.flags = {
-				autoWorkerHeapReserve: 512,
-				workerNodeArgs: "--max-old-space-size=999 --trace-warnings"
-			};
-			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(4096);
-
-			expect(runner.buildWorkerExecArgv(2)).toEqual([
-				"--trace-warnings",
-				"--max-old-space-size=1792"
-			]);
-		});
-
-		it("should read reserve from MOLECULER_AUTO_WORKER_HEAP_RESERVE", () => {
-			process.env.MOLECULER_AUTO_WORKER_HEAP_RESERVE = "768";
-			const runner = new MoleculerRunner();
-			runner.flags = {};
-			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(3072);
-
-			expect(runner.buildWorkerExecArgv(3)).toEqual(["--max-old-space-size=768"]);
-		});
-
-		it("should throw when reserve leaves no heap for workers", () => {
-			const runner = new MoleculerRunner();
-			runner.flags = { autoWorkerHeapReserve: 4096 };
-			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(4096);
-
-			expect(() => runner.buildWorkerExecArgv(3)).toThrow(/Cannot auto-balance worker heap/);
-		});
 	});
 
 	describe("startWorkers", () => {
@@ -199,19 +138,6 @@ describe("Test MoleculerRunner worker node args", () => {
 			expect(cluster.setupPrimary).toHaveBeenCalledWith({
 				execArgv: [...process.execArgv, "--max-old-space-size=256", "--no-warnings"]
 			});
-		});
-
-		it("should apply auto heap from --auto-worker-heap-reserve", () => {
-			const runner = new MoleculerRunner();
-			runner.flags = { autoWorkerHeapReserve: 1024 };
-			jest.spyOn(runner, "getAvailableMemoryMb").mockReturnValue(4096);
-
-			runner.startWorkers(3);
-
-			expect(cluster.setupPrimary).toHaveBeenCalledWith({
-				execArgv: [...process.execArgv, "--max-old-space-size=1024"]
-			});
-			expect(cluster.fork).toHaveBeenCalledTimes(3);
 		});
 	});
 });

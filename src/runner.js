@@ -88,7 +88,6 @@ class MoleculerRunner {
 		-s, --silent     Silent mode. No logger (disabled by default)
 		-v, --version    Output the version number
 		-w, --worker-node-args  Node.js/V8 args for cluster workers only
-		    --auto-worker-heap-reserve  MB for primary; auto-split remaining available RAM equally across workers
 	*/
 	processFlags(procArgs) {
 		Args.option("config", "Load the configuration from a file")
@@ -102,10 +101,6 @@ class MoleculerRunner {
 			.option(
 				"worker-node-args",
 				"Node.js/V8 args passed to cluster workers only (also MOLECULER_WORKER_NODE_OPTIONS)"
-			)
-			.option(
-				"auto-worker-heap-reserve",
-				"Auto-balance worker heaps: MB reserved for primary; remaining available RAM is split equally as --max-old-space-size (also MOLECULER_AUTO_WORKER_HEAP_RESERVE)"
 			);
 
 		this.flags = Args.parse(procArgs, {
@@ -182,43 +177,6 @@ class MoleculerRunner {
 	}
 
 	/**
-	 * Resolve MB to reserve for the primary process (--auto-worker-heap-reserve).
-	 * Returns null when auto heap balancing is disabled.
-	 *
-	 * @returns {number|null}
-	 */
-	resolveAutoWorkerHeapReserve() {
-		const fromFlag = this.flags && this.flags.autoWorkerHeapReserve;
-		const raw =
-			fromFlag !== undefined && fromFlag !== null && fromFlag !== ""
-				? fromFlag
-				: process.env.MOLECULER_AUTO_WORKER_HEAP_RESERVE;
-
-		if (raw === undefined || raw === null || raw === "") return null;
-
-		const value = Number(raw);
-		if (!Number.isFinite(value) || value < 0) {
-			throw new Error(
-				`Invalid --auto-worker-heap-reserve / MOLECULER_AUTO_WORKER_HEAP_RESERVE value: ${raw}`
-			);
-		}
-
-		return Math.floor(value);
-	}
-
-	/**
-	 * Available memory in MB (cgroup/container limit when present).
-	 *
-	 * @returns {number}
-	 */
-	getAvailableMemoryMb() {
-		const constrained =
-			typeof process.constrainedMemory === "function" ? process.constrainedMemory() : 0;
-		const bytes = constrained > 0 ? constrained : os.totalmem();
-		return Math.floor(bytes / 1024 / 1024);
-	}
-
-	/**
 	 * Resolve Node.js/V8 args for cluster workers from env + CLI flag.
 	 * Applied only to forked instances, not to the primary process.
 	 *
@@ -228,43 +186,6 @@ class MoleculerRunner {
 		const fromEnv = this.parseNodeArgsString(process.env.MOLECULER_WORKER_NODE_OPTIONS);
 		const fromFlag = this.parseNodeArgsString(this.flags && this.flags.workerNodeArgs);
 		return [...fromEnv, ...fromFlag];
-	}
-
-	/**
-	 * Build final execArgv for cluster workers.
-	 * When --auto-worker-heap-reserve is set, remaining available RAM is split equally
-	 * and injected as --max-old-space-size (overrides any heap flags in worker-node-args).
-	 *
-	 * @param {number} workerCount
-	 * @returns {string[]}
-	 */
-	buildWorkerExecArgv(workerCount) {
-		let args = this.resolveWorkerNodeArgs();
-		const reserveMb = this.resolveAutoWorkerHeapReserve();
-
-		if (reserveMb == null) return args;
-
-		const availableMb = this.getAvailableMemoryMb();
-		const heapMb = Math.floor((availableMb - reserveMb) / workerCount);
-
-		if (heapMb <= 0) {
-			throw new Error(
-				`Cannot auto-balance worker heap: available=${availableMb} MB, reserve=${reserveMb} MB, workers=${workerCount}`
-			);
-		}
-
-		args = args.filter(
-			arg =>
-				!arg.startsWith("--max-old-space-size") &&
-				!arg.startsWith("--max-old-space-size-percentage")
-		);
-		args.push(`--max-old-space-size=${heapMb}`);
-
-		logger.info(
-			`Auto worker heap: ${heapMb} MB each (${availableMb} MB available, ${reserveMb} MB reserved for primary, ${workerCount} workers)`
-		);
-
-		return args;
 	}
 
 	/**
@@ -612,7 +533,7 @@ class MoleculerRunner {
 		const workerCount =
 			Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
 
-		const workerNodeArgs = this.buildWorkerExecArgv(workerCount);
+		const workerNodeArgs = this.resolveWorkerNodeArgs();
 		if (workerNodeArgs.length > 0) {
 			cluster.setupPrimary({
 				execArgv: [...process.execArgv, ...workerNodeArgs]

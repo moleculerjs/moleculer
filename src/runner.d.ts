@@ -54,13 +54,6 @@ declare namespace Runner {
 		 * Example: "--max-old-space-size=768 --trace-warnings"
 		 */
 		workerNodeArgs?: string;
-
-		/**
-		 * Auto-balance worker heaps: MB reserved for the primary process.
-		 * Remaining available RAM is split equally across workers as --max-old-space-size.
-		 * Also configurable with MOLECULER_AUTO_WORKER_HEAP_RESERVE env var.
-		 */
-		autoWorkerHeapReserve?: number;
 	}
 }
 
@@ -151,24 +144,9 @@ declare class Runner {
 	parseNodeArgsString(value: string | string[] | null | undefined): string[];
 
 	/**
-	 * Resolve MB to reserve for the primary process (--auto-worker-heap-reserve). Null when disabled.
-	 */
-	resolveAutoWorkerHeapReserve(): number | null;
-
-	/**
-	 * Available memory in MB (cgroup/container limit when present).
-	 */
-	getAvailableMemoryMb(): number;
-
-	/**
 	 * Resolve Node.js/V8 args for cluster workers from env + CLI flag
 	 */
 	resolveWorkerNodeArgs(): string[];
-
-	/**
-	 * Build final execArgv for cluster workers (applies --auto-worker-heap-reserve balancing).
-	 */
-	buildWorkerExecArgv(workerCount: number): string[];
 
 	/**
 	 * Start cluster workers
@@ -193,7 +171,7 @@ declare class Runner {
 	/**
 	 * Start runner
 	 */
-	start(args: string[]): Promise<void|ServiceBroker>;
+	start(args: string[]): Promise<void | ServiceBroker>;
 }
 
 export = Runner;
