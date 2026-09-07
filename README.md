@@ -26,6 +26,17 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 
 **Documentation**: [https://moleculer.services/docs](https://moleculer.services/docs)
 
+# Why Moleculer?
+
+Moleculer gives you the distributed-systems layer as part of the framework, so you don't have to run a platform to get it:
+
+- **No orchestrator required.** Nodes find each other over the transporter (NATS, Redis, Kafka, MQTT, AMQP — or plain TCP with no broker at all). Service discovery is a built-in registry, not Consul, etcd or a service mesh.
+- **Scale by starting another process.** Every broker balances requests and events across the instances it can see (round-robin, random, CPU-usage, latency, sharding) with zero configuration.
+- **Fault tolerance is a broker option.** Timeout, retry, circuit breaker, bulkhead and fallback are configuration, not five more dependencies.
+- **The same code from one process to many.** Start as a modular monolith (`transporter: null`), split later by moving services to another process — the service code and the `broker.call()` sites stay the same.
+- **Batteries included, and pluggable.** Caching, parameter validation, metrics, tracing, serializers, loggers and middlewares all ship with it, and all of them can be swapped.
+
+
 # Top sponsors
 
 <table style="text-align:center;"><tr>
@@ -36,26 +47,33 @@ Moleculer is a fast, modern and powerful microservices framework for [Node.js](h
 
 # What's included
 
+**Services and communication**
 - Promise-based solution (async/await compatible)
 - request-reply concept
 - support event driven architecture with balancing
 - built-in service registry & dynamic service discovery
 - load balanced requests & events (round-robin, random, cpu-usage, latency, sharding)
-- many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
-- plugin/middleware system
-- support versioned services
-- support [Streams](https://nodejs.org/docs/latest/api/stream.html)
-- service mixins
-- built-in caching solution (Memory, MemoryLRU, Redis)
-- pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
-- pluggable transporters (TCP, NATS, MQTT, Redis, Kafka, AMQP 0.9, AMQP 1.0)
-- pluggable serializers (JSON, JSONExt, MsgPack, CBOR, Notepack)
-- pluggable parameter validator
-- multiple services on a node/server
 - master-less architecture, all nodes are equal
+- multiple services on a node/server
+- support versioned services
+- service mixins
+- support [Streams](https://nodejs.org/docs/latest/api/stream.html)
+
+**Reliability**
+- many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
 - built-in parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
+- pluggable parameter validator
+- built-in caching solution (Memory, MemoryLRU, Redis)
+
+**Observability**
 - built-in metrics feature with reporters (Console, CSV, Datadog, Event, Prometheus, StatsD)
 - built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin, NewRelic)
+- pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
+
+**Pluggable everything**
+- plugin/middleware system
+- pluggable transporters (TCP, NATS, MQTT, Redis, Kafka, AMQP 0.9, AMQP 1.0)
+- pluggable serializers (JSON, JSONExt, MsgPack, CBOR, Notepack)
 - official [API gateway](https://github.com/moleculerjs/moleculer-web), [Database access](https://github.com/moleculerjs/moleculer-db) and many other modules...
 
 # Installation
@@ -94,6 +112,58 @@ broker.start()
 ```
 [Try it in your browser](https://codesandbox.io/s/ky5lj09jv?fontsize=14)
 
+# Scale it to another process
+The interesting part is what happens when that service moves to its own process. Add a transporter, start the same file twice, and call it from a third process — no addresses to configure, no registry to run.
+
+```js
+// node.js — the same service, now on its own node
+const { ServiceBroker } = require("moleculer");
+
+const broker = new ServiceBroker({
+    nodeID: process.argv[2],
+    transporter: "nats://localhost:4222"
+});
+
+broker.createService({
+    name: "math",
+    actions: {
+        add(ctx) {
+            return { result: Number(ctx.params.a) + Number(ctx.params.b), from: broker.nodeID };
+        }
+    }
+});
+
+broker.start();
+```
+
+```js
+// client.js — it only knows the action name
+const { ServiceBroker } = require("moleculer");
+
+const broker = new ServiceBroker({ nodeID: "client", transporter: "nats://localhost:4222" });
+
+broker.start()
+    .then(() => broker.waitForServices("math"))
+    .then(async () => {
+        for (let i = 0; i < 4; i++)
+            console.log(await broker.call("math.add", { a: 5, b: 3 }));
+        await broker.stop();
+    });
+```
+
+```
+$ node node.js node-1 &
+$ node node.js node-2 &
+$ node client.js
+{ result: 8, from: 'node-1' }
+{ result: 8, from: 'node-2' }
+{ result: 8, from: 'node-1' }
+{ result: 8, from: 'node-2' }
+```
+
+Stop one of the nodes and the calls keep working: the registry notices, and the surviving instance takes the traffic.
+
+
 # Create a Moleculer project
 Use the Moleculer CLI tool to create a new Moleculer based microservices project.
 
@@ -117,6 +187,21 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 :tada: **Congratulations! Your first Moleculer-based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 ![Welcome page](docs/assets/project-welcome-page.png)
+
+
+# Examples
+The [moleculer-examples](https://github.com/moleculerjs/moleculer-examples) repository contains runnable projects, each with its own README and a `run.sh` that reproduces the whole demo:
+
+- [Microservices without Kubernetes](https://github.com/moleculerjs/moleculer-examples/tree/master/01-microservices-without-kubernetes) — one process → many processes → scaling a copy, with a `moleculer-web` gateway and a docker-compose deployment
+- [Moleculer vs NestJS](https://github.com/moleculerjs/moleculer-examples/tree/master/02-moleculer-vs-nestjs) — the same service in both frameworks, side by side
+- [TypeScript](https://github.com/moleculerjs/moleculer-examples/tree/master/03-typescript) — shared contract file, schema style and class style, typed caller
+- [From a modular monolith to microservices](https://github.com/moleculerjs/moleculer-examples/tree/master/04-monolith-to-microservices) — extracting services in three stages
+- [Service discovery and load balancing](https://github.com/moleculerjs/moleculer-examples/tree/master/05-service-discovery-and-load-balancing) — scaling and crashes with traffic running, balancing strategies, TCP transporter
+- [Circuit breaker, retry and timeout](https://github.com/moleculerjs/moleculer-examples/tree/master/06-circuit-breaker-retry-timeout) — the fault-tolerance features against a deliberately flaky service
+- [Event-driven pub/sub](https://github.com/moleculerjs/moleculer-examples/tree/master/07-event-driven-pubsub) — emit vs broadcast, groups, the same code on NATS, Redis and Kafka, durable channels
+- [Moleculer vs gRPC vs tRPC](https://github.com/moleculerjs/moleculer-examples/tree/master/08-moleculer-vs-grpc-trpc) — an RPC protocol compared with a service layer, and how to combine them
+
+Plus two full applications: a [blog site](https://github.com/moleculerjs/moleculer-examples/tree/master/blog) and the [RealWorld](https://github.com/moleculerjs/moleculer-examples/tree/master/conduit) backend.
 
 # Official modules
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/modules.html)
