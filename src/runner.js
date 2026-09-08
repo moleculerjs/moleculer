@@ -87,6 +87,7 @@ class MoleculerRunner {
 		-r, --repl       Start REPL mode (disabled by default)
 		-s, --silent     Silent mode. No logger (disabled by default)
 		-v, --version    Output the version number
+		-w, --worker-node-args  Node.js/V8 args for cluster workers only
 	*/
 	processFlags(procArgs) {
 		Args.option("config", "Load the configuration from a file")
@@ -96,7 +97,11 @@ class MoleculerRunner {
 			.option("env", "Load .env file from the current directory")
 			.option("envfile", "Load a specified .env file")
 			.option("instances", "Launch [number] instances node (load balanced)")
-			.option("mask", "Filemask for service loading");
+			.option("mask", "Filemask for service loading")
+			.option(
+				"worker-node-args",
+				"Node.js/V8 args passed to cluster workers only (also MOLECULER_WORKER_NODE_OPTIONS)"
+			);
 
 		this.flags = Args.parse(procArgs, {
 			mri: {
@@ -108,14 +113,79 @@ class MoleculerRunner {
 					e: "env",
 					E: "envfile",
 					i: "instances",
-					m: "mask"
+					m: "mask",
+					w: "worker-node-args"
 				},
 				boolean: ["repl", "silent", "hot", "env"],
-				string: ["config", "envfile", "mask"]
+				string: ["config", "envfile", "mask", "worker-node-args"]
 			}
 		});
 
 		this.servicePaths = Args.sub;
+	}
+
+	/**
+	 * Parse a Node.js CLI args string into an argv array.
+	 * Supports quoted tokens, same style as NODE_OPTIONS.
+	 *
+	 * @param {string|string[]|null|undefined} value
+	 * @returns {string[]}
+	 */
+	parseNodeArgsString(value) {
+		if (value == null || value === "") return [];
+		if (Array.isArray(value)) {
+			return value.flatMap(item => this.parseNodeArgsString(item));
+		}
+
+		const str = String(value).trim();
+		if (!str) return [];
+
+		const args = [];
+		let current = "";
+		let quote = null;
+
+		for (let i = 0; i < str.length; i++) {
+			const ch = str[i];
+
+			if (quote) {
+				if (ch === quote) {
+					quote = null;
+				} else {
+					current += ch;
+				}
+				continue;
+			}
+
+			if (ch === '"' || ch === "'") {
+				quote = ch;
+				continue;
+			}
+
+			if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+				if (current) {
+					args.push(current);
+					current = "";
+				}
+				continue;
+			}
+
+			current += ch;
+		}
+
+		if (current) args.push(current);
+		return args;
+	}
+
+	/**
+	 * Resolve Node.js/V8 args for cluster workers from env + CLI flag.
+	 * Applied only to forked instances, not to the primary process.
+	 *
+	 * @returns {string[]}
+	 */
+	resolveWorkerNodeArgs() {
+		const fromEnv = this.parseNodeArgsString(process.env.MOLECULER_WORKER_NODE_OPTIONS);
+		const fromFlag = this.parseNodeArgsString(this.flags && this.flags.workerNodeArgs);
+		return [...fromEnv, ...fromFlag];
 	}
 
 	/**
@@ -460,6 +530,17 @@ class MoleculerRunner {
 	startWorkers(instances) {
 		let stopping = false;
 
+		const workerCount =
+			Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
+
+		const workerNodeArgs = this.resolveWorkerNodeArgs();
+		if (workerNodeArgs.length > 0) {
+			cluster.setupPrimary({
+				execArgv: [...process.execArgv, ...workerNodeArgs]
+			});
+			logger.info(`Worker Node.js args: ${workerNodeArgs.join(" ")}`);
+		}
+
 		cluster.on("exit", function (worker, code) {
 			if (!stopping) {
 				// only restart the worker if the exit was by an error
@@ -473,9 +554,6 @@ class MoleculerRunner {
 				}
 			}
 		});
-
-		const workerCount =
-			Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
 
 		logger.info(`Starting ${workerCount} workers...`);
 

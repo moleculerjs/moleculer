@@ -47,6 +47,13 @@ declare namespace Runner {
 		 * File mask for loading services
 		 */
 		mask?: string;
+
+		/**
+		 * Node.js/V8 CLI args passed only to cluster workers via cluster.setupPrimary({ execArgv }).
+		 * Also configurable with MOLECULER_WORKER_NODE_OPTIONS env var.
+		 * Example: "--max-old-space-size=768 --trace-warnings"
+		 */
+		workerNodeArgs?: string;
 	}
 }
 
@@ -132,6 +139,16 @@ declare class Runner {
 	loadServices(): void;
 
 	/**
+	 * Parse a Node.js CLI args string into an argv array
+	 */
+	parseNodeArgsString(value: string | string[] | null | undefined): string[];
+
+	/**
+	 * Resolve Node.js/V8 args for cluster workers from env + CLI flag
+	 */
+	resolveWorkerNodeArgs(): string[];
+
+	/**
 	 * Start cluster workers
 	 */
 	startWorkers(instances: number): void;
@@ -154,7 +171,7 @@ declare class Runner {
 	/**
 	 * Start runner
 	 */
-	start(args: string[]): Promise<void|ServiceBroker>;
+	start(args: string[]): Promise<void | ServiceBroker>;
 }
 
 export = Runner;
