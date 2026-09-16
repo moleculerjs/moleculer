@@ -9,7 +9,8 @@ import type {
 	SerializerConfig,
 	ReplOptions,
 	NodeHealthStatus,
-	MCallCallingOptions
+	MCallCallingOptions,
+	RetryPolicyOptions
 } from "./src/service-broker";
 
 // --- SERVICE ---
@@ -17,10 +18,12 @@ import type {
 import Service = require("./src/service");
 import type {
 	ActionSchema,
+	RestSchema,
 	ActionHooks,
 	ActionHandler,
 	ActionParams,
 	ActionVisibility,
+	ActionParamSchema,
 	ActionParamTypes,
 	ActionCacheOptions,
 	EventSchema,
@@ -30,6 +33,7 @@ import type {
 	ServiceSearchObj,
 	ServiceSchema,
 	ServiceSettingSchema,
+	ServiceActionsSchema,
 	ServiceAction,
 	ServiceActions,
 	ServiceMethods
@@ -130,16 +134,19 @@ declare namespace Moleculer {
 		SerializerConfig,
 		ReplOptions,
 		NodeHealthStatus,
-		MCallCallingOptions
+		MCallCallingOptions,
+		RetryPolicyOptions
 	};
 
 	export {
 		Service,
 		ActionSchema,
+		RestSchema,
 		ActionHooks,
 		ActionHandler,
 		ActionParams,
 		ActionVisibility,
+		ActionParamSchema,
 		ActionParamTypes,
 		ActionCacheOptions,
 		EventSchema,
@@ -149,12 +156,16 @@ declare namespace Moleculer {
 		ServiceSearchObj,
 		ServiceSchema,
 		ServiceSettingSchema,
+		ServiceActionsSchema,
 		ServiceAction,
 		ServiceActions,
 		ServiceMethods
 	};
 
 	export { Context };
+
+	/** @deprecated Prefer Record<string, unknown> for non-extension data. */
+	export type GenericObject = Service.GenericObject;
 
 	export { Transit, Packet };
 

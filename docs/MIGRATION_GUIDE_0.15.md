@@ -15,6 +15,19 @@ This documentation leads you how you can migrate your project to be compatible w
 ## Minimum Node 22
 The minimum supported Node version is changed from Node 10 to Node 22.
 
+## TypeScript plugin compatibility
+
+The root module exports `GenericObject`, `ActionParamSchema`, `ServiceActionsSchema`,
+`RetryPolicyOptions` and `RestSchema`. Broker transporter options accept connection
+URL strings as well as transporter names, configurations and instances.
+
+Service instances, service schemas, settings and action schemas retain the 0.14
+open extension fields used by mixins and plugins. These fields are permissive;
+declare specific settings and service interfaces when plugin fields need static
+checks. Known fields and typed action handlers remain checked. `ActionSchema.rest`
+uses `RestSchema`, so remove local declarations that added a different `rest` type.
+No runtime behavior changes are required for these declaration fixes.
+
 ## Legacy event handler is removed
 
 The legacy event handler signature (`user.created(payload, sender, eventName)`) is removed. You should use the new `Context` based signature which was introduced in version 0.14.

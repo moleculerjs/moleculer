@@ -143,7 +143,7 @@ declare namespace ServiceBroker {
 		logger?: BaseLogger<LoggerOptions> | LoggerConfig | LoggerConfig[] | boolean | null;
 		logLevel?: LogLevels | LogLevelConfig | null;
 
-		transporter?: BaseTransporter | TransporterType | TransporterConfig | null;
+		transporter?: BaseTransporter | string | TransporterConfig | null;
 		requestTimeout?: number;
 		retryPolicy?: RetryPolicyOptions;
 
