@@ -2,15 +2,6 @@
 
 import { Context, ServiceSettingSchema, ServiceSchema } from "../../../";
 
-declare module "../../../src/service" {
-	interface ActionSchema {
-		rest?: string | {
-			method?: string;
-			path?: string;
-		}
-	}
-}
-
 export interface ActionWelcomeParams {
 	name: string;
 }

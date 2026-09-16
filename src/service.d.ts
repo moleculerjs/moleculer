@@ -14,6 +14,8 @@ import type {
 import type { TracingActionTags, TracingEventTags } from "./tracing/tracer";
 
 declare namespace Service {
+	export type GenericObject = { [name: string]: any };
+
 	export type ServiceSyncLifecycleHandler<TThis = Service> = (this: TThis) => void;
 	export type ServiceAsyncLifecycleHandler<TThis = Service> = (
 		this: TThis
@@ -36,7 +38,7 @@ declare namespace Service {
 		dependencies?: string | ServiceDependency | (string | ServiceDependency)[];
 		metadata?: any;
 		actions?: ServiceActionsSchema<TThis>;
-		mixins?: Partial<ServiceSchema>[];
+		mixins?: Partial<ServiceSchema<any>>[];
 		methods?: ServiceMethods & ThisType<TThis>;
 		hooks?: ServiceHooks<TThis>;
 
@@ -44,6 +46,9 @@ declare namespace Service {
 		created?: ServiceSyncLifecycleHandler<TThis> | ServiceSyncLifecycleHandler<TThis>[];
 		started?: ServiceAsyncLifecycleHandler<TThis> | ServiceAsyncLifecycleHandler<TThis>[];
 		stopped?: ServiceAsyncLifecycleHandler<TThis> | ServiceAsyncLifecycleHandler<TThis>[];
+
+		// Service mixins and plugins extend schemas with their own fields.
+		[name: string]: any;
 	}
 
 	export interface ServiceSettingSchema {
@@ -52,6 +57,7 @@ declare namespace Service {
 		$dependencyTimeout?: number;
 		$shutdownTimeout?: number;
 		$secureSettings?: string[];
+		[name: string]: any;
 	}
 
 	export type ServiceAction = <
@@ -67,6 +73,8 @@ declare namespace Service {
 	}
 
 	export type ActionVisibility = "published" | "public" | "protected" | "private";
+
+	export type ActionParamSchema = { [key: string]: any };
 
 	export type ActionParamTypes =
 		| "any"
@@ -85,7 +93,7 @@ declare namespace Service {
 		| "uuid"
 		| boolean
 		| string
-		| Record<string, any>;
+		| ActionParamSchema;
 
 	export type ActionParams = { [key: string]: ActionParamTypes };
 
@@ -101,8 +109,16 @@ declare namespace Service {
 		};
 	}
 
+	export interface RestSchema {
+		path?: string;
+		method?: "GET" | "POST" | "DELETE" | "PUT" | "PATCH";
+		fullPath?: string;
+		basePath?: string;
+	}
+
 	export interface ActionSchema<TThis = Service> {
 		name?: string;
+		rest?: RestSchema | RestSchema[] | string | string[];
 		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
@@ -119,6 +135,9 @@ declare namespace Service {
 
 		// For internal purposes only!
 		remoteHandler?: ActionHandler<TThis>;
+
+		// Action plugins extend schemas with metadata and routing fields.
+		[key: string]: any;
 	}
 
 	export type ActionHandler<TThis = Service> = (
@@ -255,7 +274,8 @@ declare class Service<S = Service.ServiceSettingSchema> {
 		interval?: number
 	): Promise<Service.WaitForServicesResult>;
 
-	// [key: string]: any;
+	// Runtime mixins attach plugin methods and state to service instances.
+	[key: string]: any;
 
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
