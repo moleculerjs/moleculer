@@ -168,6 +168,7 @@ describe("Test ServiceBroker constructor", () => {
 				enabled: true,
 				retries: 3
 			},
+			initialDependencies: [],
 			contextParamsCloning: true,
 			maxCallLevel: 10,
 			requestTimeout: 5000,
@@ -283,6 +284,7 @@ describe("Test ServiceBroker constructor", () => {
 				factor: 2,
 				check: expect.any(Function)
 			},
+			initialDependencies: [],
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			maxSafeObjectSize: null,
