@@ -14,6 +14,8 @@ const Validators = {
 	Fastest: require("./fastest")
 };
 
+const { resolveValidator } = require("./base");
+
 function getByName(name) {
 	/* istanbul ignore next */
 	if (!name) return null;
@@ -59,4 +61,4 @@ function register(name, value) {
 	Validators[name] = value;
 }
 
-module.exports = Object.assign(Validators, { resolve, register });
+module.exports = Object.assign(Validators, { resolve, register, resolveValidator });

@@ -9,9 +9,7 @@
 const { isFunction } = require("../utils");
 
 module.exports = function ValidatorMiddleware(broker) {
-	if (broker.validator && isFunction(broker.validator.middleware)) {
-		return broker.validator.middleware(broker);
-	}
+	const { resolveValidator } = require("../validators");
 
-	return null;
+	return resolveValidator({ service: broker }, broker);
 };

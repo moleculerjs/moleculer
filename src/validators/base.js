@@ -157,4 +157,39 @@ class BaseValidator {
 	}
 }
 
-module.exports = BaseValidator;
+module.exports = function ValidatorMiddleware(broker) {
+	if (broker.validator && isFunction(broker.validator.middleware)) {
+		return broker.validator.middleware(broker);
+	}
+
+	return null;
+};
+
+/**
+ * Resolve validator for an action.
+ * Checks action.validator, then service.validator, then broker.validator.
+ *
+ * @param {Object} action - Action object
+ * @param {Object} broker - ServiceBroker instance
+ * @returns {Object|null} Validator instance or null
+ */
+function resolveValidator(action, broker) {
+	// 1. Check if action has its own validator
+	if (action.validator && isFunction(action.validator.middleware)) {
+		return action.validator.middleware(broker);
+	}
+
+	// 2. Check if service has a default validator
+	if (action.service && action.service.validator && isFunction(action.service.validator.middleware)) {
+		return action.service.validator.middleware(broker);
+	}
+
+	// 3. Fall back to broker's validator
+	if (broker.validator && isFunction(broker.validator.middleware)) {
+		return broker.validator.middleware(broker);
+	}
+
+	return null;
+}
+
+module.exports = Object.assign(BaseValidator, { resolveValidator });
