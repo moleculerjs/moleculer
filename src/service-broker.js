@@ -1492,8 +1492,9 @@ class ServiceBroker {
 				} else {
 					// Remote service
 					const e = groupedEP[ep.id];
-					if (e) e.groups.push(group);
-					else
+					if (e) {
+						if (e.groups.indexOf(group) === -1) e.groups.push(group);
+					} else
 						groupedEP[ep.id] = {
 							ep,
 							groups: [group]

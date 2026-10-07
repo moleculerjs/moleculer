@@ -3403,6 +3403,38 @@ describe("Test broker.emit with transporter", () => {
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
+
+	it("should call every local handler and list a group only once per remote node", () => {
+		broker.registry.events.callEventHandler.mockClear();
+		broker.transit.sendEvent.mockClear();
+
+		broker.options.disableBalancer = false;
+
+		const exactHandler = jest.fn();
+		const wildcardHandler = jest.fn();
+		// e.g. a service with "order.created" & "order.*" handlers in the "audit" group
+		broker.registry.events.getBalancedEndpoints.mockImplementationOnce(() => [
+			[{ id: "node-1", event: { handler: exactHandler } }, "audit"],
+			[{ id: "node-1", event: { handler: wildcardHandler } }, "audit"],
+			[{ id: "node-2" }, "mail"],
+			[{ id: "node-2" }, "mail"],
+			[{ id: "node-2" }, "payment"]
+		]);
+
+		broker.emit("order.created");
+
+		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(2);
+		expect(
+			broker.registry.events.callEventHandler.mock.calls.map(
+				([ctx]) => ctx.endpoint.event.handler
+			)
+		).toEqual([exactHandler, wildcardHandler]);
+
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(1);
+		const ctx = broker.transit.sendEvent.mock.calls[0][0];
+		expect(ctx.nodeID).toBe("node-2");
+		expect(ctx.eventGroups).toEqual(["mail", "payment"]);
+	});
 });
 
 describe("Test broker broadcast", () => {

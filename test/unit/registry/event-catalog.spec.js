@@ -288,6 +288,140 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 	});
 });
 
+describe("Test EventCatalog.getBalancedEndpoints with more matching lists in a group", () => {
+	const exactEvent = { name: "order.created" };
+	const wildcardEvent = { name: "order.*" };
+
+	function createCatalog() {
+		const broker = new ServiceBroker({
+			logger: false,
+			nodeID: "node-1",
+			registry: { preferLocal: false }
+		});
+		return new EventCatalog(broker.registry, broker, Strategy);
+	}
+
+	const call = (catalog, eventName, groups) =>
+		catalog
+			.getBalancedEndpoints(eventName, groups, null)
+			.map(([ep, group]) => [ep.event.name, ep.id, group]);
+
+	it("should select one node per group, not per list", () => {
+		const catalog = createCatalog();
+		catalog.add({ id: "node-2" }, { name: "audit" }, exactEvent);
+		catalog.add({ id: "node-2" }, { name: "audit" }, wildcardEvent);
+		catalog.add({ id: "node-3" }, { name: "audit" }, exactEvent);
+		catalog.add({ id: "node-3" }, { name: "audit" }, wildcardEvent);
+		catalog.add({ id: "node-2" }, { name: "mail" }, exactEvent);
+		catalog.add({ id: "node-3" }, { name: "mail" }, exactEvent);
+
+		// Advances only the counter of the 'order.*' list
+		expect(call(catalog, "order.updated")).toEqual([["order.*", "node-2", "audit"]]);
+
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-2", "audit"],
+			["order.created", "node-2", "mail"]
+		]);
+
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-3", "audit"],
+			["order.*", "node-3", "audit"],
+			["order.created", "node-3", "mail"]
+		]);
+
+		expect(call(catalog, "order.created", ["audit"])).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-2", "audit"]
+		]);
+	});
+
+	it("should use the local endpoints of the other lists if the local node is selected", () => {
+		const catalog = createCatalog();
+		catalog.add({ id: "node-1" }, { name: "audit" }, exactEvent);
+		catalog.add({ id: "node-1" }, { name: "audit" }, wildcardEvent);
+		catalog.add({ id: "node-2" }, { name: "audit" }, exactEvent);
+		catalog.add({ id: "node-2" }, { name: "audit" }, wildcardEvent);
+
+		const wildcardList = catalog.get("order.*", "audit");
+		jest.spyOn(wildcardList, "nextLocal");
+
+		expect(call(catalog, "order.updated")).toEqual([["order.*", "node-1", "audit"]]);
+
+		const res = catalog.getBalancedEndpoints("order.created", null, null);
+		expect(res.map(([ep, group]) => [ep.event.name, ep.id, ep.local, group])).toEqual([
+			["order.created", "node-1", true, "audit"],
+			["order.*", "node-1", true, "audit"]
+		]);
+		expect(wildcardList.nextLocal).toHaveBeenCalledTimes(1);
+
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-2", "audit"]
+		]);
+	});
+
+	it("should select more nodes if the lists of the group are on different nodes", () => {
+		const catalog = createCatalog();
+		// Different services in the same group
+		catalog.add({ id: "node-2" }, { name: "audit-a" }, { ...exactEvent, group: "audit" });
+		catalog.add({ id: "node-3" }, { name: "audit-b" }, { ...wildcardEvent, group: "audit" });
+
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-3", "audit"]
+		]);
+	});
+
+	it("should avoid a node which would call an already served list again", () => {
+		const catalog = createCatalog();
+		// 'order.created' on node-2 & node-3, 'order.*' on node-3 & node-4
+		catalog.add({ id: "node-2" }, { name: "audit-a" }, { ...exactEvent, group: "audit" });
+		catalog.add({ id: "node-3" }, { name: "audit-a" }, { ...exactEvent, group: "audit" });
+		catalog.add({ id: "node-3" }, { name: "audit-b" }, { ...wildcardEvent, group: "audit" });
+		catalog.add({ id: "node-4" }, { name: "audit-b" }, { ...wildcardEvent, group: "audit" });
+
+		// The 'order.*' list would select node-3, but node-3 would call 'order.created' again
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-4", "audit"]
+		]);
+	});
+
+	it("should keep the selected node if there is no better one (no handler is lost)", () => {
+		const catalog = createCatalog();
+		catalog.add({ id: "node-2" }, { name: "audit-a" }, { ...exactEvent, group: "audit" });
+		catalog.add({ id: "node-3" }, { name: "audit-a" }, { ...exactEvent, group: "audit" });
+		catalog.add({ id: "node-3" }, { name: "audit-b" }, { ...wildcardEvent, group: "audit" });
+
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-3", "audit"]
+		]);
+	});
+
+	it("should skip the unavailable endpoints", () => {
+		const catalog = createCatalog();
+		const exactEp = catalog.add({ id: "node-2" }, { name: "audit" }, exactEvent).endpoints[0];
+		const wildcardList = catalog.add({ id: "node-2" }, { name: "audit" }, wildcardEvent);
+		catalog.add({ id: "node-3" }, { name: "audit" }, wildcardEvent);
+
+		// The 'order.*' endpoint is unavailable on the selected node
+		wildcardList.endpoints[0].state = false;
+		expect(call(catalog, "order.created")).toEqual([
+			["order.created", "node-2", "audit"],
+			["order.*", "node-3", "audit"]
+		]);
+
+		// No available 'order.created' endpoint
+		exactEp.state = false;
+		expect(call(catalog, "order.created")).toEqual([["order.*", "node-3", "audit"]]);
+
+		wildcardList.endpoints[1].state = false;
+		expect(call(catalog, "order.created")).toEqual([]);
+	});
+});
+
 describe("Test getGroups", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "node-2" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);

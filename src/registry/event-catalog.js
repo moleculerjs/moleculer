@@ -106,7 +106,18 @@ class EventCatalog {
 	}
 
 	/**
-	 * Get balanced endpoint for event
+	 * Get balanced endpoints for event.
+	 *
+	 * The balancing is done per group, not per event list. A group can have more
+	 * matching lists (e.g. a service which handles `order.created` and `order.*`).
+	 * The receiver node (`emitLocalServices`) calls every local handler of the
+	 * group which matches the event, so once a node is selected for a group,
+	 * it serves all lists of that group it has an endpoint in. If the lists were
+	 * balanced independently, they could select different nodes and the handlers
+	 * would be called on more nodes.
+	 *
+	 * The result contains an endpoint for every list which will be served:
+	 * the emitter calls the local ones directly and sends one packet per remote node.
 	 *
 	 * @param {String} eventName
 	 * @param {String|Array?} groups
@@ -117,13 +128,52 @@ class EventCatalog {
 	getBalancedEndpoints(eventName, groups, ctx) {
 		const res = [];
 
+		/** @type {Map<string, EndpointList<EventEndpoint>[]>} */
+		const groupLists = new Map();
 		this.events.forEach(list => {
 			if (!utils.match(eventName, list.name)) return;
 			if (groups == null || groups.length === 0 || groups.indexOf(list.group) !== -1) {
-				// Use built-in balancer, get the next endpoint
-				const ep = list.next(ctx);
-				if (ep && ep.isAvailable) res.push([ep, list.group]);
+				const lists = groupLists.get(list.group);
+				if (lists) lists.push(list);
+				else groupLists.set(list.group, [list]);
 			}
+		});
+
+		groupLists.forEach((lists, group) => {
+			const served = new Set();
+			const isServedOn = nodeID => lists.some(l => served.has(l) && l.hasNodeID(nodeID));
+
+			lists.forEach(list => {
+				if (served.has(list)) return;
+
+				// Use built-in balancer, get the next endpoint
+				let ep = list.next(ctx);
+				if (!ep || !ep.isAvailable) return;
+
+				if (served.size > 0 && isServedOn(ep.id)) {
+					// Different services share the group on different nodes. Prefer a node
+					// which won't call the already served handlers again.
+					const candidates = list.endpoints.filter(
+						e => e.isAvailable && !isServedOn(e.id)
+					);
+					if (candidates.length > 0) ep = list.select(candidates, ctx);
+				}
+
+				// The selected node serves every list of the group it has an endpoint in.
+				lists.forEach(other => {
+					if (served.has(other)) return;
+
+					let otherEp;
+					if (other === list) otherEp = ep;
+					else if (ep.local) otherEp = other.nextLocal(ctx);
+					else otherEp = other.getEndpointByNodeID(ep.id);
+
+					if (otherEp && otherEp.isAvailable) {
+						served.add(other);
+						res.push([otherEp, group]);
+					}
+				});
+			});
 		});
 
 		return res;
