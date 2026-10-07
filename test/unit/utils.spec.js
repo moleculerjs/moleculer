@@ -356,6 +356,120 @@ describe("Test match", () => {
 	expect(utils.match("$aa.bb.cc", "*")).toBe(false);
 });
 
+describe("Test match fast paths against the regex semantics", () => {
+	// Reference implementation of the documented semantics, independent of the fast paths:
+	// "*" matches any characters except a dot, "**" matches any characters including dots.
+	const toRegex = pattern =>
+		// eslint-disable-next-line security/detect-non-literal-regexp
+		new RegExp(
+			"^" +
+				pattern
+					.split("**")
+					.map(part =>
+						part
+							.split("*")
+							.map(s => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+							.join("[^.]*")
+					)
+					.join(".*") +
+				"$"
+		);
+
+	describe("'prefix*' patterns", () => {
+		it("should not match when a dot directly follows the prefix", () => {
+			expect(utils.match("order.created", "order*")).toBe(false);
+			expect(utils.match("a.b", "a*")).toBe(false);
+			expect(utils.match("$node.connected", "$node*")).toBe(false);
+			expect(utils.match("user.created.v2", "user.created*")).toBe(false);
+			expect(utils.match("order.", "order*")).toBe(false);
+		});
+
+		it("should not match when a dot appears later in the text", () => {
+			expect(utils.match("orderX.created", "order*")).toBe(false);
+			expect(utils.match("orders.list.all", "order*")).toBe(false);
+			expect(utils.match("aa.bb.cc", "a*")).toBe(false);
+		});
+
+		it("should match when there is no dot after the prefix", () => {
+			expect(utils.match("order", "order*")).toBe(true);
+			expect(utils.match("orderCreated", "order*")).toBe(true);
+			expect(utils.match("orders", "order*")).toBe(true);
+			expect(utils.match("user.created", "user.*")).toBe(true);
+			expect(utils.match("user.created", "user.cr*")).toBe(true);
+			expect(utils.match("$node.connected", "$node.*")).toBe(true);
+		});
+
+		it("should not match when the text doesn't start with the prefix", () => {
+			expect(utils.match("ordeX", "order*")).toBe(false);
+			expect(utils.match("xorder", "order*")).toBe(false);
+			expect(utils.match("ord", "order*")).toBe(false);
+		});
+	});
+
+	describe("'prefix**' patterns", () => {
+		it("should match across dots", () => {
+			expect(utils.match("order.created", "order**")).toBe(true);
+			expect(utils.match("order.created.v2", "order**")).toBe(true);
+			expect(utils.match("orderCreated", "order**")).toBe(true);
+			expect(utils.match("order", "order**")).toBe(true);
+			expect(utils.match("order.", "order**")).toBe(true);
+			expect(utils.match("$node.connected", "$node**")).toBe(true);
+		});
+
+		it("should not match when the text doesn't start with the prefix", () => {
+			expect(utils.match("ordeX.created", "order**")).toBe(false);
+			expect(utils.match("xorder.created", "order**")).toBe(false);
+		});
+	});
+
+	describe("should give the same result as the regex semantics", () => {
+		const patterns = [
+			"order*",
+			"order**",
+			"order.*",
+			"order.**",
+			"order.created*",
+			"a*",
+			"a**",
+			"$node*",
+			"$node.*",
+			"*",
+			"**"
+		];
+		const texts = [
+			"order",
+			"order.",
+			"orders",
+			"orderCreated",
+			"order.created",
+			"order.created.v2",
+			"orderX.created",
+			"order.createdAt",
+			"ordeX",
+			"a",
+			"a.b",
+			"ab.c",
+			"$node",
+			"$node.connected",
+			"$nodes",
+			""
+		];
+
+		patterns.forEach(pattern => {
+			it(`pattern "${pattern}"`, () => {
+				const regex = toRegex(pattern);
+				texts.forEach(text => {
+					expect({ text, pattern, result: utils.match(text, pattern) }).toEqual({
+						text,
+						pattern,
+						result: regex.test(text)
+					});
+				});
+			});
+		});
+	});
+});
+
 describe("Test utils.safetyObject", () => {
 	it("should return a same object", () => {
 		const obj = {

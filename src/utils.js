@@ -319,7 +319,9 @@ const utils = {
 			if (len > 1 && pattern.endsWith("*") && firstStarPosition > len - 2) {
 				pattern = pattern.substring(0, len - 1);
 				if (text.startsWith(pattern)) {
-					return text.indexOf(".", len) == -1;
+					// Search from the end of the prefix (not from `len`, which counts the "*"),
+					// otherwise a dot right after the prefix would be skipped.
+					return text.indexOf(".", pattern.length) == -1;
 				}
 				return false;
 			}
