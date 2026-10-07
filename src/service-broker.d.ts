@@ -335,6 +335,23 @@ declare namespace ServiceBroker {
 		settled?: boolean;
 	}
 
+	/**
+	 * Options of `emit`, `broadcast` and `broadcastLocal` (3rd parameter).
+	 * Since 0.15 it must be an object, the group shorthand
+	 * (`"mail"` or `["mail"]`) is not supported.
+	 */
+	export interface EventOptions {
+		groups?: string | string[];
+		throwError?: boolean;
+		meta?: Record<string, any>;
+		headers?: Record<string, any>;
+		requestID?: string;
+		parentCtx?: Context;
+		parentSpan?: ContextParentSpan;
+		caller?: string;
+		paramsCloning?: boolean;
+	}
+
 	export interface CallDefinition<P extends Record<string, any> = Record<string, any>> {
 		action: string;
 		params: P;
@@ -504,16 +521,24 @@ declare class ServiceBroker {
 		opts?: ServiceBroker.MCallCallingOptions
 	): Promise<TResult[]>;
 
-	emit<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
+	emit<TData>(
+		eventName: string,
+		data?: TData,
+		opts?: ServiceBroker.EventOptions | null
+	): Promise<void>;
 	emit(eventName: string): Promise<void>;
 
-	broadcast<TData>(eventName: string, data?: TData, opts?: Record<string, any>): Promise<void>;
+	broadcast<TData>(
+		eventName: string,
+		data?: TData,
+		opts?: ServiceBroker.EventOptions | null
+	): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
 	broadcastLocal<TData>(
 		eventName: string,
 		data?: TData,
-		opts?: Record<string, any>
+		opts?: ServiceBroker.EventOptions | null
 	): Promise<void>;
 	broadcastLocal(eventName: string): Promise<void>;
 

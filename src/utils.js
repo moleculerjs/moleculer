@@ -10,7 +10,7 @@ const kleur = require("kleur");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
-const { TimeoutError } = require("./errors");
+const { TimeoutError, MoleculerError } = require("./errors");
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -535,6 +535,35 @@ const utils = {
 		const upper = Math.floor(Math.max(a, b));
 
 		return Math.floor(lower + Math.random() * (upper - lower + 1));
+	},
+
+	/**
+	 * Check the third (`opts`) parameter of the event sending methods
+	 * (`emit`, `broadcast`, `broadcastLocal`). It must be an options object
+	 * or `null`/`undefined`. The old group shorthand (a group name `String`
+	 * or an `Array` of groups) was removed in 0.15.
+	 *
+	 * @param {any} opts
+	 * @param {String} method Name of the called method for the error message (e.g. `broker.emit`)
+	 * @throws {MoleculerError} If `opts` is not an options object
+	 */
+	assertEventOptions(opts, method) {
+		if (opts == null || (utils.isObject(opts) && !Array.isArray(opts))) return;
+
+		let received;
+		if (Array.isArray(opts)) received = "an array";
+		else if (opts instanceof String) received = "a string";
+		else {
+			const type = typeof opts;
+			received = (/^[aeiou]/.test(type) ? "an " : "a ") + type;
+		}
+
+		throw new MoleculerError(
+			`The third parameter of '${method}' must be an options object, e.g. { groups: ["mailer"] }, but received ${received}.`,
+			500,
+			"INVALID_PARAMETERS",
+			{ method }
+		);
 	}
 };
 

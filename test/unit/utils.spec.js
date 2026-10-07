@@ -1,6 +1,6 @@
 const utils = require("../../src/utils");
 const { protectReject } = require("./utils");
-const { TimeoutError } = require("../../src/errors");
+const { TimeoutError, MoleculerError } = require("../../src/errors");
 const lolex = require("@sinonjs/fake-timers");
 
 describe("Test utils.isObject", () => {
@@ -799,5 +799,41 @@ describe("Test utils.uniq", () => {
 		expect(utils.uniq([null, null, undefined, undefined])).toEqual([null, undefined]);
 		expect(utils.uniq([null, null])).toEqual([null]);
 		expect(utils.uniq([undefined, undefined])).toEqual([undefined]);
+	});
+});
+
+describe("Test utils.assertEventOptions", () => {
+	it.each([undefined, null, {}, { groups: ["mail"] }, { groups: "mail" }, Object.create(null)])(
+		"should accept %p",
+		opts => {
+			expect(() => utils.assertEventOptions(opts, "broker.emit")).not.toThrow();
+		}
+	);
+
+	it.each([
+		["mail", "a string"],
+		[new String("mail"), "a string"],
+		[["mail"], "an array"],
+		[[], "an array"],
+		[0, "a number"],
+		[5, "a number"],
+		[true, "a boolean"],
+		[() => {}, "a function"],
+		[Symbol("mail"), "a symbol"],
+		[10n, "a bigint"]
+	])("should throw for %p", (opts, received) => {
+		let err;
+		try {
+			utils.assertEventOptions(opts, "ctx.broadcast");
+		} catch (e) {
+			err = e;
+		}
+		expect(err).toBeInstanceOf(MoleculerError);
+		expect(err.message).toBe(
+			`The third parameter of 'ctx.broadcast' must be an options object, e.g. { groups: ["mailer"] }, but received ${received}.`
+		);
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("INVALID_PARAMETERS");
+		expect(err.data).toEqual({ method: "ctx.broadcast" });
 	});
 });

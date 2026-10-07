@@ -9,6 +9,7 @@
 const util = require("util");
 const { pick } = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
+const utils = require("./utils");
 
 /**
  * @typedef {import("./context")} ContextClass
@@ -424,8 +425,10 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, opts) {
-		opts = opts ?? {};
-		opts.parentCtx = this;
+		utils.assertEventOptions(opts, "ctx.emit");
+		// Copy it: the caller's options object can be shared (e.g. a constant),
+		// so it must not keep a reference to this context.
+		opts = Object.assign({}, opts, { parentCtx: this });
 
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 
@@ -446,8 +449,10 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, opts) {
-		opts = opts ?? {};
-		opts.parentCtx = this;
+		utils.assertEventOptions(opts, "ctx.broadcast");
+		// Copy it: the caller's options object can be shared (e.g. a constant),
+		// so it must not keep a reference to this context.
+		opts = Object.assign({}, opts, { parentCtx: this });
 
 		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
 

@@ -685,7 +685,7 @@ describe("Test Service mixins", () => {
 		mainSchema.events.nitrogen.mockClear();
 
 		let payload = { a: 5 };
-		broker.broadcastLocal("nitrogen", payload, "pnictogen");
+		broker.broadcastLocal("nitrogen", payload, { groups: "pnictogen" });
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(
@@ -709,7 +709,7 @@ describe("Test Service mixins", () => {
 		mainSchema.events.nitrogen.mockClear();
 
 		let payload = { a: 5 };
-		broker.broadcastLocal("nitrogen", payload, "other");
+		broker.broadcastLocal("nitrogen", payload, { groups: "other" });
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(0);
 		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(0);

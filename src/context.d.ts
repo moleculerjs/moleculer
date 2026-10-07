@@ -1,6 +1,11 @@
 import ActionEndpoint = require("./registry/endpoint-action");
 import EventEndpoint = require("./registry/endpoint-event");
-import type { CallingOptions, MCallDefinition, MCallCallingOptions } from "./service-broker";
+import type {
+	CallingOptions,
+	EventOptions,
+	MCallDefinition,
+	MCallCallingOptions
+} from "./service-broker";
 import Service = require("./service");
 import Span = require("./tracing/span");
 import type { ActionSchema, EventSchema } from "./service";
@@ -113,10 +118,10 @@ declare class Context<
 		opts?: MCallCallingOptions
 	): Promise<TResult[]>;
 
-	emit<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
+	emit<D>(eventName: string, data: D, opts?: EventOptions | null): Promise<void>;
 	emit(eventName: string): Promise<void>;
 
-	broadcast<D>(eventName: string, data: D, opts?: Record<string, any>): Promise<void>;
+	broadcast<D>(eventName: string, data: D, opts?: EventOptions | null): Promise<void>;
 	broadcast(eventName: string): Promise<void>;
 
 	copy(endpoint?: ActionEndpoint | EventEndpoint): Context;

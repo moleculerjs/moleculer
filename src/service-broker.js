@@ -1448,10 +1448,12 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	emit(eventName, payload, opts) {
-		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
-		else if (opts == null) opts = {};
+		utils.assertEventOptions(opts, "broker.emit");
+		if (opts == null) opts = {};
 
-		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
+		// Normalize into a copy, the caller's options object can be shared.
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts = Object.assign({}, opts, { groups: [opts.groups] });
 
 		const promises = [];
 
@@ -1549,10 +1551,12 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcast(eventName, payload, opts) {
-		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
-		else if (opts == null) opts = {};
+		utils.assertEventOptions(opts, "broker.broadcast");
+		if (opts == null) opts = {};
 
-		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
+		// Normalize into a copy, the caller's options object can be shared.
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts = Object.assign({}, opts, { groups: [opts.groups] });
 
 		const promises = [];
 
@@ -1630,10 +1634,12 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, opts) {
-		if (Array.isArray(opts) || utils.isString(opts)) opts = { groups: opts };
-		else if (opts == null) opts = {};
+		utils.assertEventOptions(opts, "broker.broadcastLocal");
+		if (opts == null) opts = {};
 
-		if (opts.groups && !Array.isArray(opts.groups)) opts.groups = [opts.groups];
+		// Normalize into a copy, the caller's options object can be shared.
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts = Object.assign({}, opts, { groups: [opts.groups] });
 
 		this.logger.debug(
 			`Broadcast '${eventName}' local event` +

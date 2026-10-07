@@ -58,6 +58,7 @@ utils.removeFromArray = jest.requireActual("../../src/utils").removeFromArray;
 utils.promiseAllControl = jest.requireActual("../../src/utils").promiseAllControl;
 utils.getConstructorName = jest.requireActual("../../src/utils").getConstructorName;
 utils.isInheritedClass = jest.requireActual("../../src/utils").isInheritedClass;
+utils.assertEventOptions = jest.requireActual("../../src/utils").assertEventOptions;
 
 const { protectReject } = require("./utils");
 const path = require("path");
@@ -3024,7 +3025,7 @@ describe("Test broker.emit", () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 }, "users");
+		broker.emit("test.event", { a: 5 }, { groups: "users" });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
@@ -3065,7 +3066,7 @@ describe("Test broker.emit", () => {
 		broker.registry.events.callEventHandler.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.emit("test.event", { a: 5 }, ["users", "payments"]);
+		broker.emit("test.event", { a: 5 }, { groups: ["users", "payments"] });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith(
@@ -3323,7 +3324,7 @@ describe("Test broker.emit with transporter", () => {
 
 		broker.options.disableBalancer = true;
 
-		broker.emit("user.event", { name: "John" }, ["users", "mail"]);
+		broker.emit("user.event", { name: "John" }, { groups: ["users", "mail"] });
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(0);
 		expect(broker.getEventGroups).toHaveBeenCalledTimes(0);
@@ -3367,7 +3368,7 @@ describe("Test broker.emit with transporter", () => {
 
 		broker.options.disableBalancer = true;
 
-		broker.emit("$user.event", { name: "John" }, ["users", "mail"]);
+		broker.emit("$user.event", { name: "John" }, { groups: ["users", "mail"] });
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
@@ -3545,7 +3546,7 @@ describe("Test broker broadcast", () => {
 		broker.transit.sendEvent.mockClear();
 		broker.registry.events.getAllEndpoints.mockClear();
 
-		broker.broadcast("user.event", { name: "John" }, ["mail", "payment"]);
+		broker.broadcast("user.event", { name: "John" }, { groups: ["mail", "payment"] });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith(
@@ -3851,6 +3852,64 @@ describe("Test broker broadcastLocal", () => {
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
+	});
+});
+
+describe("Test broker emit/broadcast/broadcastLocal with invalid options", () => {
+	let broker = new ServiceBroker({ logger: false, nodeID: "server-1", transporter: "Fake" });
+	broker.transit.sendEvent = jest.fn(() => Promise.resolve());
+	broker.emitLocalServices = jest.fn(() => Promise.resolve());
+	broker.localBus.emit = jest.fn();
+	broker.registry.events.getBalancedEndpoints = jest.fn(() => []);
+	broker.registry.events.getAllEndpoints = jest.fn(() => []);
+
+	beforeEach(() => {
+		broker.transit.sendEvent.mockClear();
+		broker.emitLocalServices.mockClear();
+		broker.localBus.emit.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+		broker.registry.events.getAllEndpoints.mockClear();
+	});
+
+	describe.each(["emit", "broadcast", "broadcastLocal"])("broker.%s", method => {
+		it.each([
+			["mail", "a string"],
+			[["mail", "payment"], "an array"],
+			[[], "an array"],
+			[5, "a number"],
+			[false, "a boolean"]
+		])("should throw if the third parameter is %p", (opts, received) => {
+			expect(() => broker[method]("$user.event", { name: "John" }, opts)).toThrow(
+				new MoleculerError(
+					`The third parameter of 'broker.${method}' must be an options object, e.g. { groups: ["mailer"] }, but received ${received}.`
+				)
+			);
+
+			// Nothing is sent or called
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+			expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
+			expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+			expect(broker.transit.sendEvent).toHaveBeenCalledTimes(0);
+			expect(broker.emitLocalServices).toHaveBeenCalledTimes(0);
+		});
+
+		it("should set type & data on the thrown error", () => {
+			let err;
+			try {
+				broker[method]("user.event", null, ["mail"]);
+			} catch (e) {
+				err = e;
+			}
+			expect(err).toBeInstanceOf(MoleculerError);
+			expect(err.code).toBe(500);
+			expect(err.type).toBe("INVALID_PARAMETERS");
+			expect(err.data).toEqual({ method: `broker.${method}` });
+		});
+
+		it.each([undefined, null, {}, { groups: "mail" }])("should accept %p as options", opts => {
+			expect(() => broker[method]("$user.event", null, opts)).not.toThrow();
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+		});
 	});
 });
 

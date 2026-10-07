@@ -174,12 +174,12 @@ describe("Test event balancing", () => {
 	});
 
 	it("send a 'user.created' event to filtered groups #1", () => {
-		master.emit("user.created", null, "payment");
+		master.emit("user.created", null, { groups: "payment" });
 		expect(flow).toEqual(["pay-1-payment-uc"]);
 	});
 
 	it("send a 'user.created' event to filtered groups #2", () => {
-		master.emit("user.created", null, ["payment", "mail"]);
+		master.emit("user.created", null, { groups: ["payment", "mail"] });
 		expect(flow).toEqual(["pay-2-payment-uc", "mail-1-mail-u*"]);
 	});
 
@@ -197,12 +197,12 @@ describe("Test event balancing", () => {
 	});
 
 	it("broadcast a 'user.created' event to filtered group", () => {
-		master.broadcast("user.created", null, "payment");
+		master.broadcast("user.created", null, { groups: "payment" });
 		expect(flow).toEqual(["pay-1-payment-uc", "pay-2-payment-uc"]);
 	});
 
 	it("broadcast a 'user.created' event to filtered groups", () => {
-		master.broadcast("user.created", null, ["payment", "mail"]);
+		master.broadcast("user.created", null, { groups: ["payment", "mail"] });
 		expect(flow).toEqual([
 			"pay-1-payment-uc",
 			"pay-2-payment-uc",
@@ -322,7 +322,7 @@ describe("Test multiple handler in the same group balancing", () => {
 	});
 
 	it("send a 'user.created' event with balancing to filtered group", () => {
-		master.emit("user.created", null, "payment");
+		master.emit("user.created", null, { groups: "payment" });
 		expect(flow).toEqual(["master-payment-uc"]);
 	});
 
@@ -341,12 +341,12 @@ describe("Test multiple handler in the same group balancing", () => {
 	});
 
 	it("send a 'user.created' event with balancing to filtered group #1", () => {
-		master.emit("user.created", null, "payment");
+		master.emit("user.created", null, { groups: "payment" });
 		expect(flow).toEqual(["pay-1-stripe-uc"]);
 	});
 
 	it("send a 'user.created' event with balancing to filtered group #2", () => {
-		master.emit("user.created", null, "payment");
+		master.emit("user.created", null, { groups: "payment" });
 		expect(flow).toEqual(["master-payment-uc"]);
 	});
 
@@ -364,7 +364,7 @@ describe("Test multiple handler in the same group balancing", () => {
 	});
 
 	it("broadcast a 'user.created' event to filtered group", () => {
-		master.broadcast("user.created", null, "payment");
+		master.broadcast("user.created", null, { groups: "payment" });
 		expect(flow).toEqual([
 			"pay-1-payment-uc",
 			"pay-1-stripe-uc",
@@ -374,7 +374,7 @@ describe("Test multiple handler in the same group balancing", () => {
 	});
 
 	it("broadcast a 'user.created' event to filtered groups", () => {
-		master.broadcast("user.created", null, ["payment"]);
+		master.broadcast("user.created", null, { groups: ["payment"] });
 		expect(flow).toEqual([
 			"pay-1-payment-uc",
 			"pay-1-stripe-uc",

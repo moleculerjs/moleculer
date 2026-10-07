@@ -9,7 +9,8 @@ import type {
 	SerializerConfig,
 	ReplOptions,
 	NodeHealthStatus,
-	MCallCallingOptions
+	MCallCallingOptions,
+	EventOptions
 } from "./src/service-broker";
 
 // --- SERVICE ---
@@ -130,7 +131,8 @@ declare namespace Moleculer {
 		SerializerConfig,
 		ReplOptions,
 		NodeHealthStatus,
-		MCallCallingOptions
+		MCallCallingOptions,
+		EventOptions
 	};
 
 	export {

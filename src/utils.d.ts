@@ -58,3 +58,5 @@ export declare function isInheritedClass(instance: object, baseClass: object): b
 export declare function random(a?: number, b?: number): number;
 
 export declare function randomInt(a?: number, b?: number): number;
+
+export declare function assertEventOptions(opts: unknown, method: string): void;

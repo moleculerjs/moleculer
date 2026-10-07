@@ -94,9 +94,9 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 		setInterval(() => {
 			broker1.logger.info("-------------------------");
 			broker1.broadcast("user.created", "data");
-			//broker1.broadcast("user.created", "data", ["payment"]);
-			//broker1.broadcast("user.created", "data", ["mail", "payment"]);
+			//broker1.broadcast("user.created", "data", { groups: ["payment"] });
+			//broker1.broadcast("user.created", "data", { groups: ["mail", "payment"] });
 			//broker1.emit("user.created", "data");
-			//broker1.emit("user.created", "data", ["mail"]);
+			//broker1.emit("user.created", "data", { groups: ["mail"] });
 		}, 2000);
 	});
