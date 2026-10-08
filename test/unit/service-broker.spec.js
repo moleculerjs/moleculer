@@ -545,6 +545,62 @@ describe("Test broker.interceptCallMiddleware", () => {
 		expect(result.ctx).toEqual({ test: "test" });
 		await expect(result).resolves.toBe("middleware-result");
 	});
+
+	it("should not attach a previous call's context to a call that does not reach next", async () => {
+		const next = () => {
+			const promise = Promise.resolve("next-result");
+			promise.ctx = { id: "real" };
+			return promise;
+		};
+
+		// A middleware that serves some calls itself, without calling `next`.
+		const createMiddleware = jest.fn(next => shortCircuit => {
+			if (shortCircuit) return Promise.resolve("short-circuit-result");
+			return next();
+		});
+
+		const intercepted = broker.interceptCallMiddleware(createMiddleware)(next);
+
+		// 1. A call that reaches `next` and captures its context.
+		const first = intercepted(false);
+		expect(first.ctx).toEqual({ id: "real" });
+		await first;
+
+		// 2. A call that is served by the middleware must not inherit the
+		// previous call's context.
+		const second = intercepted(true);
+		expect(second.ctx).toBeUndefined();
+		await expect(second).resolves.toBe("short-circuit-result");
+	});
+
+	it("should not let a nested call overwrite the outer call's context", async () => {
+		let intercepted;
+
+		const next = () => {
+			const promise = Promise.resolve("inner-next");
+			promise.ctx = { id: "inner" };
+			return promise;
+		};
+
+		const createMiddleware = jest.fn(next => mode => {
+			if (mode === "outer") {
+				// While handling the outer call, fire a nested call that reaches
+				// `next`, then serve the outer call ourselves without `next`.
+				intercepted("inner");
+				return Promise.resolve("outer-result");
+			}
+			return next();
+		});
+
+		intercepted = broker.interceptCallMiddleware(createMiddleware)(next);
+
+		const outer = intercepted("outer");
+
+		// The outer call never reached `next`, so it must carry no context,
+		// despite the nested call having captured one.
+		expect(outer.ctx).toBeUndefined();
+		await expect(outer).resolves.toBe("outer-result");
+	});
 });
 
 describe("Test broker.start", () => {

@@ -423,9 +423,20 @@ class ServiceBroker {
 			let result = null;
 			const call = createMiddleware((...args) => (result = next(...args)));
 			return (...args) => {
-				const promise = call(...args);
-				if (result) promise.ctx = result.ctx;
-				return promise;
+				// `result` is shared by every call through this wrapper. Reset it
+				// per call so a middleware that resolves without calling `next`
+				// can't inherit the context of a previous (or nested) call, and
+				// restore it afterwards so a nested call made while handling this
+				// one stays invisible to the outer call.
+				const previous = result;
+				result = null;
+				try {
+					const promise = call(...args);
+					if (result) promise.ctx = result.ctx;
+					return promise;
+				} finally {
+					result = previous;
+				}
 			};
 		};
 	}
