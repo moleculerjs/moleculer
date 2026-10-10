@@ -9,7 +9,6 @@
 "use strict";
 
 const FormattedLogger = require("./formatted");
-const kleur = require("kleur");
 
 /**
  * Import types
@@ -37,17 +36,6 @@ class ConsoleLogger extends FormattedLogger {
 		super(opts);
 
 		this.maxPrefixLength = 0;
-	}
-
-	/**
-	 * Initialize logger.
-	 *
-	 * @param {LoggerFactory} loggerFactory
-	 */
-	init(loggerFactory) {
-		super.init(loggerFactory);
-
-		if (!this.opts.colors) kleur.enabled = false;
 	}
 
 	/**

@@ -21,7 +21,9 @@ const { isObject, isFunction } = require("../utils");
  * @typedef {import("./formatted")} FormattedLoggerClass
  */
 
-function getColor(type) {
+function getColor(type, colors) {
+	if (!colors) return text => text;
+
 	switch (type) {
 		case "fatal":
 			return kleur.red().inverse;
@@ -69,7 +71,9 @@ class FormattedLogger extends BaseLogger {
 	init(loggerFactory) {
 		super.init(loggerFactory);
 
-		if (!this.opts.colors) kleur.enabled = false;
+		if (this.opts.formatter == "json" || this.opts.formatter == "jsonext") {
+			this.opts.colors = false;
+		}
 
 		this.objectPrinter = this.opts.objectPrinter
 			? this.opts.objectPrinter
@@ -77,13 +81,13 @@ class FormattedLogger extends BaseLogger {
 					util.inspect(o, {
 						showHidden: false,
 						depth: 2,
-						colors: kleur.enabled,
+						colors: this.opts.colors && kleur.enabled,
 						breakLength: Number.POSITIVE_INFINITY
 					});
 
 		// Generate colorful log level names
 		this.levelColorStr = BaseLogger.LEVELS.reduce((a, level) => {
-			a[level] = getColor(level)(_.padEnd(level.toUpperCase(), 5));
+			a[level] = getColor(level, this.opts.colors)(_.padEnd(level.toUpperCase(), 5));
 			return a;
 		}, {});
 
@@ -137,18 +141,23 @@ class FormattedLogger extends BaseLogger {
 	 */
 	getFormatter(bindings) {
 		const formatter = this.opts.formatter;
+		const grey = this.opts.colors ? kleur.grey : text => text;
 
 		const mod = bindings && bindings.mod ? bindings.mod.toUpperCase() : "";
 		const c = this.getNextColor(mod);
-		const modColorName = c.split(".").reduce((a, b) => {
-			// @ts-ignore
-			return a[b] || a()[b];
-		}, kleur)(mod);
-		const moduleColorName = bindings ? kleur.grey(bindings.nodeID + "/") + modColorName : "";
+		const modColorName = this.opts.colors
+			? c.split(".").reduce((a, b) => {
+					// @ts-ignore
+					return a[b] || a()[b];
+				}, kleur)(mod)
+			: mod;
+		const moduleColorName = bindings ? grey(bindings.nodeID + "/") + modColorName : "";
 
 		const printArgs = args => {
 			return args.map(p => {
 				if (isObject(p) || Array.isArray(p)) return this.objectPrinter(p);
+				if (!this.opts.colors && typeof p == "string")
+					return util.stripVTControlCharacters(p);
 				return p;
 			});
 		};
@@ -157,7 +166,6 @@ class FormattedLogger extends BaseLogger {
 			return (type, args) => formatter.call(this, type, args, bindings, { printArgs });
 		} else if (formatter == "json") {
 			// {"ts":1581243299731,"level":"info","msg":"Moleculer v0.14.0-rc2 is starting...","nodeID":"console","ns":"","mod":"broker"}
-			kleur.enabled = false;
 			return (type, args) => [
 				JSON.stringify({
 					ts: Date.now(),
@@ -168,7 +176,6 @@ class FormattedLogger extends BaseLogger {
 			];
 		} else if (formatter == "jsonext") {
 			// {"time":"2020-02-09T10:44:35.285Z","level":"info","message":"Moleculer v0.14.0-rc2 is starting...","nodeID":"console","ns":"","mod":"broker"}
-			kleur.enabled = false;
 			return (type, args) => {
 				const res = {
 					time: new Date().toISOString(),
@@ -194,9 +201,9 @@ class FormattedLogger extends BaseLogger {
 			const prefixLen = 23 + bindings.mod.length;
 			this.maxPrefixLength = Math.max(prefixLen, this.maxPrefixLength);
 			return (type, args) => [
-				kleur.grey(`[${new Date().toISOString().substring(11)}]`),
+				grey(`[${new Date().toISOString().substring(11)}]`),
 				this.levelColorStr[type],
-				modColorName + this.padLeft(prefixLen) + kleur.grey(":"),
+				modColorName + this.padLeft(prefixLen) + grey(":"),
 				...printArgs(args)
 			];
 		} else if (formatter == "full") {
@@ -204,9 +211,9 @@ class FormattedLogger extends BaseLogger {
 			const prefixLen = 35 + bindings.nodeID.length + bindings.mod.length;
 			this.maxPrefixLength = Math.max(prefixLen, this.maxPrefixLength);
 			return (type, args) => [
-				kleur.grey(`[${new Date().toISOString()}]`),
+				grey(`[${new Date().toISOString()}]`),
 				this.levelColorStr[type],
-				moduleColorName + this.padLeft(prefixLen) + kleur.grey(":"),
+				moduleColorName + this.padLeft(prefixLen) + grey(":"),
 				...printArgs(args)
 			];
 		} else {
@@ -216,11 +223,11 @@ class FormattedLogger extends BaseLogger {
 				const timestamp = new Date().toISOString();
 				return [
 					this.render(formatter, {
-						timestamp: kleur.grey(timestamp),
-						time: kleur.grey(timestamp.substring(11)),
+						timestamp: grey(timestamp),
+						time: grey(timestamp.substring(11)),
 
 						level: this.levelColorStr[type],
-						nodeID: kleur.grey(bindings.nodeID),
+						nodeID: grey(bindings.nodeID),
 						mod: modColorName,
 						msg: printArgs(args).join(" ")
 					})

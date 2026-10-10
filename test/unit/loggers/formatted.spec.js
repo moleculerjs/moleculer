@@ -361,3 +361,61 @@ describe("Test Formatted logger class", () => {
 		});
 	});
 });
+
+describe("Logger color isolation", () => {
+	const ConsoleLogger = require("../../../src/loggers/console");
+	const loggerFactory = new LoggerFactory(broker);
+	const bindings = { mod: "my-service", nodeID: "node-1" };
+
+	beforeEach(() => {
+		kleur.enabled = true;
+	});
+
+	afterEach(() => {
+		kleur.enabled = false;
+	});
+
+	it.each([
+		"full",
+		"short",
+		"simple",
+		"[{time}] {level} {nodeID}/{mod}: {msg}",
+		"json",
+		"jsonext"
+	])("should keep %s output plain without disabling another logger's colors", formatter => {
+		const colored = new ConsoleLogger({ colors: true, moduleColors: true });
+		colored.init(loggerFactory);
+		const coloredFormatter = colored.getFormatter(bindings);
+		const plain = new ConsoleLogger({ colors: false, formatter });
+		plain.init(loggerFactory);
+		const plainFormatter = plain.getFormatter(bindings);
+		const message = kleur.red("message");
+
+		const plainOutput = plainFormatter("info", [message, { value: 1 }]).join(" ");
+		expect(plainOutput).not.toContain("\u001b");
+		expect(plainOutput).not.toContain("\\u001b");
+		const coloredOutput = coloredFormatter("info", ["message", { value: 1 }]);
+		expect(coloredOutput[0]).toContain("\u001b");
+		expect(coloredOutput[4]).toContain("\u001b");
+		expect(kleur.enabled).toBe(true);
+	});
+
+	it.each(["json", "jsonext"])(
+		"should keep %s output plain with default color options",
+		formatter => {
+			const json = new ConsoleLogger({ formatter });
+			json.init(loggerFactory);
+			const jsonFormatter = json.getFormatter(bindings);
+			const colored = new ConsoleLogger({ colors: true });
+			colored.init(loggerFactory);
+			const coloredFormatter = colored.getFormatter(bindings);
+
+			const output = JSON.parse(
+				jsonFormatter("info", [kleur.red("message"), { value: 1 }])[0]
+			);
+			expect(output[formatter === "json" ? "msg" : "message"]).toBe("message { value: 1 }");
+			expect(coloredFormatter("info", ["message"])[0]).toContain("\u001b");
+			expect(kleur.enabled).toBe(true);
+		}
+	);
+});
