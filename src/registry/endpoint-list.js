@@ -68,7 +68,12 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	add(node, service, data) {
-		const found = this.endpoints.find(ep => ep.node == node && ep.service.name == service.name);
+		const found = this.endpoints.find(
+			ep =>
+				ep.node == node &&
+				ep.service.name == service.name &&
+				ep.service.fullName == service.fullName
+		);
 		if (found) {
 			found.update(data);
 			return found;
