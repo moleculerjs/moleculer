@@ -626,3 +626,49 @@ describe("Test EndpointList.setLocalEndpoints", () => {
 		expect(list.localEndpoints).toEqual([]);
 	});
 });
+
+describe("Test EndpointList service identities", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let node = { id: "server-1" };
+	let list;
+
+	beforeEach(() => {
+		list = new EndpointList(
+			broker.registry,
+			broker,
+			"eventName",
+			"sharedGroup",
+			ActionEndpoint,
+			Strategy
+		);
+		list.EndPointFactory = jest.fn((registry, broker, node, service, data) => ({
+			node,
+			service,
+			data,
+			local: false,
+			update: jest.fn()
+		}));
+	});
+
+	it("keeps distinct canonical versions on the same node", () => {
+		const services = [
+			{ name: "example", version: 1, fullName: "v1.example" },
+			{ name: "example", version: "1", fullName: "1.example" },
+			{ name: "example", fullName: "example" }
+		];
+		const endpoints = services.map(service => list.add(node, service, {}));
+		expect(list.endpoints).toEqual(endpoints);
+		expect(list.EndPointFactory).toHaveBeenCalledTimes(3);
+		for (const endpoint of endpoints) expect(endpoint.update).not.toHaveBeenCalled();
+	});
+
+	it("updates the existing canonical service without adding an endpoint", () => {
+		const service = { name: "example", version: 1, fullName: "v1.example" };
+		const endpoint = list.add(node, service, { value: "before" });
+		const changed = { value: "after" };
+		expect(list.add(node, { ...service }, changed)).toBe(endpoint);
+		expect(list.endpoints).toEqual([endpoint]);
+		expect(endpoint.update).toHaveBeenCalledWith(changed);
+		expect(list.EndPointFactory).toHaveBeenCalledTimes(1);
+	});
+});
