@@ -8,7 +8,6 @@ import utils from "./utils.js";
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
-import { globSync } from "glob";
 import { inspect } from "util";
 import _ from "lodash";
 import Args from "args";
@@ -409,7 +408,10 @@ export default class MoleculerRunner {
 						if (this.config.hotReload) {
 							this.watchFolders.push(svcPath);
 						}
-						files = globSync(svcPath + "/" + fileMask, { absolute: true });
+						files = fs
+							.globSync(svcPath + "/" + fileMask)
+							.map(file => (path.isAbsolute(file) ? file : path.join(svcPath, file)));
+
 						if (files.length === 0)
 							return this.broker.logger.warn(
 								kleur
@@ -422,7 +424,10 @@ export default class MoleculerRunner {
 						files = [svcPath.replace(/\\/g, "/") + ".service.js"];
 					} else {
 						// Load with glob
-						files = globSync(p, { cwd: svcDir, absolute: true });
+						files = fs
+							.globSync(p, { cwd: svcDir })
+							.map(file => (path.isAbsolute(file) ? file : path.join(svcDir, file)));
+
 						if (files.length === 0)
 							this.broker.logger.warn(
 								kleur.yellow().bold(`There is no matched file for pattern: '${p}'`)
