@@ -217,6 +217,9 @@ class ServiceBroker {
 			/** @type {Boolean} Broker stopping flag*/
 			this.stopping = false;
 
+			// REPL server instance, created by `repl()` and closed by `stop()`
+			this.replServer = null;
+
 			// Class factories
 			this.ServiceFactory = this.options.ServiceFactory || require("./service");
 			this.ContextFactory = this.options.ContextFactory || require("./context");
@@ -557,6 +560,23 @@ class ServiceBroker {
 		this.started = false;
 		return this.Promise.resolve()
 			.then(() => {
+				// Close the REPL server (if any), otherwise a stopped broker
+				// keeps executing console commands. It happens on a hot-reload
+				// broker restart (#1302): every restart creates a new REPL
+				// server while the previous ones stay alive, so every command
+				// is executed once per restart by the stale brokers.
+				if (this.replServer) {
+					const replServer = this.replServer;
+					this.replServer = null;
+					// `moleculer-repl` bridges the REPL "exit" event back to
+					// `broker.stop()`; remove it before closing to avoid
+					// re-entering `stop()` while it is already running.
+					if (utils.isFunction(replServer.removeAllListeners))
+						replServer.removeAllListeners("exit");
+					if (utils.isFunction(replServer.close)) replServer.close();
+				}
+			})
+			.then(() => {
 				if (this.transit) {
 					this.registry.regenerateLocalRawInfo(true, true);
 					// Send empty node info in order to block incoming requests
@@ -664,7 +684,9 @@ class ServiceBroker {
 		}
 
 		if (repl) {
-			return repl(this, this.options.replOptions);
+			// Keep a reference to the REPL server, so `stop()` can close it.
+			this.replServer = repl(this, this.options.replOptions);
+			return this.replServer;
 		}
 	}
 
