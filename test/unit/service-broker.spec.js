@@ -1016,6 +1016,32 @@ describe("Test broker.repl", () => {
 		expect(repl).toHaveBeenCalledTimes(1);
 		expect(repl).toHaveBeenCalledWith(broker, { customCommands: [] });
 	});
+	it("should close the REPL server when the broker stops", async () => {
+		repl.mockClear();
+		const fakeReplServer = {
+			close: jest.fn(),
+			removeAllListeners: jest.fn()
+		};
+		repl.mockImplementation(() => fakeReplServer);
+
+		let broker = new ServiceBroker({ logger: false });
+		broker.repl();
+
+		expect(broker.replServer).toBe(fakeReplServer);
+
+		await broker.stop();
+
+		expect(fakeReplServer.removeAllListeners).toHaveBeenCalledWith("exit");
+		expect(fakeReplServer.close).toHaveBeenCalledTimes(1);
+		expect(broker.replServer).toBeNull();
+
+		// A second stop must not close it again.
+		await broker.stop();
+		expect(fakeReplServer.close).toHaveBeenCalledTimes(1);
+
+		repl.mockImplementation(() => undefined);
+	});
+
 	it("should switch to repl mode with delimiter", () => {
 		repl.mockClear();
 		let broker = new ServiceBroker({
