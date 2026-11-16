@@ -480,14 +480,14 @@ declare class ServiceBroker {
 	): ActionEndpoint | MoleculerRetryableError;
 
 	call<TReturn>(actionName: string): Promise<TReturn>;
-	call<TReturn, TParams>(
+	call<TReturn, TParams = unknown>(
 		actionName: string,
 		params: TParams,
 		opts?: ServiceBroker.CallingOptions
 	): Promise<TReturn>;
 
 	callWithoutBalancer<TReturn>(actionName: string): Promise<TReturn>;
-	callWithoutBalancer<TReturn, TParams>(
+	callWithoutBalancer<TReturn, TParams = unknown>(
 		actionName: string,
 		params: TParams,
 		opts?: ServiceBroker.CallingOptions

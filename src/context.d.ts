@@ -98,7 +98,7 @@ declare class Context<
 	isEventEndpoint(ep: ActionEndpoint | EventEndpoint): ep is EventEndpoint;
 
 	call<TResult>(actionName: string): Promise<TResult>;
-	call<TResult, TParams>(
+	call<TResult, TParams = unknown>(
 		actionName: string,
 		params: TParams,
 		opts?: CallingOptions
